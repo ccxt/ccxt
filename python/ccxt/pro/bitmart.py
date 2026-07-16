@@ -188,7 +188,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         await self.authenticate(type, params)
@@ -303,7 +304,7 @@ class bitmart(ccxt.async_support.bitmart):
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
         https://developer-pro.bitmart.com/en/spot/#public-trade-channel
@@ -316,7 +317,7 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -331,7 +332,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         symbols, marketType, params = self.get_params_for_multiple_sub('watchTradesForSymbols', symbols, limit, params)
         channelName = 'trade'
@@ -347,7 +349,7 @@ class bitmart(ccxt.async_support.bitmart):
             return filtered
         return result
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches from the stream channel
 
@@ -358,7 +360,7 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
@@ -371,7 +373,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         symbols, marketType, params = self.get_params_for_multiple_sub('unWatchTradesForSymbols', symbols, None, params)
         channelName = 'trade'
@@ -399,7 +402,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -415,7 +419,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.get_market_from_symbols(symbols)
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchTickers', market, params)
@@ -426,7 +431,7 @@ class bitmart(ccxt.async_support.bitmart):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -437,7 +442,7 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
         """
@@ -450,7 +455,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.get_market_from_symbols(symbols)
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchTickers', market, params)
@@ -468,7 +474,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         if symbols is None:
             symbols = []
@@ -547,7 +554,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = 'orders'
         if symbol is not None:
@@ -590,7 +598,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = 'unsubscribe::orders'
         if symbol is not None:
@@ -863,7 +872,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = 'swap'
         await self.authenticate(type, params)
         symbols = self.market_symbols(symbols, 'swap', True, True, False)
@@ -895,7 +905,8 @@ class bitmart(ccxt.async_support.bitmart):
             length = len(symbols)
             if length > 0:
                 raise NotSupported(self.id + ' unWatchPositions() does not support a list of symbols, unWatch from all markets only')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'action': 'unsubscribe',
             'args': ['futures/position'],
@@ -1242,7 +1253,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         market = self.market(symbol)
         type = 'spot'
@@ -1271,7 +1283,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         market = self.market(symbol)
         type = 'spot'
@@ -1388,7 +1401,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param str [params.speed]: *futures only* '100ms' or '200ms'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth/increase100')
         symbol = self.symbol(symbol)
@@ -1412,7 +1426,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth/increase100')
         symbol = self.symbol(symbol)
@@ -1618,7 +1633,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param str [params.depth]: the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         symbols, type, params = self.get_params_for_multiple_sub('watchOrderBookForSymbols', symbols, limit, params)
         channel = None
@@ -1639,7 +1655,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param str [params.depth]: the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         symbols, type, params = self.get_params_for_multiple_sub('unWatchOrderBookForSymbols', symbols, None, params)
         channel = None
@@ -1659,7 +1676,8 @@ class bitmart(ccxt.async_support.bitmart):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         fundingRate = await self.watch_funding_rates([symbol], params)
         return fundingRate[symbol]
@@ -1676,7 +1694,8 @@ class bitmart(ccxt.async_support.bitmart):
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.get_market_from_symbols(symbols)
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchFundingRates', market, params)

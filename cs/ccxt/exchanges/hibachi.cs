@@ -52,15 +52,15 @@ public partial class hibachi : Exchange
                 { "editOrders", true },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
-                { "fetchCanceledOrders", false },
+                { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", false },
-                { "fetchClosedOrders", false },
+                { "fetchClosedOrders", true },
                 { "fetchConvertCurrencies", false },
                 { "fetchConvertQuote", false },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
-                { "fetchDepositsWithdrawals", false },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -73,6 +73,7 @@ public partial class hibachi : Exchange
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
+                { "fetchMySettlementHistory", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
@@ -602,7 +603,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -637,7 +641,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -673,6 +680,7 @@ public partial class hibachi : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
+        object uppercaseStatus = ((bool) isTrue((isEqual(status, null)))) ? null : ((string)status).ToUpper();
         object statuses = new Dictionary<string, object>() {
             { "PENDING", "open" },
             { "CHILD_PENDING", "open" },
@@ -681,9 +689,10 @@ public partial class hibachi : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
             { "CANCELLED", "canceled" },
+            { "PARTIAL_CANCELLED", "canceled" },
             { "REJECTED", "rejected" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, uppercaseStatus, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -692,7 +701,7 @@ public partial class hibachi : Exchange
         market = this.safeMarket(marketId, market);
         object status = this.safeString(order, "status");
         object type = this.safeStringLower(order, "orderType");
-        object price = this.safeString(order, "price");
+        object price = this.safeString2(order, "price", "avgFillPrice");
         object rawSide = this.safeString(order, "side");
         object side = null;
         if (isTrue(isEqual(rawSide, "BID")))
@@ -706,10 +715,15 @@ public partial class hibachi : Exchange
         object remaining = this.safeString(order, "availableQuantity");
         object totalQuantity = this.safeString(order, "totalQuantity");
         object availableQuantity = this.safeString(order, "availableQuantity");
-        object filled = null;
+        object filled = this.safeString(order, "filledQuantity");
         if (isTrue(isTrue(!isEqual(totalQuantity, null)) && isTrue(!isEqual(availableQuantity, null))))
         {
             filled = Precise.stringSub(totalQuantity, availableQuantity);
+        }
+        object remainingString = remaining;
+        if (isTrue(isTrue(isTrue(isEqual(remainingString, null)) && isTrue(!isEqual(totalQuantity, null))) && isTrue(!isEqual(filled, null))))
+        {
+            remainingString = Precise.stringSub(totalQuantity, filled);
         }
         object timeInForce = "GTC";
         object orderFlags = this.safeValue(order, "orderFlags");
@@ -726,24 +740,30 @@ public partial class hibachi : Exchange
         {
             reduceOnly = true;
         }
+        object timestamp = this.safeInteger(order, "createdAt");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeIntegerProduct(order, "creationTime", 1000);
+        }
+        object lastUpdateTimestamp = this.safeInteger(order, "closedAt");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", null },
-            { "datetime", null },
-            { "timestamp", null },
+            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", timestamp },
             { "lastTradeTimestamp", null },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "status", this.parseOrderStatus(status) },
             { "symbol", getValue(market, "symbol") },
             { "type", type },
             { "timeInForce", timeInForce },
             { "side", side },
             { "price", price },
-            { "average", null },
+            { "average", this.safeString(order, "avgFillPrice") },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", remainingString },
             { "cost", null },
             { "trades", null },
             { "fee", null },
@@ -766,7 +786,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -791,7 +814,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
@@ -939,7 +965,10 @@ public partial class hibachi : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object nonce = this.nonce();
         object request = this.createOrderRequest(nonce, symbol, type, side, amount, price, parameters);
         ((IDictionary<string,object>)request)["accountId"] = this.getAccountId();
@@ -967,7 +996,10 @@ public partial class hibachi : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object nonce = this.nonce();
         object requestOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -1040,7 +1072,10 @@ public partial class hibachi : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object nonce = this.nonce();
         object request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, parameters);
         ((IDictionary<string,object>)request)["accountId"] = this.getAccountId();
@@ -1067,7 +1102,10 @@ public partial class hibachi : Exchange
     public async override Task<object> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object nonce = this.nonce();
         object requestOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -1200,7 +1238,10 @@ public partial class hibachi : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object nonce = this.nonce();
         object nonce16 = this.intToBase16(nonce);
         object noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
@@ -1364,7 +1405,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1428,7 +1472,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1495,7 +1542,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1537,6 +1587,126 @@ public partial class hibachi : Exchange
     }
 
     /**
+     * @ignore
+     * @method
+     * @name hibachi#fetchOrdersByStatus
+     * @description fetch orders filtered by terminal status
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} status exchange specific terminal status
+     * @param {string} [symbol] unified market symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = null;
+        object request = new Dictionary<string, object>() {
+            { "accountId", this.getAccountId() },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(status, null)))
+        {
+            ((IDictionary<string,object>)request)["status"] = status;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+        }
+        object response = await this.privateGetTradeOrdersHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "hasMore": false,
+        //         "orders": [
+        //             {
+        //                 "accountId": 128,
+        //                 "avgFillPrice": "2900.000000",
+        //                 "closedAt": 1777811627000,
+        //                 "createdAt": 1777811620000,
+        //                 "filledQuantity": "1.200000000",
+        //                 "orderFlags": null,
+        //                 "orderId": "596002791293190100",
+        //                 "orderType": "MARKET",
+        //                 "parentOrderId": null,
+        //                 "price": null,
+        //                 "side": "BID",
+        //                 "sourceType": "regular",
+        //                 "status": "Filled",
+        //                 "symbol": "ETH/USDT-P",
+        //                 "totalQuantity": "1.200000000",
+        //                 "triggerDirection": null,
+        //                 "triggerPrice": null
+        //             }
+        //         ]
+        //     }
+        //
+        object orders = this.safeList(response, "orders", new List<object>() {});
+        object parsedOrders = this.parseOrders(orders, market);
+        return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of closed order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object orders = await this.fetchOrdersByStatus("filled", symbol, since, limit, parameters);
+        object filtered = this.filterBy(orders, "status", "closed");
+        return this.filterBySinceLimit(filtered, since, limit);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of canceled order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object orders = await this.fetchOrdersByStatus(null, symbol, since, limit, parameters);
+        object filtered = this.filterBy(orders, "status", "canceled");
+        return this.filterBySinceLimit(filtered, since, limit);
+    }
+
+    /**
      * @method
      * @name hibachi#fetchOHLCV
      * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
@@ -1553,7 +1723,10 @@ public partial class hibachi : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         timeframe = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
@@ -1602,7 +1775,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
@@ -1868,7 +2044,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency("USDT");
         object request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
@@ -2027,16 +2206,16 @@ public partial class hibachi : Exchange
 
     /**
      * @method
-     * @name hibachi#fetchDeposits
-     * @description fetch deposits made to account
+     * @name hibachi#fetchDepositsWithdrawals
+     * @description fetch deposit and withdrawal history for the account
      * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
      * @param {string} [code] unified currency code
-     * @param {int} [since] filter by earliest timestamp (ms)
-     * @param {int} [limit] maximum number of deposits to be returned
-     * @param {object} [params] extra parameters to be passed to API
+     * @param {int} [since] timestamp in ms of the earliest transaction
+     * @param {int} [limit] the maximum number of transactions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.safeCurrency(code);
@@ -2076,16 +2255,26 @@ public partial class hibachi : Exchange
         //     ]
         // }
         object transactions = this.safeList(response, "transactions", new List<object>() {});
-        object deposits = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
-        {
-            object transaction = getValue(transactions, i);
-            if (isTrue(isEqual(this.safeString(transaction, "transactionType"), "deposit")))
-            {
-                ((IList<object>)deposits).Add(transaction);
-            }
-        }
-        return this.parseTransactions(deposits, currency, since, limit, parameters);
+        return this.parseTransactions(transactions, currency, since, limit, parameters);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchDeposits
+     * @description fetch deposits made to account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object transactions = await this.fetchDepositsWithdrawals(code, since, null, parameters);
+        object deposits = this.filterBy(transactions, "type", "deposit");
+        return this.filterBySinceLimit(deposits, since, limit, "timestamp");
     }
 
     /**
@@ -2102,53 +2291,107 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currency = this.safeCurrency(code);
+        object transactions = await this.fetchDepositsWithdrawals(code, since, null, parameters);
+        object withdrawals = this.filterBy(transactions, "type", "withdrawal");
+        return this.filterBySinceLimit(withdrawals, since, limit, "timestamp");
+    }
+
+    public virtual object parseSettlement(object settlement, object market = null)
+    {
+        //
+        //     {
+        //         "direction": "Long",
+        //         "indexPrice": "81.8781761",
+        //         "quantity": "0.10000000",
+        //         "settledAmount": "0.00005994405060281047",
+        //         "symbol": "SOL/USDT-P",
+        //         "timestamp": 1783389600,
+        //         "timestampNsPartial": 0
+        //     }
+        //
+        object timestamp = this.safeTimestamp(settlement, "timestamp");
+        object marketId = this.safeString(settlement, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", settlement },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "price", this.safeNumber(settlement, "indexPrice") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
+    public virtual object parseSettlements(object settlements, object market = null)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user
+     * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms of the earliest settlement
+     * @param {int} [limit] the maximum number of settlements to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest settlement
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
+    public async virtual Task<object> fetchMySettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
         object request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
-        object response = await this.privateGetCapitalHistory(this.extend(request, parameters));
-        // {
-        //     "transactions": [
-        //         {
-        //             "assetId": 1,
-        //             "blockNumber": 0,
-        //             "chain": null,
-        //             "etaTsSec": 1752758789,
-        //             "id": 42688,
-        //             "quantity": "6.130000",
-        //             "status": "completed",
-        //             "timestampSec": 1752758788,
-        //             "token": null,
-        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-        //             "transactionType": "deposit"
-        //         },
-        //         {
-        //             "assetId": 1,
-        //             "etaTsSec": null,
-        //             "id": 12993,
-        //             "instantWithdrawalChain": null,
-        //             "instantWithdrawalToken": null,
-        //             "isInstantWithdrawal": false,
-        //             "quantity": "0.111930",
-        //             "status": "completed",
-        //             "timestampSec": 1752387891,
-        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-        //             "transactionType": "withdrawal",
-        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-        //         },
-        //     ]
-        // }
-        object transactions = this.safeList(response, "transactions", new List<object>() {});
-        object withdrawals = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        if (isTrue(!isEqual(symbol, null)))
         {
-            object transaction = getValue(transactions, i);
-            if (isTrue(isEqual(this.safeString(transaction, "transactionType"), "withdrawal")))
-            {
-                ((IList<object>)withdrawals).Add(transaction);
-            }
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["contractId"] = getValue(market, "numericId");
+            symbol = getValue(market, "symbol");
         }
-        return this.parseTransactions(withdrawals, currency, since, limit, parameters);
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = this.parseToInt(divide(until, 1000));
+        }
+        object response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "settlements": [
+        //             {
+        //                 "direction": "Long",
+        //                 "indexPrice": "81.8781761",
+        //                 "quantity": "0.10000000",
+        //                 "settledAmount": "0.00005994405060281047",
+        //                 "symbol": "SOL/USDT-P",
+        //                 "timestamp": 1783389600,
+        //                 "timestampNsPartial": 0
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "settlements", new List<object>() {});
+        object settlements = this.parseSettlements(data, market);
+        object sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     /**
@@ -2181,7 +2424,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2213,7 +2459,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2272,7 +2521,10 @@ public partial class hibachi : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },

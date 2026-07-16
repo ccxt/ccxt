@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (e *Exchange) base16ToBinary(str any) []byte {
+func (e *BaseExchange) base16ToBinary(str any) []byte {
 	hexStr := str.(string)
 	bytes, err := hex.DecodeString(hexStr)
 	if err != nil {
@@ -19,7 +19,7 @@ func (e *Exchange) base16ToBinary(str any) []byte {
 	return bytes
 }
 
-func (e *Exchange) Base16ToBinary(str any) []byte {
+func (e *BaseExchange) Base16ToBinary(str any) []byte {
 	return e.base16ToBinary(str)
 }
 
@@ -41,7 +41,7 @@ func convertHexStringToByteArray(hexString string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (e *Exchange) remove0xPrefix(str any) string {
+func (e *BaseExchange) remove0xPrefix(str any) string {
 	s := str.(string)
 	if strings.HasPrefix(s, "0x") {
 		return s[2:]
@@ -49,15 +49,15 @@ func (e *Exchange) remove0xPrefix(str any) string {
 	return s
 }
 
-func (e *Exchange) Remove0xPrefix(str any) string {
+func (e *BaseExchange) Remove0xPrefix(str any) string {
 	return e.remove0xPrefix(str)
 }
 
-func (e *Exchange) stringToBase64(pt any) string {
+func (e *BaseExchange) stringToBase64(pt any) string {
 	return stringToBase64(pt)
 }
 
-func (e *Exchange) StringToBase64(pt any) string {
+func (e *BaseExchange) StringToBase64(pt any) string {
 	return stringToBase64(pt)
 }
 
@@ -66,11 +66,11 @@ func stringToBase64(pt any) string {
 	return base64.StdEncoding.EncodeToString([]byte(plainText))
 }
 
-func (e *Exchange) base64ToBinary(pt any) []byte {
+func (e *BaseExchange) base64ToBinary(pt any) []byte {
 	return base64ToBinary(pt)
 }
 
-func (e *Exchange) Base64ToBinary(pt any) []byte {
+func (e *BaseExchange) Base64ToBinary(pt any) []byte {
 	return base64ToBinary(pt)
 }
 
@@ -99,7 +99,7 @@ var base58DecodeTable = func() [256]int {
 	return d
 }()
 
-func (e *Exchange) base58ToBinary(input string) ([]byte, error) {
+func (e *BaseExchange) base58ToBinary(input string) ([]byte, error) {
 	// there is no utf symbols in bitcoin alphabet
 	capacity := len(input)*733/1000 + 1 // log(58) / log(256)
 	output := make([]byte, capacity)
@@ -145,7 +145,7 @@ func (e *Exchange) base58ToBinary(input string) ([]byte, error) {
 }
 
 // An error can be returned, but that would not conform to the unified interface.
-func (e *Exchange) Base58ToBinary(pt any) []byte {
+func (e *BaseExchange) Base58ToBinary(pt any) []byte {
 	plainText := pt.(string)
 	// base58.Decode() only Bitcoin Aplhabet
 	b, err := e.base58ToBinary(plainText)
@@ -156,7 +156,7 @@ func (e *Exchange) Base58ToBinary(pt any) []byte {
 	return b
 }
 
-// func (e *Exchange) BinaryConcat(a, b any) []byte {
+// func (e *BaseExchange) BinaryConcat(a, b any) []byte {
 // 	var first, second []byte
 // 	if s, ok := a.(string); ok {
 // 		first = []byte(s)
@@ -171,7 +171,7 @@ func (e *Exchange) Base58ToBinary(pt any) []byte {
 // 	return append(first, second...)
 // }
 
-func (e *Exchange) BinaryConcat(parts ...any) []byte {
+func (e *BaseExchange) BinaryConcat(parts ...any) []byte {
 	var result []byte
 	for _, part := range parts {
 		switch v := part.(type) {
@@ -186,21 +186,21 @@ func (e *Exchange) BinaryConcat(parts ...any) []byte {
 	return result
 }
 
-func (e *Exchange) binaryConcatArray(a any) string {
+func (e *BaseExchange) binaryConcatArray(a any) string {
 	// return a.(string) // stub
 	return ""
 }
 
-func (e *Exchange) BinaryConcatArray(a any) string {
+func (e *BaseExchange) BinaryConcatArray(a any) string {
 	return e.binaryConcatArray(a)
 }
 
-func (e *Exchange) numberToBE(n, padding any) string {
+func (e *BaseExchange) numberToBE(n, padding any) string {
 	// return n.(string) // stub
 	return ""
 }
 
-func (e *Exchange) NumberToBE(n, padding any) string {
+func (e *BaseExchange) NumberToBE(n, padding any) string {
 	return e.numberToBE(n, padding)
 }
 
@@ -208,7 +208,7 @@ func BinaryToHex(buff []byte) string {
 	return strings.ToLower(hex.EncodeToString(buff))
 }
 
-func (e *Exchange) BinaryToBase16(buff2 any) string {
+func (e *BaseExchange) BinaryToBase16(buff2 any) string {
 	var buff []byte
 	switch value := buff2.(type) {
 	case string:
@@ -259,26 +259,26 @@ func binaryToBase58(input []byte) string {
 	return string(ret)
 }
 
-func (e *Exchange) BinaryToBase58(buff2 any) string {
+func (e *BaseExchange) BinaryToBase58(buff2 any) string {
 	buff := buff2.([]byte)
 	// base58.Encode() only Bitcoin Aplhabet
 	return binaryToBase58(buff)
 }
 
-func (e *Exchange) BinaryToBase64(buff2 any) string {
+func (e *BaseExchange) BinaryToBase64(buff2 any) string {
 	buff := buff2.([]byte)
 	return base64.StdEncoding.EncodeToString(buff)
 }
 
-func (e *Exchange) StringToBinary(buff string) []byte {
+func (e *BaseExchange) StringToBinary(buff string) []byte {
 	return []byte(buff)
 }
 
-func (e *Exchange) BinaryToString(buff any) string {
+func (e *BaseExchange) BinaryToString(buff any) string {
 	return string(buff.([]byte))
 }
 
-func (e *Exchange) Encode(data any) string {
+func (e *BaseExchange) Encode(data any) string {
 	return data.(string) // stub
 }
 
@@ -286,16 +286,16 @@ func Encode(data any) string {
 	return data.(string) // stub
 }
 
-func (e *Exchange) Decode(data any) string {
+func (e *BaseExchange) Decode(data any) string {
 	return data.(string) // stub
 }
 
-// func (e *Exchange) IntToBase16(number any) string {
+// func (e *BaseExchange) IntToBase16(number any) string {
 // 	n := number.(int64)
 // 	return fmt.Sprintf("%x", n)
 // }
 
-func (e *Exchange) IntToBase16(number any) string {
+func (e *BaseExchange) IntToBase16(number any) string {
 	switch v := number.(type) {
 	case int:
 		return fmt.Sprintf("%x", int64(v))
@@ -311,11 +311,11 @@ func (e *Exchange) IntToBase16(number any) string {
 }
 
 // This function requires implementation of a message packer
-func (e *Exchange) packb(data any) any {
+func (e *BaseExchange) packb(data any) any {
 	return nil
 }
 
-func (e *Exchange) Rawencode(params ...any) string {
+func (e *BaseExchange) Rawencode(params ...any) string {
 	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
@@ -341,26 +341,31 @@ func (e *Exchange) Rawencode(params ...any) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 any) string {
+func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
+	encodeValue := func(value any) string {
+		if IsNumber(value) {
+			return url.QueryEscape(NumberToString(value))
+		}
+		if boolVal, ok := value.(bool); ok {
+			return strings.ToLower(fmt.Sprintf("%v", boolVal))
+		}
+		return url.QueryEscape(ToString(value))
+	}
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]any); ok {
 			for _, item := range values {
-				outList = append(outList, fmt.Sprintf("%s=%v", key, item))
+				outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(item)))
 			}
 		} else {
-			if IsNumber(value) {
-				value = NumberToString(value)
-			}
-			value = strings.ReplaceAll(value.(string), ",", "%2C")
-			outList = append(outList, fmt.Sprintf("%s=%v", key, value))
+			outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(value)))
 		}
 	}
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) UrlencodeNested(parameters2 any) string {
+func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	var outList []string
 
 	// Define recursive function
@@ -432,7 +437,7 @@ func (e *Exchange) UrlencodeNested(parameters2 any) string {
 }
 
 // without sorting
-// func (e *Exchange) Urlencode(params ...any) string {
+// func (e *BaseExchange) Urlencode(params ...any) string {
 // 	parameters := params[0].(map[string]any)
 // 	sort := GetArg(params, 1, false).(bool)
 // 	var queryString []string
@@ -457,7 +462,7 @@ func (e *Exchange) UrlencodeNested(parameters2 any) string {
 // 	return strings.Join(queryString, "&")
 // }
 
-func (e *Exchange) Urlencode(params ...any) string {
+func (e *BaseExchange) Urlencode(params ...any) string {
 	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 
@@ -495,7 +500,7 @@ func (e *Exchange) Urlencode(params ...any) string {
 	return strings.Join(queryString, "&")
 }
 
-func (e *Exchange) EncodeURIComponent(str any) string {
+func (e *BaseExchange) EncodeURIComponent(str any) string {
 	s := str.(string)
 	var result bytes.Buffer
 	unreserved := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~"
@@ -509,7 +514,7 @@ func (e *Exchange) EncodeURIComponent(str any) string {
 	return result.String()
 }
 
-func (e *Exchange) UrlencodeBase64(s any) string {
+func (e *BaseExchange) UrlencodeBase64(s any) string {
 	return Base64urlencode(s)
 }
 
@@ -523,7 +528,7 @@ func Base64urlencode(s any) string {
 	return strings.TrimRight(strings.ReplaceAll(strings.ReplaceAll(str, "+", "-"), "/", "_"), "=")
 }
 
-func (e *Exchange) stringToCharsArray(str any) any {
+func (e *BaseExchange) stringToCharsArray(str any) any {
 	// Convert the input to a string
 	inputStr := fmt.Sprintf("%v", str)
 	// Create a slice to hold the result

@@ -141,7 +141,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str[] [symbols]: unified CCXT symbol(s)
         :param dict [params]: extra parameters specific to the hitbtc api
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         isBatch = name.find('batch') >= 0
         url = self.urls['api']['ws']['public']
@@ -166,7 +167,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [symbol]: unified CCXT symbol
         :param dict [params]: extra parameters specific to the hitbtc api
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         splitName = name.split('_subscribe')
@@ -186,7 +188,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str name: websocket endpoint name
         :param dict [params]: extra parameters specific to the hitbtc api
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
@@ -325,7 +328,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str params['speed']: '1s'(default), or '3s'
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker/{speed}/batch')
@@ -474,7 +478,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [params.speed]: '100ms'(default) or '500ms' or '1000ms'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         options = self.safe_value(self.options, 'watchBidsAsks')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/top/{speed}/batch')
@@ -552,7 +557,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'params': {
@@ -784,7 +790,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         market = None
         if symbol is not None:
@@ -1016,7 +1023,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [params.mode]: 'updates' or 'batches'(default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         name = self.get_supported_mapping(type, {
@@ -1052,7 +1060,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", "Day", "GTD"
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         marketType = None
@@ -1083,7 +1092,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param bool [params.margin]: True for canceling a margin order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         request = {
             'client_order_id': id,
@@ -1114,7 +1124,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param bool [params.margin]: True for canceling margin orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1145,7 +1156,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param bool [params.margin]: True for fetching open margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         request = {}
         if symbol is not None:

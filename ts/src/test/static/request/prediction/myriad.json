@@ -1,0 +1,123 @@
+{
+    "exchange": "myriad",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for an outcome",
+                "method": "fetchTicker",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with two outcomes of the same market",
+                "method": "fetchTickers",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    [
+                        "POLYMARKET_KALSHI:POLYMARKET",
+                        "POLYMARKET_KALSHI:KALSHI"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for an amm market",
+                "method": "fetchOrderBook",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://api-v2.myriadprotocol.com/markets/549/events?network_id=2741&limit=5",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "url": "https://api-v2.myriadprotocol.com/markets/449?network_id=2741",
+                "input": [
+                    "FEAR_GREED:FEAR",
+                    "1d"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder gasless order-book limit buy (EIP-712 signed, posted to /orders)",
+                "method": "createOrder",
+                "url": "https://api-v2.myriadprotocol.com/orders",
+                "input": [
+                    "WORLDCUP_GROUP_D_OB:YES",
+                    "limit",
+                    "buy",
+                    2,
+                    0.5,
+                    {
+                        "timeInForce": "GTC",
+                        "nonce": "1700000000000"
+                    }
+                ],
+                "output": "{\"order\":{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"marketId\":\"730\",\"outcomeId\":0,\"side\":0,\"amount\":\"2000000000000000000\",\"price\":\"500000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1700000000000\",\"expiration\":\"0\"},\"signature\":\"0xdb503f38a9ea6b940e59f95bc8255057cd1788bf47fb7021f3c5d982d456e36b48e8165867f1e4ccb0f1d09d6852700bc1a26a5973a35bffde5e3142fc586baa1c\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders signs an EIP-712 CancelAll struct scoped to one market (gasless)",
+                "method": "cancelAllOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders/cancel-all",
+                "input": [
+                    "WORLDCUP_GROUP_D_OB:YES",
+                    {
+                        "timestamp": "1700000000"
+                    }
+                ],
+                "output": "{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"market_id\":730,\"timestamp\":\"1700000000\",\"signature\":\"0x00fe5baed61bbf8ba65f58d06121152ed5c22c2432f4fe57f44dbf860d11e2163845bd0a46442f82965f5bb0712d7cc84c652b34cf32338bc92decfa9ebeb7451b\",\"network_id\":56}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders for a wallet scoped to one market (market/limit are applied client-side, only trader is sent)",
+                "method": "fetchOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
+                "input": [
+                    "WORLDCUP_GROUP_D_OB:YES",
+                    null,
+                    10
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by tags maps each tag to a server-side keyword search",
+                "method": "fetchEvents",
+                "url": "https://api-v2.myriadprotocol.com/markets?keyword=bitcoin&state=open&limit=50",
+                "input": [
+                    {
+                        "tags": [
+                            "bitcoin"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

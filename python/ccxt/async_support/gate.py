@@ -1375,13 +1375,14 @@ class gate(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "id": "ETH_USDT",
-        #             "base": "ETH",
-        #             "quote": "USDT",
-        #             "leverage": 3,
-        #             "min_base_amount": "0.01",
-        #             "min_quote_amount": "100",
-        #             "max_quote_amount": "1000000"
+        #             "id":"HOODON_USDT",
+        #             "base":"HOODON",
+        #             "quote":"USDT",
+        #             "leverage":10,
+        #             "min_base_amount":"0.01",
+        #             "min_quote_amount":"1",
+        #             "max_quote_amount":"5000",
+        #             "status":1
         #         }
         #     ]
         #
@@ -1398,10 +1399,12 @@ class gate(Exchange, ImplicitAPI):
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
+            marginStatus = self.safe_integer(market, 'status', 1)  # 0 disabled, 1 enabled
             leverage = self.safe_number(market, 'leverage')
             margin = leverage is not None
             buyStart = self.safe_integer_product(spotMarket, 'buy_start', 1000)  # buy_start is the trading start time, while sell_start is offline orders start time
             createdTs = buyStart if (buyStart != 0) else None
+            active = (tradeStatus == 'tradable') or (margin and (marginStatus == 1))
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1417,11 +1420,11 @@ class gate(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (tradeStatus == 'tradable'),
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                # Fee is in %, so divide by 100
+                # fee is in %, so divide by 100
                 'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                 'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                 'contractSize': None,
@@ -1492,46 +1495,60 @@ class gate(Exchange, ImplicitAPI):
         #
         #  Perpetual swap
         #
-        #    {
-        #        "name": "BTC_USDT",
-        #        "type": "direct",
-        #        "quanto_multiplier": "0.0001",
-        #        "ref_discount_rate": "0",
-        #        "order_price_deviate": "0.5",
-        #        "maintenance_rate": "0.005",
-        #        "mark_type": "index",
-        #        "last_price": "38026",
-        #        "mark_price": "37985.6",
-        #        "index_price": "37954.92",
-        #        "funding_rate_indicative": "0.000219",
-        #        "mark_price_round": "0.01",
-        #        "funding_offset": 0,
-        #        "in_delisting": False,
-        #        "risk_limit_base": "1000000",
-        #        "interest_rate": "0.0003",
-        #        "order_price_round": "0.1",
-        #        "order_size_min": 1,
-        #        "ref_rebate_rate": "0.2",
-        #        "funding_interval": 28800,
-        #        "risk_limit_step": "1000000",
-        #        "leverage_min": "1",
-        #        "leverage_max": "100",
-        #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",  # not actual value for regular users
-        #        "taker_fee_rate": "0.00075",  # not actual value for regular users
-        #        "funding_rate": "0.002053",
-        #        "order_size_max": 1000000,
-        #        "funding_next_apply": 1610035200,
-        #        "short_users": 977,
-        #        "config_change_time": 1609899548,
-        #        "create_time": 1609800048,
-        #        "trade_size": 28530850594,
-        #        "position_size": 5223816,
-        #        "long_users": 455,
-        #        "funding_impact_value": "60000",
-        #        "orders_limit": 50,
-        #        "trade_id": 10851092,
-        #        "orderbook_id": 2129638396
+        #     {
+        #         "funding_rate_indicative":"-0.003216",
+        #         "mark_price_round":"0.0001",
+        #         "funding_offset":0,
+        #         "in_delisting":false,
+        #         "risk_limit_base":"5000",
+        #         "interest_rate":"0.0003",
+        #         "index_price":"0.2077",
+        #         "order_price_round":"0.0001",
+        #         "order_size_min":1,
+        #         "enable_decimal":false,
+        #         "ref_rebate_rate":"0.2",
+        #         "name":"0G_USDT",
+        #         "ref_discount_rate":"0",
+        #         "order_price_deviate":"0.15",
+        #         "maintenance_rate":"0.01",
+        #         "mark_type":"index",
+        #         "funding_interval":28800,
+        #         "type":"direct",
+        #         "risk_limit_step":"2495000",
+        #         "enable_bonus":true,
+        #         "enable_credit":true,
+        #         "leverage_min":"1",
+        #         "funding_rate":"-0.003216",
+        #         "last_price":"0.2048",
+        #         "mark_price":"0.2048",
+        #         "order_size_max":450000,
+        #         "funding_next_apply":1784131200,
+        #         "short_users":157,
+        #         "config_change_time":1782119113,
+        #         "create_time":1758124392,
+        #         "trade_size":767606392,
+        #         "position_size":783779,
+        #         "long_users":191,
+        #         "quanto_multiplier":"1",
+        #         "funding_impact_value":"7000",
+        #         "leverage_max":"50",
+        #         "cross_leverage_default":"10",
+        #         "risk_limit_max":"2500000",
+        #         "maker_fee_rate":"-0.0001",  # not actual value for regular users
+        #         "taker_fee_rate":"0.00075",  # not actual value for regular users
+        #         "orders_limit":100,
+        #         "trade_id":10376084,
+        #         "orderbook_id":1203922859,
+        #         "funding_cap_ratio":"1",
+        #         "voucher_leverage":"0",
+        #         "is_pre_market":false,
+        #         "status":"trading",  # or "suspend"
+        #         "launch_time":1758124392,
+        #         "enable_circuit_breaker":false,
+        #         "funding_rate_limit":"0.02",
+        #         "market_order_slip_ratio":"0.04",
+        #         "market_order_size_max":"300000",
+        #         "contract_type":""
         #    }
         #
         #  Delivery Futures
@@ -1605,6 +1622,7 @@ class gate(Exchange, ImplicitAPI):
         # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
         if contractSize == '0':
             contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        status = self.safe_string(market, 'status', 'trading')  # or "suspend"
         return {
             'id': id,
             'symbol': symbol,
@@ -1620,7 +1638,7 @@ class gate(Exchange, ImplicitAPI):
             'swap': marketType == 'swap',
             'future': marketType == 'future',
             'option': marketType == 'option',
-            'active': True,
+            'active': status == 'trading',
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
@@ -2010,7 +2028,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
@@ -2072,7 +2091,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
@@ -2210,7 +2230,8 @@ class gate(Exchange, ImplicitAPI):
         return self.safe_string(intervals, interval, interval)
 
     async def fetch_network_deposit_address(self, code: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],  # todo: currencies have network-junctions
@@ -2256,7 +2277,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -2279,7 +2301,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.network]: unified network code(not used directly by gate.com but used by ccxt to filter the response)
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         chainsIndexedById = await self.fetch_deposit_addresses_by_network(code, params)
@@ -2317,7 +2340,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency_pair': market['id'],
@@ -2348,7 +2372,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateWalletGetFee(params)
         #
         #    {
@@ -2415,7 +2440,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateWalletGetWithdrawStatus(params)
         #
         #    {
@@ -2469,7 +2495,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateWalletGetWithdrawStatus(params)
         #
         #    [
@@ -2555,7 +2582,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # defaultType = 'future'
         market = None
         if symbol is not None:
@@ -2636,7 +2664,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         #
         #     request = {
@@ -2752,7 +2781,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
         response: dict
@@ -2905,7 +2935,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         first = self.safe_string(symbols, 0)
         market = None
@@ -2959,7 +2990,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unifiedAccount]: default False, set to True for fetching the unified account balance
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, 'symbol')
@@ -3243,7 +3275,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
@@ -3293,7 +3326,8 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         # separated option logic because the from, to and limit parameters weren't functioning
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         request, params = self.prepare_request(market, None, params)
@@ -3317,7 +3351,8 @@ class gate(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -3418,7 +3453,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
@@ -3525,7 +3561,8 @@ class gate(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         #
         #      [
         #          {
@@ -3574,7 +3611,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
@@ -3855,7 +3893,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -3889,7 +3928,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -3924,7 +3964,8 @@ class gate(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],  # todo: currencies have network-junctions
@@ -4120,7 +4161,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict|None: `An order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = self.market(symbol)
         trigger = self.safe_value(params, 'trigger')
@@ -4257,7 +4299,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         ordersRequests = self.create_orders_request(orders, params)
         firstOrder = orders[0]
@@ -4496,7 +4539,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for creating a unified account order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = self.market(symbol)
         if not market['spot']:
@@ -4554,7 +4598,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for editing an order in a unified account
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = self.market(symbol)
         extendedRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
@@ -4986,7 +5031,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for fetching a unified account order
         :returns: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         result = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -5057,7 +5103,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for fetching unified account orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         until = self.safe_integer(params, 'until')
         market = None
@@ -5115,7 +5162,8 @@ class gate(Exchange, ImplicitAPI):
         return [request, finalParams]
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = None
         if symbol is not None:
@@ -5326,7 +5374,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         trigger = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
@@ -5450,7 +5499,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = None
         if symbol is not None:
@@ -5493,7 +5543,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         ordersRequests = []
         for i in range(0, len(orders)):
@@ -5536,7 +5587,8 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -5607,7 +5659,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.symbol]: Unified market symbol *required for type == margin*
         :returns: A `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         fromId = self.convert_type_to_account(fromAccount)
         toId = self.convert_type_to_account(toAccount)
@@ -5689,7 +5742,8 @@ class gate(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 0) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
@@ -5890,7 +5944,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchPosition() supports contract markets only')
@@ -5976,7 +6031,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.type]: swap, future or option, if not provided self.options['defaultType'] is used
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is not None:
@@ -6075,7 +6131,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
@@ -6192,7 +6249,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
         request, requestParams = self.prepare_request(market, type, query)
@@ -6290,7 +6348,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.id]: '34267567' loan id, extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'].upper(),  # todo: currencies have network-junctions
@@ -6319,7 +6378,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unifiedAccount]: set to True for repaying in the unified account
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         currency = self.currency(code)
         request = {
@@ -6367,7 +6427,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.rate]: '0.0002' or '0.002' extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'].upper(),  # todo: currencies have network-junctions
@@ -6411,7 +6472,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unifiedAccount]: default True(set to False to use deprecated privateMarginPostCrossLoans method)
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         currency = self.currency(code)
         request = {
@@ -6512,7 +6574,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unifiedAccount]: set to True for fetching borrow interest in the unified account
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_unified_status()
         isUnifiedAccount = False
         isUnifiedAccount, params = self.handle_option_and_params(params, 'fetchBorrowInterest', 'unifiedAccount')
@@ -6646,7 +6709,8 @@ class gate(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def modify_margin_helper(self, symbol: str, amount, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
         request['change'] = self.number_to_string(amount)
@@ -6745,7 +6809,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
@@ -6829,7 +6894,8 @@ class gate(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
@@ -6874,7 +6940,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific params
         :returns dict[]: a list of [settlement history objects]
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -7043,7 +7110,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -7283,7 +7351,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
         :returns dict[]: a list of `underlying assets <https://docs.ccxt.com/?id=underlying-assets-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchUnderlyingAssets', None, params)
         if (marketType is None) or (marketType == 'spot'):
@@ -7321,7 +7390,8 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest liquidation
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise NotSupported(self.id + ' fetchLiquidations() supports swap markets only')
@@ -7365,7 +7435,8 @@ class gate(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'contract': market['id'],
@@ -7511,7 +7582,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'underlying': market['info']['underlying'],
@@ -7625,7 +7697,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unified]: default False, set to True for fetching the unified accounts leverage
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             # unified account does not require a symbol
@@ -7727,7 +7800,8 @@ class gate(Exchange, ImplicitAPI):
         :param boolean [params.unified]: default False, set to True for fetching unified account leverages
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response: List
         isUnified = self.safe_bool(params, 'unified')
@@ -7785,7 +7859,8 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'contract': market['id'],
@@ -7845,7 +7920,8 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.expiration]: unix timestamp of the expiration time
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'underlying': currency['code'] + '_USDT',  # todo: currency['id'].upper() &  network junctions
@@ -7978,7 +8054,8 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.pnl]: query profit or loss
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbols is not None:
             symbolsLength = len(symbols)

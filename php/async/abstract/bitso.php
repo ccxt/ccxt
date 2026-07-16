@@ -10,6 +10,9 @@ abstract class bitso extends \ccxt\async\Exchange {
     public function public_get_available_books($params = array()) {
         return $this->request('available_books', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_catalogues($params = array()) {
+        return $this->request('catalogues', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
@@ -126,6 +129,9 @@ abstract class bitso extends \ccxt\async\Exchange {
     }
     public function publicGetAvailableBooks($params = array()) {
         return $this->request('available_books', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetCatalogues($params = array()) {
+        return $this->request('catalogues', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());

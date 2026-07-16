@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.64'
+__version__ = '4.5.66'
 
 # ----------------------------------------------------------------------------
 
@@ -84,7 +84,6 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
-from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
@@ -191,7 +190,6 @@ from ccxt.zaif import zaif                                            # noqa: F4
 from ccxt.zebpay import zebpay                                        # noqa: F401
 
 exchanges = [
-    'aftermath',
     'alpaca',
     'apex',
     'aster',

@@ -11,6 +11,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class blofin extends \ccxt\async\blofin {
     public function describe(): mixed {
@@ -112,7 +116,9 @@ class blofin extends \ccxt\async\blofin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trades = Async\await($this->watch_multiple_wrapper(true, 'trades', 'watchTradesForSymbols', $symbols, $params));
             if ($this->newUpdates) {
                 $firstMarket = $this->safe_dict($trades, 0);
@@ -193,7 +199,9 @@ class blofin extends \ccxt\async\blofin {
              * @param {string} [$params->depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $callerMethodName = null;
             list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
             $channelName = null;
@@ -338,14 +346,16 @@ class blofin extends \ccxt\async\blofin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $symbolsList = $symbols;
             $firstMarket = $this->market($symbolsList[0]);
             $channel = 'tickers';
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['public']);
+            $url = ($this->urls['api'])['ws'][$marketType]['public'];
             $messageHashes = array();
             $args = array();
             for ($i = 0; $i < count($symbolsList); $i++) {
@@ -429,7 +439,9 @@ class blofin extends \ccxt\async\blofin {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper(true, 'candle', 'watchOHLCVForSymbols', $symbolsAndTimeframes, $params));
             if ($this->newUpdates) {
                 $limit = $candles->getLimit($symbol, $limit);
@@ -488,7 +500,9 @@ class blofin extends \ccxt\async\blofin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -500,7 +514,7 @@ class blofin extends \ccxt\async\blofin {
                 'channel' => 'account',
             );
             $request = $this->get_subscription_request(array( $sub ));
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['private']);
+            $url = ($this->urls['api'])['ws'][$marketType]['private'];
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }
@@ -564,7 +578,9 @@ class blofin extends \ccxt\async\blofin {
              * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
              */
             Async\await($this->authenticate());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $channel = $trigger ? 'orders-algo' : 'orders';
@@ -624,7 +640,9 @@ class blofin extends \ccxt\async\blofin {
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->authenticate());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $newPositions = Async\await($this->watch_multiple_wrapper(false, 'positions', 'watchPositions', $symbols, $params));
             if ($this->newUpdates) {
                 return $newPositions;
@@ -674,7 +692,9 @@ class blofin extends \ccxt\async\blofin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchFundingRate', $market, $params);
@@ -684,7 +704,7 @@ class blofin extends \ccxt\async\blofin {
                 'instId' => $market['id'],
             );
             $request = $this->get_subscription_request(array( $requestParams ));
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['public']);
+            $url = ($this->urls['api'])['ws'][$marketType]['public'];
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }
@@ -717,7 +737,9 @@ class blofin extends \ccxt\async\blofin {
     public function watch_multiple_wrapper(bool $isPublic, string $channelName, string $callerMethodName, mixed $symbolsArray = null, $params = array()) {
         return Async\async(function () use ($isPublic, $channelName, $callerMethodName, $symbolsArray, $params) {
             // underlier method for all watch-multiple $symbols
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
             // if OHLCV method are being called, then $symbols would be symbolsAndTimeframes (multi-dimensional) array
             $isOHLCV = ($channelName === 'candle');
@@ -770,7 +792,7 @@ class blofin extends \ccxt\async\blofin {
             }
             $request = $this->get_subscription_request($rawSubscriptions);
             $privateOrPublic = $isPublic ? 'public' : 'private';
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType][$privateOrPublic]);
+            $url = ($this->urls['api'])['ws'][$marketType][$privateOrPublic];
             return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         })();
     }
@@ -858,7 +880,7 @@ class blofin extends \ccxt\async\blofin {
                 ),
             );
             $marketType = 'swap'; // for now
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['private']);
+            $url = ($this->urls['api'])['ws'][$marketType]['private'];
             Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }

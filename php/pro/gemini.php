@@ -11,6 +11,9 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class gemini extends \ccxt\async\gemini {
     public function describe(): mixed {
@@ -53,7 +56,9 @@ class gemini extends \ccxt\async\gemini {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'trades:' . $market['symbol'];
             $marketId = $market['id'];
@@ -284,7 +289,9 @@ class gemini extends \ccxt\async\gemini {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
@@ -377,7 +384,9 @@ class gemini extends \ccxt\async\gemini {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
             $marketId = $market['id'];
@@ -400,6 +409,7 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function handle_order_book(Client $client, $message) {
+        $isInitial = (is_array($message) && array_key_exists('auction_events', $message)) && (is_array($message) && array_key_exists('trades', $message)) && (is_array($message) && array_key_exists('changes', $message));
         $changes = $this->safe_value($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
@@ -407,6 +417,12 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'orderbook:' . $symbol;
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
+        } elseif ($isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                unset($this->orderbooks[$symbol]);
+            }
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -442,18 +458,16 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches best bid & ask for $symbols
-             *
-             * @see https://docs.gemini.com/websocket-api/#multi-market-data
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
-        })();
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params);
     }
 
     public function handle_bids_asks_for_multidata(Client $client, $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
@@ -522,7 +536,9 @@ class gemini extends \ccxt\async\gemini {
 
     public function helper_for_watch_multiple_construct(string $itemHashName, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($itemHashName, $symbols, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols === null) {
                 throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
             }
@@ -657,7 +673,9 @@ class gemini extends \ccxt\async\gemini {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $authParams = array(
                 'url' => $url,
             );

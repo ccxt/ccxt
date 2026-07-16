@@ -12,6 +12,9 @@ use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitfinex extends \ccxt\async\bitfinex {
     public function describe(): mixed {
@@ -53,7 +56,9 @@ class bitfinex extends \ccxt\async\bitfinex {
 
     public function subscribe($channel, $symbol, $params = array()) {
         return Async\async(function () use ($channel, $symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $url = $this->urls['api']['ws']['public'];
@@ -82,7 +87,9 @@ class bitfinex extends \ccxt\async\bitfinex {
 
     public function un_subscribe($channel, $topic, $symbol, $params = array()) {
         return Async\async(function () use ($channel, $topic, $symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $url = $this->urls['api']['ws']['public'];
@@ -110,7 +117,9 @@ class bitfinex extends \ccxt\async\bitfinex {
 
     public function subscribe_private($messageHash) {
         return Async\async(function () use ($messageHash) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
             return Async\await($this->watch($url, $messageHash, null, 1));
@@ -128,7 +137,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -159,7 +170,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {bool} true if successfully unsubscribed, false otherwise
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -288,16 +301,14 @@ class bitfinex extends \ccxt\async\bitfinex {
         })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches the list of most recent trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->un_subscribe('trades', 'trades', $symbol, $params));
-        })();
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->un_subscribe('trades', 'trades', $symbol, $params);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -310,7 +321,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrade';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -325,27 +338,23 @@ class bitfinex extends \ccxt\async\bitfinex {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->subscribe('ticker', $symbol, $params));
-        })();
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->subscribe('ticker', $symbol, $params);
     }
 
-    public function un_watch_ticker(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_subscribe('ticker', 'ticker', $symbol, $params));
-        })();
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_subscribe('ticker', 'ticker', $symbol, $params);
     }
 
     public function handle_my_trade(Client $client, $message, $subscription = array()) {
@@ -816,7 +825,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
             $params = $this->omit($params, 'wallet');
             $messageHash = 'balance:' . $balanceType;
@@ -1072,7 +1083,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);

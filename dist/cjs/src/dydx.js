@@ -10,7 +10,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class dydx
@@ -2434,7 +2434,7 @@ class dydx extends dydx$1["default"] {
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][section]);
+        let url = this.urls['api'][section];
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         url += '/' + pathWithParams;

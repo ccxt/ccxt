@@ -4,21 +4,24 @@ namespace ccxt\pro;
 
 class ArrayCacheBySymbolById extends ArrayCache {
     public $hashmap;
+    public $key_field;
     private $index;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
         $this->nested_new_updates_by_symbol = true;
+        $this->key_field = 'symbol'; // first nesting level (overridden by ArrayCacheByOutcomeById)
         $this->hashmap = array();
         $this->index = array();
     }
 
     public function append($item) {
-        if (array_key_exists($item['symbol'], $this->hashmap)) {
-            $by_id = &$this->hashmap[$item['symbol']];
+        $key = $item[$this->key_field];
+        if (array_key_exists($key, $this->hashmap)) {
+            $by_id = &$this->hashmap[$key];
         } else {
             $by_id = array();
-            $this->hashmap[$item['symbol']] = &$by_id;
+            $this->hashmap[$key] = &$by_id;
         }
         if (array_key_exists($item['id'], $by_id)) {
             $prev_ref = &$by_id[$item['id']];
@@ -33,7 +36,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
             if (count($this->deque) === $this->max_size) {
                 $delete_item = array_shift($this->deque);
                 array_shift($this->index);
-                unset($this->hashmap[$delete_item['symbol']][$delete_item['id']]);
+                unset($this->hashmap[$delete_item[$this->key_field]][$delete_item['id']]);
             }
         }
         # this allows us to effectively pass by reference
@@ -45,14 +48,14 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $this->all_new_updates = 0;
             $this->new_updates_by_symbol = array();
         }
-        if (!array_key_exists($item['symbol'], $this->new_updates_by_symbol)) {
-            $this->new_updates_by_symbol[$item['symbol']] = array();
+        if (!array_key_exists($key, $this->new_updates_by_symbol)) {
+            $this->new_updates_by_symbol[$key] = array();
         }
-        if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
-            $this->clear_updates_by_symbol[$item['symbol']] = false;
-            $this->new_updates_by_symbol[$item['symbol']] = array();
+        if ($this->clear_updates_by_symbol[$key] ?? false) {
+            $this->clear_updates_by_symbol[$key] = false;
+            $this->new_updates_by_symbol[$key] = array();
         }
-        $id_set = &$this->new_updates_by_symbol[$item['symbol']];
+        $id_set = &$this->new_updates_by_symbol[$key];
         $before_length = count($id_set);
         $id_set[$item['id']] = 1;
         $after_length = count($id_set);

@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitopro extends \ccxt\async\bitopro {
     public function describe(): mixed {
@@ -73,7 +75,9 @@ class bitopro extends \ccxt\async\bitopro {
                     throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ORDER_BOOK' . ':' . $symbol;
@@ -138,7 +142,9 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'TRADE' . ':' . $symbol;
@@ -203,7 +209,9 @@ class bitopro extends \ccxt\async\bitopro {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'USER_TRADE';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -347,7 +355,9 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'TICKER' . ':' . $symbol;
@@ -434,7 +444,9 @@ class bitopro extends \ccxt\async\bitopro {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $this->check_required_credentials();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'ACCOUNT_BALANCE';
             $url = $this->urls['ws']['private'] . '/' . 'account-balance';
             $this->authenticate($url);

@@ -9,7 +9,7 @@ using System.IO.Compression;
 using System.Net;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public class WebSocketClient
     {

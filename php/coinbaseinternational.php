@@ -377,7 +377,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v1PrivateGetPortfolios($params);
         //
         //    array(
@@ -438,7 +440,9 @@ class coinbaseinternational extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
@@ -515,7 +519,9 @@ class coinbaseinternational extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         $maxEntriesPerRequest = null;
@@ -603,7 +609,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'FUNDING',
         );
@@ -682,7 +690,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'INTERNAL',
         );
@@ -775,7 +785,9 @@ class coinbaseinternational extends Exchange {
          * @param {string} [$params->network] unified network $code to identify the blockchain network
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         $portfolio = null;
@@ -951,7 +963,9 @@ class coinbaseinternational extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = null;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
         $maxEntriesPerRequest = null;
@@ -1023,7 +1037,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbol = $this->symbol($symbol);
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchPosition', $params);
@@ -1111,7 +1127,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchPositions', $params);
         $request = array(
@@ -1160,7 +1178,9 @@ class coinbaseinternational extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params['type'] = 'WITHDRAW';
         return $this->fetch_deposits_withdrawals($code, $since, $limit, $params);
     }
@@ -1179,7 +1199,9 @@ class coinbaseinternational extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params['type'] = 'DEPOSIT';
         return $this->fetch_deposits_withdrawals($code, $since, $limit, $params);
     }
@@ -1530,7 +1552,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $instruments = $this->v1PublicGetInstruments($params);
         $tickers = array();
@@ -1554,7 +1578,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument' => $this->market_id($symbol),
@@ -1618,7 +1644,9 @@ class coinbaseinternational extends Exchange {
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchBalance', $params);
         $request = array(
@@ -1689,7 +1717,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -1733,7 +1763,9 @@ class coinbaseinternational extends Exchange {
          * @param {string} [$params->stp_mode] Possible values => [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $typeId = strtoupper($type);
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
@@ -1907,7 +1939,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('cancelOrder', $params);
         $request = array(
@@ -1952,7 +1986,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('cancelAllOrders', $params);
         $request = array(
@@ -1983,7 +2019,9 @@ class coinbaseinternational extends Exchange {
          * @param {string} $params->clientOrderId client $order $id
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'id' => $id,
@@ -2023,7 +2061,9 @@ class coinbaseinternational extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2078,7 +2118,9 @@ class coinbaseinternational extends Exchange {
          * @param {string} [$params->event_type] The most recent type of event that happened to the order. Allowed values => NEW, TRADE, REPLACED
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchOpenOrders', $params);
         $paginate = false;
@@ -2162,7 +2204,9 @@ class coinbaseinternational extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         $pageKey = 'ccxtPageKey';
@@ -2189,7 +2233,7 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['time_from'] = $this->iso8601($since);
         }
-        $until = $this->safe_string_n($params, array( 'until' ));
+        $until = $this->safe_string($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);
@@ -2258,7 +2302,9 @@ class coinbaseinternational extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $portfolio = null;
         list($portfolio, $params) = $this->handle_portfolio_and_params('withdraw', $params);

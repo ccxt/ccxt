@@ -1243,7 +1243,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1283,7 +1285,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1327,7 +1331,9 @@ class hashkey extends Exchange {
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $methodName = 'fetchMyTrades';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1488,7 +1494,7 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
+        $isMaker = $this->safe_bool_2($trade, 'isMaker', 'isMarker');
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
@@ -1545,7 +1551,9 @@ class hashkey extends Exchange {
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $methodName = 'fetchOHLCV';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, $methodName, 'paginate');
         if ($paginate) {
@@ -1622,7 +1630,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1658,7 +1668,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetQuoteV1Ticker24hr($params);
         return $this->parse_tickers($response, $symbols);
@@ -1719,7 +1731,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->symbol] the id of the market to fetch last price for
          * @return {array} a dictionary of lastprices structures
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         $response = $this->publicGetQuoteV1TickerPrice($this->extend($request, $params));
@@ -1759,7 +1773,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the market to fetch $balance for (default 'spot')
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $methodName = 'fetchBalance';
         $marketType = 'spot';
@@ -1874,7 +1890,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->network] network for fetch deposit address (default is 'ETH')
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -1946,7 +1964,9 @@ class hashkey extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $methodName = 'fetchDeposits';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -1996,7 +2016,9 @@ class hashkey extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $methodName = 'fetchWithdrawals';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -2056,7 +2078,9 @@ class hashkey extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -2208,7 +2232,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->remark] a note for the transfer
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -2258,7 +2284,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetApiV1AccountType($params);
         //
         //     array(
@@ -2346,7 +2374,9 @@ class hashkey extends Exchange {
         if ($until === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires an $until argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array();
         $request['startTime'] = $since;
@@ -2471,7 +2501,9 @@ class hashkey extends Exchange {
          * @param {float} [$params->triggerPrice] *swap markets only* The $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['spot']) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
@@ -2490,7 +2522,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
@@ -2525,7 +2559,9 @@ class hashkey extends Exchange {
         if ($triggerPrice !== null) {
             throw new NotSupported($this->id . ' trigger orders are not supported for spot markets');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $isMarketBuy = ($type === 'market') && ($side === 'buy');
         $cost = $this->safe_string($params, 'cost');
@@ -2762,7 +2798,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->clientOrderId] a unique id for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostApiV1FuturesOrder($this->extend($request, $params));
@@ -2801,7 +2839,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -2922,7 +2962,9 @@ class hashkey extends Exchange {
          */
         $methodName = 'cancelOrder';
         $this->check_type_param($methodName, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -3011,7 +3053,9 @@ class hashkey extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3053,7 +3097,9 @@ class hashkey extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         $methodName = 'cancelOrders';
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $orderIds = implode(',', $ids);
         $request['ids'] = $orderIds;
@@ -3101,7 +3147,9 @@ class hashkey extends Exchange {
          */
         $methodName = 'fetchOrder';
         $this->check_type_param($methodName, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = null;
         list($clientOrderId, $params) = $this->handle_param_string($params, 'clientOrderId');
@@ -3209,7 +3257,9 @@ class hashkey extends Exchange {
          */
         $methodName = 'fetchOpenOrders';
         $this->check_type_param($methodName, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -3243,7 +3293,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->accountId] account id to fetch the orders from
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $methodName = 'fetchOpenSpotOrders';
         list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
         $market = null;
@@ -3411,7 +3463,9 @@ class hashkey extends Exchange {
          */
         $methodName = 'fetchCanceledAndClosedOrders';
         $this->check_type_param($methodName, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -3770,7 +3824,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$rate-structure funding $rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3796,7 +3852,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'timestamp' => $this->milliseconds(),
@@ -3859,7 +3917,9 @@ class hashkey extends Exchange {
          * @param {int} [$params->endId] the id of the $entry to end with
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
@@ -3919,7 +3979,9 @@ class hashkey extends Exchange {
                 throw new NotSupported($this->id . ' ' . $methodName . '() is supported for a symbol argument with one single market symbol only');
             }
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         return $this->fetch_positions_for_symbol($symbols[0], $this->extend(array( 'methodName' => 'fetchPositions' ), $params));
     }
 
@@ -3935,7 +3997,9 @@ class hashkey extends Exchange {
          * @param {string} [$params->side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $methodName = 'fetchPosition';
         list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
@@ -4016,7 +4080,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$leverage-structure $leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4061,7 +4127,9 @@ class hashkey extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'leverage' => $leverage,
         );
@@ -4092,7 +4160,9 @@ class hashkey extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $marginMode = strtoupper($marginMode);
         if ($marginMode === 'CROSSED') {
             $marginMode = 'CROSS';
@@ -4142,7 +4212,9 @@ class hashkey extends Exchange {
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
@@ -4210,7 +4282,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetApiV1ExchangeInfo($params);
         // $response is the same fetchMarkets()
         $data = $this->safe_list($response, 'contracts', array());
@@ -4328,7 +4402,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $methodName = 'fetchTradingFee';
         $response = null;
@@ -4360,7 +4436,9 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetApiV1AccountVipInfo($params);
         //
         //     {

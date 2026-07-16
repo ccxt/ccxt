@@ -1,6 +1,6 @@
 Every endpoint in `kraken`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/kraken) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `zendeskGet360000292886`); the snake_case alias (`zendesk_get_360000292886`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`ZendeskGet360000292886`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `zendeskGet360000292886`); the snake_case alias (`zendesk_get_360000292886`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`ZendeskGet360000292886`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,7 +53,7 @@ response := <-kraken.ZendeskGet360000292886(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/rest/)
+📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/api-reference/)
 
 > 61 implicit endpoints across 3 access groups.
 
@@ -79,7 +79,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTicker` | GET | `Ticker` | 1 |
 | `publicGetOHLC` | GET | `OHLC` | 1.2 |
 | `publicGetDepth` | GET | `Depth` | 1.2 |
-| `publicGetLevel3` | GET | `Level3` | 1.2 |
 | `publicGetGroupedBook` | GET | `GroupedBook` | 1.2 |
 | `publicGetTrades` | GET | `Trades` | 1.2 |
 | `publicGetSpread` | GET | `Spread` | 1 |
@@ -92,6 +91,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
+| `privatePostLevel3` | POST | `Level3` | 1.2 |
 | `privatePostBalance` | POST | `Balance` | 3 |
 | `privatePostBalanceEx` | POST | `BalanceEx` | 3 |
 | `privatePostCreditLines` | POST | `CreditLines` | 3 |

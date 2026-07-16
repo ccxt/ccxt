@@ -10,7 +10,7 @@ var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class grvt
@@ -2189,7 +2189,7 @@ class grvt extends grvt$1["default"] {
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
                 const limitDecLengthStr = limitDecLength.toString();
-                const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                const powerNum = (limitDecLengthStr === '0') ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 const priceInteger = (this.convertToBigIntCustom(price.replace('.', '')) * this.convertToBigIntCustom(priceMultiplier) / (Math.pow(bigInt10, powerNum)));
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
             }

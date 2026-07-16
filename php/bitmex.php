@@ -281,8 +281,10 @@ class bitmex extends Exchange {
             'options' => array(
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires' => 5, // in seconds
-                'fetchOHLCVOpenTimestamp' => true,
+                'recvWindow' => 5000,
+                'fetchOHLCV' => array(
+                    'useOpenTimestamp' => true,
+                ),
                 'oldPrecision' => false,
                 'networks' => array(
                     'BTC' => 'btc',
@@ -990,7 +992,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'currency' => 'all',
         );
@@ -1056,7 +1060,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=$order-book-structure $order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1129,7 +1135,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -1213,7 +1221,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -1425,7 +1435,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // 'start' => 123,
         );
@@ -1478,7 +1490,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'currency' => 'all',
             // 'start' => 123,
@@ -1598,7 +1612,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1621,7 +1637,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetInstrumentActiveAndIndices($params);
         // same $response "fetchMarkets"
@@ -1713,7 +1731,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
         if ($paginate) {
@@ -1745,11 +1765,12 @@ class bitmex extends Exchange {
             $request['endTime'] = $this->iso8601($until);
         }
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
+        $useOpenTimestamp = null;
+        list($useOpenTimestamp, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $timestamp = $since;
-            if ($fetchOHLCVOpenTimestamp) {
+            if ($useOpenTimestamp) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
             $startTime = $this->iso8601($timestamp);
@@ -1766,7 +1787,7 @@ class bitmex extends Exchange {
         //     )
         //
         $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        if ($fetchOHLCVOpenTimestamp) {
+        if ($useOpenTimestamp) {
             // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open $timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
@@ -2031,7 +2052,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -2104,7 +2127,9 @@ class bitmex extends Exchange {
          * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $orderType = $this->capitalize($type);
         $capitalizeOrderType = $orderType;
@@ -2191,7 +2216,9 @@ class bitmex extends Exchange {
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
         $isTrailingAmountOrder = $trailingAmount !== null;
@@ -2258,7 +2285,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
         $request = array();
@@ -2291,7 +2320,9 @@ class bitmex extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         // return $this->cancel_order($ids, $symbol, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
         $request = array();
@@ -2315,7 +2346,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2375,7 +2408,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
@@ -2399,7 +2434,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $leverages = $this->fetch_positions($symbols, $params);
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
@@ -2425,7 +2462,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetPosition($params);
         //
         //     array(
@@ -2690,7 +2729,9 @@ class bitmex extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $qty = $this->convert_from_real_amount($code, $amount);
         $networkCode = null;
@@ -2737,7 +2778,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetInstrumentActiveAndIndices($params);
         // same $response "fetchMarkets"
         $filteredResponse = array();
@@ -2799,7 +2842,9 @@ class bitmex extends Exchange {
          * @param {string} [$params->filter] generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
@@ -2885,7 +2930,9 @@ class bitmex extends Exchange {
         if (($leverage < 0.01) || ($leverage > 100)) {
             throw new BadRequest($this->id . ' $leverage should be between 0.01 and 100');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['type'] !== 'swap' && $market['type'] !== 'future') {
             throw new BadSymbol($this->id . ' setLeverage() supports future and swap contracts only');
@@ -2915,7 +2962,9 @@ class bitmex extends Exchange {
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
             throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (($market['type'] !== 'swap') && ($market['type'] !== 'future')) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap and future contracts only');
@@ -2939,7 +2988,9 @@ class bitmex extends Exchange {
          * @param {string} [$params->network] deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
@@ -3039,7 +3090,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $assets = $this->publicGetWalletAssets($params);
         //
         //    array(
@@ -3083,7 +3136,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = null;
         $response = $this->publicGetStats($this->extend($request, $params));
@@ -3166,7 +3221,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
         if ($paginate) {
@@ -3233,7 +3290,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $response = $this->privateGetPosition($params);
         //
@@ -3504,7 +3563,9 @@ class bitmex extends Exchange {
          * @param {boolean} [$params->reverse] if true, will sort results newest first, default value = false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // $symbol string Instrument $symbol-> Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
             // filter string Generic table filter. Send JSON key/value pairs, such as array("key" => "value"). You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value => array()
@@ -3587,7 +3648,9 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3665,7 +3728,8 @@ class bitmex extends Exchange {
         if ($api === 'private' || ($api === 'public' && $isAuthenticated)) {
             $this->check_required_credentials();
             $auth = $method . $query;
-            $expires = $this->safe_integer($this->options, 'api-expires');
+            $apiExpires = $this->safe_integer($this->options, 'api-expires'); // backwards compatibility
+            $expires = $this->safe_integer_product($this->options, 'recvWindow', 0.001, $apiExpires);
             $headers = array(
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,

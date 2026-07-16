@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestBorrowRate extends BaseTest {
-    public static void testBorrowRate(Exchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
+    public static void testBorrowRate(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
     {
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );

@@ -6,7 +6,7 @@ var blockchaincom$1 = require('../blockchaincom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class blockchaincom extends blockchaincom$1["default"] {
     describe() {

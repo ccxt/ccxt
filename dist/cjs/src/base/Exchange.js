@@ -55,6 +55,11 @@ const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy
 // ecdsa,
 arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
+//
+const dynamicImport = async (moduleName) => await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(/* webpackIgnore: true */ moduleName);
+//
+// ----------------------------------------------------------------------------
+//
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
 let AuthInfo = undefined;
@@ -71,9 +76,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 /**
  * @class Exchange
  */
-class Exchange {
+class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.64'; }
+    static { this.ccxtVersion = '4.5.65'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -479,17 +484,17 @@ class Exchange {
                 // fetchImplementation and ws connections) and are optional user-installed packages
                 try {
                     // @ts-ignore
-                    this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
+                    this.httpProxyAgentModule = await dynamicImport('http-proxy-agent');
                     // @ts-ignore
-                    this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
+                    this.httpsProxyAgentModule = await dynamicImport('https-proxy-agent');
                 }
                 catch (e) {
-                    // optional modules, setProxyAgents raises NotSupported with install instructions when they are actually needed
+                    //  when they are actually needed (in setProxyAgents) 'NotSupported' exception with install instructions is already raised
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
-                        this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
+                        this.socksProxyAgentModule = await dynamicImport('socks-proxy-agent');
                     }
                     catch (e) {
                         // optional module, setProxyAgents raises NotSupported with install instructions when it is actually needed
@@ -677,7 +682,7 @@ class Exchange {
                     this.fetchDispatcher = new undiciModule.Agent(this.getDispatcherOptions(true));
                     // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
                     // node:http for the reason phrases that undici.request responses do not carry
-                    this.zlibModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); });
+                    this.zlibModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ 'node:zlib'); });
                     const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
                     this.httpStatusTexts = httpModule.STATUS_CODES;
                     this.fetchIsNative = true;
@@ -1604,37 +1609,6 @@ class Exchange {
         // [REST]
         if (cleanInstanceCache) {
             this.cleanRestData();
-        }
-    }
-    async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
-        if (!(symbol in this.orderbooks)) {
-            client.reject(new errors.ExchangeError(this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
-            return;
-        }
-        const maxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
-        let tries = 0;
-        try {
-            const stored = this.orderbooks[symbol];
-            while (tries < maxRetries) {
-                const cache = stored.cache;
-                const orderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
-                const index = this.getCacheIndex(orderBook, cache);
-                if (index >= 0) {
-                    stored.reset(orderBook);
-                    this.handleDeltas(stored, cache.slice(index));
-                    stored.cache.length = 0;
-                    client.resolve(stored, messageHash);
-                    return;
-                }
-                tries++;
-            }
-            client.reject(new errors.ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
-            delete this.clients[client.url];
-            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
-        }
-        catch (e) {
-            client.reject(e, messageHash);
-            await this.loadOrderBook(client, messageHash, symbol, limit, params);
         }
     }
     convertToBigInt(value) {
@@ -2910,7 +2884,9 @@ class Exchange {
             result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const entryFiledEqualValue = entry[field] === value;
+                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // KeyError in python/php — prediction structures key on outcome, not symbol
+                const entryFiledEqualValue = this.safeValue(entry, field) === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue(entry, key);
                 const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);
@@ -2989,12 +2965,6 @@ class Exchange {
     async fetchAccounts(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchAccounts() is not supported yet');
     }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchTrades() is not supported yet');
-    }
-    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchTradesWs() is not supported yet');
-    }
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchLiquidationsForSymbols']) {
             return await this.watchLiquidationsForSymbols([symbol], since, limit, params);
@@ -3013,35 +2983,20 @@ class Exchange {
     async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
     }
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
-    }
     async unWatchOrders(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchOrders() is not supported yet');
     }
     async unWatchTrades(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchTrades() is not supported yet');
     }
-    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
-    }
     async unWatchTradesForSymbols(symbols, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchTradesForSymbols() is not supported yet');
-    }
-    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
-    }
-    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
     }
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
     async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchOHLCVForSymbols() is not supported yet');
-    }
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
     async unWatchOrderBookForSymbols(symbols, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchOrderBookForSymbols() is not supported yet');
@@ -3061,12 +3016,6 @@ class Exchange {
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
-    }
-    async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrderBookWs() is not supported yet');
-    }
     async fetchMarginMode(symbol, params = {}) {
         if (this.has['fetchMarginModes']) {
             const marginModes = await this.fetchMarginModes([symbol], params);
@@ -3078,24 +3027,6 @@ class Exchange {
     }
     async fetchMarginModes(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMarginModes () is not supported yet');
-    }
-    async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
-        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
-        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
-            try {
-                const orderBook = await this.fetchOrderBook(symbol, limit, params);
-                return orderBook;
-            }
-            catch (e) {
-                if ((i + 1) === fetchSnapshotMaxRetries) {
-                    throw e;
-                }
-            }
-        }
-        return undefined;
-    }
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
     }
     async unWatchOrderBook(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchOrderBook() is not supported yet');
@@ -3274,15 +3205,6 @@ class Exchange {
     }
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
-    }
-    async fetchOpenInterest(symbol, params = {}) {
-        if (this.has['fetchOpenInterests']) {
-            const openInterests = await this.fetchOpenInterests([symbol], params);
-            return this.safeDict(openInterests, symbol);
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
-        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -4304,7 +4226,7 @@ class Exchange {
             }
         }
         results = this.sortBy(results, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker = 'taker', feeRate = undefined, params = {}) {
@@ -4940,25 +4862,21 @@ class Exchange {
         }
         return result;
     }
-    async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
-        const orderbook = await this.fetchOrderBook(symbol, limit, params);
-        return this.extend(orderbook, {
-            'asks': this.sortBy(this.aggregate(orderbook['asks']), 0),
-            'bids': this.sortBy(this.aggregate(orderbook['bids']), 0, true),
-        });
-    }
-    filterBySymbol(objects, symbol = undefined) {
-        if (symbol === undefined) {
+    filterByKey(objects, key, value = undefined) {
+        if (value === undefined) {
             return objects;
         }
         const result = [];
         for (let i = 0; i < objects.length; i++) {
-            const objectSymbol = this.safeString(objects[i], 'symbol');
-            if (objectSymbol === symbol) {
+            const objectValue = this.safeString(objects[i], key);
+            if (objectValue === value) {
                 result.push(objects[i]);
             }
         }
         return result;
+    }
+    filterBySymbol(objects, symbol = undefined) {
+        return this.filterByKey(objects, 'symbol', symbol);
     }
     parseOHLCV(ohlcv, market = undefined) {
         if (Array.isArray(ohlcv)) {
@@ -5327,7 +5245,7 @@ class Exchange {
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5680,76 +5598,6 @@ class Exchange {
     parseTradingViewOHLCV(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const result = this.convertTradingViewToOHLCV(ohlcvs);
         return this.parseOHLCVs(result, market, timeframe, since, limit);
-    }
-    async editLimitBuyOrder(id, symbol, amount, price = undefined, params = {}) {
-        return await this.editLimitOrder(id, symbol, 'buy', amount, price, params);
-    }
-    async editLimitSellOrder(id, symbol, amount, price = undefined, params = {}) {
-        return await this.editLimitOrder(id, symbol, 'sell', amount, price, params);
-    }
-    async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
-        return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
-    }
-    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.cancelOrder(id, symbol);
-        return await this.createOrder(symbol, type, side, amount, price, params);
-    }
-    async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
-        return await this.editOrder('', symbol, type, side, amount, price, extendedParams);
-    }
-    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.cancelOrderWs(id, symbol);
-        return await this.createOrderWs(symbol, type, side, amount, price, params);
-    }
-    async fetchPosition(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
-    }
-    async fetchPositionWs(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPositionWs() is not supported yet');
-    }
-    async watchPosition(symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
-    }
-    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
-    }
-    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.watchPositions(symbols, since, limit, params);
-    }
-    async fetchPositionsForSymbol(symbol, params = {}) {
-        /**
-         * @method
-         * @name exchange#fetchPositionsForSymbol
-         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
-    }
-    async fetchPositionsForSymbolWs(symbol, params = {}) {
-        /**
-         * @method
-         * @name exchange#fetchPositionsForSymbol
-         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
-    }
-    async fetchPositions(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
-    }
-    async fetchPositionsWs(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
-    }
-    async fetchPositionsRisk(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPositionsRisk() is not supported yet');
-    }
-    async fetchBidsAsks(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBorrowInterest() is not supported yet');
@@ -6104,123 +5952,20 @@ class Exchange {
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         return this.safeValue(config, 'cost', 1);
     }
-    async fetchTicker(symbol, params = {}) {
-        if (this.has['fetchTickers']) {
-            await this.loadMarkets();
-            const market = this.market(symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchTickers([symbol], params);
-            const ticker = this.safeDict(tickers, symbol);
-            if (ticker === undefined) {
-                throw new errors.NullResponse(this.id + ' fetchTickers() could not find a ticker for ' + symbol);
-            }
-            else {
-                return ticker;
-            }
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
-        }
-    }
-    async fetchMarkPrice(symbol, params = {}) {
-        if (this.has['fetchMarkPrices']) {
-            await this.loadMarkets();
-            const market = this.market(symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchMarkPrices([symbol], params);
-            const ticker = this.safeDict(tickers, symbol);
-            if (ticker === undefined) {
-                throw new errors.NullResponse(this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
-            }
-            else {
-                return ticker;
-            }
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
-        }
-    }
-    async fetchTickerWs(symbol, params = {}) {
-        if (this.has['fetchTickersWs']) {
-            await this.loadMarkets();
-            const market = this.market(symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchTickersWs([symbol], params);
-            const ticker = this.safeDict(tickers, symbol);
-            if (ticker === undefined) {
-                throw new errors.NullResponse(this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
-            }
-            else {
-                return ticker;
-            }
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchTickerWs() is not supported yet');
-        }
-    }
-    async watchTicker(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
-    }
-    async fetchTickers(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
-    }
     async fetchSpotTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchSpotTickers() is not supported yet');
     }
     async fetchContractTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchContractTickers() is not supported yet');
     }
-    async fetchMarkPrices(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
-    }
-    async fetchTickersWs(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchTickersWs() is not supported yet');
-    }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
-    }
-    async watchBidsAsks(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchBidsAsks() is not supported yet');
-    }
-    async watchTickers(symbols = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
     }
     async unWatchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
     async unWatchFundingRate(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchFundingRate() is not supported yet');
-    }
-    async fetchOrder(id, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
-    }
-    /**
-     * @method
-     * @name fetchOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
-        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
-        return await this.fetchOrder('', symbol, extendedParams);
-    }
-    async fetchOrderWs(id, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrderWs() is not supported yet');
-    }
-    async fetchOrderStatus(id, symbol = undefined, params = {}) {
-        // TODO: TypeScript: change method signature by replacing
-        // Promise<string> with Promise<Order['status']>.
-        const order = await this.fetchOrder(id, symbol, params);
-        return order['status'];
-    }
-    async fetchUnifiedOrder(order, params = {}) {
-        return await this.fetchOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
-    }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
     async createTwapOrder(symbol, side, amount, duration, params = {}) {
         throw new errors.NotSupported(this.id + ' createTwapOrder() is not supported yet');
@@ -6260,343 +6005,6 @@ class Exchange {
         else {
             throw new errors.NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
         }
-    }
-    async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTrailingAmountOrder
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingAmount the quote amount to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (trailingAmount === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
-        }
-        params['trailingAmount'] = trailingAmount;
-        if (trailingTriggerPrice !== undefined) {
-            params['trailingTriggerPrice'] = trailingTriggerPrice;
-        }
-        if (this.has['createTrailingAmountOrder']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
-    }
-    async createTrailingAmountOrderWs(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTrailingAmountOrderWs
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingAmount the quote amount to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (trailingAmount === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
-        }
-        params['trailingAmount'] = trailingAmount;
-        if (trailingTriggerPrice !== undefined) {
-            params['trailingTriggerPrice'] = trailingTriggerPrice;
-        }
-        if (this.has['createTrailingAmountOrderWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTrailingAmountOrderWs() is not supported yet');
-    }
-    async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTrailingPercentOrder
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingPercent the percent to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (trailingPercent === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
-        }
-        params['trailingPercent'] = trailingPercent;
-        if (trailingTriggerPrice !== undefined) {
-            params['trailingTriggerPrice'] = trailingTriggerPrice;
-        }
-        if (this.has['createTrailingPercentOrder']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
-    }
-    async createTrailingPercentOrderWs(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTrailingPercentOrderWs
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingPercent the percent to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (trailingPercent === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
-        }
-        params['trailingPercent'] = trailingPercent;
-        if (trailingTriggerPrice !== undefined) {
-            params['trailingTriggerPrice'] = trailingTriggerPrice;
-        }
-        if (this.has['createTrailingPercentOrderWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTrailingPercentOrderWs() is not supported yet');
-    }
-    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        /**
-         * @method
-         * @name createMarketOrderWithCost
-         * @description create a market order by providing the symbol, side and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
-            return await this.createOrder(symbol, 'market', side, cost, 1, params);
-        }
-        throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() is not supported yet');
-    }
-    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        /**
-         * @method
-         * @name createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
-            return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
-        }
-        throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');
-    }
-    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        /**
-         * @method
-         * @name createMarketSellOrderWithCost
-         * @description create a market sell order by providing the symbol and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
-            return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
-        }
-        throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');
-    }
-    async createMarketOrderWithCostWs(symbol, side, cost, params = {}) {
-        /**
-         * @method
-         * @name createMarketOrderWithCostWs
-         * @description create a market order by providing the symbol, side and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
-            return await this.createOrderWs(symbol, 'market', side, cost, 1, params);
-        }
-        throw new errors.NotSupported(this.id + ' createMarketOrderWithCostWs() is not supported yet');
-    }
-    async createTriggerOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTriggerOrder
-         * @description create a trigger stop order (type 1)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (triggerPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
-        }
-        params = this.extend(params, { 'triggerPrice': triggerPrice });
-        if (this.has['createTriggerOrder']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTriggerOrder() is not supported yet');
-    }
-    async createTriggerOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTriggerOrderWs
-         * @description create a trigger stop order (type 1)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (triggerPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
-        }
-        params = this.extend(params, { 'triggerPrice': triggerPrice });
-        if (this.has['createTriggerOrderWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTriggerOrderWs() is not supported yet');
-    }
-    async createStopLossOrder(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createStopLossOrder
-         * @description create a trigger stop loss order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (stopLossPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
-        }
-        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
-        if (this.has['createStopLossOrder']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createStopLossOrder() is not supported yet');
-    }
-    async createStopLossOrderWs(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createStopLossOrderWs
-         * @description create a trigger stop loss order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (stopLossPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
-        }
-        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
-        if (this.has['createStopLossOrderWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createStopLossOrderWs() is not supported yet');
-    }
-    async createTakeProfitOrder(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTakeProfitOrder
-         * @description create a trigger take profit order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (takeProfitPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
-        }
-        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
-        if (this.has['createTakeProfitOrder']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTakeProfitOrder() is not supported yet');
-    }
-    async createTakeProfitOrderWs(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
-        /**
-         * @method
-         * @name createTakeProfitOrderWs
-         * @description create a trigger take profit order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if (takeProfitPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
-        }
-        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
-        if (this.has['createTakeProfitOrderWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createTakeProfitOrderWs() is not supported yet');
-    }
-    async createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
-        /**
-         * @method
-         * @name createOrderWithTakeProfitAndStopLoss
-         * @description create an order with a stop loss or take profit attached (type 3)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} [takeProfit] the take profit price, in units of the quote currency
-         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
-        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
-            return await this.createOrder(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
     }
     setTakeProfitAndStopLossParams(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
@@ -6647,96 +6055,17 @@ class Exchange {
         params = this.omit(params, ['takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount']);
         return params;
     }
-    async createOrderWithTakeProfitAndStopLossWs(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
-        /**
-         * @method
-         * @name createOrderWithTakeProfitAndStopLossWs
-         * @description create an order with a stop loss or take profit attached (type 3)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} [takeProfit] the take profit price, in units of the quote currency
-         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
-        if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
-            return await this.createOrderWs(symbol, type, side, amount, price, params);
-        }
-        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
-    }
-    async createOrders(orders, params = {}) {
-        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
-    }
     async createSpotOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createSpotOrders() is not supported yet');
     }
     async createContractOrders(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' createContractOrders() is not supported yet');
     }
-    async editOrders(orders, params = {}) {
-        throw new errors.NotSupported(this.id + ' editOrders() is not supported yet');
-    }
-    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
-    }
-    async cancelOrder(id, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelOrder() is not supported yet');
-    }
     async cancelSpotOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelSpotOrder() is not supported yet');
     }
     async cancelContractOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelContractOrder() is not supported yet');
-    }
-    /**
-     * @method
-     * @name cancelOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async cancelOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
-        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
-        return await this.cancelOrder('', symbol, extendedParams);
-    }
-    async cancelOrderWs(id, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelOrderWs() is not supported yet');
-    }
-    async cancelOrders(ids, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelOrders() is not supported yet');
-    }
-    /**
-     * @method
-     * @name cancelOrdersWithClientOrderIds
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string[]} clientOrderIds client order Ids
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async cancelOrdersWithClientOrderIds(clientOrderIds, symbol = undefined, params = {}) {
-        const extendedParams = this.extend(params, { 'clientOrderIds': clientOrderIds });
-        return await this.cancelOrders([], symbol, extendedParams);
-    }
-    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
-    }
-    async cancelAllOrders(symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelAllSpotOrders(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllSpotOrders() is not supported yet');
@@ -6750,75 +6079,11 @@ class Exchange {
     async cancelOrdersForSymbols(orders, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrdersForSymbols() is not supported yet');
     }
-    async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
-    }
-    async cancelUnifiedOrder(order, params = {}) {
-        return this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
-    }
-    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOpenOrders'] && this.has['fetchClosedOrders']) {
-            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
-        }
-        throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
-    }
-    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
-    }
-    async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
-    }
-    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
-    }
-    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrders']) {
-            const orders = await this.fetchOrders(symbol, since, limit, params);
-            return this.filterBy(orders, 'status', 'open');
-        }
-        throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
-    }
-    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrdersWs']) {
-            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
-            return this.filterBy(orders, 'status', 'open');
-        }
-        throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
-    }
-    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrders']) {
-            const orders = await this.fetchOrders(symbol, since, limit, params);
-            return this.filterBy(orders, 'status', 'closed');
-        }
-        throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
-    }
-    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
-    }
-    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
-    }
-    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrdersWs']) {
-            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
-            return this.filterBy(orders, 'status', 'closed');
-        }
-        throw new errors.NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
-    }
-    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
-    }
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyLiquidations() is not supported yet');
     }
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLiquidations() is not supported yet');
-    }
-    async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
-    }
-    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
     async fetchGreeks(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchGreeks() is not supported yet');
@@ -6865,15 +6130,6 @@ class Exchange {
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
-    }
-    async closePosition(symbol, side = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' closePosition() is not supported yet');
-    }
-    async closeAllPositions(params = {}) {
-        throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
-    }
-    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
-        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
@@ -6999,42 +6255,6 @@ class Exchange {
             }
         }
         return [tag, params];
-    }
-    async createLimitOrder(symbol, side, amount, price, params = {}) {
-        return await this.createOrder(symbol, 'limit', side, amount, price, params);
-    }
-    async createLimitOrderWs(symbol, side, amount, price, params = {}) {
-        return await this.createOrderWs(symbol, 'limit', side, amount, price, params);
-    }
-    async createMarketOrder(symbol, side, amount, price = undefined, params = {}) {
-        return await this.createOrder(symbol, 'market', side, amount, price, params);
-    }
-    async createMarketOrderWs(symbol, side, amount, price = undefined, params = {}) {
-        return await this.createOrderWs(symbol, 'market', side, amount, price, params);
-    }
-    async createLimitBuyOrder(symbol, amount, price, params = {}) {
-        return await this.createOrder(symbol, 'limit', 'buy', amount, price, params);
-    }
-    async createLimitBuyOrderWs(symbol, amount, price, params = {}) {
-        return await this.createOrderWs(symbol, 'limit', 'buy', amount, price, params);
-    }
-    async createLimitSellOrder(symbol, amount, price, params = {}) {
-        return await this.createOrder(symbol, 'limit', 'sell', amount, price, params);
-    }
-    async createLimitSellOrderWs(symbol, amount, price, params = {}) {
-        return await this.createOrderWs(symbol, 'limit', 'sell', amount, price, params);
-    }
-    async createMarketBuyOrder(symbol, amount, params = {}) {
-        return await this.createOrder(symbol, 'market', 'buy', amount, undefined, params);
-    }
-    async createMarketBuyOrderWs(symbol, amount, params = {}) {
-        return await this.createOrderWs(symbol, 'market', 'buy', amount, undefined, params);
-    }
-    async createMarketSellOrder(symbol, amount, params = {}) {
-        return await this.createOrder(symbol, 'market', 'sell', amount, undefined, params);
-    }
-    async createMarketSellOrderWs(symbol, amount, params = {}) {
-        return await this.createOrderWs(symbol, 'market', 'sell', amount, undefined, params);
     }
     costToPrecision(symbol, cost) {
         if (cost === undefined) {
@@ -7185,82 +6405,6 @@ class Exchange {
         else {
             throw new errors.NotSupported(this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
-    }
-    async createPostOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createPostOnlyOrder']) {
-            throw new errors.NotSupported(this.id + ' createPostOnlyOrder() is not supported yet');
-        }
-        const query = this.extend(params, { 'postOnly': true });
-        return await this.createOrder(symbol, type, side, amount, price, query);
-    }
-    async createPostOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createPostOnlyOrderWs']) {
-            throw new errors.NotSupported(this.id + ' createPostOnlyOrderWs() is not supported yet');
-        }
-        const query = this.extend(params, { 'postOnly': true });
-        return await this.createOrderWs(symbol, type, side, amount, price, query);
-    }
-    async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createReduceOnlyOrder']) {
-            throw new errors.NotSupported(this.id + ' createReduceOnlyOrder() is not supported yet');
-        }
-        const query = this.extend(params, { 'reduceOnly': true });
-        return await this.createOrder(symbol, type, side, amount, price, query);
-    }
-    async createReduceOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createReduceOnlyOrderWs']) {
-            throw new errors.NotSupported(this.id + ' createReduceOnlyOrderWs() is not supported yet');
-        }
-        const query = this.extend(params, { 'reduceOnly': true });
-        return await this.createOrderWs(symbol, type, side, amount, price, query);
-    }
-    async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        if (!this.has['createStopOrder']) {
-            throw new errors.NotSupported(this.id + ' createStopOrder() is not supported yet');
-        }
-        if (triggerPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrder(symbol, type, side, amount, price, query);
-    }
-    async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        if (!this.has['createStopOrderWs']) {
-            throw new errors.NotSupported(this.id + ' createStopOrderWs() is not supported yet');
-        }
-        if (triggerPrice === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrderWs(symbol, type, side, amount, price, query);
-    }
-    async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
-        if (!this.has['createStopLimitOrder']) {
-            throw new errors.NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrder(symbol, 'limit', side, amount, price, query);
-    }
-    async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
-        if (!this.has['createStopLimitOrderWs']) {
-            throw new errors.NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
-    }
-    async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
-        if (!this.has['createStopMarketOrder']) {
-            throw new errors.NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrder(symbol, 'market', side, amount, undefined, query);
-    }
-    async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
-        if (!this.has['createStopMarketOrderWs']) {
-            throw new errors.NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
-        }
-        const query = this.extend(params, { 'stopPrice': triggerPrice });
-        return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     async createSubAccount(name, params = {}) {
         throw new errors.NotSupported(this.id + ' createSubAccount() is not supported yet');
@@ -7583,13 +6727,6 @@ class Exchange {
     }
     async fetchTradingFeesWs(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradingFeesWs() is not supported yet');
-    }
-    async fetchTradingFee(symbol, params = {}) {
-        if (!this.has['fetchTradingFees']) {
-            throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported yet');
-        }
-        const fees = await this.fetchTradingFees(params);
-        return this.safeDict(fees, symbol);
     }
     async fetchConvertCurrencies(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchConvertCurrencies() is not supported yet');
@@ -8541,40 +7678,8 @@ class Exchange {
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
-    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name exchange#fetchPositionHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] timestamp in ms of the position
-         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-         */
-        if (this.has['fetchPositionsHistory']) {
-            const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
-            return positions;
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
-        }
-    }
     async loadMarketsAndSignIn() {
         await Promise.all([this.loadMarkets(), this.signIn()]);
-    }
-    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name exchange#fetchPositionsHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] timestamp in ms of the position
-         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-         */
-        throw new errors.NotSupported(this.id + ' fetchPositionsHistory () is not supported yet');
     }
     parseMarginModification(data, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarginModification() is not supported yet');
@@ -8628,28 +7733,6 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' unWatchOHLCV () is not supported yet');
     }
-    async watchMarkPrice(symbol, params = {}) {
-        /**
-         * @method
-         * @name exchange#watchMarkPrice
-         * @description watches a mark price for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-         */
-        throw new errors.NotSupported(this.id + ' watchMarkPrice () is not supported yet');
-    }
-    async watchMarkPrices(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name exchange#watchMarkPrices
-         * @description watches the mark price for all markets
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-         */
-        throw new errors.NotSupported(this.id + ' watchMarkPrices () is not supported yet');
-    }
     async withdrawWs(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
@@ -8674,17 +7757,6 @@ class Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new errors.NotSupported(this.id + ' unWatchMyTrades () is not supported yet');
-    }
-    async createOrdersWs(orders, params = {}) {
-        /**
-         * @method
-         * @name exchange#createOrdersWs
-         * @description create a list of trade orders
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        throw new errors.NotSupported(this.id + ' createOrdersWs () is not supported yet');
     }
     async fetchOrdersByStatusWs(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -8851,6 +7923,951 @@ class Exchange {
         return false; // stub
     }
 }
+// Exchange is a thin concrete tier over BaseExchange (which holds all shared infra). Regular
+// exchanges extend Exchange; the prediction tier (PredictionExchange) extends BaseExchange as an
+// independent sibling — so a prediction instance is NOT `instanceof Exchange`, while still reusing
+// every base helper via BaseExchange.
+class Exchange extends BaseExchange {
+    async closePosition(symbol, side = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' closePosition() is not supported yet');
+    }
+    async closeAllPositions(params = {}) {
+        throw new errors.NotSupported(this.id + ' closeAllPositions() is not supported yet');
+    }
+    async editOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' editOrders() is not supported yet');
+    }
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
+            return positions;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsHistory () is not supported yet');
+    }
+    async fetchPositionsRisk(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositionsRisk() is not supported yet');
+    }
+    async fetchPositionsForSymbol(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
+    async fetchPositionsForSymbolWs(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
+    async watchPosition(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
+    }
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+    async fetchBidsAsks(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        if (this.has['fetchMarkPrices']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchMarkPrices([symbol], params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
+        }
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchBidsAsks() is not supported yet');
+    }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrice
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+         */
+        throw new errors.NotSupported(this.id + ' watchMarkPrice () is not supported yet');
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrices
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+         */
+        throw new errors.NotSupported(this.id + ' watchMarkPrices () is not supported yet');
+    }
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
+    }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
+    }
+    async createLimitBuyOrderWs(symbol, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', 'buy', amount, price, params);
+    }
+    async createLimitOrderWs(symbol, side, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', side, amount, price, params);
+    }
+    async createLimitSellOrderWs(symbol, amount, price, params = {}) {
+        return await this.createOrderWs(symbol, 'limit', 'sell', amount, price, params);
+    }
+    async createMarketBuyOrderWs(symbol, amount, params = {}) {
+        return await this.createOrderWs(symbol, 'market', 'buy', amount, undefined, params);
+    }
+    async createMarketOrderWithCostWs(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCostWs
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
+            return await this.createOrderWs(symbol, 'market', side, cost, 1, params);
+        }
+        throw new errors.NotSupported(this.id + ' createMarketOrderWithCostWs() is not supported yet');
+    }
+    async createMarketOrderWs(symbol, side, amount, price = undefined, params = {}) {
+        return await this.createOrderWs(symbol, 'market', side, amount, price, params);
+    }
+    async createMarketSellOrderWs(symbol, amount, params = {}) {
+        return await this.createOrderWs(symbol, 'market', 'sell', amount, undefined, params);
+    }
+    async createOrderWithTakeProfitAndStopLossWs(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLossWs
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
+    }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
+    }
+    async createOrdersWs(orders, params = {}) {
+        /**
+         * @method
+         * @name exchange#createOrdersWs
+         * @description create a list of trade orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        throw new errors.NotSupported(this.id + ' createOrdersWs () is not supported yet');
+    }
+    async createPostOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createPostOnlyOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createPostOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'postOnly': true });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+    async createReduceOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createReduceOnlyOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createReduceOnlyOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'reduceOnly': true });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+    async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
+        if (!this.has['createStopLimitOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
+    }
+    async createStopLossOrderWs(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createStopLossOrderWs
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (stopLossPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
+        }
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
+        if (this.has['createStopLossOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createStopLossOrderWs() is not supported yet');
+    }
+    async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
+        if (!this.has['createStopMarketOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
+    }
+    async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        if (!this.has['createStopOrderWs']) {
+            throw new errors.NotSupported(this.id + ' createStopOrderWs() is not supported yet');
+        }
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+    async createTakeProfitOrderWs(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTakeProfitOrderWs
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (takeProfitPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
+        }
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
+        if (this.has['createTakeProfitOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTakeProfitOrderWs() is not supported yet');
+    }
+    async createTrailingAmountOrderWs(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingAmountOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingAmountOrderWs() is not supported yet');
+    }
+    async createTrailingPercentOrderWs(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingPercentOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingPercentOrderWs() is not supported yet');
+    }
+    async createTriggerOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTriggerOrderWs
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
+        }
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
+        if (this.has['createTriggerOrderWs']) {
+            return await this.createOrderWs(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTriggerOrderWs() is not supported yet');
+    }
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.cancelOrderWs(id, symbol);
+        return await this.createOrderWs(symbol, type, side, amount, price, params);
+    }
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new errors.NotSupported(this.id + ' fetchClosedOrdersWs() is not supported yet');
+    }
+    async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
+    }
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrdersWs']) {
+            const orders = await this.fetchOrdersWs(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
+        throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
+    }
+    async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderBookWs() is not supported yet');
+    }
+    async fetchOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderWs() is not supported yet');
+    }
+    async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrdersWs() is not supported yet');
+    }
+    async fetchPositionWs(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositionWs() is not supported yet');
+    }
+    async fetchPositionsWs(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
+    }
+    async fetchTickerWs(symbol, params = {}) {
+        if (this.has['fetchTickersWs']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickersWs([symbol], params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTickerWs() is not supported yet');
+        }
+    }
+    async fetchTickersWs(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickersWs() is not supported yet');
+    }
+    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTradesWs() is not supported yet');
+    }
+    async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
+        if (!(symbol in this.orderbooks)) {
+            client.reject(new errors.ExchangeError(this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
+            return;
+        }
+        const maxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
+        let tries = 0;
+        try {
+            const stored = this.orderbooks[symbol];
+            while (tries < maxRetries) {
+                const cache = stored.cache;
+                const orderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
+                const index = this.getCacheIndex(orderBook, cache);
+                if (index >= 0) {
+                    stored.reset(orderBook);
+                    this.handleDeltas(stored, cache.slice(index));
+                    stored.cache.length = 0;
+                    client.resolve(stored, messageHash);
+                    return;
+                }
+                tries++;
+            }
+            client.reject(new errors.ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
+            delete this.clients[client.url];
+            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
+        }
+        catch (e) {
+            client.reject(e, messageHash);
+            await this.loadOrderBook(client, messageHash, symbol, limit, params);
+        }
+    }
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTrades() is not supported yet');
+    }
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
+    }
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
+    }
+    async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                return orderBook;
+            }
+            catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
+    }
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
+    }
+    async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
+        const orderbook = await this.fetchOrderBook(symbol, limit, params);
+        return this.extend(orderbook, {
+            'asks': this.sortBy(this.aggregate(orderbook['asks']), 0),
+            'bids': this.sortBy(this.aggregate(orderbook['bids']), 0, true),
+        });
+    }
+    async editLimitBuyOrder(id, symbol, amount, price = undefined, params = {}) {
+        return await this.editLimitOrder(id, symbol, 'buy', amount, price, params);
+    }
+    async editLimitSellOrder(id, symbol, amount, price = undefined, params = {}) {
+        return await this.editLimitOrder(id, symbol, 'sell', amount, price, params);
+    }
+    async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
+        return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
+    }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.cancelOrder(id, symbol);
+        return await this.createOrder(symbol, type, side, amount, price, params);
+    }
+    async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder('', symbol, type, side, amount, price, extendedParams);
+    }
+    async fetchPosition(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
+    }
+    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.watchPositions(symbols, since, limit, params);
+    }
+    async fetchPositions(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
+    }
+    async fetchTicker(symbol, params = {}) {
+        if (this.has['fetchTickers']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchTickers([symbol], params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
+        }
+    }
+    async watchTicker(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchTicker() is not supported yet');
+    }
+    async fetchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
+    }
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
+    }
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder('', symbol, extendedParams);
+    }
+    async fetchOrderStatus(id, symbol = undefined, params = {}) {
+        // TODO: TypeScript: change method signature by replacing
+        // Promise<string> with Promise<Order['status']>.
+        const order = await this.fetchOrder(id, symbol, params);
+        return order['status'];
+    }
+    async fetchUnifiedOrder(order, params = {}) {
+        return await this.fetchOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
+    }
+    async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingAmountOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (trailingAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
+        }
+        params['trailingAmount'] = trailingAmount;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingAmountOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
+    }
+    async createTrailingPercentOrder(symbol, type, side, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (trailingPercent === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
+        }
+        params['trailingPercent'] = trailingPercent;
+        if (trailingTriggerPrice !== undefined) {
+            params['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        if (this.has['createTrailingPercentOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
+    }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
+            return await this.createOrder(symbol, 'market', side, cost, 1, params);
+        }
+        throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() is not supported yet');
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
+            return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
+        }
+        throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
+            return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
+        }
+        throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');
+    }
+    async createTriggerOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTriggerOrder
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
+        }
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
+        if (this.has['createTriggerOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTriggerOrder() is not supported yet');
+    }
+    async createStopLossOrder(symbol, type, side, amount, price = undefined, stopLossPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createStopLossOrder
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (stopLossPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
+        }
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
+        if (this.has['createStopLossOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createStopLossOrder() is not supported yet');
+    }
+    async createTakeProfitOrder(symbol, type, side, amount, price = undefined, takeProfitPrice = undefined, params = {}) {
+        /**
+         * @method
+         * @name createTakeProfitOrder
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (takeProfitPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
+        }
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
+        if (this.has['createTakeProfitOrder']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createTakeProfitOrder() is not supported yet');
+    }
+    async createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLoss
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
+        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
+            return await this.createOrder(symbol, type, side, amount, price, params);
+        }
+        throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
+    }
+    async createOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
+    }
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrder() is not supported yet');
+    }
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder('', symbol, extendedParams);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrders() is not supported yet');
+    }
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrdersWithClientOrderIds(clientOrderIds, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders([], symbol, extendedParams);
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelUnifiedOrder(order, params = {}) {
+        return this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+    }
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOpenOrders'] && this.has['fetchClosedOrders']) {
+            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
+        }
+        throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
+    }
+    async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
+    }
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
+    }
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'open');
+        }
+        throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
+    }
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
+    }
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');
+    }
+    async createLimitOrder(symbol, side, amount, price, params = {}) {
+        return await this.createOrder(symbol, 'limit', side, amount, price, params);
+    }
+    async createMarketOrder(symbol, side, amount, price = undefined, params = {}) {
+        return await this.createOrder(symbol, 'market', side, amount, price, params);
+    }
+    async createLimitBuyOrder(symbol, amount, price, params = {}) {
+        return await this.createOrder(symbol, 'limit', 'buy', amount, price, params);
+    }
+    async createLimitSellOrder(symbol, amount, price, params = {}) {
+        return await this.createOrder(symbol, 'limit', 'sell', amount, price, params);
+    }
+    async createMarketBuyOrder(symbol, amount, params = {}) {
+        return await this.createOrder(symbol, 'market', 'buy', amount, undefined, params);
+    }
+    async createMarketSellOrder(symbol, amount, params = {}) {
+        return await this.createOrder(symbol, 'market', 'sell', amount, undefined, params);
+    }
+    async createPostOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createPostOnlyOrder']) {
+            throw new errors.NotSupported(this.id + ' createPostOnlyOrder() is not supported yet');
+        }
+        const query = this.extend(params, { 'postOnly': true });
+        return await this.createOrder(symbol, type, side, amount, price, query);
+    }
+    async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        if (!this.has['createReduceOnlyOrder']) {
+            throw new errors.NotSupported(this.id + ' createReduceOnlyOrder() is not supported yet');
+        }
+        const query = this.extend(params, { 'reduceOnly': true });
+        return await this.createOrder(symbol, type, side, amount, price, query);
+    }
+    async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
+        if (!this.has['createStopOrder']) {
+            throw new errors.NotSupported(this.id + ' createStopOrder() is not supported yet');
+        }
+        if (triggerPrice === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrder(symbol, type, side, amount, price, query);
+    }
+    async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
+        if (!this.has['createStopLimitOrder']) {
+            throw new errors.NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrder(symbol, 'limit', side, amount, price, query);
+    }
+    async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
+        if (!this.has['createStopMarketOrder']) {
+            throw new errors.NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+        }
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
+        return await this.createOrder(symbol, 'market', side, amount, undefined, query);
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        if (!this.has['fetchTradingFees']) {
+            throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported yet');
+        }
+        const fees = await this.fetchTradingFees(params);
+        return this.safeDict(fees, symbol);
+    }
+}
 
+exports.BaseExchange = BaseExchange;
 exports.Exchange = Exchange;
 exports["default"] = Exchange;

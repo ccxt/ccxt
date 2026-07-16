@@ -1500,7 +1500,7 @@ export default class hashkey extends Exchange {
             side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker: Str = undefined;
-        const isMaker = this.safeBoolN (trade, [ 'isMaker', 'isMarker' ]);
+        const isMaker = this.safeBool2 (trade, 'isMaker', 'isMarker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }

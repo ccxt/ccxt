@@ -10,6 +10,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class aster extends \ccxt\async\aster {
     public function describe(): mixed {
@@ -111,7 +115,9 @@ class aster extends \ccxt\async\aster {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $params['callerMethodName'] = 'watchTicker';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -155,7 +161,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -206,7 +214,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -251,7 +261,9 @@ class aster extends \ccxt\async\aster {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $params['callerMethodName'] = 'watchMarkPrice';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -289,7 +301,9 @@ class aster extends \ccxt\async\aster {
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -341,7 +355,9 @@ class aster extends \ccxt\async\aster {
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -472,7 +488,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -520,7 +538,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols === null) {
                 $symbols = array();
@@ -643,7 +663,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -691,7 +713,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -956,7 +980,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -1003,7 +1029,9 @@ class aster extends \ccxt\async\aster {
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -1093,7 +1121,9 @@ class aster extends \ccxt\async\aster {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $params['callerMethodName'] = 'watchOHLCV';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $result[$symbol][$timeframe];
@@ -1132,7 +1162,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbolsAndTimeframes);
             $methodName = null;
             list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
@@ -1185,7 +1217,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbolsAndTimeframes);
             $methodName = null;
             list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
@@ -1360,7 +1394,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
             Async\await($this->authenticate($type, $params));
@@ -1505,7 +1541,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = 'swap';
             Async\await($this->authenticate($type, $params));
             $url = $this->get_private_url($type);
@@ -1705,7 +1743,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1744,7 +1784,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);

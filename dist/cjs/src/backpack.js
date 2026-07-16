@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class backpack
@@ -863,9 +863,14 @@ class backpack extends backpack$1["default"] {
         const low = this.safeString(ticker, 'low');
         const baseVolume = this.safeString(ticker, 'volume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = undefined;
+        const percentageNumber = this.safeFloat(ticker, 'priceChangePercent');
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (percentageNumber !== undefined) {
+            percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChangePercent'), '100');
+        }
         const change = this.safeString(ticker, 'priceChange');
-        return this.safeTicker({
+        const parsedTicker = this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -889,6 +894,7 @@ class backpack extends backpack$1["default"] {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+        return parsedTicker;
     }
     /**
      * @method

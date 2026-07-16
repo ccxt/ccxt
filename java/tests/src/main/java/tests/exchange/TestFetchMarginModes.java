@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchMarginModes extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchMarginModes(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchMarginModes(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchMarginModes";
-        Object marginModes = (exchange.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol")))).join();
+        Object marginModes = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol"))})).join();
         Assert(exchange.isDictionary(marginModes), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(marginModes)));
         Object marginModeKeys = Helpers.objectKeys(marginModes);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);

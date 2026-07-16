@@ -76,7 +76,7 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 				return nil
 			}
 			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 				var values any = ObjectValues(response)
 				var checkedSymbol any = nil
 				if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
@@ -85,7 +85,29 @@ func TestWatchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 				AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 				for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
 					var ticker any = GetValue(values, i)
-					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+
+					{
+						func() (ret_ any) {
+							defer func() {
+								if ex := recover(); ex != nil {
+									if ex == "break" {
+										return
+									}
+									ret_ = func() any {
+										// catch block:
+
+										retRes5820 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
+										PanicOnError(retRes5820)
+										return nil
+									}()
+								}
+							}()
+							// try block:
+							TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+							return nil
+						}()
+
+					}
 				}
 				now = exchange.Milliseconds()
 				now = exchange.Milliseconds()

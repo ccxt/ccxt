@@ -11,6 +11,10 @@ use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class toobit extends \ccxt\async\toobit {
     public function describe(): mixed {
@@ -165,20 +169,18 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -186,7 +188,7 @@ class toobit extends \ccxt\async\toobit {
             /**
              * get the list of most recent $trades for a list of $symbols
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#trade-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -195,7 +197,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $subParams = array();
@@ -275,7 +279,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -295,7 +300,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-$data->html#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-$data->html#kline-candlestick-streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and $timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -303,7 +309,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
             $messageHashes = array();
             $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
@@ -410,14 +418,17 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-$symbol-ticker-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-$symbol-ticker-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-$symbol-ticker-streams
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -428,14 +439,17 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-$symbol-$ticker-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#individual-$symbol-$ticker-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#individual-$symbol-$ticker-streams
              *
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $subParams = array();
@@ -518,19 +532,20 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -538,14 +553,19 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#diff-depth-stream
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#diff-book-depth-streams
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
@@ -679,12 +699,15 @@ class toobit extends \ccxt\async\toobit {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -794,7 +817,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -802,7 +826,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market_or_null($symbol);
             $symbol = $this->safe_string($market, 'symbol', $symbol);
@@ -915,7 +941,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on multiple $trades made by the user
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
              *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -924,7 +951,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market_or_null($symbol);
             $symbol = $this->safe_string($market, 'symbol', $symbol);
@@ -995,7 +1024,7 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
@@ -1004,7 +1033,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $messageHash = '';
             if (!$this->is_empty($symbols)) {

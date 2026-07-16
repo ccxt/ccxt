@@ -10,6 +10,17 @@ func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
+		// prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+		// is impractical and the "every active market has a ticker" check doesn't apply — test
+		// fetchTickers by the outcome handle instead
+		if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+
+			predictionResult := (<-FetchTickersHelperTest(exchange, skippedProperties, []any{symbol}))
+			PanicOnError(predictionResult)
+
+			ch <- []any{predictionResult}
+			return nil
+		}
 		var withoutSymbol any = FetchTickersHelperTest(exchange, skippedProperties, nil)
 		var withSymbol any = FetchTickersHelperTest(exchange, skippedProperties, []any{symbol})
 
@@ -32,7 +43,7 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 		_ = argParams
 		var method any = "fetchTickers"
 
-		response := (<-exchange.FetchTickers(argSymbols, argParams))
+		response := (<-exchange.(ccxt.IFetchTickers).FetchTickers(argSymbols, argParams))
 		PanicOnError(response)
 		Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dict. "), exchange.Json(response)))
 		var values any = ObjectValues(response)
@@ -44,7 +55,29 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 		for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
 			// todo: symbol check here
 			var ticker any = GetValue(values, i)
-			TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+
+			{
+				func() (ret_ any) {
+					defer func() {
+						if ex := recover(); ex != nil {
+							if ex == "break" {
+								return
+							}
+							ret_ = func() any {
+								// catch block:
+
+								retRes3812 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
+								PanicOnError(retRes3812)
+								return nil
+							}()
+						}
+					}()
+					// try block:
+					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+					return nil
+				}()
+
+			}
 		}
 
 		ch <- response

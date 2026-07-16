@@ -118,6 +118,6 @@ export default class whitebit extends whitebitRest {
     ping(client: Client): {
         id: number;
         method: string;
-        params: any[];
+        params: undefined[];
     };
 }

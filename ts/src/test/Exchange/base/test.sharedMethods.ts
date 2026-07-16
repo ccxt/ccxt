@@ -41,7 +41,14 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    let formatIsEmptyArray = false;
+    if (Array.isArray (formatKeyVal)) {
+        const formatLen = formatKeyVal.length;
+        formatIsEmptyArray = (formatLen === 0);
+    }
+    const same_object = exchange.isDictionary (entryKeyVal) && (exchange.isDictionary (formatKeyVal) || formatIsEmptyArray);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -632,6 +639,29 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
 
+async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage (ex, false);
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert (eMessage === '', eMessage); // trigger error
+}
+
 
 export default {
     exchangeProp,
@@ -667,4 +697,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    validateTickerExceptionForPercentage,
 };

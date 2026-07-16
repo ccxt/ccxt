@@ -31,7 +31,7 @@ class onetrading(ccxt.async_support.onetrading):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://streams.onetrading.com/',
+                    'ws': 'wss://streams.fast.onetrading.com',
                 },
             },
             'options': {
@@ -150,7 +150,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = 'MARKET_TICKER'
@@ -176,7 +177,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         if symbols is None:
             symbols = []
@@ -272,7 +274,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         if symbol is not None:
             market = self.market(symbol)
@@ -304,7 +307,7 @@ class onetrading(ccxt.async_support.onetrading):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://developers.bitpanda.com/exchange/#market-ticker-channel
+        https://docs.onetrading.com/websocket/orderbook/introduction
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -312,7 +315,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'book:' + symbol
@@ -422,7 +426,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param str [params.channel]: can listen to orders using ACCOUNT_HISTORY or TRADING
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             market = self.market(symbol)
@@ -1020,7 +1025,8 @@ class onetrading(ccxt.async_support.onetrading):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']

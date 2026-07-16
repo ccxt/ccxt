@@ -192,7 +192,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order structure <https://docs.ccxt.com/?id=order-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -303,7 +304,8 @@ class bitrue(ccxt.async_support.bitrue):
         }, market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -438,7 +440,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:
@@ -542,7 +545,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:
@@ -635,7 +639,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:

@@ -42,7 +42,7 @@ func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
 
-func (this *Exchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
+func (this *BaseExchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
@@ -111,7 +111,7 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) Hash(request2 any, hash func() string, args ...any) any {
+func (this *BaseExchange) Hash(request2 any, hash func() string, args ...any) any {
 	digest2 := GetArg(args, 0, "hex")
 	return Hash(request2, hash, digest2)
 }
@@ -156,7 +156,7 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-func (this *Exchange) Axolotl(a any, b any, c any) string {
+func (this *BaseExchange) Axolotl(a any, b any, c any) string {
 	return ""
 }
 
@@ -266,11 +266,15 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	return token + "." + signature
 }
 
-func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...any) string {
 	data := data2.(string)
 	publicKey := privateKey2.(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
 	hashAlgorithm := algorithm2()
+	paddingMode := "pkcs1"
+	if len(optionalArgs) > 0 && optionalArgs[0] != nil {
+		paddingMode = optionalArgs[0].(string)
+	}
 	// Remove PEM headers
 	// pkParts := strings.Split(publicKey, "\n")
 	// pkParts = pkParts[1 : len(pkParts)-1]
@@ -328,8 +332,13 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 		return ""
 	}
 
-	// Sign the data
-	signData, err := rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	// Sign the data (PSS with salt = hash length, or PKCS#1 v1.5 by default)
+	var signData []byte
+	if paddingMode == "pss" {
+		signData, err = rsaHash.SignPSS(rand.Reader, parsedKey, hash, hashedData, &rsaHash.PSSOptions{SaltLength: rsaHash.PSSSaltLengthEqualsHash, Hash: hash})
+	} else {
+		signData, err = rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	}
 	if err != nil {
 		return ""
 	}

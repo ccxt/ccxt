@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bitfinex
@@ -341,8 +341,12 @@ class bitfinex extends bitfinex$1["default"] {
             },
             'precisionMode': number.SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0', // P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision': 8, // default currency precision
+                'fetchOrderBook': {
+                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8, // default currency precision
+                },
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -884,7 +888,8 @@ class bitfinex extends bitfinex$1["default"] {
         const fees = this.safeList(feeValues, 1, []);
         const fee = this.safeNumber(fees, 1);
         const undl = this.safeList(indexed['undl'], id, []);
-        const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
+        const defaultCurrencyPrecision = this.safeString(this.options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
+        const precision = this.handleOption('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision);
         const networks = {};
         const networkIds = this.safeList(indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
@@ -1143,7 +1148,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const precision = this.safeValue(this.options, 'precision', 'R0');
+        const precision = this.handleOption('fetchOrderBook', 'precision', 'R0');
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],

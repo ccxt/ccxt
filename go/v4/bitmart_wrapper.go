@@ -1799,7 +1799,7 @@ func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdra
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

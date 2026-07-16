@@ -312,7 +312,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeDict(this.options, "watchTicker");
         object defaultMethod = this.safeString(options, "method", "ticker");
@@ -336,7 +339,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeDict(this.options, "unWatchTicker");
         object defaultMethod = this.safeString(options, "method", "ticker");
@@ -361,7 +367,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "watchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
@@ -393,7 +402,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "unWatchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
@@ -427,7 +439,10 @@ public partial class xt : ccxt.xt
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
         object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
@@ -453,7 +468,10 @@ public partial class xt : ccxt.xt
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
         object messageHash = add("unsubscribe::", name);
@@ -478,7 +496,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add("trade@", getValue(market, "id"));
         object trades = await this.subscribe(name, "public", "watchTrades", market, null, parameters);
@@ -502,7 +523,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add("trade@", getValue(market, "id"));
         object messageHash = add("unsubscribe::", name);
@@ -526,7 +550,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
@@ -555,7 +582,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
@@ -583,7 +613,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "order";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -613,7 +646,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "trade";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -640,7 +676,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "balance";
         return await this.subscribe(name, "private", "watchBalance", null, null, parameters);
     }
@@ -659,7 +698,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
         var client = this.client(url);
         this.setPositionsCache(client);

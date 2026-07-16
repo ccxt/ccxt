@@ -59,6 +59,11 @@ public class ToobitApi extends Exchange
         return this.callAsync ("commonGetQuoteV1IndexKlines", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  commonGetQuoteV1IndexPriceComponents (Object... optionalArgs)
+    {
+        return this.callAsync ("commonGetQuoteV1IndexPriceComponents", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  commonGetQuoteV1MarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1MarkPriceKlines", optionalArgs);
@@ -89,9 +94,19 @@ public class ToobitApi extends Exchange
         return this.callAsync ("commonGetQuoteV1TickerPrice", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  commonGetQuoteV1ContractTickerPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("commonGetQuoteV1ContractTickerPrice", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  commonGetQuoteV1TickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1TickerBookTicker", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  commonGetQuoteV1ContractTickerBookTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("commonGetQuoteV1ContractTickerBookTicker", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  commonGetApiV1FuturesFundingRate (Object... optionalArgs)
@@ -102,6 +117,11 @@ public class ToobitApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  commonGetApiV1FuturesHistoryFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("commonGetApiV1FuturesHistoryFundingRate", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  commonGetApiV1FuturesRiskLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("commonGetApiV1FuturesRiskLimits", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1Account (Object... optionalArgs)
@@ -169,6 +189,16 @@ public class ToobitApi extends Exchange
         return this.callAsync ("privateGetApiV1SubAccount", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountSubAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AccountSubAccount", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1SubAccountList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1SubAccountList", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1FuturesAccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesAccountLeverage", optionalArgs);
@@ -182,6 +212,11 @@ public class ToobitApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1FuturesPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesPositions", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1FuturesHistoryPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1FuturesHistoryPositions", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1FuturesBalance (Object... optionalArgs)
@@ -207,6 +242,76 @@ public class ToobitApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1FuturesTodayPnl (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1FuturesTodayPnl", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountDownloadDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AccountDownloadDetail", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentInviteUserList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentInviteUserList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentCommissionDataList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentCommissionDataList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentCommissionDataInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentCommissionDataInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentInviteRelationCheck (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentInviteRelationCheck", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentDepositDetailList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentDepositDetailList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentQuerySubAgentData (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentQuerySubAgentData", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentSpotOrdersList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentSpotOrdersList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentFuturesOrdersList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentFuturesOrdersList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentFuturesPositionsList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentFuturesPositionsList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentInviteCommissionDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentInviteCommissionDetail", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentUserExport (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentUserExport", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentExportList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentExportList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AgentExportUrl (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AgentExportUrl", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1SpotOrderTest (Object... optionalArgs)
@@ -264,6 +369,31 @@ public class ToobitApi extends Exchange
         return this.callAsync ("privatePostApiV1FuturesPositionMargin", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesOrderUpdate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesOrderUpdate", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesAutoAddMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesAutoAddMargin", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesFlashClose (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesFlashClose", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesReversePosition (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesReversePosition", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1AccountDownloadApply (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1AccountDownloadApply", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1UserDataStream (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1UserDataStream", optionalArgs);
@@ -304,9 +434,19 @@ public class ToobitApi extends Exchange
         return this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateDeleteApiV1UserDataStream (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteApiV1UserDataStream", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateDeleteApiV1ListenKey (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1ListenKey", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePutApiV1UserDataStream (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutApiV1UserDataStream", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePutApiV1ListenKey (Object... optionalArgs)

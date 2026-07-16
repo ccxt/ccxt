@@ -15,6 +15,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class zebpay extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -475,7 +477,9 @@ class zebpay extends Exchange {
              * @param {array} [$params->side] side to fetch trading fee
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $response = null;
             $data;
@@ -577,7 +581,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -622,7 +628,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -672,7 +680,9 @@ class zebpay extends Exchange {
             if ($type !== 'spot') {
                 throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->publicSpotGetV2MarketAllTickers($params));
             //
@@ -714,7 +724,9 @@ class zebpay extends Exchange {
              * @param {int} [$params->endtime] the latest time in ms to fetch orders for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 100; // default is 200
@@ -801,7 +813,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -845,7 +859,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -883,7 +899,9 @@ class zebpay extends Exchange {
             if ($type !== 'spot') {
                 throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $type . ' markets');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => $id,
             );
@@ -981,7 +999,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $isSpot = ($type === 'spot');
@@ -1034,7 +1054,9 @@ class zebpay extends Exchange {
              * @param {string} [$params->positionId] PositionId of the order.
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $upperCaseType = strtoupper($type);
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -1126,7 +1148,9 @@ class zebpay extends Exchange {
              * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $response = null;
             $request = array();
@@ -1171,7 +1195,9 @@ class zebpay extends Exchange {
             if ($type !== 'spot') {
                 throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' markets');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateSpotDeleteV2ExOrdersCancelAll($params));
             //
             //    {
@@ -1201,7 +1227,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1271,7 +1299,9 @@ class zebpay extends Exchange {
              * @param {string} [$params->timestamp] cancel order by client order $id
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $response = null;
@@ -1384,7 +1414,9 @@ class zebpay extends Exchange {
              * @param {string} [$params->positionId] client order id of the order
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1406,7 +1438,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateSwapGetV1TradeUserLeverages($params));
             //
             //     {
@@ -1436,7 +1470,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $this->safe_string_upper($market, 'id'),
@@ -1467,7 +1503,9 @@ class zebpay extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'leverage' => $leverage,
@@ -1492,7 +1530,9 @@ class zebpay extends Exchange {
              * @param {array} [$params] Not used by krakenfutures
              * @return Parsed exchange $response for $positions
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($symbols !== null) {
                 $request['symbols'] = $this->market_ids($symbols);
@@ -1531,7 +1571,9 @@ class zebpay extends Exchange {
              * @param {string} [$params->timestamp] Tiemstamp.
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1578,7 +1620,9 @@ class zebpay extends Exchange {
              * @param {string} [$params->timestamp] Tiemstamp.
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],

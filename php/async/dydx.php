@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class dydx extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -234,7 +236,7 @@ class dydx extends Exchange {
                 'privateKey' => false,
             ),
             'options' => array(
-                'mnemonic' => null, // specify mnemonic, copy secret phrase from UI
+                'privateKey' => null, // specify a hex-encoded secp256k1 private key
                 'chainName' => 'dydx-mainnet-1',
                 'chainId' => 1,
                 'sandboxMode' => false,
@@ -675,7 +677,9 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -747,7 +751,9 @@ class dydx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -808,7 +814,9 @@ class dydx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -966,7 +974,9 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => $id,
             );
@@ -994,7 +1004,9 @@ class dydx extends Exchange {
             $subAccountNumber = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
             list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
@@ -1175,7 +1187,9 @@ class dydx extends Exchange {
             $subAccountNumber = null;
             list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
             list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'address' => $userAddress,
                 'subaccountNumber' => $subAccountNumber,
@@ -1261,12 +1275,12 @@ class dydx extends Exchange {
         if ($credentials !== null) {
             return $credentials;
         }
-        $entropy = $this->safe_string($this->options, 'mnemonic');
-        if ($entropy === null) {
+        $privateKey = $this->safe_string($this->options, 'privateKey');
+        if ($privateKey === null) {
             $signature = $this->sign_onboarding_action();
-            $entropy = $this->hash_message($this->base16_to_binary($signature['r'] . $signature['s']));
+            $privateKey = $this->hash_message($this->base16_to_binary($signature['r'] . $signature['s']));
         }
-        $credentials = $this->retrieve_dydx_credentials($entropy);
+        $credentials = $this->retrieve_dydx_credentials($privateKey);
         $credentials['privateKey'] = bin2hex($credentials['privateKey']);
         $credentials['publicKey'] = bin2hex($credentials['publicKey']);
         $this->options['dydxCredentials'] = $credentials;
@@ -1500,7 +1514,9 @@ class dydx extends Exchange {
              * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $credentials = $this->retrieve_credentials();
             $account = Async\await($this->fetch_dydx_account());
             $lastBlockHeight = Async\await($this->fetch_latest_block_height());
@@ -1561,7 +1577,9 @@ class dydx extends Exchange {
             if (!$isTrigger && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId', $id);
             if ($clientOrderId === null) {
@@ -1654,7 +1672,9 @@ class dydx extends Exchange {
              * @param {int} [$params->subAccountId] sub $account id, default is 0
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
             if (!$clientOrderIds) {
@@ -1725,7 +1745,9 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -1831,7 +1853,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -1907,7 +1931,9 @@ class dydx extends Exchange {
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' transfer() only support USDC');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
             $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
             if ($fromAccount !== 'main') {
@@ -2045,7 +2071,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2126,7 +2154,9 @@ class dydx extends Exchange {
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             $subaccountId = $this->safe_integer($params, 'subaccountId');
             if ($subaccountId === null) {
@@ -2191,7 +2221,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2217,7 +2249,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2243,7 +2277,9 @@ class dydx extends Exchange {
              * @param {string} [$params->subAccountNumber] sub account number
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2384,7 +2420,9 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
             $subaccountNumber = null;
@@ -2490,7 +2528,7 @@ class dydx extends Exchange {
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$section]);
+        $url = $this->urls['api'][$section];
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;

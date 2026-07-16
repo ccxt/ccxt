@@ -54,7 +54,7 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 object values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
@@ -65,7 +65,13 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
                     object ticker = getValue(values, i);
-                    testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    try
+                    {
+                        testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                    }
                 }
                 now = exchange.milliseconds();
             }

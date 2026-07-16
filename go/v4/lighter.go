@@ -996,12 +996,12 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		} else {
 			triggerOrderSide = "buy"
 		}
-		var stopLossOrderTriggerPrice any = this.SafeNumberN(stopLoss, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderTriggerPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 		var stopLossOrderType any = this.SafeString(stopLoss, "type", "limit")
-		var stopLossOrderLimitPrice any = this.SafeNumberN(stopLoss, []any{"price", "stopLossPrice"}, stopLossOrderTriggerPrice)
-		var takeProfitOrderTriggerPrice any = this.SafeNumberN(takeProfit, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderLimitPrice any = this.SafeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
+		var takeProfitOrderTriggerPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 		var takeProfitOrderType any = this.SafeString(takeProfit, "type", "limit")
-		var takeProfitOrderLimitPrice any = this.SafeNumberN(takeProfit, []any{"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice)
+		var takeProfitOrderLimitPrice any = this.SafeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 		// amount should be 0 for child orders
 		if IsTrue(!IsEqual(stopLoss, nil)) {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.Extend(params, map[string]any{

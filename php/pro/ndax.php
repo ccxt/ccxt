@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class ndax extends \ccxt\async\ndax {
     public function describe(): mixed {
@@ -54,7 +55,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'SubscribeLevel1';
             $messageHash = $name . ':' . $market['id'];
@@ -126,7 +129,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTrades';
@@ -213,7 +218,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTicker';
@@ -346,7 +353,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeLevel2';

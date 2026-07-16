@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ccxt"
-version = "4.5.64"
+version = "4.5.66"
 description = "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go"
 readme = "python/README.md"
 license = "MIT"
@@ -49,7 +49,6 @@ dependencies = [
     "cryptography==49.0.0",
     "typing_extensions==4.16.0",
     "aiohttp==3.14.1",
-    "aiodns==4.0.4",
     "yarl==1.24.2",
     # fast zlib backend for aiohttp, enabled in ccxt.async_support.base.exchange
     "aiohttp-fast-zlib==0.3.0",
@@ -66,7 +65,15 @@ dependencies = [
     # NOTE: lowercase "arm64" matches macOS but intentionally NOT Windows "ARM64"
     # (marker `in` is a case-sensitive substring match; cp310 has no win_arm64 wheel)
     "orjson==3.11.9; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
-    "coincurve==21.0.0; python_version <= \"3.13\"",
+    # fast secp256k1 signing (libsecp256k1), installed only where coincurve 21.0.0
+    # ships a prebuilt wheel so that `pip install ccxt` never triggers a C source
+    # build. Allowlist mirrors the wheel matrix on PyPI (CPython 3.9-3.13 only,
+    # no PyPy, no cp314): manylinux/musllinux x86_64/aarch64/i686, macOS
+    # x86_64/arm64, Windows AMD64/ARM64. win32 (machine "x86") has no wheel and
+    # needs an explicit exclusion because "x86" is a substring of "x86_64" and
+    # the `in` marker operator does case-sensitive substring matching.
+    # ccxt falls back to the `cryptography` implementation when absent.
+    "coincurve==21.0.0; implementation_name == \"cpython\" and python_version < \"3.14\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 ARM64 i686\" and platform_machine != \"x86\"",
     # transitive dependencies of aiohttp
     "aiohappyeyeballs==2.7.1",
     "aiosignal==1.4.0",
@@ -74,8 +81,9 @@ dependencies = [
     "frozenlist==1.8.0",
     "multidict==6.7.1",
     "propcache==0.5.2",
-    # transitive dependencies of aiodns
-    "pycares==5.0.1",
+    # "aiodns==4.0.4",
+    # # transitive dependencies of aiodns
+    # "pycares==5.0.1",
     # transitive dependencies of cryptography
     "cffi==2.0.0",
     "pycparser==3.0",
@@ -107,6 +115,7 @@ dev = [
     "uvloop==0.22.1; platform_system != \"Windows\" and implementation_name == \"cpython\"",
     "winloop==0.6.3; platform_system == \"Windows\" and implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"AMD64 ARM64\"",
     "orjson==3.11.9; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
+    "coincurve==21.0.0; implementation_name == \"cpython\" and python_version < \"3.14\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 ARM64 i686\" and platform_machine != \"x86\"",
     "ruff==0.0.292",
     "tox==4.56.1",
     "mypy==1.6.1",
@@ -127,6 +136,31 @@ ccxt = [
     "static_dependencies/mnemonic/wordlist/**/*",
     "static_dependencies/dydx_v4_client/**/*",
     "static_dependencies/lighter_client/*",
+]
+
+# Redirect setuptools' intermediate build tree away from the repo-root `build/`
+# directory (which holds the JS/TS build scripts). Without this, `python -m build`
+# writes into `build/lib/ccxt/` by default, which collides with that tree and was
+# once committed by the release workflow's `git add . -A`.
+# Formerly setup.cfg [build] build_base; single source of truth is pyproject.toml.
+[tool.distutils.build]
+build_base = "python/build"
+
+# Formerly setup.cfg [flake8]. Primary Python lint is Ruff ([tool.ruff] below);
+# kept for any flake8 invocation that supports pyproject (e.g. flake8-pyproject).
+[tool.flake8]
+ignore = ["E501"]
+exclude = [
+    ".ropeproject",
+    ".tox",
+    ".eggs",
+    ".git",
+    "__pycache__",
+    "node_modules",
+    ".nyc_output",
+    "build",
+    "tmp",
+    "ccxt.py",
 ]
 
 [tool.ruff]

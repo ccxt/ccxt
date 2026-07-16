@@ -37,7 +37,14 @@ func AssertType(exchange ccxt.ICoreExchange, skippedProperties any, entry any, k
 	var same_numeric any = IsTrue((IsNumber(entryKeyVal))) && IsTrue((IsNumber(formatKeyVal)))
 	var same_boolean any = IsTrue((IsTrue((IsEqual(entryKeyVal, true))) || IsTrue((IsEqual(entryKeyVal, false))))) && IsTrue((IsTrue((IsEqual(formatKeyVal, true))) || IsTrue((IsEqual(formatKeyVal, false)))))
 	var same_array any = IsTrue(IsArray(entryKeyVal)) && IsTrue(IsArray(formatKeyVal))
-	var same_object any = IsTrue(exchange.IsDictionary(entryKeyVal)) && IsTrue(exchange.IsDictionary(formatKeyVal))
+	// PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+	// returns false for an empty {} format marker — accept a dict entry against an empty-array format
+	var formatIsEmptyArray any = false
+	if IsTrue(IsArray(formatKeyVal)) {
+		var formatLen any = GetArrayLength(formatKeyVal)
+		formatIsEmptyArray = (IsEqual(formatLen, 0))
+	}
+	var same_object any = IsTrue(exchange.IsDictionary(entryKeyVal)) && IsTrue((IsTrue(exchange.IsDictionary(formatKeyVal)) || IsTrue(formatIsEmptyArray)))
 	var result any = IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(entryKeyVal, nil))) || IsTrue(same_string)) || IsTrue(same_numeric)) || IsTrue(same_boolean)) || IsTrue(same_array)) || IsTrue(same_object)
 	return result
 }
@@ -440,7 +447,7 @@ func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <-chan
 		} else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
 			usedMethod = "fetchBidsAsks"
 
-			tickers := (<-exchange.FetchBidsAsks([]any{symbol}))
+			tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsks([]any{symbol}))
 			PanicOnError(tickers)
 			var ticker any = exchange.SafeDict(tickers, symbol)
 			bestBid = exchange.SafeNumber(ticker, "bid")
@@ -455,7 +462,7 @@ func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <-chan
 		} else if IsTrue(GetValue(exchange.GetHas(), "fetchTickers")) {
 			usedMethod = "fetchTickers"
 
-			tickers := (<-exchange.FetchTickers([]any{symbol}))
+			tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickers([]any{symbol}))
 			PanicOnError(tickers)
 			var ticker any = exchange.SafeDict(tickers, symbol)
 			bestBid = exchange.SafeNumber(ticker, "bid")
@@ -680,4 +687,36 @@ func ExchangeProp(exchange ccxt.ICoreExchange, key any, optionalArgs ...any) any
 	// try UpperCase key also, for other langs
 	var keyUpper any = exchange.Capitalize(ToString(key))
 	return exchange.GetProperty(exchange, keyUpper, defaultValue)
+}
+func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, ticker any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		// only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+		var eMessage any = exchange.ExceptionMessage(ex, false)
+		if IsTrue(IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be above"), 0)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be below"), 0))) {
+			var symbol any = GetValue(ticker, "symbol")
+			if IsTrue(!IsEqual(symbol, nil)) {
+				// if it's not in markets, then maybe newly added symbol, so can can compromise there
+				if !IsTrue((InOp(exchange.GetMarkets(), symbol))) {
+
+					return nil
+				}
+				// if OHLCV supported
+				if IsTrue(!IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil)) {
+
+					ohlcv := (<-exchange.FetchOHLCV(symbol, "1d", nil, 5))
+					PanicOnError(ohlcv)
+					if IsTrue(IsLessThanOrEqual(GetArrayLength(ohlcv), 1)) {
+
+						return nil
+					}
+				}
+			}
+		}
+		Assert(IsEqual(eMessage, ""), eMessage) // trigger error
+		return nil
+	}()
+	return ch
 }

@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitteam
@@ -246,9 +246,11 @@ class bitteam extends bitteam$1["default"] {
                     'ufobject': 'ufobject',
                     'tonchain': 'tonchain',
                 },
-                'currenciesValuedInUsd': {
-                    'USDT': true,
-                    'BUSD': true,
+                'fetchMarkets': {
+                    'currenciesValuedInUsd': {
+                        'USDT': true,
+                        'BUSD': true,
+                    },
                 },
             },
             'features': {
@@ -465,7 +467,7 @@ class bitteam extends bitteam$1["default"] {
         const timeStart = this.safeString(market, 'timeStart');
         const created = this.parse8601(timeStart);
         let minCost = undefined;
-        const currenciesValuedInUsd = this.safeValue(this.options, 'currenciesValuedInUsd', {});
+        const currenciesValuedInUsd = this.handleOption('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue(market, 'settings', {});

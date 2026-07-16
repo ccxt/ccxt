@@ -44,7 +44,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             return false;
         }
         if (success === true) {
-            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dictionary. ' + exchange.json (response));
             const values = Object.values (response);
             let checkedSymbol: Str = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -53,7 +53,11 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
                 const ticker = values[i];
-                testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+                try {
+                    testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+                } catch (ex) {
+                    await testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker);
+                }
             }
             now = exchange.milliseconds ();
         }

@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestOHLCV extends BaseTest {
-    public static void testOHLCV(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testOHLCV(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
         Object format = new java.util.ArrayList<Object>(java.util.Arrays.asList(1638230400000L, exchange.parseNumber("0.123"), exchange.parseNumber("0.125"), exchange.parseNumber("0.121"), exchange.parseNumber("0.122"), exchange.parseNumber("123.456")));
         Object emptyNotAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 1, 2, 3, 4, 5));

@@ -7,7 +7,7 @@ var blofin$1 = require('../blofin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class blofin extends blofin$1["default"] {
     describe() {
@@ -322,7 +322,7 @@ class blofin extends blofin$1["default"] {
         const channel = 'tickers';
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
-        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['public']);
+        const url = (this.urls['api'])['ws'][marketType]['public'];
         const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbolsList.length; i++) {
@@ -471,7 +471,7 @@ class blofin extends blofin$1["default"] {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest([sub]);
-        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['private']);
+        const url = (this.urls['api'])['ws'][marketType]['private'];
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     handleBalance(client, message) {
@@ -641,7 +641,7 @@ class blofin extends blofin$1["default"] {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest([requestParams]);
-        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['public']);
+        const url = (this.urls['api'])['ws'][marketType]['public'];
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     handleFundingRate(client, message) {
@@ -727,7 +727,7 @@ class blofin extends blofin$1["default"] {
         }
         const request = this.getSubscriptionRequest(rawSubscriptions);
         const privateOrPublic = isPublic ? 'public' : 'private';
-        const url = this.implodeHostname((this.urls['api'])['ws'][marketType][privateOrPublic]);
+        const url = (this.urls['api'])['ws'][marketType][privateOrPublic];
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
     }
     getSubscriptionRequest(args) {
@@ -813,7 +813,7 @@ class blofin extends blofin$1["default"] {
             ],
         };
         const marketType = 'swap'; // for now
-        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['private']);
+        const url = (this.urls['api'])['ws'][marketType]['private'];
         await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
 }

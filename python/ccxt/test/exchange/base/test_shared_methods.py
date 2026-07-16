@@ -52,7 +52,13 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
     same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
-    same_object = exchange.is_dictionary(entry_key_val) and exchange.is_dictionary(format_key_val)
+    # PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    # returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    format_is_empty_array = False
+    if isinstance(format_key_val, list):
+        format_len = len(format_key_val)
+        format_is_empty_array = (format_len == 0)
+    same_object = exchange.is_dictionary(entry_key_val) and (exchange.is_dictionary(format_key_val) or format_is_empty_array)
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 
@@ -559,3 +565,21 @@ def exchange_prop(exchange, key, default_value=None):
     # try UpperCase key also, for other langs
     key_upper = exchange.capitalize(str(key))
     return exchange.get_property(exchange, key_upper, default_value)
+
+
+def validate_ticker_exception_for_percentage(ex, exchange, ticker):
+    # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    e_message = exchange.exception_message(ex, False)
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            # if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if not (symbol in exchange.markets):
+                return
+            # if OHLCV supported
+            if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
+                ohlcv = exchange.fetch_ohlcv(symbol, '1d', None, 5)
+                if len(ohlcv) <= 1:
+                    # if only 1 day, then allow it
+                    return
+    assert e_message == '', e_message  # trigger error

@@ -229,7 +229,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = "spot";
             var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -437,7 +440,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object marketType = null;
             var symbolsmarketTypeparametersVariable = this.getParamsForMultipleSub("watchTradesForSymbols", symbols, limit, parameters);
             symbols = ((java.util.List<Object>) symbolsmarketTypeparametersVariable).get(0);
@@ -500,7 +506,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object marketType = null;
             var symbolsmarketTypeparametersVariable = this.getParamsForMultipleSub("unWatchTradesForSymbols", symbols, null, parameters);
             symbols = ((java.util.List<Object>) symbolsmarketTypeparametersVariable).get(0);
@@ -549,7 +558,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
@@ -574,7 +586,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -630,7 +645,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -661,7 +679,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -778,7 +799,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -843,7 +867,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "unsubscribe::orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1172,7 +1199,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = "swap";
             (this.authenticate(type, parameters)).join();
             symbols = this.marketSymbols(symbols, "swap", true, true, false);
@@ -1221,7 +1251,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
                     throw new NotSupported((String)Helpers.add(this.id, " unWatchPositions() does not support a list of symbols, unWatch from all markets only")) ;
                 }
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", "unsubscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList("futures/position")) );
@@ -1646,7 +1679,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object market = this.market(symbol);
             Object type = "spot";
@@ -1691,7 +1727,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object market = this.market(symbol);
             Object type = "spot";
@@ -1841,7 +1880,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object depth = this.safeString(options, "depth", "depth/increase100");
             symbol = this.symbol(symbol);
@@ -1877,7 +1919,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object depth = this.safeString(options, "depth", "depth/increase100");
             symbol = this.symbol(symbol);
@@ -2139,7 +2184,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var symbolstypeparametersVariable = this.getParamsForMultipleSub("watchOrderBookForSymbols", symbols, limit, parameters);
             symbols = ((java.util.List<Object>) symbolstypeparametersVariable).get(0);
@@ -2175,7 +2223,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var symbolstypeparametersVariable = this.getParamsForMultipleSub("unWatchOrderBookForSymbols", symbols, null, parameters);
             symbols = ((java.util.List<Object>) symbolstypeparametersVariable).get(0);
@@ -2212,7 +2263,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object fundingRate = (this.watchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(fundingRate, symbol);
@@ -2240,7 +2294,10 @@ public class BitmartCore extends io.github.ccxt.exchanges.Bitmart
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRates", market, parameters);

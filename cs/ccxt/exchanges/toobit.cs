@@ -38,6 +38,7 @@ public partial class toobit : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchBorrowRates", false },
                 { "fetchBorrowRatesPerSymbol", false },
+                { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -51,6 +52,7 @@ public partial class toobit : Exchange
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLastPrices", true },
                 { "fetchLedger", true },
+                { "fetchLeverage", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyTrades", true },
@@ -61,14 +63,17 @@ public partial class toobit : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPositions", true },
                 { "fetchStatus", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
+                { "fetchTradingFees", true },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
+                { "setLeverage", true },
                 { "setMarginMode", true },
                 { "transfer", true },
                 { "withdraw", true },
@@ -80,7 +85,7 @@ public partial class toobit : Exchange
                     { "private", "https://api.toobit.com" },
                 } },
                 { "www", "https://www.toobit.com/" },
-                { "doc", new List<object>() {"https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/"} },
+                { "doc", new List<object>() {"https://api-docs.toobit.com/"} },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://www.toobit.com/en-US/r?i=IFFPy0" },
                     { "discount", 0.1 },
@@ -98,15 +103,19 @@ public partial class toobit : Exchange
                         { "quote/v1/trades", 1 },
                         { "quote/v1/klines", 1 },
                         { "quote/v1/index/klines", 1 },
+                        { "quote/v1/indexPriceComponents", 1 },
                         { "quote/v1/markPrice/klines", 1 },
-                        { "quote/v1/markPrice", 1 },
+                        { "quote/v1/markPrice", 10 },
                         { "quote/v1/index", 1 },
                         { "quote/v1/ticker/24hr", 40 },
                         { "quote/v1/contract/ticker/24hr", 40 },
                         { "quote/v1/ticker/price", 1 },
+                        { "quote/v1/contract/ticker/price", 1 },
                         { "quote/v1/ticker/bookTicker", 1 },
+                        { "quote/v1/contract/ticker/bookTicker", 1 },
                         { "api/v1/futures/fundingRate", 1 },
                         { "api/v1/futures/historyFundingRate", 1 },
+                        { "api/v1/futures/riskLimits", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -124,14 +133,31 @@ public partial class toobit : Exchange
                         { "api/v1/account/withdrawOrders", 5 },
                         { "api/v1/account/deposit/address", 1 },
                         { "api/v1/subAccount", 5 },
+                        { "api/v1/account/subAccount", 5 },
+                        { "api/v1/subAccount/list", 5 },
                         { "api/v1/futures/accountLeverage", 1 },
                         { "api/v1/futures/order", multiply(1, 1.67) },
                         { "api/v1/futures/positions", multiply(5, 1.67) },
+                        { "api/v1/futures/historyPositions", 5 },
                         { "api/v1/futures/balance", 5 },
                         { "api/v1/futures/userTrades", multiply(5, 1.67) },
                         { "api/v1/futures/balanceFlow", 5 },
                         { "api/v1/futures/commissionRate", 5 },
                         { "api/v1/futures/todayPnl", 5 },
+                        { "api/v1/account/download/detail", 10 },
+                        { "api/v1/agent/inviteUserList", 1 },
+                        { "api/v1/agent/commissionDataList", 1 },
+                        { "api/v1/agent/commissionDataInfo", 1 },
+                        { "api/v1/agent/inviteRelationCheck", 1 },
+                        { "api/v1/agent/depositDetailList", 1 },
+                        { "api/v1/agent/querySubAgentData", 1 },
+                        { "api/v1/agent/spotOrdersList", 1 },
+                        { "api/v1/agent/futuresOrdersList", 1 },
+                        { "api/v1/agent/futuresPositionsList", 1 },
+                        { "api/v1/agent/invite-commission-detail", 1 },
+                        { "api/v1/agent/user/export", 1 },
+                        { "api/v1/agent/export-list", 1 },
+                        { "api/v1/agent/export-url", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "api/v1/spot/orderTest", multiply(1, 1.67) },
@@ -145,6 +171,11 @@ public partial class toobit : Exchange
                         { "api/v1/futures/batchOrders", multiply(2, 1.67) },
                         { "api/v1/futures/position/trading-stop", multiply(3, 1.67) },
                         { "api/v1/futures/positionMargin", 1 },
+                        { "api/v1/futures/order/update", multiply(2, 1.67) },
+                        { "api/v1/futures/autoAddMargin", 1 },
+                        { "api/v1/futures/flashClose", 1 },
+                        { "api/v1/futures/reversePosition", 5 },
+                        { "api/v1/account/download/apply", 1000 },
                         { "api/v1/userDataStream", 1 },
                         { "api/v1/listenKey", 1 },
                     } },
@@ -152,12 +183,14 @@ public partial class toobit : Exchange
                         { "api/v1/spot/order", multiply(1, 1.67) },
                         { "api/v1/futures/order", multiply(1, 1.67) },
                         { "api/v1/spot/openOrders", multiply(5, 1.67) },
-                        { "api/v1/futures/batchOrders", multiply(5, 1.67) },
+                        { "api/v1/futures/batchOrders", multiply(3, 1.67) },
                         { "api/v1/spot/cancelOrderByIds", multiply(5, 1.67) },
-                        { "api/v1/futures/cancelOrderByIds", multiply(5, 1.67) },
+                        { "api/v1/futures/cancelOrderByIds", multiply(3, 1.67) },
+                        { "api/v1/userDataStream", 1 },
                         { "api/v1/listenKey", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
+                        { "api/v1/userDataStream", 1 },
                         { "api/v1/listenKey", 1 },
                     } },
                 } },
@@ -186,6 +219,7 @@ public partial class toobit : Exchange
                     { "-1002", typeof(PermissionDenied) },
                     { "-1003", typeof(RateLimitExceeded) },
                     { "-1004", typeof(BadRequest) },
+                    { "-1005", typeof(PermissionDenied) },
                     { "-1006", typeof(OperationFailed) },
                     { "-1007", typeof(OperationFailed) },
                     { "-1014", typeof(OperationFailed) },
@@ -194,6 +228,8 @@ public partial class toobit : Exchange
                     { "-1020", typeof(OperationRejected) },
                     { "-1021", typeof(OperationRejected) },
                     { "-1022", typeof(OperationRejected) },
+                    { "-1023", typeof(PermissionDenied) },
+                    { "-1031", typeof(OperationRejected) },
                     { "-1100", typeof(BadRequest) },
                     { "-1101", typeof(BadRequest) },
                     { "-1102", typeof(BadRequest) },
@@ -201,6 +237,7 @@ public partial class toobit : Exchange
                     { "-1104", typeof(BadRequest) },
                     { "-1105", typeof(BadRequest) },
                     { "-1106", typeof(BadRequest) },
+                    { "-1107", typeof(PermissionDenied) },
                     { "-1111", typeof(BadRequest) },
                     { "-1112", typeof(OperationRejected) },
                     { "-1114", typeof(BadRequest) },
@@ -210,11 +247,13 @@ public partial class toobit : Exchange
                     { "-1118", typeof(InvalidOrder) },
                     { "-1119", typeof(InvalidOrder) },
                     { "-1120", typeof(BadRequest) },
-                    { "-1121", typeof(BadRequest) },
+                    { "-1121", typeof(BadSymbol) },
                     { "-1125", typeof(OperationRejected) },
                     { "-1127", typeof(OperationRejected) },
                     { "-1128", typeof(BadRequest) },
+                    { "-1129", typeof(BadRequest) },
                     { "-1130", typeof(BadRequest) },
+                    { "-1131", typeof(InsufficientFunds) },
                     { "-1132", typeof(OperationRejected) },
                     { "-1133", typeof(OperationRejected) },
                     { "-1134", typeof(OperationRejected) },
@@ -226,11 +265,28 @@ public partial class toobit : Exchange
                     { "-1140", typeof(OperationRejected) },
                     { "-1141", typeof(InvalidOrder) },
                     { "-1142", typeof(InvalidOrder) },
-                    { "-1143", typeof(InvalidOrder) },
+                    { "-1143", typeof(OrderNotFound) },
                     { "-1144", typeof(OperationRejected) },
                     { "-1145", typeof(OperationRejected) },
                     { "-1146", typeof(OperationFailed) },
                     { "-1147", typeof(OperationFailed) },
+                    { "-1148", typeof(InvalidOrder) },
+                    { "-1149", typeof(OperationFailed) },
+                    { "-1150", typeof(OperationFailed) },
+                    { "-1151", typeof(OperationRejected) },
+                    { "-1153", typeof(PermissionDenied) },
+                    { "-1156", typeof(InvalidOrder) },
+                    { "-1157", typeof(OperationRejected) },
+                    { "-1158", typeof(InvalidOrder) },
+                    { "-1161", typeof(OperationRejected) },
+                    { "-1164", typeof(OperationRejected) },
+                    { "-1165", typeof(BadRequest) },
+                    { "-1166", typeof(BadRequest) },
+                    { "-1170", typeof(OperationRejected) },
+                    { "-1171", typeof(ExchangeError) },
+                    { "-1172", typeof(OperationFailed) },
+                    { "-1181", typeof(PermissionDenied) },
+                    { "-1182", typeof(PermissionDenied) },
                     { "-1193", typeof(OperationRejected) },
                     { "-1194", typeof(OperationRejected) },
                     { "-1195", typeof(OperationRejected) },
@@ -242,14 +298,53 @@ public partial class toobit : Exchange
                     { "-1201", typeof(OperationRejected) },
                     { "-1202", typeof(OperationRejected) },
                     { "-1203", typeof(OperationRejected) },
+                    { "-1204", typeof(PermissionDenied) },
+                    { "-1205", typeof(BadRequest) },
                     { "-1206", typeof(OperationRejected) },
+                    { "-1207", typeof(InvalidOrder) },
+                    { "-1208", typeof(InvalidOrder) },
+                    { "-1209", typeof(InvalidOrder) },
+                    { "-1210", typeof(InvalidOrder) },
+                    { "-1211", typeof(InvalidOrder) },
+                    { "-1212", typeof(InvalidOrder) },
+                    { "-1213", typeof(BadSymbol) },
+                    { "-1214", typeof(PermissionDenied) },
+                    { "-1215", typeof(PermissionDenied) },
+                    { "-1216", typeof(OperationRejected) },
+                    { "-1217", typeof(InvalidOrder) },
+                    { "-1300", typeof(BadRequest) },
+                    { "-1400", typeof(BadRequest) },
+                    { "-1401", typeof(PermissionDenied) },
+                    { "-1402", typeof(OperationFailed) },
+                    { "-1403", typeof(OperationFailed) },
+                    { "-1404", typeof(ExchangeError) },
+                    { "-1405", typeof(ExchangeError) },
+                    { "-1406", typeof(OperationRejected) },
+                    { "-1407", typeof(OperationRejected) },
+                    { "-1408", typeof(InsufficientFunds) },
+                    { "-1409", typeof(OperationRejected) },
+                    { "-1410", typeof(InsufficientFunds) },
+                    { "-1411", typeof(OperationRejected) },
+                    { "-1412", typeof(OperationRejected) },
+                    { "-1413", typeof(BadRequest) },
+                    { "-1414", typeof(BadRequest) },
+                    { "-1415", typeof(BadRequest) },
+                    { "-1416", typeof(InsufficientFunds) },
+                    { "-1417", typeof(OperationRejected) },
                     { "-2010", typeof(OperationFailed) },
                     { "-2011", typeof(OperationFailed) },
-                    { "-2013", typeof(InvalidOrder) },
+                    { "-2013", typeof(OrderNotFound) },
                     { "-2014", typeof(PermissionDenied) },
                     { "-2015", typeof(PermissionDenied) },
                     { "-2016", typeof(BadRequest) },
+                    { "-2017", typeof(PermissionDenied) },
+                    { "-2018", typeof(PermissionDenied) },
+                    { "-3000", typeof(BadRequest) },
+                    { "-3001", typeof(OperationRejected) },
+                    { "-3002", typeof(InvalidOrder) },
                     { "-3050", typeof(ExchangeError) },
+                    { "-3051", typeof(OperationRejected) },
+                    { "-3052", typeof(BadRequest) },
                     { "-3101", typeof(OperationRejected) },
                     { "-3102", typeof(OperationRejected) },
                     { "-3103", typeof(BadRequest) },
@@ -269,6 +364,38 @@ public partial class toobit : Exchange
                     { "-3129", typeof(BadRequest) },
                     { "-3130", typeof(OperationRejected) },
                     { "-3131", typeof(NotSupported) },
+                    { "-3132", typeof(InvalidOrder) },
+                    { "-3133", typeof(InvalidOrder) },
+                    { "-3136", typeof(OperationRejected) },
+                    { "-3137", typeof(OperationRejected) },
+                    { "-3138", typeof(OperationRejected) },
+                    { "-3139", typeof(OperationRejected) },
+                    { "-3140", typeof(OperationRejected) },
+                    { "-3141", typeof(InvalidOrder) },
+                    { "-3142", typeof(InvalidOrder) },
+                    { "-3143", typeof(InvalidOrder) },
+                    { "-3144", typeof(InvalidOrder) },
+                    { "-3145", typeof(InvalidOrder) },
+                    { "-3147", typeof(OperationRejected) },
+                    { "-3148", typeof(InvalidOrder) },
+                    { "-3149", typeof(InvalidOrder) },
+                    { "-3150", typeof(NotSupported) },
+                    { "-3151", typeof(NotSupported) },
+                    { "-3152", typeof(BadRequest) },
+                    { "-3153", typeof(BadRequest) },
+                    { "-32045", typeof(ExchangeError) },
+                    { "-32090", typeof(OperationRejected) },
+                    { "-32093", typeof(OperationRejected) },
+                    { "-120041", typeof(PermissionDenied) },
+                    { "-120047", typeof(ExchangeError) },
+                    { "-120055", typeof(OperationRejected) },
+                    { "-120067", typeof(ExchangeError) },
+                    { "-120072", typeof(BadRequest) },
+                    { "-120073", typeof(OperationRejected) },
+                    { "-120078", typeof(BadRequest) },
+                    { "-120510", typeof(BadRequest) },
+                    { "-120511", typeof(BadRequest) },
+                    { "-120512", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Unknown order sent", typeof(OrderNotFound) },
@@ -431,7 +558,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -451,6 +578,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -664,8 +792,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchMarkets
      * @description retrieves data on all markets for toobit
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -904,8 +1032,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#order-book
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -914,7 +1042,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -959,8 +1090,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchTrades
      * @description get a list of the most recent trades for a particular symbol
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
@@ -970,7 +1101,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1108,8 +1242,10 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1121,7 +1257,10 @@ public partial class toobit : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1168,8 +1307,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1177,7 +1316,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object type = null;
         object market = null;
@@ -1259,7 +1401,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1268,7 +1410,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1310,7 +1455,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1319,7 +1464,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1377,7 +1525,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
@@ -1385,7 +1533,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1441,7 +1592,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1453,7 +1604,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1504,15 +1658,18 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
-     * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = null;
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -1553,8 +1710,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#createOrder
      * @description create a trade order
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1566,7 +1723,10 @@ public partial class toobit : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object response = new Dictionary<string, object>() {};
@@ -1888,8 +2048,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#cancelOrder
      * @description cancels an open order
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1938,8 +2098,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
      * @param {string} symbol unified symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1947,7 +2107,10 @@ public partial class toobit : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1980,8 +2143,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#cancelOrders
      * @description cancel multiple orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1990,7 +2153,10 @@ public partial class toobit : Exchange
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object idsString = String.Join(",", ((IList<object>)ids).ToArray());
         object request = new Dictionary<string, object>() {
             { "ids", idsString },
@@ -2024,8 +2190,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2038,7 +2204,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
@@ -2086,8 +2255,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2097,7 +2266,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2128,7 +2300,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2138,7 +2310,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -2176,7 +2351,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2187,7 +2362,10 @@ public partial class toobit : Exchange
     {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2228,8 +2406,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -2244,7 +2422,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -2278,7 +2459,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount 'spot', 'swap'
@@ -2289,7 +2470,10 @@ public partial class toobit : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2335,8 +2519,8 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2347,7 +2531,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2444,14 +2631,17 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = null;
         object marketType = null;
         object market = null;
@@ -2511,7 +2701,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
@@ -2528,7 +2718,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
@@ -2544,7 +2734,10 @@ public partial class toobit : Exchange
     public async virtual Task<object> fetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2678,7 +2871,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -2686,7 +2879,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2731,12 +2927,13 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#withdraw
      * @description make a withdrawal
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -2751,7 +2948,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " withdraw() : param[\"network\"] is required")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2781,7 +2981,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2794,7 +2994,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(!isEqual(getValue(market, "type"), "swap")))
         {
@@ -2816,7 +3019,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#setLeverage
      * @description set the level of leverage for a market
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2829,7 +3032,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2846,7 +3052,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -2854,7 +3060,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2892,7 +3101,7 @@ public partial class toobit : Exchange
      * @method
      * @name toobit#fetchPositions
      * @description fetch all open positions
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2900,7 +3109,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))

@@ -8,11 +8,11 @@ import (
 )
 
 // milliseconds returns the current time in milliseconds since the Unix epoch.
-func (this *Exchange) Milliseconds() int64 {
+func (this *BaseExchange) Milliseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (this *Exchange) Seconds() int64 {
+func (this *BaseExchange) Seconds() int64 {
 	return this.Milliseconds() / 1000
 }
 
@@ -20,7 +20,7 @@ func (this *Exchange) Seconds() int64 {
 // requests would otherwise data-race on LastRestRequestTimestamp. This is a
 // hand-written Go override (blacklisted in goTranspiler.ts) of the transpiled
 // setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
-func (this *Exchange) SetLastRestRequestTimestamp() {
+func (this *BaseExchange) SetLastRestRequestTimestamp() {
 	this.lastMu.Lock()
 	this.LastRestRequestTimestamp = this.Milliseconds()
 	this.lastMu.Unlock()
@@ -30,7 +30,7 @@ func (this *Exchange) SetLastRestRequestTimestamp() {
 // otherwise data-race on these bookkeeping fields. This is a hand-written Go
 // override (blacklisted in goTranspiler.ts) of the transpiled setLastRequest
 // method in ts/src/base/Exchange.ts.
-func (this *Exchange) SetLastRequest(request any) {
+func (this *BaseExchange) SetLastRequest(request any) {
 	this.lastMu.Lock()
 	this.Last_request_headers = GetValue(request, "headers")
 	this.Last_request_body = GetValue(request, "body")
@@ -39,12 +39,12 @@ func (this *Exchange) SetLastRequest(request any) {
 }
 
 // microseconds returns the current time in microseconds since the Unix epoch.
-func (this *Exchange) Microseconds() int64 {
+func (this *BaseExchange) Microseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Microsecond)
 }
 
 // parseDate parses a date string and returns the timestamp in milliseconds since the Unix epoch.
-// func (this *Exchange) ParseDate(datetime2 any) any {
+// func (this *BaseExchange) ParseDate(datetime2 any) any {
 // 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 // 		return nil
 // 	}
@@ -58,7 +58,7 @@ func (this *Exchange) Microseconds() int64 {
 // 	return timestamp
 // }
 
-func (this *Exchange) ParseDate(datetime2 any) any {
+func (this *BaseExchange) ParseDate(datetime2 any) any {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
@@ -118,12 +118,12 @@ func Iso8601(ts2 any) any {
 }
 
 // iso8601 is a wrapper for Iso8601.
-func (this *Exchange) Iso8601(ts any) any {
+func (this *BaseExchange) Iso8601(ts any) any {
 	return Iso8601(ts)
 }
 
 // // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
-// func (this *Exchange) Ymdhms(ts any, args ...any) string {
+// func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 // 	infix := GetArg(args, 0, nil)
 // 	if infix == nil {
 // 		infix = " "
@@ -136,7 +136,7 @@ func (this *Exchange) Iso8601(ts any) any {
 // 	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
 // }
 
-func (this *Exchange) Ymdhms(ts any, args ...any) string {
+func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = " "
@@ -150,7 +150,7 @@ func (this *Exchange) Ymdhms(ts any, args ...any) string {
 }
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) Yyyymmdd(ts any, args ...any) string {
+func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
@@ -164,7 +164,7 @@ func (this *Exchange) Yyyymmdd(ts any, args ...any) string {
 }
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
-func (this *Exchange) Yymmdd(ts any, args ...any) string {
+func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = ""
@@ -178,7 +178,7 @@ func (this *Exchange) Yymmdd(ts any, args ...any) string {
 }
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) Ymd(ts any, args ...any) string {
+func (this *BaseExchange) Ymd(ts any, args ...any) string {
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
@@ -192,7 +192,7 @@ func (this *Exchange) Ymd(ts any, args ...any) string {
 }
 
 // parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
-// func (this *Exchange) Parse8601(datetime2 any) any {
+// func (this *BaseExchange) Parse8601(datetime2 any) any {
 // 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 // 		return nil
 // 	}
@@ -212,7 +212,7 @@ func (this *Exchange) Ymd(ts any, args ...any) string {
 // 	return timestamp
 // }
 
-// func (this *Exchange) Parse8601(datetime2 any) any {
+// func (this *BaseExchange) Parse8601(datetime2 any) any {
 // 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 // 		return nil
 // 	}
@@ -239,7 +239,7 @@ func (this *Exchange) Ymd(ts any, args ...any) string {
 // 	return timestamp
 // }
 
-func (this *Exchange) Parse8601(datetime2 any) any {
+func (this *BaseExchange) Parse8601(datetime2 any) any {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}

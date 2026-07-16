@@ -13,6 +13,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class btcbox extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -153,7 +155,6 @@ class btcbox extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 3,
                 ),
-                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(
@@ -402,7 +403,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privatePostBalance($params));
             return $this->parse_balance($response);
         })();
@@ -420,7 +423,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -470,7 +475,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -490,7 +497,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetTickers($params));
             return $this->parse_tickers($response, $symbols);
         })();
@@ -545,7 +554,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $numSymbols = ($this->symbols === null) ? 0 : count($this->symbols);
@@ -583,7 +594,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'amount' => $amount,
@@ -614,7 +627,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             // a special case for btcbox – default $symbol is BTC/JPY
             if ($symbol === null) {
                 $symbol = 'BTC/JPY';
@@ -717,7 +732,9 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             // a special case for btcbox – default $symbol is BTC/JPY
             if ($symbol === null) {
                 $symbol = 'BTC/JPY';
@@ -746,7 +763,9 @@ class btcbox extends Exchange {
 
     public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($type, $symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             // a special case for btcbox – default $symbol is BTC/JPY
             if ($symbol === null) {
                 $symbol = 'BTC/JPY';

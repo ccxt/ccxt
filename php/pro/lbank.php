@@ -9,6 +9,9 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class lbank extends \ccxt\async\lbank {
     public function describe(): mixed {
@@ -80,7 +83,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
@@ -119,7 +124,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
             $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
@@ -257,7 +264,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTicker:' . $market['symbol'];
@@ -283,7 +292,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} $params extra parameters specific to the lbank api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'ticker:' . $market['symbol'];
@@ -393,7 +404,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTrades:' . $market['symbol'];
@@ -425,7 +438,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'trades:' . $market['symbol'];
@@ -548,7 +563,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} $params extra parameters specific to the lbank api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $key = Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $messageHash = null;
@@ -712,7 +729,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $key = Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $messageHash = 'balance';
@@ -771,7 +790,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} $params extra parameters specific to the lbank api endpoint
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchOrderbook:' . $market['symbol'];
@@ -802,7 +823,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} $params extra parameters specific to the lbank api endpoint
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'orderbook:' . $market['symbol'];
