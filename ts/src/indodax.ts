@@ -1440,13 +1440,16 @@ export default class indodax extends Exchange {
                         }
                         const networkIds = networkId.split (',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            if (network === undefined) {
-                                throw new ExchangeError (this.id + ' fetchDepositAddresses() missing network');
+                            const _netIdTmp = this.networkIdToCode (networkIds[j], code);
+                            if (_netIdTmp !== undefined) {
+                                network.push (_netIdTmp.toUpperCase ());
                             }
-                            network.push (this.networkIdToCode (networkIds[j], code).toUpperCase ());
                         }
                     } else {
-                        network = this.networkIdToCode (networkId, code).toUpperCase ();
+                        const _netIdTmp = this.networkIdToCode (networkId, code);
+                        if (_netIdTmp !== undefined) {
+                            network = _netIdTmp.toUpperCase ();
+                        }
                     }
                 }
                 const finalNetwork = network; // java req

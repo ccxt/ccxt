@@ -1067,27 +1067,29 @@ export default class woo extends Exchange {
             const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode (networkId, code);
             const specialNetworkId = this.safeString (tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -2569,7 +2571,7 @@ export default class woo extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
@@ -2729,7 +2731,7 @@ export default class woo extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     getCurrencyFromChaincode (networkizedCode, currency) {
@@ -3392,7 +3394,7 @@ export default class woo extends Exchange {
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market ((symbol as string));
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger2 (fundingRate, 'nextFundingTime', 'fundingTs');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
@@ -3857,7 +3859,7 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };

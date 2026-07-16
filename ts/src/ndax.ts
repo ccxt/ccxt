@@ -1347,7 +1347,7 @@ export default class ndax extends Exchange {
             'MarginRelinquish': 'trade',
             'MarginQuoteHold': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1606,7 +1606,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'InstrumentId': this.parseToInt (market['id']),
             'omsId': omsId,
@@ -1623,11 +1623,11 @@ export default class ndax extends Exchange {
             'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price) || '0'),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price) || '0');
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1672,7 +1672,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'OrderIdToReplace': parseInt (id),
             'InstrumentId': this.parseToInt (market['id']),
@@ -1690,11 +1690,11 @@ export default class ndax extends Exchange {
             'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price) || '0'),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price) || '0');
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -2488,7 +2488,7 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, type, {});
+        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, (type as string), {});
         if (status === undefined) {
             return undefined;
         }

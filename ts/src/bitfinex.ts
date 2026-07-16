@@ -901,22 +901,24 @@ export default class bitfinex extends Exchange {
             const networkId = networkIds[j];
             const network = this.networkIdToCode (networkId, code);
             const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
-            networks[network] = {
-                'info': networkId,
-                'id': networkId.toLowerCase (),
-                'network': networkId,
-                'active': undefined,
-                'deposit': this.safeInteger (dwStatuses, 1) === 1,
-                'withdraw': this.safeInteger (dwStatuses, 2) === 1,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase (),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': this.safeInteger (dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger (dwStatuses, 2) === 1,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1707,7 +1709,13 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore

@@ -522,26 +522,28 @@ export default class apex extends Exchange {
                 if (tokenName === currencyId) {
                     const networkId = this.safeString (chain, 'chainId');
                     const networkCode = this.networkIdToCode (networkId, code);
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': !this.safeBool (chain, 'depositDisable'),
-                        'withdraw': this.safeBool (token, 'withdrawEnable'),
-                        'fee': this.safeNumber (token, 'minFee'),
-                        'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (token, 'minWithdraw'),
-                                'max': undefined,
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'info': chain,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': !this.safeBool (chain, 'depositDisable'),
+                            'withdraw': this.safeBool (token, 'withdrawEnable'),
+                            'fee': this.safeNumber (token, 'minFee'),
+                            'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
+                            'limits': {
+                                'withdraw': {
+                                    'min': this.safeNumber (token, 'minWithdraw'),
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': this.safeNumber (chain, 'minDeposit'),
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': this.safeNumber (chain, 'minDeposit'),
-                                'max': undefined,
-                            },
-                        },
-                    };
+                        };
+                    }
                 }
             }
         }
@@ -1278,7 +1280,7 @@ export default class apex extends Exchange {
             'TAKE_PROFIT_LIMIT': 'limit',
             'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
@@ -1303,7 +1305,7 @@ export default class apex extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    generateRandomClientIdOmni (_accountId: string) {
+    generateRandomClientIdOmni (_accountId: Str) {
         const accountId = _accountId || this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
@@ -1366,7 +1368,7 @@ export default class apex extends Exchange {
         }
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
-        let orderPrice = '0';
+        let orderPrice: Str = '0';
         if (price !== undefined) {
             orderPrice = this.priceToPrecision (symbol, price);
         }

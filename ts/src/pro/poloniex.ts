@@ -884,8 +884,8 @@ export default class poloniex extends poloniexRest {
                     const previousOrderTrades = previousOrder['trades'];
                     for (let j = 0; j < previousOrderTrades.length; j++) {
                         const previousOrderTrade = previousOrderTrades[j];
-                        const cost = this.numberToString (previousOrderTrade['cost']);
-                        const amount = this.numberToString (previousOrderTrade['amount']);
+                        const cost = this.numberToString (previousOrderTrade['cost']) || '0';
+                        const amount = this.numberToString (previousOrderTrade['amount']) || '0';
                         totalCost = Precise.stringAdd (totalCost, cost);
                         totalAmount = Precise.stringAdd (totalAmount, amount);
                     }

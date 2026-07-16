@@ -1077,7 +1077,13 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         type = this.safeString (params, 'orderType', type);
@@ -1264,7 +1270,7 @@ export default class krakenfutures extends Exchange {
                 extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
             extendedParams['order'] = 'send';
-            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const request: Dict = {
@@ -3060,9 +3066,13 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const marketIdUpper = this.marketId (symbol);
+        if (marketIdUpper === undefined) {
+            throw new ArgumentsRequired (this.id + ' marketId is required');
+        }
         const request: Dict = {
             'maxLeverage': leverage,
-            'symbol': this.marketId (symbol).toUpperCase (),
+            'symbol': marketIdUpper.toUpperCase (),
         };
         //
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
@@ -3117,8 +3127,12 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketIdUpper = this.marketId (symbol);
+        if (marketIdUpper === undefined) {
+            throw new ArgumentsRequired (this.id + ' marketId is required');
+        }
         const request: Dict = {
-            'symbol': this.marketId (symbol).toUpperCase (),
+            'symbol': marketIdUpper.toUpperCase (),
         };
         const response = await this.privateGetLeveragepreferences (this.extend (request, params));
         //

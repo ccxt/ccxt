@@ -1502,7 +1502,7 @@ export default class kraken extends krakenRest {
         }
         const type = 'spot';
         const balance = this.safeBalance (result);
-        const oldBalance = this.safeValue (this.balance, type, {});
+        const oldBalance = this.safeValue (this.balance, (type as string), {});
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         const channel = this.safeString (message, 'channel');

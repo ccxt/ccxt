@@ -828,14 +828,14 @@ export default class mudrex extends Exchange {
         market = this.safeMarket (oms, market);
         const oid = this.safeString2 (order, 'order_id', 'id');
         const rawSide = this.safeStringUpper (order, 'order_type');
-        let side: string = undefined;
+        let side: Str = undefined;
         if (rawSide === 'LONG') {
             side = 'buy';
         } else if (rawSide === 'SHORT') {
             side = 'sell';
         }
         const trig = this.safeStringUpper (order, 'trigger_type');
-        let typ: string = undefined;
+        let typ: Str = undefined;
         if (trig === 'MARKET') {
             typ = 'market';
         } else if (trig === 'LIMIT') {
@@ -1099,7 +1099,7 @@ export default class mudrex extends Exchange {
         const symbol = this.safeSymbol (ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         const rawSide = this.safeStringUpper2 (position, 'order_type', 'position_type');
-        let side: string = undefined;
+        let side: Str = undefined;
         if (rawSide === 'LONG') {
             side = 'long';
         } else if (rawSide === 'SHORT') {
@@ -1289,7 +1289,7 @@ export default class mudrex extends Exchange {
             ts = this.safeInteger (trade, 'time');
         }
         const side = this.safeStringLower2 (trade, 'side', 'order_type');
-        let tradeSide: string = undefined;
+        let tradeSide: Str = undefined;
         if (side === 'buy' || side === 'long') {
             tradeSide = 'buy';
         } else if (side === 'sell' || side === 'short') {

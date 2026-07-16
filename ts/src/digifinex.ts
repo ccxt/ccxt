@@ -535,26 +535,28 @@ export default class digifinex extends Exchange {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1819,7 +1821,13 @@ export default class digifinex extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2656,7 +2664,7 @@ export default class digifinex extends Exchange {
 
     parseLedgerEntryType (type) {
         const types: Dict = {};
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -4259,10 +4267,12 @@ export default class digifinex extends Exchange {
                 };
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode (networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 } else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
                     depositWithdrawFees[code]['deposit'] = depositResult;

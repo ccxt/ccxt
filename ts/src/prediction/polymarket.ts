@@ -404,7 +404,7 @@ export default class polymarket extends Exchange {
             sortParam = 'startDate';
         }
         const status = this.safeString (params, 'status', 'active');
-        let eventsStatus = 'active';
+        let eventsStatus: Str = 'active';
         if ((status === 'closed') || (status === 'inactive')) {
             eventsStatus = 'closed';
         } else if (status === 'all') {

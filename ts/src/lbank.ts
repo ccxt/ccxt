@@ -470,26 +470,28 @@ export default class lbank extends Exchange {
                 networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'min'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkEntry, 'minTransfer'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (networkEntry, 'minTransfer'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
-                'fee': this.safeNumber (networkEntry, 'fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
+                    'fee': this.safeNumber (networkEntry, 'fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2461,7 +2463,7 @@ export default class lbank extends Exchange {
                 '4': 'ok',
             },
         };
-        return this.safeString (this.safeValue (statuses, type, {}), status, status);
+        return this.safeString (this.safeValue (statuses, (type as string), {}), status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2745,7 +2747,9 @@ export default class lbank extends Exchange {
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
                     const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
-                    withdrawFees[code][networkCode] = fee;
+                    if (networkCode !== undefined) {
+                        withdrawFees[code][networkCode] = fee;
+                    }
                 }
             }
         }
@@ -3024,16 +3028,18 @@ export default class lbank extends Exchange {
                         'percentage': undefined,
                     };
                 }
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': withdrawFee,
-                        'percentage': undefined,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': withdrawFee,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;

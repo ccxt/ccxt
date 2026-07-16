@@ -783,22 +783,24 @@ export default class bitrue extends Exchange {
             const entry = networkDetails[j];
             const networkId = this.safeString (entry, 'chain');
             const network = this.networkIdToCode (networkId, code);
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': this.safeBool (entry, 'enableDeposit'),
-                'withdraw': this.safeBool (entry, 'enableWithdraw'),
-                'active': undefined,
-                'fee': this.safeNumber (entry, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (entry, 'minWithdraw'),
-                        'max': this.safeNumber (entry, 'maxWithdraw'),
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': this.safeBool (entry, 'enableDeposit'),
+                    'withdraw': this.safeBool (entry, 'enableWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber (entry, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (entry, 'minWithdraw'),
+                            'max': this.safeNumber (entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2491,8 +2493,8 @@ export default class bitrue extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
-        let response = undefined;
+        const market = this.market (symbol);
+        let response: NullableDict = undefined;
         let data: any[] = [];
         if (market['swap']) {
             const request: Dict = {
@@ -2979,10 +2981,12 @@ export default class bitrue extends Exchange {
                 const networkId = this.safeString (chainDetail, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainDetailLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (chainDetail, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -3252,9 +3256,9 @@ export default class bitrue extends Exchange {
         const access = this.safeString (api, 2);
         let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
-            url = this.urls['api'][type];
+            url = this.urls['api'][type as string];
         } else {
-            url = this.urls['api'][(type as string)] + '/' + version;
+            url = this.urls['api'][type as string] + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

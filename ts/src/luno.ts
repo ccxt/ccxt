@@ -447,26 +447,28 @@ export default class luno extends Exchange {
             const networkEntry = rawCurrency[i];
             const networkId = this.safeString (networkEntry, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1439,7 +1441,7 @@ export default class luno extends Exchange {
         const after = this.safeString (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
-        let amount = '0.0';
+        let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];

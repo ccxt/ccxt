@@ -630,22 +630,24 @@ export default class cryptocom extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'network_id');
             const network = this.networkIdToCode (networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool (chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool (chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber (chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool (chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber (chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': currency,
@@ -1344,7 +1346,13 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
@@ -1505,7 +1513,7 @@ export default class cryptocom extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createAdvancedOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+            const orderRequest = this.createAdvancedOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');
@@ -1564,7 +1572,13 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result);
     }
 
-    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createAdvancedOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1703,7 +1717,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: string, symbol: string, amount: number, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, amount: Num, price: Num = undefined, params = {}) {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -1839,7 +1853,7 @@ export default class cryptocom extends Exchange {
             const order = orders[i];
             const id = this.safeString (order, 'id');
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market ((symbol as string));
+            const market = this.market (symbol);
             const orderItem: Dict = {
                 'instrument_name': market['id'],
                 'order_id': (id as string).toString (),
@@ -2113,13 +2127,15 @@ export default class cryptocom extends Exchange {
             this.checkAddress (address);
             const networkId = this.safeString (value, 'network');
             const network = this.networkIdToCode (networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result as DepositAddress[];
     }
@@ -2705,10 +2721,12 @@ export default class cryptocom extends Exchange {
                 const networkId = this.safeString (networkInfo, 'network_id');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber (networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;
@@ -2883,7 +2901,7 @@ export default class cryptocom extends Exchange {
             'AUTO_CONVERSION': 'conversion',
             'MANUAL_CONVERSION': 'conversion',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -3588,7 +3606,7 @@ export default class cryptocom extends Exchange {
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][(type as string)] + '/' + path;
+        let url = this.urls['api'][type as string] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {

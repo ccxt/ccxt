@@ -2042,7 +2042,7 @@ export default class extended extends Exchange {
             'TRANSFER': 'transfer',
             'CLAIM': 'claim',
         };
-        return this.safeString (types, type as string, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2602,7 +2602,13 @@ export default class extended extends Exchange {
         return settlement;
     }
 
-    async createExtendedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+    async createExtendedOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
@@ -2616,7 +2622,7 @@ export default class extended extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const postOnly = this.isPostOnly (uppercaseType === 'MARKET', undefined, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);

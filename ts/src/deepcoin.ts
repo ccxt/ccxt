@@ -378,7 +378,7 @@ export default class deepcoin extends Exchange {
 
     convertToInstrumentType (type) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
+        return this.safeString (exchangeTypes, (type as string), type);
     }
 
     /**
@@ -511,8 +511,8 @@ export default class deepcoin extends Exchange {
             settle = this.safeCurrencyCode (settleId);
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict2 (this.fees, type as string, 'trading', {}) as Dict;
-        let maxLeverage = this.safeString (market, 'lever', '1');
+        const fees = this.safeDict2 (this.fees, (type as string), 'trading', {}) as Dict;
+        let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxMarketSize = this.safeString (market, 'maxMktSz');
         const maxLimitSize = this.safeString (market, 'maxLmtSz');
@@ -1376,7 +1376,7 @@ export default class deepcoin extends Exchange {
             '4': 'transfer',
             '5': 'fee',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1523,7 +1523,13 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1547,7 +1553,13 @@ export default class deepcoin extends Exchange {
         }
     }
 
-    createRegularOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createRegularOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+                if (type === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires a type argument');
+                }
+                if (side === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires a side argument');
+                }
         /**
          * @method
          * @ignore
@@ -1658,7 +1670,13 @@ export default class deepcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    createTriggerOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createTriggerOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1736,7 +1754,7 @@ export default class deepcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    handleTypePostOnlyAndTimeInForce (type: OrderType, params) {
+    handleTypePostOnlyAndTimeInForce (type: Str, params) {
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
@@ -2503,7 +2521,7 @@ export default class deepcoin extends Exchange {
             'ioc': 'market',
             'TPSL': 'market',
         };
-        return this.safeString (types, type as string, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTimeInForce (type: Str): Str {
@@ -2513,7 +2531,7 @@ export default class deepcoin extends Exchange {
             'limit': 'GTC',
             'market': 'GTC',
         };
-        return this.safeString (timeInForces, type as string, type);
+        return this.safeString (timeInForces, (type as string), type);
     }
 
     /**
@@ -2559,7 +2577,7 @@ export default class deepcoin extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol as string);
+            market = this.market (firstSymbol);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params, marketType);
         const instrumentType = this.convertToInstrumentType (marketType);
@@ -2727,7 +2745,7 @@ export default class deepcoin extends Exchange {
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            firstMarket = this.market (firstSymbol as string);
+            firstMarket = this.market (firstSymbol);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let instType = 'SwapU';

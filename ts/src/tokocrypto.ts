@@ -2208,7 +2208,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        let tag = this.safeString (data, 'addressTag', '');
+        let tag: Str = this.safeString (data, 'addressTag', '');
         if (tag.length === 0) {
             tag = undefined;
         }
@@ -2362,7 +2362,7 @@ export default class tokocrypto extends Exchange {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2412,7 +2412,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        let tag: Str = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;

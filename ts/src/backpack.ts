@@ -545,26 +545,28 @@ export default class backpack extends Exchange {
             const networkId = this.safeString (network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower (network, 'blockchain');
             const networkCode = this.networkIdToCode (networkIdLowerCase, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (network, 'minimumWithdrawal'),
-                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal'))),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'minimumWithdrawal'),
+                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'minimumDeposit'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (network, 'minimumDeposit'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool (network, 'depositEnabled'),
-                'withdraw': this.safeBool (network, 'withdrawEnabled'),
-                'fee': this.safeNumber (network, 'withdrawalFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool (network, 'depositEnabled'),
+                    'withdraw': this.safeBool (network, 'withdrawEnabled'),
+                    'fee': this.safeNumber (network, 'withdrawalFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         let active: Bool = undefined;
         let deposit: Bool = undefined;
@@ -801,7 +803,7 @@ export default class backpack extends Exchange {
             // 'PREDICTION': 'swap',
             // 'RFQ': 'swap',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -1779,7 +1781,13 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2220,7 +2228,7 @@ export default class backpack extends Exchange {
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');
         let hedged = false;
-        let side = 'long';
+        let side: Str = 'long';
         if (Precise.stringLt (netCost, '0')) {
             side = 'short';
         }

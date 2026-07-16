@@ -368,7 +368,10 @@ export default class hyperliquid extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
-    market (symbol: string): MarketInterface {
+    market (symbol: Str): MarketInterface {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -1599,12 +1602,12 @@ export default class hyperliquid extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    amountToPrecision (symbol, amount) {
+    amountToPrecision (symbol: Str, amount) {
         const market = this.market (symbol);
         return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
-    priceToPrecision (symbol: string, price): string {
+    priceToPrecision (symbol: Str, price): Str {
         const market = this.market (symbol);
         const priceStr = this.numberToString (price);
         const integerPart = (priceStr as string).split ('.')[0];
@@ -2207,7 +2210,13 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (ordersToBeParsed);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: string, price: Str = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         type = type.toUpperCase ();
         side = (side as string).toUpperCase ();
@@ -2236,7 +2245,7 @@ export default class hyperliquid extends Exchange {
         } else {
             px = this.priceToPrecision (symbol, price);
         }
-        const sz = this.amountToPrecision (symbol, amount);
+        const sz: Str = this.amountToPrecision (symbol, amount);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const orderType: Dict = {};
         if (isTrigger) {
@@ -2312,7 +2321,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market ((marketId as string));
+            const market = this.market (marketId);
             const symbol = market['symbol'];
             const type = this.safeStringUpper (rawOrder, 'type');
             const side = this.safeStringUpper (rawOrder, 'side');
@@ -2326,7 +2335,7 @@ export default class hyperliquid extends Exchange {
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
-            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, (amount as string), price, orderParams);
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, type, side, (amount as string), price, orderParams);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
@@ -2552,7 +2561,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params]
          * @returns {object} the raw request object to be sent to the exchange
          */
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
@@ -2754,7 +2763,7 @@ export default class hyperliquid extends Exchange {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market ((marketId as string));
+            const market = this.market (marketId);
             const symbol = market['symbol'];
             const type = this.safeStringUpper (rawOrder, 'type');
             const isMarket = (type === 'MARKET');
@@ -2786,7 +2795,7 @@ export default class hyperliquid extends Exchange {
             } else {
                 px = this.priceToPrecision (symbol, px);
             }
-            const sz = this.amountToPrecision (symbol, amount);
+            const sz: Str = this.amountToPrecision (symbol, amount);
             const orderType: Dict = {};
             if (isTrigger) {
                 let isTp = false;
@@ -4503,7 +4512,7 @@ export default class hyperliquid extends Exchange {
             'internalTransfer': 'transfer',
             'accountClassTransfer': 'transfer',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

@@ -517,7 +517,7 @@ export default class kucoin extends kucoinRest {
         const messageHashes: any[] = [];
         for (let i = 0; i < (symbols as string[]).length; i++) {
             const symbol = this.safeString (symbols, i);
-            const market = this.market ((symbol as string));
+            const market = this.market (symbol);
             const subMessageHash = messageHash + ':' + market['symbol'];
             messageHashes.push (subMessageHash);
         }
@@ -2574,7 +2574,7 @@ export default class kucoin extends kucoinRest {
         }
         params = this.omit (params, 'type');
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const uniformType = this.safeString (accountsByType, type, type);
+        const uniformType = this.safeString (accountsByType, (type as string), type);
         const isClassicFuturesMethod = (uniformType === 'contract');
         let subscriptionHash = isClassicFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
         let url: Str = undefined;
@@ -2640,7 +2640,7 @@ export default class kucoin extends kucoinRest {
             'uta': uta,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -3452,7 +3452,7 @@ export default class kucoin extends kucoinRest {
             if (client.url.indexOf ('connectId=private') >= 0) {
                 type = 'private';
             }
-            this.options['urls'][type] = undefined;
+            this.options['urls'][type as string] = undefined;
         }
         this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
         return false;
@@ -3468,7 +3468,7 @@ export default class kucoin extends kucoinRest {
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
         };
-        const method = this.safeValue (methods, (type as string));
+        const method = this.safeValue (methods, type);
         if (method !== undefined) {
             method.call (this, client, message);
         } else if ('T' in message) { // uta messages

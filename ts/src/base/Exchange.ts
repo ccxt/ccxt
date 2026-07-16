@@ -318,13 +318,13 @@ export class BaseExchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response!: string;
+    last_http_response: Str = undefined;
     last_json_response: any = undefined;
     last_response_headers!: Dictionary<string> | undefined;
     last_request_headers!: Dictionary<string> | undefined;
     last_request_body: any = undefined;
-    last_request_url: string = undefined;
-    last_request_path: string = undefined;
+    last_request_url: Str = undefined;
+    last_request_path: Str = undefined;
     fetchHistoryCache: Dictionary<any>[] = [];
     fetchHistoryCacheSize: number = 0;
 
@@ -1651,7 +1651,10 @@ export class BaseExchange {
         return undefined;
     }
 
-    client (url: string): WsClient {
+    client (url: Str): WsClient {
+        if (url === undefined) {
+            throw new ArgumentsRequired (this.id + ' client() requires a url argument');
+        }
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
@@ -1684,7 +1687,7 @@ export class BaseExchange {
         return this.clients[url];
     }
 
-    watchMultiple (url: string, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
+    watchMultiple (url: Str, messageHashes: string[], message: any = undefined, subscribeHashes: Strings = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1702,6 +1705,9 @@ export class BaseExchange {
         //
         // The following is a longer version of this method with comments
         //
+        if (url === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMultiple() requires a url argument');
+        }
         const client = this.client (url) as WsClient;
         // todo: calculate the backoff using the clients cache
         const backoffDelay = 0;
@@ -1777,7 +1783,7 @@ export class BaseExchange {
         return future;
     }
 
-    watch (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) {
+    watch (url: Str, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1795,6 +1801,9 @@ export class BaseExchange {
         //
         // The following is a longer version of this method with comments
         //
+        if (url === undefined) {
+            throw new ArgumentsRequired (this.id + ' watch() requires a url argument');
+        }
         const client = this.client (url) as WsClient;
         // todo: calculate the backoff using the clients cache
         const backoffDelay = 0;
@@ -2039,13 +2048,13 @@ export class BaseExchange {
     }
 
     async getZKContractSignatureObj (seed, params = {}) {
-        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'slotId')), sha256, 'hex'))).toString ();
-        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'nonce')), sha256, 'hex'))).toString ();
+        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'slotId', '')), sha256, 'hex'))).toString ();
+        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'nonce', '')), sha256, 'hex'))).toString ();
         const formattedUint64 = '18446744073709551615';
         const formattedUint32 = '4294967295';
-        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32), 10);
-        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32), 10);
-        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId', '0'), formattedUint32) || '0', 10);
+        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32) || '0', 10);
+        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32) || '0', 10);
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
@@ -2058,8 +2067,8 @@ export class BaseExchange {
             Precise.stringMul (this.safeString (params, 'size'), '1e18'),
             Precise.stringMul (this.safeString (params, 'price'), '1e18'),
             this.safeString (params, 'direction') === 'BUY',
-            parseInt (Precise.stringMul (this.safeString (params, 'makerFeeRate'), '10000')),
-            parseInt (Precise.stringMul (this.safeString (params, 'takerFeeRate'), '10000')),
+            parseInt (Precise.stringMul (this.safeString (params, 'makerFeeRate', '0'), '10000') || '0'),
+            parseInt (Precise.stringMul (this.safeString (params, 'takerFeeRate', '0'), '10000') || '0'),
             false
         );
         const contractor = zklink.newContract (tx_builder);
@@ -2075,7 +2084,7 @@ export class BaseExchange {
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
-        let nonce = this.safeString (params, 'nonce', '0');
+        let nonce: Str = this.safeString (params, 'nonce', '0');
         if (this.safeBool (params, 'isContract') === true) {
             const formattedUint32 = '4294967295';
             const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
@@ -3852,22 +3861,27 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
-    parseToInt (number) {
+    parseToInt (number): number {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
+        // numberToString may return undefined; keep definite number return (NaN) so callers stay number-typed
         const stringifiedNumber = this.numberToString (number);
+        if (stringifiedNumber === undefined) {
+            return NaN;
+        }
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
     }
 
-    parseToNumeric (number) {
+    parseToNumeric (number): number {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
+        // numberToString may return undefined; keep definite number return (NaN)
         if (stringVersion === undefined) {
-            throw new ExchangeError (this.id + ' parseToNumeric() missing stringVersion');
+            return NaN;
         }
         if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
@@ -4901,7 +4915,7 @@ export class BaseExchange {
             // the fee is always in feeSide currency
             useQuote = feeSide === 'quote';
         }
-        let cost = this.numberToString (amount);
+        let cost: Str = this.numberToString (amount);
         let key: Str = undefined;
         if (useQuote) {
             const priceString = this.numberToString (price);
@@ -5468,7 +5482,10 @@ export class BaseExchange {
         }
         const result: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
-            result.push (this.marketId (symbols[i]));
+            const id = this.marketId (symbols[i]);
+            if (id !== undefined) {
+                result.push (id);
+            }
         }
         return result;
     }
@@ -5481,7 +5498,10 @@ export class BaseExchange {
         }
         const result: string[] = [];
         for (let i = 0; i < codes.length; i++) {
-            result.push (this.currencyId (codes[i]));
+            const id = this.currencyId (codes[i]);
+            if (id !== undefined) {
+                result.push (id);
+            }
         }
         return result;
     }
@@ -5683,7 +5703,7 @@ export class BaseExchange {
         return [ networkCode, networkCode ];
     }
 
-    networkCodeToId (networkCode: string, currencyCode: Str = undefined): string {
+    networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str {
         /**
          * @ignore
          * @method
@@ -5719,7 +5739,7 @@ export class BaseExchange {
         return networkCode;
     }
 
-    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): string {
+    networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): Str {
         /**
          * @ignore
          * @method
@@ -6041,7 +6061,10 @@ export class BaseExchange {
         return headers;
     }
 
-    currencyId (code: string): string {
+    currencyId (code: Str): Str {
+        if (code === undefined) {
+            return code;
+        }
         let currency = this.safeDict (this.currencies, code);
         if (currency === undefined) {
             currency = this.safeCurrency (code);
@@ -6052,7 +6075,7 @@ export class BaseExchange {
         return code;
     }
 
-    marketId (symbol: string): string {
+    marketId (symbol: Str): Str {
         const market = this.market (symbol);
         if (market !== undefined) {
             return market['id'];
@@ -6060,12 +6083,17 @@ export class BaseExchange {
         return symbol;
     }
 
-    symbol (symbol: string): string {
+    symbol (symbol: Str): string {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' symbol() requires a symbol argument');
+        }
         const market = this.market (symbol);
         return this.safeString (market, 'symbol', symbol);
     }
 
-    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [string, object] {
+    handleParamString (params: object, paramName: string, defaultValue: string): [string, object];
+    handleParamString (params: object, paramName: string, defaultValue?: string): [Str, object];
+    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
@@ -6073,7 +6101,9 @@ export class BaseExchange {
         return [ value, params ];
     }
 
-    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [string, object] {
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: string): [string, object];
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue?: string): [Str, object];
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, [ paramName1, paramName2 ]);
@@ -7019,7 +7049,10 @@ export class BaseExchange {
         return this.safeString (this.commonCurrencies, code, code);
     }
 
-    currency (code: string): CurrencyInterface {
+    currency (code: Str): CurrencyInterface {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' currency() requires a code argument');
+        }
         const keys = Object.keys (this.currencies);
         const numCurrencies = keys.length;
         if (numCurrencies === 0) {
@@ -7035,7 +7068,10 @@ export class BaseExchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol: string): MarketInterface {
+    market (symbol: Str): MarketInterface {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -7098,7 +7134,7 @@ export class BaseExchange {
         return [ tag, params ];
     }
 
-    costToPrecision (symbol: string, cost) {
+    costToPrecision (symbol: Str, cost) {
         if (cost === undefined) {
             return undefined;
         }
@@ -7106,7 +7142,7 @@ export class BaseExchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.safeString2 (market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
 
-    priceToPrecision (symbol: string, price): string {
+    priceToPrecision (symbol: Str, price): Str {
         if (price === undefined) {
             return undefined;
         }
@@ -7118,7 +7154,7 @@ export class BaseExchange {
         return result;
     }
 
-    amountToPrecision (symbol: string, amount) {
+    amountToPrecision (symbol: Str, amount) {
         if (amount === undefined) {
             return undefined;
         }
@@ -7130,7 +7166,7 @@ export class BaseExchange {
         return result;
     }
 
-    feeToPrecision (symbol: string, fee) {
+    feeToPrecision (symbol: Str, fee) {
         if (fee === undefined) {
             return undefined;
         }
@@ -7138,7 +7174,10 @@ export class BaseExchange {
         return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code: string, fee, networkCode: Str = undefined) {
+    currencyToPrecision (code: Str, fee, networkCode: Str = undefined) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' currencyToPrecision() requires a code argument');
+        }
         const currency = this.currencies[code];
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
@@ -7227,6 +7266,9 @@ export class BaseExchange {
             return this.parsePrecision (precision);
         } else {
             const positivePrecisionString = Precise.stringAbs (precision);
+            if (positivePrecisionString === undefined) {
+                return undefined;
+            }
             const positivePrecision = parseInt (positivePrecisionString);
             let parsedPrecision = '1';
             for (let i = 0; i < positivePrecision - 1; i++) {
@@ -8534,7 +8576,10 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseConversion () is not supported yet');
     }
 
-    convertExpireDate (date: string): string {
+    convertExpireDate (date: Str): Str {
+        if (date === undefined) {
+            return undefined;
+        }
         // parse YYMMDD to datetime string
         const year = date.slice (0, 2);
         const month = date.slice (2, 4);
@@ -8543,7 +8588,10 @@ export class BaseExchange {
         return reconstructedDate;
     }
 
-    convertExpireDateToMarketIdDate (date: string): string {
+    convertExpireDateToMarketIdDate (date: Str): Str {
+        if (date === undefined) {
+            return undefined;
+        }
         // parse 240119 to 19JAN24
         const year = date.slice (0, 2);
         const monthRaw = date.slice (2, 4);
@@ -8578,7 +8626,10 @@ export class BaseExchange {
         return reconstructedDate;
     }
 
-    convertMarketIdExpireDate (date: string): string {
+    convertMarketIdExpireDate (date: Str): Str {
+        if (date === undefined) {
+            return undefined;
+        }
         // parse 03JAN24 to 240103.
         const monthMappping = {
             'JAN': '01',
@@ -9512,7 +9563,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
@@ -9530,7 +9581,7 @@ export default class Exchange extends BaseExchange {
         return await this.fetchOrder ('', symbol, extendedParams);
     }
 
-    async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}): Promise<string> {
+    async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}): Promise<Str> {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         const order = await this.fetchOrder (id, symbol, params);
@@ -9756,7 +9807,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 

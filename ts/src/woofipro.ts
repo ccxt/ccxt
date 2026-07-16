@@ -719,26 +719,28 @@ export default class woofipro extends Exchange {
             const networkRow = this.safeDict (indexedChains, networkId);
             const networkName = this.safeString (networkRow, 'name');
             const networkCode = this.networkIdToCode (networkName, code);
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'decimals'))),
-                'info': { 'network': networkEntry, 'networkRow': networkRow },
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'decimals'))),
+                    'info': { 'network': networkEntry, 'networkRow': networkRow },
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -1515,7 +1517,13 @@ export default class woofipro extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2476,7 +2484,7 @@ export default class woofipro extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

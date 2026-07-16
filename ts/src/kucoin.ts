@@ -2325,27 +2325,29 @@ export default class kucoin extends Exchange {
             const chain = chains[j];
             const chainId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (chainId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': this.safeString (chain, 'chainName'),
-                'code': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                'deposit': this.safeBool (chain, 'isDepositEnabled'),
-                'withdraw': this.safeBool (chain, 'isWithdrawEnabled'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber2 (chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                        'max': this.safeNumber2 (chain, 'maxWithdraw', 'maxWithdrawSize'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': this.safeString (chain, 'chainName'),
+                    'code': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                    'deposit': this.safeBool (chain, 'isDepositEnabled'),
+                    'withdraw': this.safeBool (chain, 'isWithdrawEnabled'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber2 (chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                            'max': this.safeNumber2 (chain, 'maxWithdraw', 'maxWithdrawSize'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber2 (chain, 'depositMinSize', 'minDepositSize'),
+                            'max': this.safeNumber2 (chain, 'maxDeposit', 'maxDepositSize'),
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber2 (chain, 'depositMinSize', 'minDepositSize'),
-                        'max': this.safeNumber2 (chain, 'maxDeposit', 'maxDepositSize'),
-                    },
-                },
-            };
+                };
+            }
         }
         // kucoin has determined 'fiat' currencies with below logic
         const rawPrecision = this.safeString (entry, 'precision');
@@ -2465,7 +2467,10 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']).toLowerCase ();
+            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            if (_netIdTmp !== undefined) {
+                request['chain'] = _netIdTmp.toLowerCase ();
+            }
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -2499,7 +2504,10 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']).toLowerCase ();
+            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            if (_netIdTmp !== undefined) {
+                request['chain'] = _netIdTmp.toLowerCase ();
+            }
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         //
@@ -2559,16 +2567,18 @@ export default class kucoin extends Exchange {
                 const chain = chains[i];
                 const chainId = this.safeString (chain, 'chainId');
                 const networkCodeNew = this.networkIdToCode (chainId, this.safeString (currency, 'code'));
-                resultNew['networks'][networkCodeNew] = {
-                    'withdraw': {
-                        'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'withdrawMinFee'),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCodeNew !== undefined) {
+                    resultNew['networks'][networkCodeNew] = {
+                        'withdraw': {
+                            'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'withdrawMinFee'),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
             return resultNew;
         }
@@ -2589,13 +2599,15 @@ export default class kucoin extends Exchange {
         const currencyId = this.safeString (fee, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const networkCode = this.networkIdToCode (networkId, currency['code']);
-        result['networks'][networkCode] = {
-            'withdraw': minWithdrawFee,
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-        };
+        if (networkCode !== undefined) {
+            result['networks'][networkCode] = {
+                'withdraw': minWithdrawFee,
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
         return result;
     }
 
@@ -2886,7 +2898,7 @@ export default class kucoin extends Exchange {
         if (type === undefined) {
             return undefined;
         }
-        return this.safeString (tradeTypes, type, type);
+        return this.safeString (tradeTypes, (type as string), type);
     }
 
     /**
@@ -3601,7 +3613,10 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']).toLowerCase ();
+            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            if (_netIdTmp !== undefined) {
+                request['chain'] = _netIdTmp.toLowerCase ();
+            }
         }
         const version = this.options['versions']['private']['GET']['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
@@ -3709,7 +3724,10 @@ export default class kucoin extends Exchange {
             let networkCode: Str = undefined;
             [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId (networkCode, code).toLowerCase ();
+                const _netIdTmp = this.networkCodeToId (networkCode, code);
+                if (_netIdTmp !== undefined) {
+                    request['chain'] = _netIdTmp.toLowerCase ();
+                }
             }
             //
             //     {
@@ -4069,7 +4087,13 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -4135,7 +4159,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, params);
     }
 
-    marketOrderAmountToPrecision (symbol: string, amount) {
+    marketOrderAmountToPrecision (symbol: Str, amount) {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -4212,7 +4236,13 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -4234,10 +4264,13 @@ export default class kucoin extends Exchange {
         if (cost !== undefined) {
             request['valueQty'] = this.costToPrecision (symbol, cost);
         } else {
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires an amount argument');
+            }
             if (amount < 1) {
                 throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
             }
-            const sizeString = this.amountToPrecision (symbol, amount);
+            const sizeString: Str = this.amountToPrecision (symbol, amount);
             if (sizeString !== undefined) {
                 request['size'] = parseInt (sizeString);
             }
@@ -4391,7 +4424,10 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createUtaOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
         const market = this.market (symbol);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
@@ -7572,7 +7608,10 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']).toLowerCase ();
+            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            if (_netIdTmp !== undefined) {
+                request['chain'] = _netIdTmp.toLowerCase ();
+            }
         }
         const amountString = this.currencyToPrecision (code, amount, networkCode);
         if (amountString !== undefined) {
@@ -8811,7 +8850,7 @@ export default class kucoin extends Exchange {
             'KCS_RETURNED_FEES': 'fee',
             'AUTO_EXCHANGE_USER': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerDirection (direction) {
@@ -10969,7 +11008,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'symbol': market['id'],
             'withdrawAmount': amountString,

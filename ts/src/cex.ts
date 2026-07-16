@@ -378,27 +378,29 @@ export default class cex extends Exchange {
             const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
-                'precision': currencyPrecision,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (rawNetwork, 'minDeposit'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
+                    'precision': currencyPrecision,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (rawNetwork, 'minDeposit'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (rawNetwork, 'minWithdrawal'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (rawNetwork, 'minWithdrawal'),
-                        'max': undefined,
-                    },
-                },
-                'info': rawNetwork,
-            };
+                    'info': rawNetwork,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1525,7 +1527,7 @@ export default class cex extends Exchange {
             'withdraw': 'withdrawal',
             'commission': 'fee',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

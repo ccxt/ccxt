@@ -619,7 +619,7 @@ export default class coincheck extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;

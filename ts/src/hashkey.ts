@@ -1190,26 +1190,28 @@ export default class hashkey extends Exchange {
             const network = networks[j];
             const networkId = this.safeString (network, 'chainType');
             const networkCode = this.networkCodeToId (networkId as string, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity') as string)),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity') as string)),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (network, 'minDepositQuantity'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool (network, 'allowDeposit'),
-                'withdraw': this.safeBool (network, 'allowWithdraw'),
-                'fee': this.safeNumber (network, 'withdrawFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool (network, 'allowDeposit'),
+                    'withdraw': this.safeBool (network, 'allowWithdraw'),
+                    'fee': this.safeNumber (network, 'withdrawFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         const rawType = this.safeString (rawCurrency, 'tokenType');
         const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
@@ -2333,7 +2335,7 @@ export default class hashkey extends Exchange {
             '5': 'custody account',
             '6': 'fiat account',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     encodeAccountType (type) {
@@ -2342,7 +2344,7 @@ export default class hashkey extends Exchange {
             'swap': '3',
             'custody': '5',
         };
-        return this.safeInteger (types, type, type);
+        return this.safeInteger (types, (type as string), type);
     }
 
     encodeFlowType (type) {
@@ -2353,7 +2355,7 @@ export default class hashkey extends Exchange {
             'deposit': '900',
             'withdraw': '904',
         };
-        return this.safeInteger (types, type, type);
+        return this.safeInteger (types, (type as string), type);
     }
 
     /**
@@ -2383,7 +2385,7 @@ export default class hashkey extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const currency = this.currency (code as string);
+        const currency = this.currency (code);
         const request = {};
         request['startTime'] = since;
         if (limit !== undefined) {
@@ -2430,7 +2432,7 @@ export default class hashkey extends Exchange {
             '900': 'deposit',
             '904': 'withdraw',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2667,7 +2669,13 @@ export default class hashkey extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         if (market['spot']) {
             return this.createSpotOrderRequest (symbol, type, side, amount, price, params);
@@ -2678,7 +2686,13 @@ export default class hashkey extends Exchange {
         }
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2728,7 +2742,7 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createSwapOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
         /**
          * @method
          * @ignore
@@ -2863,7 +2877,7 @@ export default class hashkey extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol as string, type as string, side, amount as number, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol as string, type, side, amount as number, price, orderParams);
             const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
             if (clientOrderId === undefined) {
                 orderRequest['clientOrderId'] = this.uuid (); // both spot and swap endpoints require clientOrderId
@@ -2872,7 +2886,7 @@ export default class hashkey extends Exchange {
         }
         const firstOrder = ordersRequests[0];
         const firstSymbol = this.safeString (firstOrder, 'symbol');
-        const market = this.market (firstSymbol as string);
+        const market = this.market (firstSymbol);
         const request: Dict = {
             'orders': ordersRequests,
         };
@@ -3823,7 +3837,7 @@ export default class hashkey extends Exchange {
             'LIMIT_MAKER': 'limit',
             'MARKET_OF_BASE': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

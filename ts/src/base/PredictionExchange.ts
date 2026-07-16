@@ -381,7 +381,10 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
 
-    outcome (outcomeSymbol: string): any {
+    outcome (outcomeSymbol: Str): any {
+        if (outcomeSymbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' outcome() requires an outcomeSymbol argument');
+        }
         if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
             throw new ExchangeError (this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
@@ -394,10 +397,13 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
-    hasOutcome (outcomeIdOrSymbol: string): boolean {
+    hasOutcome (outcomeIdOrSymbol: Str): boolean {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if (outcomeIdOrSymbol === undefined) {
+            return false;
+        }
         if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
             return true;
         }
@@ -495,7 +501,7 @@ export default class PredictionExchange extends BaseExchange {
         return joined.toUpperCase ();
     }
 
-    slugToMarketSymbol (eventSlug: Str, marketSlug: string): string {
+    slugToMarketSymbol (eventSlug: Str, marketSlug: Str): string {
         // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
         // pass undefined — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
@@ -513,13 +519,16 @@ export default class PredictionExchange extends BaseExchange {
         return eventPart + '_' + marketPart;
     }
 
-    slugToOutcomeSymbol (eventSlug: Str, marketSlug: string, outcome: string): string {
+    slugToOutcomeSymbol (eventSlug: Str, marketSlug: Str, outcome: Str): string {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
         // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
+        if (outcome === undefined) {
+            outcome = '';
+        }
         const upper = outcome.toUpperCase ();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray (upper);
@@ -718,7 +727,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.outcomes;
     }
 
-    async loadOutcome (outcomeSymbol: string, reload = false) {
+    async loadOutcome (outcomeSymbol: Str, reload = false) {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
         // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
@@ -726,6 +735,9 @@ export default class PredictionExchange extends BaseExchange {
         // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (outcomeSymbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' loadOutcome() requires an outcomeSymbol argument');
+        }
         if (!reload) {
             if (this.hasOutcome (outcomeSymbol)) {
                 return this.safeOutcome (outcomeSymbol);
@@ -1590,19 +1602,19 @@ export default class PredictionExchange extends BaseExchange {
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    amountToPredictionPrecision (outcome: string, amount): string {
+    amountToPredictionPrecision (outcome: Str, amount): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.amountToPrecision (marketSymbol, amount);
     }
 
-    priceToPredictionPrecision (outcome: string, price): string {
+    priceToPredictionPrecision (outcome: Str, price): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.priceToPrecision (marketSymbol, price);
     }
 
-    costToPredictionPrecision (outcome: string, cost): string {
+    costToPredictionPrecision (outcome: Str, cost): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.costToPrecision (marketSymbol, cost);
@@ -1616,7 +1628,10 @@ export default class PredictionExchange extends BaseExchange {
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
 
-    padHexToEven (hex: string): string {
+    padHexToEven (hex: Str): string {
+        if (hex === undefined) {
+            return '';
+        }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         const hexLength = hex.length;
         if ((hexLength % 2) !== 0) {
@@ -1625,13 +1640,19 @@ export default class PredictionExchange extends BaseExchange {
         return hex;
     }
 
-    padHexAddress (address: string): string {
+    padHexAddress (address: Str): string {
+        if (address === undefined) {
+            return '';
+        }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         const stripped = this.remove0xPrefix (address);
         return '000000000000000000000000' + stripped;
     }
 
-    rlpEncodeBytes (hex: string): string {
+    rlpEncodeBytes (hex: Str): string {
+        if (hex === undefined) {
+            return '';
+        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt (hex.length / 2);
         if (byteLength === 0) {
@@ -1674,9 +1695,12 @@ export default class PredictionExchange extends BaseExchange {
         return hex;
     }
 
-    hexToRlpBytes (hexValue: string): string {
+    hexToRlpBytes (hexValue: Str): string {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if (hexValue === undefined) {
+            return '';
+        }
         let h = this.remove0xPrefix (hexValue);
         let start = 0;
         const total = h.length;

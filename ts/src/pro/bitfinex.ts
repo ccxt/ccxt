@@ -378,7 +378,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeValue (message, 2);
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

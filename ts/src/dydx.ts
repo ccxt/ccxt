@@ -1316,7 +1316,13 @@ export default class dydx extends Exchange {
         return r;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
@@ -1344,7 +1350,7 @@ export default class dydx extends Exchange {
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
-        let conditionalOrderTriggerSubticks = '0';
+        let conditionalOrderTriggerSubticks: Str = '0';
         let orderFlag: Int = undefined;
         let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
@@ -1811,7 +1817,7 @@ export default class dydx extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

@@ -2548,14 +2548,14 @@ export default class aster extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const currentMarket = this.market ((marketId as string));
+            const currentMarket = this.market (marketId);
             orderSymbols.push (currentMarket['symbol']);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((marketId as string), (type as string), side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -2600,7 +2600,13 @@ export default class aster extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3356,7 +3362,7 @@ export default class aster extends Exchange {
             'INSURANCE_CLEAR': 'settlement',
             'MARKET_MERCHANT_RETURN_REWARD': 'cashback',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

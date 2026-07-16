@@ -866,7 +866,7 @@ export default class htx extends htxRest {
             await this.loadMarkets ();
         }
         let type: Str = undefined;
-        let marketId = '*'; // wildcard
+        let marketId: Str = '*'; // wildcard
         let market: Market = undefined;
         let messageHash: Str = undefined;
         let channel: Str = undefined;
@@ -995,7 +995,7 @@ export default class htx extends htxRest {
         let type: Str = undefined;
         let subType: Str = undefined;
         let market: Market = undefined;
-        let suffix = '*'; // wildcard
+        let suffix: Str = '*'; // wildcard
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -1621,7 +1621,7 @@ export default class htx extends htxRest {
         const isLinear = (subType === 'linear');
         const url = this.getUrlByMarketType (type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
-        let channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        let channel: Str = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
         if (isV5Linear) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
@@ -2060,7 +2060,7 @@ export default class htx extends htxRest {
             }
             const first = this.safeValue (data, 0, {});
             const splitTopic = topic.split ('.');
-            let messageHash = this.safeString (splitTopic, 0);
+            let messageHash: Str = this.safeString (splitTopic, 0);
             let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2843,7 +2843,7 @@ export default class htx extends htxRest {
             }
             url = this.implodeParams (hostnameURL, hostname);
         } else {
-            const baseUrl = this.urls['api']['ws'][api][type];
+            const baseUrl = this.urls['api']['ws'][api][type as string];
             const subTypeUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
             if (isPrivate) {
                 if (isV5 && isLinear) {

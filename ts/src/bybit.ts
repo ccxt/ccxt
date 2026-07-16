@@ -1651,7 +1651,7 @@ export default class bybit extends Exchange {
         return [ subType, params ];
     }
 
-    getAmount (symbol: string, amount: number) {
+    getAmount (symbol: Str, amount: number | undefined) {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market (symbol);
@@ -1663,7 +1663,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: string, price: string) {
+    getPrice (symbol: Str, price: Str) {
         if (price === undefined) {
             return price;
         }
@@ -1675,7 +1675,7 @@ export default class bybit extends Exchange {
         return price;
     }
 
-    getCost (symbol: string, cost: string) {
+    getCost (symbol: Str, cost: Str) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -1832,26 +1832,28 @@ export default class bybit extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'chain');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger (chain, 'chainDeposit') === 1,
-                'withdraw': this.safeInteger (chain, 'chainWithdraw') === 1,
-                'fee': this.safeNumber (chain, 'withdrawFee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger (chain, 'chainDeposit') === 1,
+                    'withdraw': this.safeInteger (chain, 'chainWithdraw') === 1,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'depositMin'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (chain, 'depositMin'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': currency,
@@ -4198,7 +4200,13 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}, isUTA = true) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -4578,7 +4586,13 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -4974,7 +4988,7 @@ export default class bybit extends Exchange {
             'swap': 'DERIVATIVES',
             'option': 'OPTIONS',
         };
-        const product = this.safeString (productMap, type, type);
+        const product = this.safeString (productMap, (type as string), type);
         request['product'] = product;
         const response = await this.privatePostV5OrderDisconnectedCancelAll (this.extend (request, params));
         //
@@ -6548,7 +6562,7 @@ export default class bybit extends Exchange {
             'CURRENCY_BUY': 'trade',
             'CURRENCY_SELL': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -8133,10 +8147,12 @@ export default class bybit extends Exchange {
                 const networkId = this.safeString (chain, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainsLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
                     result['withdraw']['percentage'] = false;

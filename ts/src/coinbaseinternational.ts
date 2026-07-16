@@ -353,7 +353,7 @@ export default class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
 
-    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}) {
+    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}): Promise<[Str, any]> {
         let networkId: Str = undefined;
         [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
         if (networkId === undefined) {
@@ -1429,8 +1429,8 @@ export default class coinbaseinternational extends Exchange {
         //    }
         //
         const marketId = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'base_asset_name');
-        const quoteId = this.safeString (market, 'quote_asset_name');
+        const baseId: Str = this.safeString (market, 'base_asset_name');
+        const quoteId: Str = this.safeString (market, 'quote_asset_name');
         const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
         const isSpot = (typeId === 'SPOT');
         const fees = this.fees;
@@ -1942,7 +1942,7 @@ export default class coinbaseinternational extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

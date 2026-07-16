@@ -668,25 +668,27 @@ export default class whitebit extends Exchange {
             const networkCode = this.networkIdToCode (networkId, code);
             const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.inArray (networkId, depositsNetworks),
-                'withdraw': this.inArray (networkId, withdrawsNetworks),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (networkDepositLimits, 'min'),
-                        'max': this.safeNumber (networkDepositLimits, 'max'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray (networkId, depositsNetworks),
+                    'withdraw': this.inArray (networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (networkDepositLimits, 'min'),
+                            'max': this.safeNumber (networkDepositLimits, 'max'),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber (networkWithdrawLimits, 'max'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (networkWithdrawLimits, 'min'),
-                        'max': this.safeNumber (networkWithdrawLimits, 'max'),
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -910,10 +912,12 @@ export default class whitebit extends Exchange {
                     const networkLength = networkId.length;
                     networkId = networkId.slice (1, networkLength - 1);
                     const networkCode = this.networkIdToCode (networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 } else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;
                     depositWithdrawFees[code]['deposit'] = depositResult;

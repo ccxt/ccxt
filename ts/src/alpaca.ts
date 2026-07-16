@@ -1866,7 +1866,7 @@ export default class alpaca extends Exchange {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
