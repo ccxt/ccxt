@@ -295,7 +295,7 @@ export default class hibachi extends Exchange {
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct (market, 'marketCreationTimestamp', 1000);
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -344,7 +344,7 @@ export default class hibachi extends Exchange {
             },
             'created': created,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -819,7 +819,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market, nonce: number, feeRate: number, type: Str, side: Str, amount: number, price: Num = undefined) {
+    orderMessage (market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1006,7 +1006,7 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    editOrderRequest (nonce: number, id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1225,7 +1225,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    encodeWithdrawMessage (amount: number, maxFees: number, address: string) {
+    encodeWithdrawMessage (amount: Num, maxFees: Num, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)
@@ -2020,7 +2020,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory');
-        const rows = this.arrayConcat (rowsCapitalHistory || [], rowsTradingHistory);
+        const rows = this.arrayConcat (rowsCapitalHistory || [], rowsTradingHistory || []);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 

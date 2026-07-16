@@ -1008,7 +1008,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
-        let trades = undefined;
+        let trades: any = undefined;
         if (market['spot']) {
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
@@ -1131,7 +1131,7 @@ export default class mexc extends mexcRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        let trades = undefined;
+        let trades: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.deals.v3.api.pb';
             trades = await this.watchSpotPrivate (channel, messageHash, params);
@@ -1147,7 +1147,7 @@ export default class mexc extends mexcRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message, subscription: Dict = undefined) {
+    handleMyTrade (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //    {
         //        "c": "spot@private.deals.v3.api",

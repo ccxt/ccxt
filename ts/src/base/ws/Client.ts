@@ -133,7 +133,7 @@ export default class Client {
         return this.future (messageHash)
     }
 
-    future (messageHash: string) {
+    future (messageHash: string | undefined | undefined) {
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future ()
         }

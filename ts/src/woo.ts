@@ -648,7 +648,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -696,7 +696,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**

@@ -10,7 +10,7 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response: OrderBook = undefined;
+        let response: OrderBook | undefined = undefined;
         let success = true;
         try {
             response = await exchange.watchOrderBook (symbol);

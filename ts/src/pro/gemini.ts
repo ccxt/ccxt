@@ -539,7 +539,7 @@ export default class gemini extends geminiRest {
             throw new NotSupported (this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes: string[] = [];
-        const marketIds: string[] = [];
+        const marketIds: Str[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const messageHash = itemHashName + ':' + symbol;

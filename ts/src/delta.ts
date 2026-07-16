@@ -369,7 +369,7 @@ export default class delta extends Exchange {
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
-        return {
+        return this.safeMarketStructure ({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
@@ -412,10 +412,10 @@ export default class delta extends Exchange {
                 },
             },
             'info': undefined,
-        } as MarketInterface;
+        });
     }
 
-    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): Market {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
@@ -916,7 +916,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString (market, 'state');
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -967,7 +967,7 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
-            });
+            }));
         }
         return result;
     }

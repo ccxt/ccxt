@@ -66,7 +66,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         let market: Market = undefined;
         let messageHash = messageHashStart;
-        const productIds: string[] = [];
+        const productIds: Str[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -95,7 +95,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
-        const productIds: string[] = [];
+        const productIds: Str[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market (symbol);

@@ -553,7 +553,7 @@ export default class woofipro extends Exchange {
         const settleId: Str = this.safeString (parts, 2);
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -601,7 +601,7 @@ export default class woofipro extends Exchange {
             },
             'created': this.safeInteger (market, 'created_time'),
             'info': market,
-        };
+        });
     }
 
     /**
@@ -1918,7 +1918,7 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response), extendParams) as Order;
+            return this.extend (this.parseOrder (response || {}), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseOrder (data), extendParams) as Order;
@@ -2088,7 +2088,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const orders = this.safeDict (response, 'data', response);
-        return this.parseOrder (orders, market);
+        return this.parseOrder (orders || {}, market);
     }
 
     /**

@@ -523,7 +523,7 @@ export default class coinbase extends Exchange {
         const defaultMethod = this.safeString (this.options, 'fetchTime', 'v2PublicGetTime');
         const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (method === 'v2PublicGetTime') {
             response = await this.v2PublicGetTime (params);
             //
@@ -1592,7 +1592,7 @@ export default class coinbase extends Exchange {
         return newMarkets;
     }
 
-    parseSpotMarket (market, feeTier): MarketInterface {
+    parseSpotMarket (market, feeTier): Market {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -1689,7 +1689,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    parseContractMarket (market, feeTier): MarketInterface {
+    parseContractMarket (market, feeTier): Market {
         // expiring
         //
         //        {

@@ -866,7 +866,7 @@ export default class hyperliquid extends Exchange {
         const second = this.safeList (response, 1, []);
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
-        const markets: MarketInterface[] = [];
+        const markets: Market[] = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const index = this.safeInteger (market, 'index');
@@ -1091,7 +1091,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    updateSpotCurrencyCode (code: string): string {
+    updateSpotCurrencyCode (code: Str): Str {
         if (code === undefined) {
             return code;
         }

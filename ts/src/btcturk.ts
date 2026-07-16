@@ -331,7 +331,7 @@ export default class btcturk extends Exchange {
             }
         }
         const status = this.safeString (entry, 'status');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -379,7 +379,7 @@ export default class btcturk extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
 
     parseBalance (response): Balances {

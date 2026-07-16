@@ -3,7 +3,7 @@ import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
-import type { Dict } from '../../../base/types.js';
+import type { Dict, NullableDict} from '../../../base/types.js';
 
 async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCVForSymbols';
@@ -20,7 +20,7 @@ async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: 
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         let success = true;
         try {
             response = await exchange.watchOHLCVForSymbols ([ [ symbol, chosenTimeframeKey ] ], since, limit);

@@ -284,11 +284,13 @@ export default class backpack extends backpackRest {
         const symbol = this.safeSymbol (marketId, market);
         const parsedTicker = this.parseWsTicker (ticker, market);
         const messageHash = 'ticker' + ':' + symbol;
-        this.tickers[symbol] = parsedTicker;
+        if (parsedTicker !== undefined) {
+            this.tickers[symbol] = parsedTicker;
+        }
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker | undefined {
         //
         //     {
         //         E: '1754178406415232',
@@ -409,7 +411,9 @@ export default class backpack extends backpackRest {
         const symbol = this.safeSymbol (marketId, market);
         const parsedBidAsk = this.parseWsBidAsk (data, market);
         const messageHash = 'bidask' + ':' + symbol;
-        this.bidsasks[symbol] = parsedBidAsk;
+        if (parsedBidAsk !== undefined) {
+            this.bidsasks[symbol] = parsedBidAsk;
+        }
         client.resolve (parsedBidAsk, messageHash);
     }
 

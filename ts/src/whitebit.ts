@@ -518,7 +518,7 @@ export default class whitebit extends Exchange {
         const makerFeeRate = this.safeString (market, 'makerFee');
         const maker = Precise.stringDiv (makerFeeRate, '100');
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -568,7 +568,7 @@ export default class whitebit extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**

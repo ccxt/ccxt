@@ -691,7 +691,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    async watchBalance (params = {}): Promise<Balances | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -707,7 +707,7 @@ export default class toobit extends toobitRest {
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         if (subscriptionHash === undefined) {
-            return;
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a subscription hash');
         }
         const url = this.getUserStreamUrl ();
         const client = this.client (url);

@@ -33,7 +33,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (Array.isArray (positionsSubscription), exchange.id + ' ' + method + ' requires a valid positions subscription to test unsubscribe');
 
     // Assert unWatchPositions for one symbol is not supported
-    let errorResponse: NullableDict = undefined;
+    let errorResponse: any = undefined;
     try {
         errorResponse = await exchange.unWatchPositions ([ symbol ]);
     } catch (e) {

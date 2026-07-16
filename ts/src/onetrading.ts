@@ -542,7 +542,7 @@ export default class onetrading extends Exchange {
         if (isPerp) {
             symbol = symbol + ':' + quote;
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -590,7 +590,7 @@ export default class onetrading extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**

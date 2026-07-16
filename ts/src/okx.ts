@@ -4672,7 +4672,7 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict;
         [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
@@ -4868,7 +4868,7 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict;
         [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
@@ -5428,7 +5428,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    async fetchDepositAddressesByNetwork (code: Str, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5474,7 +5474,7 @@ export default class okx extends Exchange {
      * @param {string} [params.network] the network name for the deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    async fetchDepositAddress (code: Str, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6333,7 +6333,7 @@ export default class okx extends Exchange {
         const entryPriceString = this.safeString2 (position, 'avgPx', 'openAvgPx');
         const unrealizedPnlString = this.safeString (position, 'upl');
         const leverageString = this.safeString (position, 'lever');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
@@ -6349,7 +6349,7 @@ export default class okx extends Exchange {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
             if (market['linear']) {
-                initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
+                initialMarginString = Precise.stringMul ((typeof initialMarginPercentage === 'number') ? this.numberToString (initialMarginPercentage) : initialMarginPercentage, notionalString);
             } else {
                 initialMarginString = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), entryPriceString), leverageString);
             }
@@ -7537,7 +7537,7 @@ export default class okx extends Exchange {
         //
         const amountRaw = this.safeString2 (data, 'amt', 'posBalChg');
         const typeRaw = this.safeString (data, 'type');
-        let type = undefined;
+        let type: any = undefined;
         if (typeRaw === '6') {
             type = Precise.stringGt (amountRaw, '0') ? 'add' : 'reduce';
         } else {
@@ -8035,7 +8035,7 @@ export default class okx extends Exchange {
             'ccy': currencyId,
             'period': timeframe,
         };
-        let type = undefined;
+        let type: Str = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
         if (type === 'option') {
@@ -8288,7 +8288,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if (type !== 'future' && type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports futures and options markets only');
@@ -9174,7 +9174,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

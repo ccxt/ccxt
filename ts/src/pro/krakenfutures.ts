@@ -124,7 +124,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'event': 'subscribe',
             'feed': name,
         };
-        const marketIds: string[] = [];
+        const marketIds: Str[] = [];
         let messageHash = name;
         if (symbols === undefined) {
             symbols = [];
@@ -255,7 +255,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: Str[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -767,8 +767,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
                 previousOrder['trades'].push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
+                let totalCost: Str = '0';
+                let totalAmount: Str = '0';
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
@@ -1540,7 +1540,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: any = undefined, params = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: any = undefined, subscriptionArgs: any = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1548,7 +1548,7 @@ export default class krakenfutures extends krakenfuturesRest {
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes: string[] = [];
-        const rawSubs: string[] = [];
+        const rawSubs: Str[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i]));
             messageHashes.push (messageHash);

@@ -846,7 +846,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message, subscription: Dict = undefined) {
+    handleOrders (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //    {
         //        "method": "subscribe",

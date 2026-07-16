@@ -2171,7 +2171,7 @@ export default class kraken extends Exchange {
         }, market);
     }
 
-    orderRequest (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params = {}) {
+    orderRequest (method: string, symbol: Str, type: Str, request: Dict, amount: Num, price: Num = undefined, params = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId' ]);
         if (clientOrderId !== undefined) {

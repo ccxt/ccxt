@@ -724,7 +724,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (response || {}, market);
     }
 
     /**
@@ -759,7 +759,7 @@ export default class bitbns extends Exchange {
         quoteSide += tail;
         request['side'] = quoteSide;
         response = await this.v2PostCancel (this.extend (request, params));
-        return this.parseOrder (response, market);
+        return this.parseOrder (response || {}, market);
     }
 
     /**

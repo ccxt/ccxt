@@ -539,7 +539,7 @@ export default class alpaca extends Exchange {
         const minAmount = this.safeNumber (asset, 'min_order_size');
         const amount = this.safeNumber (asset, 'min_trade_increment');
         const price = this.safeNumber (asset, 'price_increment');
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -587,7 +587,7 @@ export default class alpaca extends Exchange {
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
 
     /**
@@ -617,7 +617,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades = undefined;
+        let symbolTrades: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -762,7 +762,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs = undefined;
+        let ohlcvs: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;

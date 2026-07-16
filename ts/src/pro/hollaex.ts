@@ -214,7 +214,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict = undefined) {
+    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "topic":"usertrade",
@@ -299,7 +299,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict = undefined) {
+    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "topic": "order",

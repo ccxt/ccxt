@@ -553,7 +553,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    setMarkets (markets, currencies: Currencies = undefined) {
+    setMarkets (markets, currencies: Currencies | undefined = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -877,7 +877,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
@@ -1225,7 +1225,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchSettlements() is not supported yet');
     }
 
-    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Dict = undefined): PredictionOrder {
+    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Dict | undefined = undefined): PredictionOrder {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1358,7 +1358,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionOrder;
     }
 
-    safePredictionTrade (trade: Dict, outcomeObj: Dict = undefined): PredictionTrade {
+    safePredictionTrade (trade: Dict, outcomeObj: Dict | undefined = undefined): PredictionTrade {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
@@ -1393,7 +1393,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionTrade;
     }
 
-    safePredictionTicker (ticker: Dict, outcomeObj: Dict = undefined): PredictionTicker {
+    safePredictionTicker (ticker: Dict, outcomeObj: Dict | undefined = undefined): PredictionTicker {
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
@@ -1685,7 +1685,10 @@ export default class PredictionExchange extends BaseExchange {
         return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
     }
 
-    intToRlpHex (value: number): string {
+    intToRlpHex (value: Int): string {
+        if (value === undefined) {
+            throw new ArgumentsRequired (this.id + ' intToRlpHex() requires a value argument');
+        }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (value === 0) {
             return '';
@@ -1722,7 +1725,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' signEvmTransaction() must be overridden by the exchange');
     }
 
-    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
+    async ethRpc (rpcUrl: Str, method: string, rpcParams: any[]) {
         const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
         const headers: Dict = { 'Content-Type': 'application/json' };
         const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
@@ -1735,7 +1738,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.safeValue (response, 'result');
     }
 
-    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
+    async sendEvmTransaction (rpcUrl: Str, chainId: number, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str): Promise<string> {
         const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
         const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
         const tx: Dict = {
@@ -1752,7 +1755,7 @@ export default class PredictionExchange extends BaseExchange {
         return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
     }
 
-    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
+    async waitForTransactionReceipt (rpcUrl: Str, txHash: Str, timeout = 60000): Promise<any> {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);

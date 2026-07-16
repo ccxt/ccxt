@@ -1453,7 +1453,7 @@ export default class bitstamp extends Exchange {
         //
         const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
         const tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
-        return this.parseTradingFee (tradingFee, market);
+        return this.parseTradingFee (tradingFee || {}, market);
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -1669,7 +1669,7 @@ export default class bitstamp extends Exchange {
                 response = await this.privatePostSellPair (this.extend (request, params));
             }
         }
-        const order = this.parseOrder (response, market);
+        const order = this.parseOrder (response || {}, market);
         order['type'] = type;
         return order;
     }
@@ -2124,7 +2124,7 @@ export default class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Precise.stringAbs (amount);
         }
-        let status = 'ok';
+        let status: Str = 'ok';
         if ('status' in transaction) {
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         }

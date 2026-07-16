@@ -1719,7 +1719,7 @@ export default class bingx extends Exchange {
         }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        let subType = 'linear';
+        let subType: Str = 'linear';
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
         let response: Dict;
         if (subType === 'inverse') {
@@ -3324,7 +3324,7 @@ export default class bingx extends Exchange {
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response = undefined;
+        let response: any = undefined;
         if (market['swap']) {
             if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
@@ -3432,7 +3432,7 @@ export default class bingx extends Exchange {
         if ((takeProfit !== undefined) && (takeProfit.indexOf ('{') === 0)) {
             result['takeProfit'] = this.parseJson (takeProfit);
         }
-        return this.parseOrder (result, market);
+        return this.parseOrder (result || {}, market);
     }
 
     /**
@@ -3451,7 +3451,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: Dict[] = [];
-        const marketIds: string[] = [];
+        const marketIds: Str[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -3468,7 +3468,7 @@ export default class bingx extends Exchange {
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
-        let response = undefined;
+        let response: any = undefined;
         if (market['swap']) {
             if (symbolsLength > 5) {
                 throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
@@ -4464,7 +4464,7 @@ export default class bingx extends Exchange {
         }
         const isTwapOrder = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
-        let response = undefined;
+        let response: any = undefined;
         let market: Market = undefined;
         if (isTwapOrder) {
             const twapRequest: Dict = {
@@ -6769,7 +6769,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response: any = undefined;
         let commission: Dict = {};
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate (this.extend (request, params));
@@ -7002,7 +7002,7 @@ export default class bingx extends Exchange {
                 parsedParams = this.parseParams (params);
                 encodeRequest = this.rawencode (parsedParams, true);
             }
-            const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
+            const signature = this.hmac (this.encode (encodeRequest || ''), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),

@@ -495,8 +495,8 @@ export default class bitso extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'book');
             const [ baseId, quoteId ] = (id as string).split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
+            let base: Str = baseId.toUpperCase ();
+            let quote: Str = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const fees = this.safeValue (market, 'fees', {});
@@ -532,7 +532,7 @@ export default class bitso extends Exchange {
             };
             fee['tiers'] = tiers;
             const baseCurrency = this.safeDict (currencies, base);
-            result.push (this.extend ({
+            result.push (this.safeMarketStructure (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -582,7 +582,7 @@ export default class bitso extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            }, fee));
+            }, fee)));
         }
         return result;
     }

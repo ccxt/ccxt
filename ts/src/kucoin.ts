@@ -4978,7 +4978,7 @@ export default class kucoin extends Exchange {
                 request['symbol'] = market['id'];
             }
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -6867,7 +6867,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let trades = undefined;
+        let trades: any = undefined;
         if (parseResponseData) {
             trades = data;
         } else {
@@ -6987,7 +6987,7 @@ export default class kucoin extends Exchange {
             params = this.omit (params, 'marketType');
         }
         let request: Dict = {};
-        let isContract = false;
+        let isContract: Bool = false;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -10150,7 +10150,7 @@ export default class kucoin extends Exchange {
         if (until === undefined) {
             end = this.milliseconds ();
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         let resultKey = 'data';
         if (uta) {
             request['startAt'] = start;
@@ -10833,7 +10833,7 @@ export default class kucoin extends Exchange {
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'uta', uta);
         let market: Market = undefined;
-        let isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
+        let isContractMarket: Bool = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if (symbol !== undefined) {
             market = this.market (symbol);
             isContractMarket = market['contract'];

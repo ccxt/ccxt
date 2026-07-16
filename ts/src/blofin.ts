@@ -2384,7 +2384,7 @@ export default class blofin extends Exchange {
         const entryPriceString = this.safeString2 (position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const leverageString = this.safeString (position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
@@ -2399,7 +2399,7 @@ export default class blofin extends Exchange {
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
+            initialMarginString = Precise.stringMul ((typeof initialMarginPercentage === 'number') ? this.numberToString (initialMarginPercentage) : initialMarginPercentage, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4));

@@ -470,7 +470,7 @@ export default class bitopro extends Exchange {
                 'max': undefined,
             },
         };
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -502,7 +502,7 @@ export default class bitopro extends Exchange {
             'active': active,
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

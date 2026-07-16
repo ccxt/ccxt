@@ -989,7 +989,7 @@ export default class bitrue extends Exchange {
             minCost = this.safeNumber (market, 'minOrderMoney');
         }
         const isSpot = (type === 'spot');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1038,7 +1038,7 @@ export default class bitrue extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {
