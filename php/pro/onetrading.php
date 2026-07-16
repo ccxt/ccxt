@@ -31,7 +31,7 @@ class onetrading extends \ccxt\async\onetrading {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://streams.onetrading.com/',
+                    'ws' => 'wss://streams.fast.onetrading.com',
                 ),
             ),
             'options' => array(
@@ -332,7 +332,7 @@ class onetrading extends \ccxt\async\onetrading {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+             * @see https://docs.onetrading.com/websocket/orderbook/introduction
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for

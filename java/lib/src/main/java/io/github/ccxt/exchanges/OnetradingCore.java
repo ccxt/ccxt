@@ -30,7 +30,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
@@ -167,7 +167,7 @@ public class OnetradingCore extends OnetradingApi
                     put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time")) );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/{order_id}/trades", "account/trades", "account/trades/{trade_id}")) );
+                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}", "account/orders/{order_id}/trades", "account/trades", "account/trade/{trade_id}")) );
                     put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("account/orders")) );
                     put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}")) );
                 }} );
