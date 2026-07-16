@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/htx.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType } from './base/types.js';
@@ -7953,7 +7953,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7970,7 +7970,7 @@ export default class htx extends Exchange {
         } else {
             request['contract_code'] = market['id'];
         }
-        let response: NullableDict = undefined;
+        let response: Dict | undefined = undefined;
         if (market['linear']) {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
@@ -8013,6 +8013,9 @@ export default class htx extends Exchange {
             //       "ts": "1641184652979"
             //     }
             //
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' setLeverage() returned empty response');
         }
         return response;
     }

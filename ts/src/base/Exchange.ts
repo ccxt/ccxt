@@ -3480,7 +3480,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -3725,7 +3725,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
@@ -3742,7 +3742,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
 
@@ -3781,7 +3781,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 
@@ -7133,7 +7133,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createSubAccount() is not supported yet');
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
