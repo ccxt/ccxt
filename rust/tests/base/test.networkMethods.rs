@@ -135,20 +135,20 @@ fn helperBatchNetworkTests() {
     let mut allCurrencyCodes: Value = Value::List(vec![Value::Str("Bitcoin".to_string()), Value::Str("BTC".to_string()), Value::Str("Ethereum".to_string()), Value::Str("ETH".to_string()), Value::Str("Tether".to_string()), Value::Str("USDT".to_string()), Value::Str("BNB".to_string()), Value::Str("BNB".to_string()), Value::Str("XRP".to_string()), Value::Str("XRP".to_string()), Value::Str("USDC".to_string()), Value::Str("USDC".to_string()), Value::Str("Solana".to_string()), Value::Str("SOL".to_string()), Value::Str("TRON".to_string()), Value::Str("TRX".to_string()), Value::Str("Dogecoin".to_string()), Value::Str("DOGE".to_string()), Value::Str("Hyperliquid".to_string()), Value::Str("HYPE".to_string()), Value::Str("Bitcoin Cash".to_string()), Value::Str("BCH".to_string()), Value::Str("Cardano".to_string()), Value::Str("ADA".to_string()), Value::Str("LEO".to_string()), Value::Str("Chainlink".to_string()), Value::Str("LINK".to_string()), Value::Str("Ethena".to_string()), Value::Str("USDe".to_string()), Value::Str("USDe".to_string()), Value::Str("Monero".to_string()), Value::Str("XMR".to_string()), Value::Str("Stellar".to_string()), Value::Str("XLM".to_string()), Value::Str("Dai".to_string()), Value::Str("DAI".to_string()), Value::Str("Litecoin".to_string()), Value::Str("LTC".to_string()), Value::Str("PayPal".to_string()), Value::Str("USD".to_string()), Value::Str("PYUSD".to_string()), Value::Str("Hedera".to_string()), Value::Str("HBAR".to_string()), Value::Str("Avalanche".to_string()), Value::Str("AVAX".to_string()), Value::Str("Zcash".to_string()), Value::Str("ZEC".to_string()), Value::Str("Bittensor".to_string()), Value::Str("TAO".to_string()), Value::Str("Sui".to_string()), Value::Str("SUI".to_string()), Value::Str("Shiba Inu".to_string()), Value::Str("SHIB".to_string()), Value::Str("Cronos".to_string()), Value::Str("CRO".to_string()), Value::Str("Toncoin".to_string()), Value::Str("TON".to_string()), Value::Str("WLFI".to_string()), Value::Str("Tether".to_string()), Value::Str("Gold".to_string()), Value::Str("XAUt".to_string()), Value::Str("".to_string()), Value::Str("PAX".to_string()), Value::Str("Gold".to_string()), Value::Str("PAXG".to_string()), Value::Str("Mantle".to_string()), Value::Str("MNT".to_string()), Value::Str("Uniswap".to_string()), Value::Str("UNI".to_string()), Value::Str("Polkadot".to_string()), Value::Str("DOT".to_string()), Value::Str("USDG".to_string()), Value::Str("OKB".to_string()), Value::Str("OKB".to_string()), Value::Str("Aster".to_string()), Value::Str("ASTER".to_string()), Value::Str("Aave".to_string()), Value::Str("AAVE".to_string()), Value::Str("NEAR".to_string()), Value::Str("NEAR".to_string()), Value::Str("Ripple".to_string()), Value::Str("USD".to_string()), Value::Str("RLUSD".to_string()), Value::Str("Polygon".to_string()), Value::Str("POL".to_string())]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1306: bool = true;
-        while { if !__for_first_1306 { i = add(&i, &Value::Int(1)); } __for_first_1306 = false; is_less_than(&i, &get_array_length(&allNetworkCodes)) } {
+        let mut __for_first_443: bool = true;
+        while { if !__for_first_443 { i = add(&i, &Value::Int(1)); } __for_first_443 = false; is_less_than(&i, &get_array_length(&allNetworkCodes)) } {
         let mut randomNetworkCode: Value = get_value(&allNetworkCodes, &i);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1305: bool = true;
-            while { if !__for_first_1305 { j = add(&j, &Value::Int(1)); } __for_first_1305 = false; is_less_than(&j, &get_array_length(&allCurrencyCodes)) } {
+            let mut __for_first_442: bool = true;
+            while { if !__for_first_442 { j = add(&j, &Value::Int(1)); } __for_first_442 = false; is_less_than(&j, &get_array_length(&allCurrencyCodes)) } {
             let mut randomCurrencyCode: Value = get_value(&allCurrencyCodes, &j);
             let mut result: Value = exchange.network_id_to_code(&[randomNetworkCode.clone(), randomCurrencyCode.clone()]);
             let mut keys: Value = object_keys(&defaultNetworkCodeReplacements);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_1304: bool = true;
-                while { if !__for_first_1304 { k = add(&k, &Value::Int(1)); } __for_first_1304 = false; is_less_than(&k, &get_array_length(&keys)) } {
+                let mut __for_first_441: bool = true;
+                while { if !__for_first_441 { k = add(&k, &Value::Int(1)); } __for_first_441 = false; is_less_than(&k, &get_array_length(&keys)) } {
                 let mut chainBaseCoin: Value = get_value(&keys, &k);
                 let mut chainMapping: Value = get_value(&defaultNetworkCodeReplacements, &chainBaseCoin);
                 let mut primaryNetworkCode: Value = get_value(&chainMapping, &Value::Str("primary".to_string()));

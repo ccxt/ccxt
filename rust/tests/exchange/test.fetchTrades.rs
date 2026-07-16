@@ -16,8 +16,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1359: bool = true;
-        while { if !__for_first_1359 { i = add(&i, &Value::Int(1)); } __for_first_1359 = false; is_less_than(&i, &get_array_length(&trades)) } {
+        let mut __for_first_496: bool = true;
+        while { if !__for_first_496 { i = add(&i, &Value::Int(1)); } __for_first_496 = false; is_less_than(&i, &get_array_length(&trades)) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&trades, &i), symbol.clone(), now.clone());
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&trades, &i).clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::List(vec![Value::Str("taker".to_string()), Value::Null]).clone()]);
     }
