@@ -3,8 +3,11 @@ import url from 'url';
 import { fileURLToPath } from "node:url";
 import rspack from '@rspack/core';
 
-const cwd = url.fileURLToPath (import.meta.url);
-const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
+// this file is in build/rspack.config.js, but we want to output
+// the bundle to a path relative to the root of the project
+// const cwd = path.dirname (url.fileURLToPath (import.meta.url));
+const cwd = process.cwd (); // used intentionally here instead of ↑
+const outputDirectory = path.normalize (path.join (cwd, 'dist'))
 
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);;
