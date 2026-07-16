@@ -1136,7 +1136,7 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         let subType: Str = undefined;
-        let type = undefined;
+        let type: Str = undefined;
         let marketId = '!' + 'all';
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1233,7 +1233,7 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type = undefined;
+        let type: Str = undefined;
         let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
@@ -1369,7 +1369,7 @@ export default class gate extends gateRest {
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
@@ -1550,7 +1550,7 @@ export default class gate extends gateRest {
             market = marketResolved;
             symbol = market['symbol'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
@@ -1694,7 +1694,7 @@ export default class gate extends gateRest {
         }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let type = undefined;
+        let type: Str = undefined;
         let query: Dict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {
@@ -1933,7 +1933,7 @@ export default class gate extends gateRest {
         return false;
     }
 
-    handleBalanceSubscription (client: Client, message, subscription = undefined) {
+    handleBalanceSubscription (client: Client, message, subscription: Dict = undefined) {
         this.balance = {};
     }
 
@@ -2174,7 +2174,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarketType (type: MarketType, isInverse = false) {
+    getUrlByMarketType (type: Str, isInverse = false) {
         const api = this.urls['api'];
         const url = api[type];
         if ((type === 'swap') || (type === 'future')) {
@@ -2210,7 +2210,7 @@ export default class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url, messageHash, payload, channel, params = {}, subscription = undefined) {
+    async subscribePublic (url, messageHash, payload, channel, params = {}, subscription: Dict = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {

@@ -565,7 +565,7 @@ export default class extended extends extendedRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market: Market = undefined, message = undefined): FundingRate {
+    parseWsFundingRate (fundingRate, market: Market = undefined, message: any = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');

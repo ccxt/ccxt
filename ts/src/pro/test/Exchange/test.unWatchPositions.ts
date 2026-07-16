@@ -1,6 +1,7 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from '../../../../ccxt.js';
+import type { NullableDict } from '../../../base/types.js';
 
 async function createOrderAfterDelay (exchange: Exchange) {
     await exchange.sleep (3000);
@@ -12,7 +13,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     exchange.setSandboxMode (true);
 
     // First, we need to subscribe to positions to test the unsubscribe functionality
-    let positionsSubscription = undefined;
+    let positionsSubscription: NullableDict = undefined;
     try {
         // First call uses snapshot
         positionsSubscription = await exchange.watchPositions ();
@@ -32,7 +33,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (Array.isArray (positionsSubscription), exchange.id + ' ' + method + ' requires a valid positions subscription to test unsubscribe');
 
     // Assert unWatchPositions for one symbol is not supported
-    let errorResponse = undefined;
+    let errorResponse: NullableDict = undefined;
     try {
         errorResponse = await exchange.unWatchPositions ([ symbol ]);
     } catch (e) {
@@ -41,7 +42,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (errorResponse !== undefined, exchange.id + ' ' + method + ' must throw an error when unwatching a specific symbol, returned ' + exchange.json (errorResponse));
 
     // Test unwatching all positions (without specific symbols)
-    let responseAll = undefined;
+    let responseAll: NullableDict = undefined;
     try {
         responseAll = await exchange.unWatchPositions ();
     } catch (e) {
@@ -55,7 +56,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (responseAll !== undefined, exchange.id + ' ' + method + ' must return a response when unwatching all positions, returned ' + exchange.json (responseAll));
 
     // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
-    let resubscribeResponse = undefined;
+    let resubscribeResponse: NullableDict = undefined;
     try {
         resubscribeResponse = await exchange.watchPositions ();
         exchange.spawn (createOrderAfterDelay, exchange);

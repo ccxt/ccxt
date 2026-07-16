@@ -58,21 +58,21 @@ export default class phemex extends phemexRest {
         return precise.toString ();
     }
 
-    fromEp (ep, market = undefined) {
+    fromEp (ep, market: Market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEv (ev, market = undefined) {
+    fromEv (ev, market: Market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    fromEr (er, market = undefined) {
+    fromEr (er, market: Market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
@@ -87,7 +87,7 @@ export default class phemex extends phemexRest {
         return requestId;
     }
 
-    parseSwapTicker (ticker, market = undefined) {
+    parseSwapTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "close": 442800,
@@ -149,7 +149,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    parsePerpetualTicker (ticker, market = undefined) {
+    parsePerpetualTicker (ticker, market: Market = undefined) {
         //
         //    [
         //        "STXUSDT",
@@ -715,12 +715,12 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    customHandleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside, delta, market: Market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    customHandleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside, deltas, market: Market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.customHandleDelta (bookside, deltas[i], market);
         }
@@ -1228,7 +1228,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSSwapOrder (order, market = undefined) {
+    parseWSSwapOrder (order, market: Market = undefined) {
         //
         // swap
         //    {

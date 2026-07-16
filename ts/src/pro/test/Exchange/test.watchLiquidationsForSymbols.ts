@@ -24,7 +24,7 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
         return false;
     }
 
-    let response: Liquidation[] | undefined = undefined;
+    let response: Liquidation[] = undefined;
 
     let now = Date.now ();
     const ends = now + 10000;

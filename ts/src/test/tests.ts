@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import type { Bool, Dict, List, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, List, Str, Strings, Currencies, NullableDict } from '../base/types.js';
 
 import {
     // errors
@@ -847,7 +847,7 @@ class testMainClass {
         // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
         // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
         // inline rather than through a per-method test file
-        let eventId = undefined;
+        let eventId: Str = undefined;
         if (!this.wsTests) {
             // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
             // Java and its async lambda can't propagate (or re-throw) a checked exception
@@ -1076,9 +1076,9 @@ class testMainClass {
         dump ('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price);
         // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
         // either): record any failure, ALWAYS attempt the cancel, then report the failure
-        let order = undefined;
-        let placedId = undefined;
-        let failure = undefined;
+        let order: NullableDict = undefined;
+        let placedId: Str = undefined;
+        let failure: Str = undefined;
         try {
             order = await callExchangeMethodDynamically (exchange, 'createOrder', [ outcome, 'limit', 'buy', amount, price ]);
             assert (order !== undefined, 'createOrder returned undefined for ' + exchange.id);
@@ -1718,7 +1718,7 @@ class testMainClass {
             predictionEvents = this.loadEventsFromFile (exchangeName);
         }
         let markets = undefined;
-        let currencies = undefined;
+        let currencies: Currencies = undefined;
         if (predictionEvents === undefined) {
             markets = this.loadMarketsFromFile (exchangeName);
             currencies = this.loadCurrenciesFromFile (exchangeName);

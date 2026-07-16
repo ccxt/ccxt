@@ -924,7 +924,7 @@ export default class htx extends htxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
+    getOrderChannelAndMessageHash (type, subType, market: Market = undefined, params = {}) {
         let messageHash: Str = undefined;
         let channel: Str = undefined;
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
@@ -965,7 +965,7 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    getV5LinearChannelAndMessageHash (topic, market = undefined, params = {}) {
+    getV5LinearChannelAndMessageHash (topic, market: Market = undefined, params = {}) {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
         const channel = topic;
         const messageHash = (contractCode === '*') ? topic : (topic + '.' + contractCode.toLowerCase ());
@@ -1215,7 +1215,7 @@ export default class htx extends htxRest {
             marketId = this.safeString2 (data, 'contract_code', 'symbol');
         }
         const market = this.safeMarket (marketId);
-        let parsedOrder = undefined;
+        let parsedOrder: Dict = undefined;
         if (data !== undefined) {
             // spot updates
             const eventType = this.safeString (data, 'eventType');
@@ -1289,7 +1289,7 @@ export default class htx extends htxRest {
         client.resolve (this.orders, genericMessageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //
@@ -1469,7 +1469,7 @@ export default class htx extends htxRest {
         const avgPrice = this.safeString (order, 'trade_avg_price');
         const rawTrades = this.safeValue (order, 'trade');
         let typeSideParts: string[] = [];
-        let type = undefined;
+        let type: Str = undefined;
         if (typeSide !== undefined) {
             if (typeSide.indexOf ('-') >= 0) {
                 typeSideParts = typeSide.split ('-');
@@ -1515,7 +1515,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    parseOrderTrade (trade, market = undefined) {
+    parseOrderTrade (trade, market: Market = undefined) {
         // spot private wrapped trade
         //
         //     {
@@ -2734,7 +2734,7 @@ export default class htx extends htxRest {
         }
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         // spot private
         //
         //     {
@@ -2858,7 +2858,7 @@ export default class htx extends htxRest {
         return url;
     }
 
-    async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
+    async subscribePublic (url, symbol, messageHash, method: any = undefined, params = {}) {
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,

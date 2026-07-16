@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Fee, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -519,7 +519,7 @@ export default class weex extends weexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "T": 1776089287762,
@@ -746,7 +746,7 @@ export default class weex extends weexRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         t: 1776092400000,
@@ -1048,7 +1048,7 @@ export default class weex extends weexRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message, market = undefined) {
+    parseWsBidAsk (message, market: Market = undefined) {
         const timestamp = this.safeInteger (message, 'E');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.safeTicker ({
@@ -1207,7 +1207,7 @@ export default class weex extends weexRest {
         client.resolve (trades, messageHash);
     }
 
-    parseWsMyTrade (trade, market = undefined) {
+    parseWsMyTrade (trade, market: Market = undefined) {
         //
         // spot
         //     {
@@ -1235,7 +1235,7 @@ export default class weex extends weexRest {
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
         market = marketResolved;
         const side = this.safeStringLower (trade, 'orderSide');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const commission = this.safeString (trade, 'fillFee');
         if (commission !== undefined) {
             const commissionAsset = this.safeString (trade, 'coin');
@@ -1413,7 +1413,7 @@ export default class weex extends weexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // spot
         //     {
@@ -1509,7 +1509,7 @@ export default class weex extends weexRest {
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
         market = marketResolved;
         const side = this.safeStringLower (order, 'orderSide');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const commission = this.safeString (order, 'cumFillFee');
         if (commission !== undefined) {
             const commissionAsset = this.safeString (order, 'coin');
@@ -1872,7 +1872,7 @@ export default class weex extends weexRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
     }

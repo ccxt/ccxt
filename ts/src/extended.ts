@@ -2942,7 +2942,7 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3089,7 +3089,7 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);

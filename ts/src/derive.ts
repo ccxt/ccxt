@@ -633,7 +633,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType | undefined = undefined;
+        let marketType: Str = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -2664,7 +2664,7 @@ export default class derive extends Exchange {
     }
 
     handleDeriveSubaccountId (methodName: string, params: Dict) {
-        let derivesubAccountId = undefined;
+        let derivesubAccountId: Str = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
             this.options['subaccount_id'] = derivesubAccountId; // saving in options

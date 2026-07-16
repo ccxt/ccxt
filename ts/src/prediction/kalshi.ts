@@ -8,8 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
-    fetchEventsParams,
-} from '../base/types.js';
+    fetchEventsParams,Bool, Fee, NullableDict, OrderSide } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -594,12 +593,12 @@ export default class kalshi extends Exchange {
         const outcomeLabels = [ 'YES', 'NO' ];
         const outcomeIds = [ ticker, ticker + '-NO' ];
         const outcomes: any[] = [];
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol (eventTicker, subtitleOrTicker, label);
-            let winnerRaw = undefined;
-            let settleFractionRaw = undefined;
+            let winnerRaw: Bool = undefined;
+            let settleFractionRaw: Num = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {
                 winnerRaw = (label.toLowerCase () === result);
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
@@ -922,15 +921,15 @@ export default class kalshi extends Exchange {
         const askSizeString = (isNo) ? this.safeString (raw, 'yes_bid_size_fp') : this.safeString (raw, 'yes_ask_size_fp');
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
-        let bidVolume = undefined;
+        let bidVolume: Num = undefined;
         if ((bidSizeString !== undefined) && Precise.stringGe (bidSizeString, '0')) {
             bidVolume = this.parseNumber (bidSizeString);
         }
-        let askVolume = undefined;
+        let askVolume: Num = undefined;
         if ((askSizeString !== undefined) && Precise.stringGe (askSizeString, '0')) {
             askVolume = this.parseNumber (askSizeString);
         }
-        let average = undefined;
+        let average: Num = undefined;
         if ((bid !== undefined) && (ask !== undefined)) {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
@@ -1335,7 +1334,7 @@ export default class kalshi extends Exchange {
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
         const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
         const priceCents = this.safeNumber2 (trade, 'yes_price', 'price');
-        let price = undefined;
+        let price: Num = undefined;
         if (priceDollars !== undefined) {
             price = priceDollars;
         } else if (priceCents !== undefined) {
@@ -1358,7 +1357,7 @@ export default class kalshi extends Exchange {
                 side = (rawSide === 'yes') ? 'buy' : 'sell';
             }
         }
-        let cost = undefined;
+        let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
@@ -1398,7 +1397,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const request: Dict = {};
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
@@ -1454,7 +1453,7 @@ export default class kalshi extends Exchange {
         const action = this.safeStringLower (fill, 'action');
         const side = (action === 'sell') ? 'sell' : 'buy';
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
-        let price = undefined;
+        let price: Num = undefined;
         if (sideLeg === 'no') {
             price = this.safeNumber (fill, 'no_price_dollars');
             if (price === undefined) {
@@ -1473,14 +1472,14 @@ export default class kalshi extends Exchange {
             }
         }
         const amount = this.safeNumber2 (fill, 'count_fp', 'count');
-        let cost = undefined;
+        let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
         const takerOrMaker = (isTaker) ? 'taker' : 'maker';
         const feeCost = this.safeNumber (fill, 'fee_cost');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1532,7 +1531,7 @@ export default class kalshi extends Exchange {
         // Kalshi balance in cents → divide by 100
         const result: Dict = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');
-        let total = undefined;
+        let total: Num = undefined;
         if (balanceCents !== undefined) {
             total = balanceCents / 100;
         }
@@ -1668,7 +1667,7 @@ export default class kalshi extends Exchange {
                 cost = costCents / 100;
             }
         }
-        let pnl = undefined;
+        let pnl: Num = undefined;
         if ((payout !== undefined) && (cost !== undefined)) {
             pnl = payout - cost;
         }
@@ -1706,7 +1705,7 @@ export default class kalshi extends Exchange {
         const outcomeObj = this.safeOutcome (ticker, market as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
         let positionSide: Str = undefined;
-        let contractsValue = undefined;
+        let contractsValue: Num = undefined;
         if (yesContracts !== undefined) {
             positionSide = (yesContracts >= 0) ? 'long' : 'short';
             contractsValue = this.parseNumber (Precise.stringAbs (this.numberToString (yesContracts)));
@@ -1759,7 +1758,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const request: Dict = { 'status': 'resting' };
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
@@ -1786,7 +1785,7 @@ export default class kalshi extends Exchange {
         }
         // no status filter — the endpoint returns every order; pass params.status to narrow
         const request: Dict = {};
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
@@ -1866,7 +1865,7 @@ export default class kalshi extends Exchange {
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         const action = this.safeStringLower (order, 'action');
-        let side = undefined;
+        let side: OrderSide = undefined;
         if (action === 'buy') {
             side = 'buy';
         } else if (action === 'sell') {
@@ -1988,7 +1987,7 @@ export default class kalshi extends Exchange {
         } else if (unifiedTif === 'GTC') {
             defaultTif = 'good_till_canceled';
         }
-        let timeInForce = undefined;
+        let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
         let stp = undefined;
         [ stp, params ] = this.handleOptionAndParams (params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
@@ -2073,7 +2072,7 @@ export default class kalshi extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        let outcomeObj = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
         }
@@ -2162,7 +2161,7 @@ export default class kalshi extends Exchange {
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
         const requestedStatus = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
-        let status = undefined;
+        let status: Str = undefined;
         if ((requestedStatus === 'active') || (requestedStatus === 'open')) {
             status = 'open';
         } else if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
@@ -2508,10 +2507,10 @@ export default class kalshi extends Exchange {
         // resolved and the resolution deadline are aggregated from the child markets too
         let totalVolume = 0;
         let totalLiquidity = 0;
-        let earliestCreated = undefined;
+        let earliestCreated: Int = undefined;
         let anyActive = false;
         let allResolved = true;
-        let latestClose = undefined;
+        let latestClose: Int = undefined;
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
@@ -2538,7 +2537,7 @@ export default class kalshi extends Exchange {
         }
         // the aggregates only mean something when the payload nested any markets at all
         const marketsCount = marketsList.length;
-        let active = undefined;
+        let active: Bool = undefined;
         if (marketsCount > 0) {
             active = anyActive;
         }

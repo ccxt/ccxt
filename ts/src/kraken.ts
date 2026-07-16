@@ -1787,7 +1787,7 @@ export default class kraken extends Exchange {
             ordersRequests.push (orderRequest[0]);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        let response: Dict = undefined;
+        let response = undefined;
         let request: Dict = {
             'orders': ordersRequests,
             'pair': this.safeString (market, 'id'),
@@ -2624,7 +2624,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let response: Dict = undefined;
+        let response = undefined;
         const requestId = this.safeValue (params, 'userref', id); // string or integer
         params = this.omit (params, 'userref');
         let request: Dict = {

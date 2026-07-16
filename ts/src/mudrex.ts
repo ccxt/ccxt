@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -178,7 +178,7 @@ export default class mudrex extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
         if (base === undefined) {
@@ -297,7 +297,7 @@ export default class mudrex extends Exchange {
             requestLimit = 500;
         }
         const now = this.seconds ();
-        let startTime = undefined;
+        let startTime: Int = undefined;
         if (since !== undefined) {
             startTime = this.parseToInt (since / 1000);
         } else {
@@ -495,7 +495,7 @@ export default class mudrex extends Exchange {
         }
         const quote = 'USDT';
         const settle = 'USDT';
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (base !== undefined) {
             symbol = base + '/' + quote + ':' + settle;
         }
@@ -1103,7 +1103,7 @@ export default class mudrex extends Exchange {
         const quantityString = this.safeString (position, 'quantity');
         const entryPriceString = this.safeString (position, 'entry_price');
         const contractSizeString = this.safeString (market, 'contractSize', '1');
-        let notional = undefined;
+        let notional: Num = undefined;
         if ((quantityString !== undefined) && (entryPriceString !== undefined)) {
             notional = this.parseNumber (Precise.stringMul (Precise.stringMul (quantityString, entryPriceString), contractSizeString));
         }
@@ -1287,13 +1287,13 @@ export default class mudrex extends Exchange {
             tradeSide = 'sell';
         }
         const feeType = this.safeStringUpper (trade, 'fee_type');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (feeType === 'TRANSACTION') {
             takerOrMaker = 'taker';
         } else if (feeType === 'REBATE') {
             takerOrMaker = 'maker';
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee_amount');
         if (feeCost !== undefined) {
             fee = {

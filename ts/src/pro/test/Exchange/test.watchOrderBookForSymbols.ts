@@ -12,7 +12,7 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
     const seenSymbols: string[] = [];
     // keep polling until the time window elapses and every requested symbol has been observed
     while (currentTime < deadline || seenSymbols.length < symbols.length) {
-        let response: OrderBook | undefined = undefined;
+        let response: OrderBook = undefined;
         let succeeded = true;
         try {
             response = await exchange.watchOrderBookForSymbols (symbols);

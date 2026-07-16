@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams, Currencies } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -156,7 +156,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const sort = this.safeString (params, 'sort');
         if (sort !== undefined) {
-            let sortKey = undefined;
+            let sortKey: Str = undefined;
             if (sort === 'volume') {
                 sortKey = 'volume';
             } else if (sort === 'liquidity') {
@@ -538,7 +538,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    setMarkets (markets, currencies = undefined) {
+    setMarkets (markets, currencies: Currencies = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -1207,7 +1207,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchSettlements() is not supported yet');
     }
 
-    safePredictionOrder (outcomeOrder: Dict, outcomeObj = undefined): PredictionOrder {
+    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Dict = undefined): PredictionOrder {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1340,7 +1340,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionOrder;
     }
 
-    safePredictionTrade (trade: Dict, outcomeObj = undefined): PredictionTrade {
+    safePredictionTrade (trade: Dict, outcomeObj: Dict = undefined): PredictionTrade {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
@@ -1375,7 +1375,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionTrade;
     }
 
-    safePredictionTicker (ticker: Dict, outcomeObj = undefined): PredictionTicker {
+    safePredictionTicker (ticker: Dict, outcomeObj: Dict = undefined): PredictionTicker {
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.

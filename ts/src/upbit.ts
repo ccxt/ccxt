@@ -1864,7 +1864,7 @@ export default class upbit extends Exchange {
         let type = this.safeString (order, 'ord_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         let price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');

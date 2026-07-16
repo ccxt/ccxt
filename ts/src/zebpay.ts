@@ -229,7 +229,7 @@ export default class zebpay extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const isSpot = (type === 'spot');
-        let response: NullableDict = undefined;
+        let response = undefined;
         let data: NullableDict = {};
         if (isSpot) {
             response = await this.publicSpotGetV2SystemStatus (params);
@@ -272,7 +272,7 @@ export default class zebpay extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const isSpot = (type === 'spot');
-        let response: NullableDict = undefined;
+        let response = undefined;
         let data: NullableDict = {};
         if (isSpot) {
             response = await this.publicSpotGetV2SystemTime (params);
@@ -468,7 +468,7 @@ export default class zebpay extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: NullableDict = undefined;
+        let response = undefined;
         let data;
         const request: Dict = {
             'symbol': market['id'],
@@ -522,7 +522,7 @@ export default class zebpay extends Exchange {
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (type === 'spot') {
             response = await this.publicSpotGetV2ExTradefees (params);
         } else {
@@ -571,7 +571,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -616,7 +616,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.publicSpotGetV2MarketTicker (this.extend (request, params));
             //
@@ -731,7 +731,7 @@ export default class zebpay extends Exchange {
             request['endTime'] = until;
             params = this.omit (params, [ 'endtime', 'until' ]);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             if (until === undefined || since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
@@ -798,7 +798,7 @@ export default class zebpay extends Exchange {
         if (market['spot'] && limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.publicSpotGetV2MarketTrades (this.extend (request, params));
         } else {
@@ -841,7 +841,7 @@ export default class zebpay extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchMyTrades() does not support spot markets');
         } else {
@@ -974,7 +974,7 @@ export default class zebpay extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isSpot) {
             response = await this.privateSpotGetV2AccountBalance (params);
         } else {
@@ -1033,7 +1033,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             [ request, params ] = this.orderRequest (symbol, type, amount, request, price, params);
             response = await this.privateSpotPostV2ExOrders (this.extend (request, params));
@@ -1075,7 +1075,7 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
+    orderRequest (symbol, type, amount, request, price: Num = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice', undefined);
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
@@ -1117,7 +1117,7 @@ export default class zebpay extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: NullableDict = undefined;
+        let response = undefined;
         const request: Dict = {};
         if (market['spot']) {
             request['orderId'] = id;
@@ -1195,7 +1195,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         let orders: List = [];
         if (market['spot']) {
             request['currentPage'] = 1;
@@ -1263,7 +1263,7 @@ export default class zebpay extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder (this.extend (request, params));

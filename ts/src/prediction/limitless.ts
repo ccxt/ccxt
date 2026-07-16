@@ -25,8 +25,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Bool,
     Account, fetchEventsParams,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
-} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,Fee, NullableDict } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
@@ -435,7 +434,7 @@ export default class limitless extends Exchange {
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         const winningOutcomeIndex = this.safeInteger (raw, 'winningOutcomeIndex');
         const marketResolved = (winningOutcomeIndex !== undefined);
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         const marketSymbol = this.slugToMarketSymbol (groupId, slug);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
@@ -463,8 +462,8 @@ export default class limitless extends Exchange {
             } else if (labelLower === 'no') {
                 legIndex = 1;
             }
-            let winnerRaw = undefined;
-            let settleFractionRaw = undefined;
+            let winnerRaw: Bool = undefined;
+            let settleFractionRaw: Num = undefined;
             if (marketResolved) {
                 winnerRaw = (legIndex === winningOutcomeIndex);
                 settleFractionRaw = winnerRaw ? 1 : 0;
@@ -1043,19 +1042,19 @@ export default class limitless extends Exchange {
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         let raw = ticker;
-        let book = undefined;
+        let book: Dict = undefined;
         if ('market' in ticker) {
             raw = this.safeDict (ticker, 'market', {});
             book = this.safeDict (ticker, 'book');
         }
         const rawLabel = (market !== undefined) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
         const isYes = rawLabel.toLowerCase () !== 'no';
-        let bidStr = undefined;
-        let askStr = undefined;
-        let bidSizeStr = undefined;
-        let askSizeStr = undefined;
-        let lastStr = undefined;
-        let midStr = undefined;
+        let bidStr: Str = undefined;
+        let askStr: Str = undefined;
+        let bidSizeStr: Str = undefined;
+        let askSizeStr: Str = undefined;
+        let lastStr: Str = undefined;
+        let midStr: Str = undefined;
         if (book !== undefined) {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             const rawBids = this.safeList (book, 'bids', []) as any[];
@@ -1101,7 +1100,7 @@ export default class limitless extends Exchange {
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         const rawVolume = this.safeString (raw, 'volume');
-        let volumeStr = undefined;
+        let volumeStr: Str = undefined;
         if (rawVolume !== undefined) {
             volumeStr = Precise.stringDiv (rawVolume, '1000000');
         }
@@ -1857,7 +1856,7 @@ export default class limitless extends Exchange {
         const datetime = this.safeString (rawOrder, 'createdAt');
         const ts = this.parse8601 (datetime);
         const timeInForce = this.safeString2 (rawOrder, 'type', 'orderType');
-        let type = undefined;
+        let type: Str = undefined;
         if (timeInForce === 'GTC') {
             type = 'limit';
         } else if (timeInForce === 'FAK') {
@@ -1865,9 +1864,9 @@ export default class limitless extends Exchange {
         }
         let rawStatus = this.safeString (rawOrder, 'status');
         const execution = this.safeDict (data, 'execution');
-        let fee = undefined;
-        let filled = undefined;
-        let cost = undefined;
+        let fee: NullableDict = undefined;
+        let filled: Str = undefined;
+        let cost: Str = undefined;
         if (execution !== undefined) {
             rawStatus = this.safeString (execution, 'settlementStatus');
             const totals = this.safeDict (execution, 'totalsRaw');
@@ -2086,8 +2085,8 @@ export default class limitless extends Exchange {
         }
         const amountString = this.numberToString (amount);
         const priceString = this.numberToString (price);
-        let makerAmount = undefined;
-        let takerAmount = undefined;
+        let makerAmount: Str = undefined;
+        let takerAmount: Str = undefined;
         const isMarket = type === 'market';
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
@@ -2537,7 +2536,7 @@ export default class limitless extends Exchange {
             // public market events feed trade, see fetchTrades for the response sample
             const ts = this.parse8601 (this.safeString (trade, 'createdAt'));
             const sideRaw = this.safeString (trade, 'side');
-            let feedSide = undefined;
+            let feedSide: Str = undefined;
             if (sideRaw === '0') {
                 feedSide = 'buy';
             } else if (sideRaw === '1') {
@@ -2545,7 +2544,7 @@ export default class limitless extends Exchange {
             }
             const amountStr = Precise.stringDiv (matchedSize, '1000000');
             const priceStr = this.safeString (trade, 'price');
-            let costStr = undefined;
+            let costStr: Str = undefined;
             if (priceStr !== undefined) {
                 costStr = Precise.stringMul (priceStr, amountStr);
             }
@@ -2608,8 +2607,8 @@ export default class limitless extends Exchange {
         const rawSide = this.safeStringLower (trade, 'strategy');
         const sellIndex = rawSide.indexOf ('sell');
         const side = (sellIndex >= 0) ? 'sell' : 'buy';
-        let type = undefined;
-        let takerOrMaker = undefined;
+        let type: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (rawSide.indexOf ('limit') >= 0) {
             type = 'limit';
             takerOrMaker = 'maker';

@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, MaybeIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, MaybeIndexType, List, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -1395,7 +1395,7 @@ export class BaseExchange {
         return result;
     }
 
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+    handleRestResponse (response, url, method = 'GET', requestHeaders: any = undefined, requestBody: any = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
             // native fetch responses have no buffer() method, polyfill it from arrayBuffer()
@@ -1465,7 +1465,7 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        let currencies = undefined;
+        let currencies: Currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
@@ -1853,7 +1853,7 @@ export class BaseExchange {
         return future;
     }
 
-    onConnected (client, message = undefined) {
+    onConnected (client, message: any = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
@@ -1912,7 +1912,7 @@ export class BaseExchange {
         return value !== undefined && value !== null;
     }
 
-    arraySlice (array, first, second = undefined) {
+    arraySlice (array, first, second: Int = undefined) {
         if (second === undefined) {
             return array.slice (first);
         }
@@ -2171,7 +2171,7 @@ export class BaseExchange {
         chainId,
         account,
         authenticators,
-        fee = undefined
+        fee: any = undefined
     ): [ string, Dict ] {
         if (!encodeAsAny) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
@@ -3191,7 +3191,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
+    checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers: any = undefined, body: any = undefined) {
         const usedProxies: string[] = [];
         let proxyUrl: Str = undefined;
         if (this.proxyUrl !== undefined) {
@@ -3234,7 +3234,7 @@ export class BaseExchange {
         return finalUrl;
     }
 
-    checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
+    checkProxySettings (url: Str = undefined, method: Str = undefined, headers: any = undefined, body: any = undefined) {
         const usedProxies: string[] = [];
         let httpProxy: Str = undefined;
         let httpsProxy: Str = undefined;
@@ -3414,7 +3414,7 @@ export class BaseExchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
+    filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
@@ -4370,7 +4370,7 @@ export class BaseExchange {
         return cleanStructure;
     }
 
-    setMarkets (markets, currencies = undefined) {
+    setMarkets (markets, currencies: Currencies = undefined) {
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -4725,7 +4725,7 @@ export class BaseExchange {
         // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
-            let multiplyPrice = undefined;
+            let multiplyPrice: Str = undefined;
             if (average === undefined) {
                 multiplyPrice = price;
             } else {
@@ -4869,7 +4869,7 @@ export class BaseExchange {
         }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
-        let useQuote = undefined;
+        let useQuote: Bool = undefined;
         if (feeSide === 'get') {
             // the fee is always in the currency you get
             useQuote = side === 'sell';
@@ -4969,9 +4969,9 @@ export class BaseExchange {
         return trade as Trade;
     }
 
-    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount = undefined, price = undefined, takerOrMaker = undefined): Str {
+    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let id = undefined;
+        let id: Str = undefined;
         if (timestamp !== undefined) {
             id = this.numberToString (timestamp);
             if (side !== undefined) {
@@ -5365,7 +5365,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
+    async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex: Str = undefined, endRegex: Str = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
@@ -5492,8 +5492,8 @@ export class BaseExchange {
             return symbols;
         }
         const result: string[] = [];
-        let marketType = undefined;
-        let isLinearSubType = undefined;
+        let marketType: Str = undefined;
+        let isLinearSubType: Bool = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             if (sameTypeOnly && (marketType !== undefined)) {
@@ -5723,7 +5723,7 @@ export class BaseExchange {
     }
 
     defaultNetworkCode (currencyCode: string) {
-        let defaultNetworkCode = undefined;
+        let defaultNetworkCode: Str = undefined;
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         if (currencyCode in defaultNetworks) {
             // if currency had set its network in "defaultNetworks", use it
@@ -5748,7 +5748,7 @@ export class BaseExchange {
 
     selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
-        let chosenNetworkId = undefined;
+        let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
@@ -5779,7 +5779,7 @@ export class BaseExchange {
         return chosenNetworkId;
     }
 
-    safeNumber2 (dictionary: object | undefined, key1: MaybeIndexType, key2: MaybeIndexType, d = undefined) {
+    safeNumber2 (dictionary: object | undefined, key1: MaybeIndexType, key2: MaybeIndexType, d: Num = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
@@ -5878,7 +5878,7 @@ export class BaseExchange {
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber (position, 'contractSize');
         const symbol = this.safeString (position, 'symbol');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.safeValue (this.markets, symbol);
         }
@@ -5932,7 +5932,7 @@ export class BaseExchange {
         trades = this.toArray (trades);
         let result: Trade[] = [];
         for (let i = 0; i < trades.length; i++) {
-            let parsed = undefined;
+            let parsed: Dict = undefined;
             if (isWs) {
                 parsed = this.parseWsTrade (trades[i], market);
             } else {
@@ -6085,7 +6085,7 @@ export class BaseExchange {
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
     handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false) {
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
@@ -6158,7 +6158,7 @@ export class BaseExchange {
         return results;
     }
 
-    filterOutByArray (objects, key: IndexType, values = undefined, indexed = true) {
+    filterOutByArray (objects, key: IndexType, values: any = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
@@ -6187,9 +6187,9 @@ export class BaseExchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
-        let retries = undefined;
+        let retries: Int = undefined;
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
+        let retryDelay: Int = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         let fetchData: Dict = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
@@ -6556,7 +6556,7 @@ export class BaseExchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): [any, Dict] {
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [any, Dict] {
         let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
         if (value !== undefined) {
@@ -7908,7 +7908,7 @@ export class BaseExchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
-    filterByArrayADLRanks (objects, key: IndexType, values = undefined, indexed = true): ADL[] {
+    filterByArrayADLRanks (objects, key: IndexType, values: any = undefined, indexed = true): ADL[] {
         /**
          * @ignore
          * @method
@@ -7925,7 +7925,7 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params = {}): [Int, any] {
-        let newMaxEntriesPerRequest = undefined;
+        let newMaxEntriesPerRequest: Int = undefined;
         [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
         if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
             maxEntriesPerRequest = newMaxEntriesPerRequest;
@@ -7937,13 +7937,13 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        let maxCalls = undefined;
+        let maxCalls: Int = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
-        let paginationDirection = undefined;
+        let paginationDirection: Str = undefined;
         [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
-        let paginationTimestamp = undefined;
+        let paginationTimestamp: Int = undefined;
         let removeRepeatedOption = removeRepeated;
         [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
@@ -8024,7 +8024,7 @@ export class BaseExchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let errors = 0;
         while (errors <= maxRetries) {
@@ -8048,7 +8048,7 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = undefined;
+        let maxCalls: Int = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
@@ -8089,12 +8089,12 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = undefined;
+        let maxCalls: Int = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
-        let cursorValue = undefined;
+        let cursorValue: Int = undefined;
         let i = 0;
         let errors = 0;
         let result: any[] = [];
@@ -8108,7 +8108,7 @@ export class BaseExchange {
                     }
                     params[cursorSent as string] = cursorValue;
                 }
-                let response = undefined;
+                let response: List = undefined;
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
@@ -8164,9 +8164,9 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls = undefined;
+        let maxCalls: Int = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let i = 0;
@@ -8405,8 +8405,8 @@ export class BaseExchange {
     parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
         const result: Dict[] = [];
-        let fromCurrency = undefined;
-        let toCurrency = undefined;
+        let fromCurrency: Currency = undefined;
+        let toCurrency: Currency = undefined;
         for (let i = 0; i < conversions.length; i++) {
             const entry = conversions[i];
             const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString (entry, fromCurrencyKey);
@@ -8421,7 +8421,7 @@ export class BaseExchange {
             result.push (conversion);
         }
         const sorted = this.sortBy (result, 'timestamp');
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             code = currency['code'];
@@ -8455,7 +8455,7 @@ export class BaseExchange {
         // parse 240119 to 19JAN24
         const year = date.slice (0, 2);
         const monthRaw = date.slice (2, 4);
-        let month = undefined;
+        let month: Str = undefined;
         const day = date.slice (4, 6);
         if (monthRaw === '01') {
             month = 'JAN';

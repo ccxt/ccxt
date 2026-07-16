@@ -3,13 +3,14 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { Ticker } from '../../../base/types.js';
 
 async function testWatchTicker (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTicker';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: Ticker = undefined;
         let success = true;
         try {
             response = await exchange.watchTicker (symbol);

@@ -2355,7 +2355,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances: Dict = undefined;
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeValue (response, 'result', []);
         } else {
@@ -2470,7 +2470,7 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2533,7 +2533,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createContractOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4301,7 +4301,7 @@ export default class xt extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //     {
         //         "symbol": "rad_usdt",

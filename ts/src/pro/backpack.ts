@@ -601,7 +601,7 @@ export default class backpack extends backpackRest {
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         E: '1754519557526056',
@@ -1180,7 +1180,7 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
-    parseWsOrderStatus (status, market = undefined) {
+    parseWsOrderStatus (status, market: Market = undefined) {
         const statuses: Dict = {
             'New': 'open',
             'Filled': 'closed',
@@ -1312,7 +1312,7 @@ export default class backpack extends backpackRest {
         client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         B: '4236.36',

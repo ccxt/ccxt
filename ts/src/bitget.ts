@@ -1924,7 +1924,7 @@ export default class bitget extends Exchange {
     }
 
     async handleUTAAndParams (params, methodName: Str, defaultValue: boolean = false) {
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
             return [ uta, params ];
@@ -1984,7 +1984,7 @@ export default class bitget extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
         if (uta) {
             return await this.fetchUtaMarkets (params);
@@ -2640,7 +2640,7 @@ export default class bitget extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         let marginMode: Str = undefined;
         let productType: Str = undefined;
         let uta: Bool = undefined;
@@ -3214,7 +3214,7 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
         if (uta) {
             request['category'] = productType;
@@ -3426,7 +3426,7 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
         if (uta) {
             request['category'] = productType;
@@ -3628,7 +3628,7 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         // only if passedSubType && productType is undefined, then use spot
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
         if (uta) {
             if (symbols !== undefined) {
@@ -3950,7 +3950,7 @@ export default class bitget extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
         if (limit !== undefined) {
             if (uta) {
@@ -4309,9 +4309,9 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let marketType: Str = undefined;
-        let timeframes = undefined;
+        let timeframes: Dict = undefined;
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
         if (uta) {
             timeframes = timeframesOption['uta'];
@@ -4479,7 +4479,7 @@ export default class bitget extends Exchange {
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
@@ -5185,7 +5185,7 @@ export default class bitget extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
         if (uta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
@@ -5647,7 +5647,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrders', false);
         if (uta) {
             return await this.createUtaOrders (orders, params);
@@ -5814,7 +5814,7 @@ export default class bitget extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'editOrder', false);
         if (uta) {
@@ -6006,7 +6006,7 @@ export default class bitget extends Exchange {
         if (!(market['spot'] && trigger)) {
             request['symbol'] = market['id'];
         }
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
         const isPlanOrder = trigger || trailing;
         const isContract = market['swap'] || market['future'];
@@ -6196,7 +6196,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
         if (uta) {
             return await this.cancelUtaOrders (ids, symbol, params);
@@ -6297,7 +6297,7 @@ export default class bitget extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelAllOrders', false);
         if (uta) {
             if (productType === 'SPOT') {
@@ -6423,7 +6423,7 @@ export default class bitget extends Exchange {
             request['orderId'] = id;
         }
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrder', false);
         if (uta) {
             response = await this.privateUtaGetV3TradeOrderInfo (this.extend (request, params));
@@ -6602,7 +6602,7 @@ export default class bitget extends Exchange {
         let request: Dict = {};
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenOrders', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -7060,7 +7060,7 @@ export default class bitget extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
         if (uta) {
             return await this.fetchUtaCanceledAndClosedOrders (symbol, since, limit, params);
@@ -7717,7 +7717,7 @@ export default class bitget extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
         if (!uta && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -7947,7 +7947,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let result: NullableList = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPosition', false);
         if (uta) {
@@ -8079,7 +8079,7 @@ export default class bitget extends Exchange {
         const request: Dict = {};
         let response = undefined;
         let isHistory = false;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositions', false);
         if (uta) {
             request['category'] = productType;
@@ -8478,7 +8478,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         let result: NullableList = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
@@ -8578,7 +8578,7 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRate', false);
         if (uta) {
@@ -8860,7 +8860,7 @@ export default class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
@@ -9199,7 +9199,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'leverage': this.numberToString (leverage),
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response: Dict = {};
         [ uta, params ] = await this.handleUTAAndParams (params, 'setLeverage', false);
         if (uta) {
@@ -9319,7 +9319,7 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
         }
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response: Dict = {};
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'setPositionMode', false);
@@ -9376,7 +9376,7 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenInterest', false);
         if (uta) {
@@ -10238,7 +10238,7 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
         };
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         let result: Dict = {};
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCrossBorrowRate', false);
@@ -10511,7 +10511,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'closePosition', false);
@@ -10582,7 +10582,7 @@ export default class bitget extends Exchange {
         }
         const request: Dict = {};
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'closeAllPositions', false);
@@ -10716,7 +10716,7 @@ export default class bitget extends Exchange {
         let request: Dict = {};
         let market: Market = undefined;
         let productType: Str = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         let response = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -11111,7 +11111,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        let uta = undefined;
+        let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingInterval', false);
         if (uta) {
             response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));

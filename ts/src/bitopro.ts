@@ -1307,7 +1307,7 @@ export default class bitopro extends Exchange {
         const request: Dict = {
             // 'pair': market['id'], // optional
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['pair'] = market['id'];

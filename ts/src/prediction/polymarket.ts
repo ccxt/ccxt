@@ -12,8 +12,7 @@ import type {
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
-    fetchEventsParams,
-} from '../base/types.js';
+    fetchEventsParams,Bool, Fee, NullableDict } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -676,7 +675,7 @@ export default class polymarket extends Exchange {
             const closed = this.safeBool (market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             const marketResolved = closed || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
-            let resolvedOutcome = undefined;
+            let resolvedOutcome: Str = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2 (market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
@@ -691,15 +690,15 @@ export default class polymarket extends Exchange {
             const parsedOutcomes = this.parseJson (this.safeString (market, 'outcomes', '[]'));
             const parsedTokenIds = this.parseJson (this.safeString (market, 'clobTokenIds', '[]'));
             const parsedPrices = this.parseJson (this.safeString (market, 'outcomePrices', '[]'));
-            let parsedOutcomesLength = undefined;
+            let parsedOutcomesLength: Int = undefined;
             if (parsedOutcomes !== undefined) {
                 parsedOutcomesLength = (parsedOutcomes as any[]).length;
             }
-            let parsedTokenIdsLength = undefined;
+            let parsedTokenIdsLength: Int = undefined;
             if (parsedTokenIds !== undefined) {
                 parsedTokenIdsLength = (parsedTokenIds as any[]).length;
             }
-            let parsedPricesLength = undefined;
+            let parsedPricesLength: Int = undefined;
             if (parsedPrices !== undefined) {
                 parsedPricesLength = (parsedPrices as any[]).length;
             }
@@ -729,8 +728,8 @@ export default class polymarket extends Exchange {
                     continue;
                 }
                 const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, marketSlug, outcomeLabel);
-                let winnerRaw = undefined;
-                let settleFractionRaw = undefined;
+                let winnerRaw: Bool = undefined;
+                let settleFractionRaw: Num = undefined;
                 if (marketResolved && (outcomePrice !== undefined)) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
@@ -1130,7 +1129,7 @@ export default class polymarket extends Exchange {
         }
         const outcome = this.safeOutcomeSymbol (undefined, market);
         const timestamp = this.safeInteger (bookData, 'timestamp', this.milliseconds ());
-        let quoteVolume = undefined;
+        let quoteVolume: Num = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
         }
@@ -1569,7 +1568,7 @@ export default class polymarket extends Exchange {
         const rawTakerOrMaker = this.safeStringLower (trade, 'trader_side');
         const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
         const feeRateBps = this.safeString (trade, 'fee_rate_bps');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeRateBps !== undefined) {
             fee = {
                 'currency': 'USDC',
@@ -1630,7 +1629,7 @@ export default class polymarket extends Exchange {
         const result: Dict = { 'info': response };
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         const raw = this.safeString (response, 'balance');
-        let total = undefined;
+        let total: Num = undefined;
         if (raw !== undefined) {
             total = this.parseNumber (Precise.stringDiv (raw, '1000000'));
         }
@@ -1719,7 +1718,7 @@ export default class polymarket extends Exchange {
         const size = this.safeNumber (position, 'size');
         const entryPrice = this.safeNumber (position, 'avgPrice');
         const curPrice = this.safeNumber (position, 'currentPrice');
-        let notional = undefined;
+        let notional: Num = undefined;
         if ((size !== undefined) && (curPrice !== undefined)) {
             notional = size * curPrice;
         }
@@ -2137,8 +2136,8 @@ export default class polymarket extends Exchange {
         const amountDecimals = this.safeInteger (cfg, 'amount');
         const priceStr = this.numberToString (price);
         const rawPrice = this.decimalToPrecision (priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
-        let makerRaw = undefined;
-        let takerRaw = undefined;
+        let makerRaw: Str = undefined;
+        let takerRaw: Str = undefined;
         if ((cost !== undefined) && (side === 'BUY')) {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
@@ -2384,7 +2383,7 @@ export default class polymarket extends Exchange {
                 // search results may omit the nested markets, fall back to the detail endpoint
                 const eventId = this.safeString (rawEvent, 'id');
                 const rawEventSlug = this.safeString (rawEvent, 'slug');
-                let detailedEvent = undefined;
+                let detailedEvent: NullableDict = undefined;
                 if (eventId !== undefined) {
                     detailedEvent = await this.gammaPublicGetEventsId ({ 'id': eventId });
                 } else if (rawEventSlug !== undefined) {
@@ -2511,7 +2510,7 @@ export default class polymarket extends Exchange {
         const updatedAt = this.safeString2 (rawEvent, 'updatedAt', 'last_updated_date_iso');
         const rawActive = this.safeBool (rawEvent, 'active');
         const closed = this.safeBool (rawEvent, 'closed', false);
-        let active = undefined;
+        let active: Bool = undefined;
         if (rawActive !== undefined) {
             active = rawActive && !closed;
         }
@@ -2811,7 +2810,7 @@ export default class polymarket extends Exchange {
      * @returns {object} the api credentials { apiKey, secret, passphrase }
      */
     async createOrDeriveApiKey (params = {}): Promise<Dict> {
-        let creds = undefined;
+        let creds: NullableDict = undefined;
         try {
             creds = await this.deriveApiKey (params);
         } catch (e) {
@@ -3097,7 +3096,7 @@ export default class polymarket extends Exchange {
             bestAsk = asks[0][0];
             bestAskVolume = asks[0][1];
         }
-        let mid = undefined;
+        let mid: Num = undefined;
         if ((bestBid !== undefined) && (bestAsk !== undefined)) {
             const sum = Precise.stringAdd (this.numberToString (bestBid), this.numberToString (bestAsk));
             mid = this.parseNumber (Precise.stringDiv (sum, '2'));

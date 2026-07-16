@@ -366,7 +366,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): any {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
@@ -688,7 +688,7 @@ export default class deepcoin extends Exchange {
                 request['after'] = Math.min (endTime, now);
             }
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (price === 'mark') {
             response = await this.publicGetDeepcoinMarketMarkPriceCandles (this.extend (request, params));
         } else if (price === 'index') {
@@ -1498,7 +1498,7 @@ export default class deepcoin extends Exchange {
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (triggerPrice !== undefined) {
             // trigger orders
             response = await this.privatePostDeepcoinTradeTriggerOrder (request);
@@ -1940,7 +1940,7 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest (this.id + ' ' + methodName + '() does not support trigger orders');
@@ -2100,7 +2100,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit;
         }
         const trigger = this.safeBool (params, 'trigger', false);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             params = this.omit (params, 'trigger');
             request['instType'] = this.convertToInstrumentType (market['type']);
@@ -2213,7 +2213,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'ordId': id,
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         const trigger = this.safeBool (params, 'trigger', false);
         if (trigger) {
             params = this.omit (params, 'trigger');
@@ -2305,7 +2305,7 @@ export default class deepcoin extends Exchange {
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         const isTPSL = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isTPSL) {
             if ((price !== undefined) || (amount !== undefined)) {
                 throw new BadRequest (this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
@@ -3037,7 +3037,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'productGroup': productGroup,
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (positionId === undefined && positionIds === undefined) {
             response = await this.privatePostDeepcoinTradeBatchClosePosition (this.extend (request, params));
         } else {

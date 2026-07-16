@@ -4,7 +4,7 @@
 import onetradingRest from '../onetrading.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -232,7 +232,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -539,7 +539,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.orders, 'orders');
     }
 
-    parseTradingOrder (order, market = undefined) {
+    parseTradingOrder (order, market: Market = undefined) {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -1201,7 +1201,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (stored, channel);
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe, timeframes: any = undefined) {
         timeframes = timeframes || this.timeframes;
         if (timeframes === undefined) {
             throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
