@@ -1441,31 +1441,6 @@
                 "output": null
             },
             {
-                "disabled": true,
-                "description": "trigger order with stoploss & takeprofit",
-                "method": "editOrder",
-                "disabledJava": true,
-                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=2077750176533553152&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A75%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=79&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A87%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784209567935&type=TRIGGER_MARKET&signature=608016c0561e9c5e8283ec1aae998d872388dc20d101bce5fcd80e7d6e56f896",
-                "input": [
-                    "2077750176533553152",
-                    "SOL/USDT:USDT",
-                    "market",
-                    "buy",
-                    0.6,
-                    0,
-                    {
-                        "triggerPrice": 79,
-                        "stopLoss": {
-                            "triggerPrice": 75
-                        },
-                        "takeProfit": {
-                            "triggerPrice": 87
-                        }
-                    }
-                ],
-                "output": null
-            },
-            {
                 "description": "edit spot order",
                 "method": "editOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelOrderId=1755603335580221440&cancelReplaceMode=STOP_ON_FAILURE&price=51&quantity=0.11&side=BUY&symbol=LTC-USDT&timestamp=1707403466447&type=LIMIT&signature=0bee060e6424f8eba8ed39077e38408c743148d3c6c92e3d1d5d0f540a71d5d8",
