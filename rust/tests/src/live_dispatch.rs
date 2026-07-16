@@ -51,12 +51,26 @@ use ccxt::exchanges::{
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
-// Prediction-market venue Cores (crate::prediction); `hyperliquid` omitted
-// (id collides with the regular exchange).
+// Prediction-market venue Cores (crate::prediction). The four prediction-only
+// ids go straight into for_each_core! (no collision). `hyperliquid` also exists
+// as a regular exchange, so its prediction Core is imported under an alias and
+// only selected when prediction mode is active (see build_core).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
     myriad::MyriadCore, polymarket::PolymarketCore,
 };
+use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// When set (by `--prediction`), `build_core` resolves the `hyperliquid` id to
+/// its prediction-market Core instead of the regular exchange of the same id.
+static PREDICTION_MODE: AtomicBool = AtomicBool::new(false);
+
+/// Enable prediction-mode id resolution. Call once from `main` when the
+/// `--prediction` flag is present.
+pub fn set_prediction_mode(on: bool) {
+    PREDICTION_MODE.store(on, Ordering::Relaxed);
+}
 use crate::registry::for_each_core;
 use indexmap::IndexMap as HashMap;
 use std::sync::{Mutex, OnceLock};
@@ -465,6 +479,11 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
             });
         }
     }; }
+    // In prediction mode, `hyperliquid` resolves to the prediction Core; this
+    // arm runs before for_each_core! so it wins over the regular hyperliquid.
+    if PREDICTION_MODE.load(Ordering::Relaxed) {
+        arm!(hyperliquid, PredHyperliquidCore);
+    }
     for_each_core!(arm);
     None
 }

@@ -53,6 +53,10 @@ async fn main() -> ExitCode {
     // resolve straight off the cached Core instead of deep-cloning the
     // entire ~4k-entry markets Map on every helper invocation.
     live_dispatch::init_live_lookup();
+    // `--prediction` makes the `hyperliquid` id resolve to its prediction-market
+    // Core (it also exists as a regular exchange). Prediction-only venues
+    // (kalshi/…) resolve unambiguously and need no flag.
+    live_dispatch::set_prediction_mode(is_true(&getCliArgValue(Value::Str("--prediction".to_string()))));
     let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".to_string())));
     let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".to_string())));
     let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".to_string())))
