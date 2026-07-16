@@ -1093,11 +1093,11 @@ export default class bitstamp extends Exchange {
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
         }

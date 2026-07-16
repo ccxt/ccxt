@@ -217,7 +217,7 @@ export default class binance extends binanceRest {
             const streamLimits = this.safeValue (this.options, 'streamLimits');
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
-            const normalizedIndex = streamIndex % streamLimit;
+            const normalizedIndex = streamIndex % (streamLimit as number);
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             this.storeByKey (this.options['streamBySubscriptionsHash'], subscriptionHash, stream);
@@ -3432,10 +3432,10 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
-        let payload: NullableDict = undefined;
+        let payload: Dict = {};
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
-        } else if (isSwap) {
+        } else {
             payload = this.editContractOrderRequest (id, symbol, type, side, amount, price, params);
         }
         let returnRateLimits = false;

@@ -1367,7 +1367,7 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance (result);
         }
-        return undefined;
+        return undefined as any;
     }
 
     parseFundingRate (ticker, market: Market = undefined): FundingRate {

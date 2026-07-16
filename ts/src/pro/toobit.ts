@@ -691,7 +691,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances | undefined> {
+    async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

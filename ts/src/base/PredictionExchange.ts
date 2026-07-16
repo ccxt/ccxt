@@ -561,21 +561,17 @@ export default class PredictionExchange extends BaseExchange {
             copy['symbol'] = this.safeString2 (row, 'market', 'symbol');
             aliased.push (copy);
         }
-        super.setMarkets (aliased, currencies);
+        const stored = super.setMarkets (aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        const marketsMap = this.markets;
-        if (marketsMap === undefined) {
-            return this.markets;
-        }
-        const marketKeys = Object.keys (marketsMap);
+        const marketKeys = Object.keys (stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            marketsMap[key] = this.omit (marketsMap[key], 'symbol');
+            stored[key] = this.omit (stored[key], 'symbol');
         }
         this.populateOutcomes ();
-        return this.markets;
+        return stored;
     }
 
     indexMarketOutcomes (market) {

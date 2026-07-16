@@ -10134,7 +10134,7 @@ export default class binance extends Exchange {
             }
             return result;
         }
-        return undefined;
+        return undefined as any;
     }
 
     /**
@@ -12552,7 +12552,10 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getExceptionsByUrl (url: string, exactOrBroad: string) {
+    getExceptionsByUrl (url: Str, exactOrBroad: string) {
+        if (url === undefined) {
+            return {};
+        }
         let marketType: Str = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
@@ -12580,7 +12583,7 @@ export default class binance extends Exchange {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        if ((code >= 400) && (body !== undefined)) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             }

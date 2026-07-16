@@ -3525,7 +3525,7 @@ export default class coinbase extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const preview = this.safeBool2 (params, 'preview', 'test', false);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (preview) {
             params = this.omit (params, [ 'preview', 'test' ]);
             response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, params));

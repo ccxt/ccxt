@@ -2657,7 +2657,7 @@ export default class myriad extends Exchange {
         const snapshot = await this.fetchOrderBook (outcome, limit);
         const orderbook = this.orderBook ({});
         orderbook.reset (snapshot);
-        this.orderbooks[sym] = orderbook;
+        this.orderbooks[sym as string] = orderbook;
     }
 
     handleOrderBook (client, data) {

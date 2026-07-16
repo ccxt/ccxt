@@ -584,7 +584,7 @@ export default class deepcoin extends Exchange {
                 }
             }
         }
-        return this.markets;
+        return markets;
     }
 
     /**

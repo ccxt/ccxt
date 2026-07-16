@@ -1776,7 +1776,7 @@ export default class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || (code in codes)) {
+            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
                 if (code !== undefined) {
                     result[code] = {
                         'deposit': {

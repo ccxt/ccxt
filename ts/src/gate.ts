@@ -4485,7 +4485,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            orderSymbols.push (marketId);
+            orderSymbols.push (marketId as string);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');

@@ -11262,7 +11262,7 @@ export default class kucoin extends Exchange {
             'clientOid': clientOrderId,
             'type': 'market',
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (testOrder) {
             response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
         } else {

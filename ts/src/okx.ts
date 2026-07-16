@@ -1538,7 +1538,7 @@ export default class okx extends Exchange {
             // on the missing expiry.
             isOption = (partsLength > 3) && (marketId.endsWith ('-C') || marketId.endsWith ('-P'));
         }
-        if (isOption && (marketId !== undefined) && !(marketId in this.markets_by_id)) {
+        if (isOption && (marketId !== undefined) && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -8024,7 +8024,7 @@ export default class okx extends Exchange {
         // handle unified currency code or symbol
         let currencyId: Str = undefined;
         let market: Market = undefined;
-        if ((symbol in this.markets) || (symbol in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (symbol in this.markets)) || ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id))) {
             market = this.market (symbol);
             currencyId = market['baseId'];
         } else {
@@ -8425,7 +8425,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    async fetchGreeks (symbol: string, params = {}): Promise<Greeks | undefined> {
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8475,7 +8475,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
-        return undefined;
+        return undefined as any;
     }
 
     /**

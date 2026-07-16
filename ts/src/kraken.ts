@@ -2188,7 +2188,7 @@ export default class kraken extends Exchange {
         const trailingLimitPercent = this.safeString (params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        const isLimitOrder = (type !== undefined) && type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString (params, 'cost');
         const flags = this.safeString (params, 'oflags');
