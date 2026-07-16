@@ -139,7 +139,7 @@
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
     "check-php-style": "php vendor/bin/php-cs-fixer fix --config=build/.php-cs-fixer.dist.php --dry-run",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",
-    "bundle-cjs": "rollup -c rollup.config.js",
+    "bundle-cjs": "rollup -c build/rollup.config.js",
     "bundle-browser": "rspack build -c build/rspack.config.js && CCXT_MINIMIZE=true rspack build -c build/rspack.config.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
