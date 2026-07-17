@@ -6408,8 +6408,10 @@ export class BaseExchange {
                 // still processing the same timeframe -> update opening trade
                 const prevHigh = ohlcvs[candle][i_high];
                 const prevLow = ohlcvs[candle][i_low];
-                ohlcvs[candle][i_high] = Math.max ((prevHigh === undefined) ? price : prevHigh, price);
-                ohlcvs[candle][i_low] = Math.min ((prevLow === undefined) ? price : prevLow, price);
+                const prevHighValue = (prevHigh === undefined) ? price : prevHigh;
+                const prevLowValue = (prevLow === undefined) ? price : prevLow;
+                ohlcvs[candle][i_high] = Math.max (prevHighValue, price);
+                ohlcvs[candle][i_low] = Math.min (prevLowValue, price);
                 ohlcvs[candle][i_close] = price;
                 ohlcvs[candle][i_volume] = this.sum (ohlcvs[candle][i_volume], trade['amount']);
                 ohlcvs[candle][i_count] = this.sum (ohlcvs[candle][i_count], 1);
