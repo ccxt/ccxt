@@ -5428,7 +5428,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    async fetchDepositAddressesByNetwork (code: Str, params = {}): Promise<DepositAddress[]> {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5474,13 +5474,13 @@ export default class okx extends Exchange {
      * @param {string} [params.network] the network name for the deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: Str, params = {}): Promise<DepositAddress> {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const rawNetwork = this.safeString (params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit (params, 'network');
-        code = this.safeCurrencyCode (code);
+        code = this.safeCurrencyCode (code) as string;
         const network = this.networkIdToCode (rawNetwork, code);
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         if (network !== undefined) {
