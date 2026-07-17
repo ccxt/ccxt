@@ -869,7 +869,7 @@ export default class lighter extends lighterRest {
         const baseValue = Precise.stringMul (contracts, contractSize);
         const quoteValue = Precise.stringMul (baseValue, price);
         if (market === undefined) {
-            return;
+            return undefined;
         }
         return this.safeLiquidation ({
             'info': liquidation,

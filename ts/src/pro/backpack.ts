@@ -438,7 +438,7 @@ export default class backpack extends backpackRest {
         const symbol = this.safeString (market, 'symbol');
         const microseconds = this.safeInteger (ticker, 'E');
         if (microseconds === undefined) {
-            return;
+            return undefined;
         }
         const timestamp = this.parseToInt (microseconds / 1000);
         const ask = this.safeString (ticker, 'a');

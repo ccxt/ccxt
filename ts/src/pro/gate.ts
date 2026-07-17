@@ -2170,9 +2170,6 @@ export default class gate extends gateRest {
         }
         if (market['spot']) {
             return 'spot';
-        if (market === undefined) {
-            return undefined;
-        }
         } else if (market['option']) {
             return 'options';
         } else {
