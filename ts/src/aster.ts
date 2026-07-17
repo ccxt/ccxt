@@ -2087,7 +2087,7 @@ export default class aster extends Exchange {
             'REJECTED': 'canceled',
             'EXPIRED': 'canceled',
         };
-        return this.safeString (statuses, (status), status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrderType (type: Str) {
@@ -2100,7 +2100,7 @@ export default class aster extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2166,7 +2166,7 @@ export default class aster extends Exchange {
         const statusId = this.safeStringUpper (order, 'status');
         const rawType = this.safeStringUpper (order, 'type');
         const stopPriceString = this.safeString (order, 'stopPrice');
-        const triggerPrice = this.parseNumber (this.omitZero ((stopPriceString)));
+        const triggerPrice = this.parseNumber (this.omitZero ((stopPriceString as string)));
         return this.safeOrder ({
             'info': info,
             'id': this.safeString (order, 'orderId'),
@@ -2629,7 +2629,7 @@ export default class aster extends Exchange {
         const isLimitOrder = initialUppercaseType === 'LIMIT';
         const request: Dict = {
             'symbol': market['id'],
-            'side': (side).toUpperCase (),
+            'side': (side as string).toUpperCase (),
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2705,7 +2705,7 @@ export default class aster extends Exchange {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                        request['quoteOrderQty'] = this.decimalToPrecision ((quoteOrderQuantity), TRUNCATE, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.decimalToPrecision ((quoteOrderQuantity as string), TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }
@@ -3365,7 +3365,7 @@ export default class aster extends Exchange {
             'INSURANCE_CLEAR': 'settlement',
             'MARKET_MERCHANT_RETURN_REWARD': 'cashback',
         };
-        return this.safeString (ledgerType, (type), type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -3439,7 +3439,7 @@ export default class aster extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, (symbol), []);
+        const leverageBracket = this.safeList (leverageBrackets, (symbol as string), []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         let maintenanceMarginPercentageString: Str = undefined;
@@ -3455,7 +3455,7 @@ export default class aster extends Exchange {
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
-        const liquidationPriceString = this.omitZero ((this.safeString (position, 'liquidationPrice')));
+        const liquidationPriceString = this.omitZero ((this.safeString (position, 'liquidationPrice') as string));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString: Str = undefined;
         let marginMode = this.safeString (position, 'marginType');
@@ -3493,7 +3493,7 @@ export default class aster extends Exchange {
                     }
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                    const quotePrecision = this.precisionFromString ((this.safeString2 (precision, 'quote', 'price')));
+                    const quotePrecision = this.precisionFromString ((this.safeString2 (precision, 'quote', 'price') as string));
                     if (quotePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                     }
@@ -3509,7 +3509,7 @@ export default class aster extends Exchange {
                     }
                     const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                     const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    const basePrecision = this.precisionFromString ((this.safeString (precision, 'base')));
+                    const basePrecision = this.precisionFromString ((this.safeString (precision, 'base') as string));
                     if (basePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                     }
@@ -3520,7 +3520,7 @@ export default class aster extends Exchange {
         }
         collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
-        const markPrice = this.parseNumber (this.omitZero ((this.safeString (position, 'markPrice'))));
+        const markPrice = this.parseNumber (this.omitZero ((this.safeString (position, 'markPrice') as string)));
         let timestamp = this.safeInteger (position, 'updateTime');
         if (timestamp === 0) {
             timestamp = undefined;
@@ -3744,7 +3744,7 @@ export default class aster extends Exchange {
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, (symbol), []);
+        const leverageBracket = this.safeList (leverageBrackets, (symbol as string), []);
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -3828,7 +3828,7 @@ export default class aster extends Exchange {
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
-            const pricePrecision = this.precisionFromString ((this.safeString (market['precision'], 'price')));
+            const pricePrecision = this.precisionFromString ((this.safeString (market['precision'], 'price') as string));
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
@@ -4022,7 +4022,7 @@ export default class aster extends Exchange {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, (network), network);
+        network = this.safeString (networks, (network as string), network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict (this.options, 'networksToChainId', {});
             chainId = this.safeInteger (chainIds, network);
@@ -4138,7 +4138,7 @@ export default class aster extends Exchange {
         const statuses: Dict = {
             'SUCCESS': 'ok',
         };
-        return this.safeString (statuses, (status), status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     hashMessage (binaryMessage) {
@@ -4146,7 +4146,7 @@ export default class aster extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength))));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 

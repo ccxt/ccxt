@@ -803,7 +803,7 @@ export default class backpack extends Exchange {
             // 'PREDICTION': 'swap',
             // 'RFQ': 'swap',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -1181,7 +1181,7 @@ export default class backpack extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     /**

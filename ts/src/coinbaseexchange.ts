@@ -1100,7 +1100,7 @@ export default class coinbaseexchange extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1240,7 +1240,7 @@ export default class coinbaseexchange extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
         }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -1311,7 +1311,7 @@ export default class coinbaseexchange extends Exchange {
             'canceled': 'canceled',
             'canceling': 'open',
         };
-        return this.safeString (statuses, (status), status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1483,7 +1483,7 @@ export default class coinbaseexchange extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100);
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100) as Order[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1735,7 +1735,7 @@ export default class coinbaseexchange extends Exchange {
             'rebate': 'rebate',     // Fee rebate
             'conversion': 'trade',  // Funds converted between fiat currency and a stablecoin
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1936,7 +1936,7 @@ export default class coinbaseexchange extends Exchange {
             //
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
-                const account = this.safeValue (this.accountsById, (account_id));
+                const account = this.safeValue (this.accountsById, (account_id as string));
                 const codeInner = this.safeString (account, 'code');
                 response[i]['currency'] = codeInner;
             }

@@ -378,7 +378,7 @@ export default class deepcoin extends Exchange {
 
     convertToInstrumentType (type) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, (type), type);
+        return this.safeString (exchangeTypes, (type as string), type);
     }
 
     /**
@@ -393,9 +393,9 @@ export default class deepcoin extends Exchange {
         let types: List = [ 'spot', 'swap' ];
         const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOption !== undefined) {
-            types = this.safeList (fetchMarketsOption, 'types', types);
+            types = this.safeList (fetchMarketsOption, 'types', types) as List;
         } else {
-            types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
+            types = this.safeList (this.options, 'fetchMarkets', types) as List; // backward-support
         }
         let promises: List = [];
         let result: List = [];
@@ -511,7 +511,7 @@ export default class deepcoin extends Exchange {
             settle = this.safeCurrencyCode (settleId);
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict2 (this.fees, (type), 'trading', {});
+        const fees = this.safeDict2 (this.fees, (type as string), 'trading', {}) as Dict;
         let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxMarketSize = this.safeString (market, 'maxMktSz');
@@ -626,7 +626,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
     }
 
@@ -656,7 +656,7 @@ export default class deepcoin extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             params = this.extend (params, { 'calculateUntil': true });
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
@@ -724,7 +724,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -840,7 +840,7 @@ export default class deepcoin extends Exchange {
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
         const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -925,7 +925,7 @@ export default class deepcoin extends Exchange {
             'T': 'taker',
             'M': 'maker',
         };
-        return this.safeString (types, execType, execType);
+        return this.safeString (types, execType as string, execType);
     }
 
     /**
@@ -970,7 +970,7 @@ export default class deepcoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'data', []);
+        const balances = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'ccy');
@@ -1004,7 +1004,7 @@ export default class deepcoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50);
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1024,8 +1024,8 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'until');
         }
         const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
+        const data = this.safeDict (response, 'data', {}) as Dict;
+        const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'deposit',
         };
@@ -1052,7 +1052,7 @@ export default class deepcoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50);
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1072,8 +1072,8 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'until');
         }
         const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
+        const data = this.safeDict (response, 'data', {}) as Dict;
+        const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'withdrawal',
         };
@@ -1132,7 +1132,7 @@ export default class deepcoin extends Exchange {
             'confirming': 'pending',
             'succeed': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     /**
@@ -1188,7 +1188,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         const list = this.safeList (data, 'list', []);
         const additionalParams: Dict = {
             'currency': code,
@@ -1328,7 +1328,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -1378,7 +1378,7 @@ export default class deepcoin extends Exchange {
             '4': 'transfer',
             '5': 'fee',
         };
-        return this.safeString (ledgerType, (type), type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1427,7 +1427,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -1521,7 +1521,7 @@ export default class deepcoin extends Exchange {
             //
             response = await this.privatePostDeepcoinTradeOrder (request);
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -1882,8 +1882,8 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        const entry = this.safeDict (data, 0, {});
+        const data = this.safeList (response, 'data', []) as List;
+        const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
     }
 
@@ -1910,12 +1910,12 @@ export default class deepcoin extends Exchange {
             'ordId': id,
         };
         const response = await this.privateGetDeepcoinTradeOrderByID (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
             return undefined;
         }
-        const entry = this.safeDict (data, 0, {});
+        const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
     }
 
@@ -1943,7 +1943,7 @@ export default class deepcoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params) as Order[];
         }
         const trigger = this.safeBool (params, 'trigger', false);
         let methodName = 'fetchCanceledAndClosedOrders';
@@ -2047,7 +2047,7 @@ export default class deepcoin extends Exchange {
             response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
         }
         // todo handle with since, until and pagination
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2206,7 +2206,7 @@ export default class deepcoin extends Exchange {
             //
             response = await this.privateGetDeepcoinTradeV2OrdersPending (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit, { 'status': 'open' });
     }
 
@@ -2241,7 +2241,7 @@ export default class deepcoin extends Exchange {
         } else {
             response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data, market);
     }
 
@@ -2286,7 +2286,7 @@ export default class deepcoin extends Exchange {
             'IsMergeMode': isMergedMode,
         };
         const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
@@ -2355,7 +2355,7 @@ export default class deepcoin extends Exchange {
             }
             response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
         }
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.parseOrder (data);
     }
 
@@ -2383,7 +2383,7 @@ export default class deepcoin extends Exchange {
             'OrderSysIDs': ids,
         };
         const response = await this.privatePostDeepcoinTradeBatchCancelOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market);
     }
 
@@ -2457,7 +2457,7 @@ export default class deepcoin extends Exchange {
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
         let timestamp = this.safeInteger (order, 'cTime');
-        const timestampString = this.safeString (order, 'cTime', '');
+        const timestampString = this.safeString (order, 'cTime', '') as string;
         if (timestampString.length < 13) {
             timestamp = this.safeTimestamp (order, 'cTime');
         }
@@ -2493,7 +2493,7 @@ export default class deepcoin extends Exchange {
             'amount': this.safeString (order, 'sz'),
             'filled': this.safeString (order, 'accFillSz'),
             'remaining': undefined,
-            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx')),
+            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPx') as string),
             'takeProfitPrice': this.safeString2 (order, 'tpTriggerPx', 'tpTriggerPrice'),
             'stopLossPrice': this.safeString2 (order, 'slTriggerPx', 'slTriggerPrice'),
             'cost': undefined,
@@ -2512,7 +2512,7 @@ export default class deepcoin extends Exchange {
             'canceled': 'canceled',
             'partially_filled': 'open',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (type: Str): Str {
@@ -2523,7 +2523,7 @@ export default class deepcoin extends Exchange {
             'ioc': 'market',
             'TPSL': 'market',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTimeInForce (type: Str): Str {
@@ -2533,7 +2533,7 @@ export default class deepcoin extends Exchange {
             'limit': 'GTC',
             'market': 'GTC',
         };
-        return this.safeString (timeInForces, (type), type);
+        return this.safeString (timeInForces, (type as string), type);
     }
 
     /**
@@ -2557,7 +2557,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
@@ -2611,7 +2611,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, symbols);
     }
 
@@ -2646,7 +2646,7 @@ export default class deepcoin extends Exchange {
             'contractSize': undefined,
             'side': this.safeString (position, 'posSide'),
             'notional': undefined,
-            'leverage': this.omitZero (this.safeString (position, 'lever')),
+            'leverage': this.omitZero (this.safeString (position, 'lever') as string),
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
@@ -2778,7 +2778,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         const rates = this.safeList (data, 'current_fund_rates', []);
         return this.parseFundingRates (rates, symbols);
     }
@@ -2819,7 +2819,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         const rates = this.safeList (data, 'current_fund_rates', []);
         const entry = this.safeDict (rates, 0, {});
         return this.parseFundingRate (entry, market);
@@ -2905,7 +2905,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         const rows = this.safeList (data, 'rows', []);
         return this.parseFundingRateHistories (rows, market, since, limit);
     }
@@ -2925,7 +2925,7 @@ export default class deepcoin extends Exchange {
         return {
             'info': info,
             'symbol': market['symbol'],
-            'fundingRate': this.safeNumber (info, 'rate'),
+            'fundingRate': this.safeNumber (info, 'rate') as number,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -2952,7 +2952,7 @@ export default class deepcoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3003,7 +3003,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -3067,7 +3067,7 @@ export default class deepcoin extends Exchange {
             }
             response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrder (data, market);
     }
 
@@ -3103,7 +3103,7 @@ export default class deepcoin extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {}) as Dict;
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');
         let sCode = this.safeString (data, 'sCode');

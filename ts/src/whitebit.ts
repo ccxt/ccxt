@@ -1752,7 +1752,7 @@ export default class whitebit extends Exchange {
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            return this.filterBySinceLimit (results, since, limit, 'timestamp');
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as Trade[];
         }
     }
 
@@ -2506,7 +2506,7 @@ export default class whitebit extends Exchange {
         }
         results = this.sortBy (results, 'timestamp');
         results = this.filterBySymbolSinceLimit (results, symbol, since, limit);
-        return results;
+        return results as Order[];
     }
 
     parseOrderType (type: Str) {
@@ -2519,7 +2519,7 @@ export default class whitebit extends Exchange {
             'margin limit': 'limit',
             'margin market': 'market',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2627,7 +2627,7 @@ export default class whitebit extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
         };
-        return this.safeStringLower (statuses, (status), status);
+        return this.safeStringLower (statuses, (status as string), status);
     }
 
     /**
@@ -3181,7 +3181,7 @@ export default class whitebit extends Exchange {
             '16': 'pending',
             '17': 'pending',
         };
-        return this.safeString (statuses, (status), status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**
@@ -4113,7 +4113,7 @@ export default class whitebit extends Exchange {
             'marginRatio': undefined,
             'stopLossPrice': this.safeNumber (tpsl, 'stopLoss'),
             'takeProfitPrice': this.safeNumber (tpsl, 'takeProfit'),
-        });
+        }) as Position;
     }
 
     /**
@@ -4180,7 +4180,7 @@ export default class whitebit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit) as FundingRateHistory[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -4208,7 +4208,7 @@ export default class whitebit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRateHistories (response, market, since, limit);
+        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRateHistory (info, market: Market = undefined) {
@@ -4230,14 +4230,14 @@ export default class whitebit extends Exchange {
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const version = this.safeValue (api, 0);
-        const accessibility = this.safeValue (api, 1);
+        const version = this.safeValue (api as any, 0);
+        const accessibility = this.safeValue (api as any, 1);
         if (headers === undefined) {
             headers = {};
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        let url = (this.urls['api'])[version][accessibility] + pathWithParams;
+        let url = (this.urls['api'] as Dict)[version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

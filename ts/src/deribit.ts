@@ -1353,7 +1353,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTicker (result, market);
     }
 
@@ -1469,7 +1469,7 @@ export default class deribit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1678,7 +1678,7 @@ export default class deribit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades: List = this.safeList (result, 'trades', []);
+        const trades: List = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2049,7 +2049,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -2294,7 +2294,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result);
     }
 
@@ -2367,7 +2367,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         }
-        const result: List = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2405,7 +2405,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         }
-        const result: List = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2462,7 +2462,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: List = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2546,7 +2546,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades: List = this.safeList (result, 'trades', []);
+        const trades: List = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2597,7 +2597,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data: List = this.safeList (result, 'data', []);
+        const data: List = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2652,7 +2652,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data: List = this.safeList (result, 'data', []);
+        const data: List = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2846,7 +2846,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parsePosition (result);
     }
 
@@ -3032,7 +3032,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transfers: List = this.safeList (result, 'data', []);
+        const transfers: List = this.safeList (result, 'data', []) as List;
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
@@ -3088,7 +3088,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransfer (result, currency);
     }
 
@@ -3294,7 +3294,7 @@ export default class deribit extends Exchange {
         const eachItemDuration = '1h';
         if (paginate) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest) as FundingRateHistory[];
         }
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         let time = this.milliseconds ();
@@ -3346,7 +3346,7 @@ export default class deribit extends Exchange {
             const rate = this.parseFundingRate (fr, market);
             rates.push (rate);
         }
-        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -3412,7 +3412,7 @@ export default class deribit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
+            return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined) as Liquidation[];
         }
         const market = this.market (symbol);
         if (market['spot']) {
@@ -3533,7 +3533,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const settlements: List = this.safeList (result, 'settlements', []);
+        const settlements: List = this.safeList (result, 'settlements', []) as List;
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
@@ -3750,7 +3750,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const chain: Dict = this.safeDict (result, 0, {});
+        const chain: Dict = this.safeDict (result, 0, {}) as Dict;
         return this.parseOption (chain, undefined, market);
     }
 
@@ -3805,7 +3805,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result: List = this.safeList (response, 'result', []);
+        const result: List = this.safeList (response, 'result', []) as List;
         return this.parseOptionChain (result, 'base_currency', 'instrument_name');
     }
 

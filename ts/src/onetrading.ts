@@ -1365,7 +1365,7 @@ export default class onetrading extends Exchange {
         const types: Dict = {
             'booked': 'limit',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -1492,7 +1492,7 @@ export default class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response as Dict);
     }
 
     /**
@@ -1731,7 +1731,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 100
         //     }
         //
-        const orderHistory: List = this.safeList (response, 'order_history', []);
+        const orderHistory: List = this.safeList (response, 'order_history', []) as List;
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
@@ -1884,7 +1884,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory: List = this.safeList (response, 'trade_history', []);
+        const tradeHistory: List = this.safeList (response, 'trade_history', []) as List;
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 

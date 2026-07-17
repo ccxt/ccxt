@@ -731,7 +731,7 @@ export default class alpaca extends Exchange {
         const orderbooks = this.safeDict (response, 'orderbooks', {});
         const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
-        return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
+        return this.parseOrderBook (rawOrderbook as Dict, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
     /**
@@ -1866,7 +1866,7 @@ export default class alpaca extends Exchange {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

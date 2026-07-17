@@ -1153,7 +1153,7 @@ export default class bitmex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100);
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
         let market: Market = undefined;
         let request: Dict = {};
@@ -1217,7 +1217,7 @@ export default class bitmex extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
+        return this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
 
     /**
@@ -1239,7 +1239,7 @@ export default class bitmex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
         let market: Market = undefined;
         let request: Dict = {};
@@ -1332,7 +1332,7 @@ export default class bitmex extends Exchange {
             'AffiliatePayout': 'referral',
             'SpotTrade': 'trade',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1749,7 +1749,7 @@ export default class bitmex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params) as OHLCV[];
         }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
@@ -2070,7 +2070,7 @@ export default class bitmex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -3247,7 +3247,7 @@ export default class bitmex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLiquidations', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchLiquidations', symbol, since, limit, params) as Liquidation[];
         }
         const market = this.market (symbol);
         let request: Dict = {

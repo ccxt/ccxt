@@ -405,8 +405,8 @@ export default class apex extends apexRest {
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbols).length; i++) {
-            const symbol = (symbols)[i];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const symbol = (symbols as string[])[i];
             const market = this.market (symbol);
             const topic = 'instrumentInfo' + '.H.' + market['id2'];
             topics.push (topic);
@@ -510,7 +510,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market (symbolString as string);
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -648,7 +648,7 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
-        if (!this.isEmpty (symbols)) {
+        if (!this.isEmpty (symbols as any[])) {
             symbols = this.marketSymbols (symbols);
             messageHash = '::' + (symbols as string[]).join (',');
         }

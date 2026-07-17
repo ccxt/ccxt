@@ -661,7 +661,7 @@ export default class grvt extends Exchange {
         }
         const results = await Promise.all (promises);
         const response = results[0];
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }
 
@@ -1031,7 +1031,7 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1140,7 +1140,7 @@ export default class grvt extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         let request = {
@@ -1234,7 +1234,7 @@ export default class grvt extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         let request: Dict = {
@@ -1264,7 +1264,7 @@ export default class grvt extends Exchange {
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseFundingRateHistories (result, market);
     }
 
@@ -1442,7 +1442,7 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
@@ -1508,7 +1508,7 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
@@ -2248,7 +2248,7 @@ export default class grvt extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
         let request = {
             'sub_account_id': this.getSubAccountId (params),
@@ -2300,7 +2300,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2358,7 +2358,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parsePositions (result, symbols);
     }
 
@@ -2615,7 +2615,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseIncomes (result, market, since, limit);
     }
 
@@ -2740,7 +2740,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2821,7 +2821,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, undefined, since, limit);
     }
 

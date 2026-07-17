@@ -1415,7 +1415,7 @@ export default class xt extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request = {
@@ -3811,7 +3811,7 @@ export default class xt extends Exchange {
             'FEE': 'fee',
             'ADL': 'auto-deleveraging',
         };
-        return this.safeString (ledgerType, (type), type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -4450,7 +4450,7 @@ export default class xt extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200);
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -4509,7 +4509,7 @@ export default class xt extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     /**

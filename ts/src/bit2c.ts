@@ -455,7 +455,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market (symbol);
         const optionValue = this.safeString (this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption ('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption ('fetchTrades', 'method', optionValue) as string; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request: Dict = {
             'pair': market['id'],
         };

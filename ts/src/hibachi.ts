@@ -1187,7 +1187,7 @@ export default class hibachi extends Exchange {
                 'status': 'canceled',
             }));
         }
-        return ret;
+        return ret as Order[];
     }
 
     /**
@@ -1597,7 +1597,7 @@ export default class hibachi extends Exchange {
         //
         const orders = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
-        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
 
     /**
@@ -1615,8 +1615,8 @@ export default class hibachi extends Exchange {
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersByStatus ('filled', symbol, since, limit, params);
-        const filtered = this.filterBy (orders, 'status', 'closed');
-        return this.filterBySinceLimit (filtered, since, limit);
+        const filtered = this.filterBy (orders, 'status', 'closed') as Order[];
+        return this.filterBySinceLimit (filtered, since, limit) as Order[];
     }
 
     /**
@@ -1634,8 +1634,8 @@ export default class hibachi extends Exchange {
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersByStatus (undefined, symbol, since, limit, params);
-        const filtered = this.filterBy (orders, 'status', 'canceled');
-        return this.filterBySinceLimit (filtered, since, limit);
+        const filtered = this.filterBy (orders, 'status', 'canceled') as Order[];
+        return this.filterBySinceLimit (filtered, since, limit) as Order[];
     }
 
     /**
@@ -1849,7 +1849,7 @@ export default class hibachi extends Exchange {
             'transfer-in': 'transfer',
             'transfer-out': 'transfer',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransactionStatus (status) {
@@ -2153,7 +2153,7 @@ export default class hibachi extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
         const deposits = this.filterBy (transactions, 'type', 'deposit');
-        return this.filterBySinceLimit (deposits, since, limit, 'timestamp');
+        return this.filterBySinceLimit (deposits, since, limit, 'timestamp') as Transaction[];
     }
 
     /**
@@ -2170,7 +2170,7 @@ export default class hibachi extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
         const withdrawals = this.filterBy (transactions, 'type', 'withdrawal');
-        return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp');
+        return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
     parseSettlement (settlement, market: Market = undefined) {
@@ -2411,6 +2411,6 @@ export default class hibachi extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 }

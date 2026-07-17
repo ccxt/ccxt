@@ -227,7 +227,7 @@ export default class binance extends binanceRest {
             }
             const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
-            const subscriptionLimitByStream = this.safeInteger (this.options['subscriptionLimitByStream'], (type), 200);
+            const subscriptionLimitByStream = this.safeInteger (this.options['subscriptionLimitByStream'], (type as string), 200);
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
@@ -237,7 +237,7 @@ export default class binance extends binanceRest {
     }
 
     getWsUrl (type, category) {
-        const baseUrl = this.urls['api']['ws'][type];
+        const baseUrl = this.urls['api']['ws'][type as string];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -271,7 +271,7 @@ export default class binance extends binanceRest {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
-        return this.urls['api']['ws'][type] + '/' + listenKey;
+        return this.urls['api']['ws'][type as string] + '/' + listenKey;
     }
 
     /**
@@ -1792,7 +1792,7 @@ export default class binance extends binanceRest {
         if (type !== 'future') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const subscription: Dict = {
@@ -1810,7 +1810,7 @@ export default class binance extends binanceRest {
             'params': this.signParams (this.extend (payload, params)),
         };
         const ticker = await this.watch (url, messageHash, message, messageHash, subscription);
-        return ticker;
+        return ticker as Ticker;
     }
 
     /**
@@ -2627,7 +2627,7 @@ export default class binance extends binanceRest {
 
     async renewListenToken (params = {}) {
         const type = this.safeString (params, 'type', 'margin');
-        const options = this.safeDict (this.options, (type), {});
+        const options = this.safeDict (this.options, (type as string), {});
         const symbol = this.safeString (options, 'symbol');
         const isIsolated = this.safeBool (options, 'isIsolated', false);
         const validity = this.safeInteger (options, 'validity');
@@ -2679,7 +2679,7 @@ export default class binance extends binanceRest {
             return;
         }
         params = this.omit (params, 'symbol');
-        const options = this.safeValue (this.options, (type), {});
+        const options = this.safeValue (this.options, (type as string), {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
@@ -2720,7 +2720,7 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             return;
         }
-        const options = this.safeValue (this.options, (type), {});
+        const options = this.safeValue (this.options, (type as string), {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -2769,7 +2769,7 @@ export default class binance extends binanceRest {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            const subscriptionKeys = Object.keys ((client).subscriptions);
+            const subscriptionKeys = Object.keys ((client as any).subscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
@@ -2805,7 +2805,7 @@ export default class binance extends binanceRest {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -2836,7 +2836,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2975,7 +2975,7 @@ export default class binance extends binanceRest {
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3587,7 +3587,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3648,7 +3648,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3665,7 +3665,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription) as Order[];
     }
 
     /**
@@ -3692,7 +3692,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3745,7 +3745,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3809,7 +3809,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4456,7 +4456,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4510,7 +4510,7 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const url = this.urls['api']['ws']['ws-api'][type as string];
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;

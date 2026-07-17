@@ -1142,7 +1142,7 @@ export default class apex extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1280,7 +1280,7 @@ export default class apex extends Exchange {
             'TAKE_PROFIT_LIMIT': 'limit',
             'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {

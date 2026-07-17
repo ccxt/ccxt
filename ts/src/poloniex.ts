@@ -645,7 +645,7 @@ export default class poloniex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 500);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 500) as OHLCV[];
         }
         const market = this.market (symbol);
         let request: Dict = {
@@ -1511,7 +1511,7 @@ export default class poloniex extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1608,7 +1608,7 @@ export default class poloniex extends Exchange {
             'CANCELED': 'canceled',
             'FAILED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1720,7 +1720,7 @@ export default class poloniex extends Exchange {
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
-                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId) as string);
             }
         }
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);
@@ -3132,7 +3132,7 @@ export default class poloniex extends Exchange {
             'COMPLETE ERROR': 'failed',
             'COMPLETE_ERROR': 'failed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

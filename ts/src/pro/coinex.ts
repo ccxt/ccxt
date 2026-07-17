@@ -264,7 +264,7 @@ export default class coinex extends coinexRest {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         const activeCurrencies = this.filterBy (this.currencies_by_id, 'active', true);
         const activeCurrenciesById = this.indexBy (activeCurrencies, 'id');
@@ -435,7 +435,7 @@ export default class coinex extends coinexRest {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
         await this.authenticate (type);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const subscribedSymbols: any[] = [];
         let messageHash = 'myTrades';
         if (market !== undefined) {
@@ -609,7 +609,7 @@ export default class coinex extends coinexRest {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
-        const feeCost = this.omitZero ((this.safeString (trade, 'fee')));
+        const feeCost = this.omitZero ((this.safeString (trade, 'fee') as string));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_ccy', market['quote']);
             fee = {
@@ -683,7 +683,7 @@ export default class coinex extends coinexRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const subscriptionHashes = [ 'all@ticker' ];
         const subscribe: Dict = {
             'method': 'state.subscribe',
@@ -748,7 +748,7 @@ export default class coinex extends coinexRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         // const subscriptionHashes = [ 'trades' ];
         const subscribe: Dict = {
             'method': 'deals.subscribe',
@@ -816,7 +816,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
         };
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), messageHashes);
         if (this.newUpdates) {
             return orderbooks;
@@ -964,7 +964,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketList },
             'id': this.requestId (),
         };
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
@@ -1204,7 +1204,7 @@ export default class coinex extends coinexRest {
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: NullableDict = undefined;
-        const feeCost = this.omitZero ((this.safeString2 (order, 'fee', 'quote_ccy_fee')));
+        const feeCost = this.omitZero ((this.safeString2 (order, 'fee', 'quote_ccy_fee') as string));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
             fee = {
@@ -1276,7 +1276,7 @@ export default class coinex extends coinexRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const subscriptionHashes = [ 'all@bidsasks' ];
         const subscribe: Dict = {
             'method': 'bbo.subscribe',
@@ -1356,7 +1356,7 @@ export default class coinex extends coinexRest {
             'stop.update': this.handleOrders,
             'bbo.update': this.handleBidAsk,
         };
-        const handler = this.safeValue (handlers, (method));
+        const handler = this.safeValue (handlers, (method as string));
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;
@@ -1421,10 +1421,10 @@ export default class coinex extends coinexRest {
 
     handleSubscriptionStatus (client: Client, message) {
         const id = this.safeInteger (message, 'id');
-        const subscription = this.safeValue (client.subscriptions, (id));
+        const subscription = this.safeValue (client.subscriptions, (id as number));
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
-            const future = this.safeValue (client.futures, (futureIndex));
+            const future = this.safeValue (client.futures, (futureIndex as string));
             if (future !== undefined) {
                 future.resolve (true);
             }
@@ -1433,7 +1433,7 @@ export default class coinex extends coinexRest {
     }
 
     async authenticate (type: string) {
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const client = this.client (url);
         const time = this.milliseconds ();
         const timestamp = time.toString ();

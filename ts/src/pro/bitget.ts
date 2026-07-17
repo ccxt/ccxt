@@ -1073,7 +1073,7 @@ export default class bitget extends bitgetRest {
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
         }
-        return result;
+        return result as Trade[];
     }
 
     /**

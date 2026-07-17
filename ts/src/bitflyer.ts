@@ -738,7 +738,7 @@ export default class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -871,7 +871,7 @@ export default class bitflyer extends Exchange {
         const orders = await this.fetchOrders (symbol);
         const ordersById = this.indexBy (orders, 'id');
         if (id in ordersById) {
-            return ordersById[id];
+            return ordersById[id] as Order;
         }
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }

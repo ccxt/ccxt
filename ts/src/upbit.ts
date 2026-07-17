@@ -720,7 +720,7 @@ export default class upbit extends Exchange {
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return this.safeValue (orderbooks, symbol);
+        return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -867,7 +867,7 @@ export default class upbit extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

@@ -518,7 +518,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols') as string;
         const response = await this[method] (params);
         //
         //    {
@@ -1036,7 +1036,7 @@ export default class bittrade extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1126,7 +1126,7 @@ export default class bittrade extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const request: Dict = {
-            'language': this.handleOption ('fetchCurrencies', 'language', 'en-US'),
+            'language': this.handleOption ('fetchCurrencies', 'language', 'en-US') as string,
         };
         const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
         //
@@ -1258,7 +1258,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
-        const method = this.handleOption ('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
+        const method = this.handleOption ('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance') as string;
         const request: Dict = {
             'id': this.accounts[0]['id'],
         };
@@ -1278,7 +1278,7 @@ export default class bittrade extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders') as string;
         const response = await this[method] (this.extend (request, params));
         //
         //     { "status":   "ok",
@@ -1346,8 +1346,8 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        const method = this.handleOption ('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
-        return await this[method] (symbol, since, limit, params);
+        const method = this.handleOption ('fetchOpenOrders', 'method', 'fetch_open_orders_v1') as string;
+        return await this[method] (symbol, since, limit, params) as Order[];
     }
 
     async fetchOpenOrdersV1 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1651,7 +1651,7 @@ export default class bittrade extends Exchange {
         return this.extend (this.parseOrder (response), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**
@@ -1708,7 +1708,7 @@ export default class bittrade extends Exchange {
         //         }
         //     }
         //
-        return this.parseCancelOrders (response);
+        return this.parseCancelOrders (response) as Order[];
     }
 
     parseCancelOrders (orders) {

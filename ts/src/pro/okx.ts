@@ -442,7 +442,7 @@ export default class okx extends okxRest {
         //     }
         // ]
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rawfr = data[i];
             const fundingRate = this.parseFundingRate (rawfr);
@@ -701,7 +701,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker);
         const symbol = parsedTicker['symbol'];
@@ -811,7 +811,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []);
+        const rawLiquidations = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -908,7 +908,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []);
+        const rawLiquidations = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');
@@ -1514,7 +1514,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []) as List;
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -2378,7 +2378,7 @@ export default class okx extends okxRest {
             'op': 'batch-cancel-orders',
             'args': args,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     /**
@@ -2479,7 +2479,7 @@ export default class okx extends okxRest {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 } else {
-                    const data = this.safeList (message, 'data', []);
+                    const data = this.safeList (message, 'data', []) as List;
                     for (let i = 0; i < data.length; i++) {
                         const d = data[i];
                         errorCode = this.safeString (d, 'sCode');

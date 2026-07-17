@@ -108,7 +108,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType));
+            url = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -135,7 +135,7 @@ export default class bingx extends bingxRest {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
             params = this.omit (params, 'symbolsAndTimeframes');
         }
-        return await this.watch ((url), messageHash, this.extend (request, params), subscribeHash, subscription);
+        return await this.watch ((url as string), messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
     /**
@@ -160,7 +160,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType));
+            url = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -178,7 +178,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        return await this.watch ((url), messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     /**
@@ -377,7 +377,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType));
+            url = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -395,7 +395,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch ((url), messageHash, this.extend (request, params), messageHash, subscription);
+        const trades = await this.watch ((url as string), messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -405,7 +405,7 @@ export default class bingx extends bingxRest {
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
         }
-        return result;
+        return result as Trade[];
     }
 
     /**
@@ -564,7 +564,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBook', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType));
+            url = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -596,7 +596,7 @@ export default class bingx extends bingxRest {
                 'params': params,
             };
         }
-        const orderbook = await this.watch ((url), messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
+        const orderbook = await this.watch ((url as string), messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 
@@ -713,7 +713,7 @@ export default class bingx extends bingxRest {
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[(subscriptionHash)];
+            const subscription = client.subscriptions[(subscriptionHash as string)];
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             const limit = this.safeInteger (subscription, 'limit', 100);
@@ -860,7 +860,7 @@ export default class bingx extends bingxRest {
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[(subscriptionHash)];
+            const subscription = client.subscriptions[(subscriptionHash as string)];
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -908,7 +908,7 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCV', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], (subType));
+            url = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
@@ -1015,7 +1015,7 @@ export default class bingx extends bingxRest {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
             }
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType));
+            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1080,7 +1080,7 @@ export default class bingx extends bingxRest {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchMyTrades is not supported for inverse swap markets yet');
             }
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType));
+            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1136,7 +1136,7 @@ export default class bingx extends bingxRest {
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = this.safeString (this.urls['api']['ws'], (subType));
+            baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
@@ -1179,7 +1179,7 @@ export default class bingx extends bingxRest {
 
     async loadBalanceSnapshot (client, messageHash, type, subType) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1223,7 +1223,7 @@ export default class bingx extends bingxRest {
         }
         const subscriptionHash = 'swap:private';
         messageHash = 'swap:positions' + messageHash;
-        const baseUrl = this.safeString (this.urls['api']['ws'], (subType));
+        const baseUrl = this.safeString (this.urls['api']['ws'], (subType as string));
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
@@ -1365,7 +1365,7 @@ export default class bingx extends bingxRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions = this.safeList (data, 'P', []) as List;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1705,7 +1705,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const a = this.safeDict (message, 'a', {});
-        const data = this.safeList (a, 'B', []);
+        const data = this.safeList (a, 'B', []) as List;
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const type = ('P' in a) ? 'swap' : 'spot';
         if (!(type in this.balance)) {
@@ -1800,7 +1800,7 @@ export default class bingx extends bingxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, (id), {});
+        const subscription = this.safeDict (subscriptionsById, (id as string), {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);
@@ -1809,8 +1809,8 @@ export default class bingx extends bingxRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes = this.safeList (subscription, 'messageHashes', []) as List;
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []) as List;
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];

@@ -50,7 +50,7 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
-                const ticker = values[i];
+                const ticker = values[i] as Ticker;
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
             now = exchange.milliseconds ();

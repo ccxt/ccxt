@@ -2849,7 +2849,7 @@ export default class htx extends htxRest {
             }
             url = this.implodeParams (hostnameURL, hostname);
         } else {
-            const baseUrl = this.urls['api']['ws'][api][type];
+            const baseUrl = this.urls['api']['ws'][api][type as string];
             const subTypeUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
             if (isPrivate) {
                 if (isV5 && isLinear) {

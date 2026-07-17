@@ -826,7 +826,7 @@ export default class gemini extends geminiRest {
             'market buy': 'market',
             'market sell': 'market',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     handleError (client: Client, message) {

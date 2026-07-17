@@ -1215,7 +1215,7 @@ export default class kraken extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720) as OHLCV[];
         }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -1250,7 +1250,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs: List = this.safeList (result, market['id'], []);
+        const ohlcvs: List = this.safeList (result, market['id'], []) as List;
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -1262,7 +1262,7 @@ export default class kraken extends Exchange {
             'transfer': 'transfer',
             'margin': 'margin',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1754,7 +1754,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
@@ -1835,7 +1835,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrders (this.safeList (result, 'orders'));
+        return this.parseOrders (this.safeList (result, 'orders') as List);
     }
 
     findMarketByAltnameOrId (id) {
@@ -2365,7 +2365,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {});
+        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -2520,7 +2520,7 @@ export default class kraken extends Exchange {
             const tradesFilteredBySymbol = this.filterBySymbol (trades, symbol);
             result = this.arrayConcat (result, tradesFilteredBySymbol);
         }
-        return result;
+        return result as Trade[];
     }
 
     /**
@@ -3184,7 +3184,7 @@ export default class kraken extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             params['cursor'] = true;
-            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor');
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor') as Transaction[];
         }
         const request: Dict = {};
         if (code !== undefined) {
@@ -3446,7 +3446,7 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const result: Dict = this.safeDict (response, 'result', {});
+            const result: Dict = this.safeDict (response, 'result', {}) as Dict;
             return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

@@ -1046,7 +1046,7 @@ export default class cryptomus extends Exchange {
             'expired': 'expired',
             'failed': 'failed',
         };
-        return this.safeString (statuses, (status), status);
+        return this.safeString (statuses, (status as string), status);
     }
 
     /**

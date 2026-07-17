@@ -375,7 +375,7 @@ export default class coincheck extends Exchange {
         for (let i = 0; i < parsedOrders.length; i++) {
             result.push (this.extend (parsedOrders[i], { 'status': 'open' }));
         }
-        return result;
+        return result as Order[];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -575,8 +575,8 @@ export default class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amountString = this.safeString (funds, (baseId));
-            costString = this.safeString (funds, (quoteId));
+            amountString = this.safeString (funds, (baseId as string));
+            costString = this.safeString (funds, (quoteId as string));
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
                 'cost': this.safeString (trade, 'fee'),
@@ -729,7 +729,7 @@ export default class coincheck extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (fees, market['id'], {});
+            const fee = this.safeValue (fees, market['id'] as string, {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -924,7 +924,7 @@ export default class coincheck extends Exchange {
             'confirmed': 'pending',
             'received': 'ok',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

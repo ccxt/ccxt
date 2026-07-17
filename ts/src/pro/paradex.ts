@@ -148,7 +148,7 @@ export default class paradex extends paradexRest {
         const parsedTrade = this.parseTrade (data);
         const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
-        let stored = this.safeValue (this.trades, (symbol));
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             stored = new ArrayCache (this.safeInteger (this.options, 'tradesLimit', 1000));
             this.trades[(symbol as string)] = stored;
@@ -663,7 +663,7 @@ export default class paradex extends paradexRest {
                 'orders': this.handleOrder,
                 'funding_data': this.handleFundingRate,
             };
-            const method = this.safeValue (methods, (name));
+            const method = this.safeValue (methods, (name as string));
             if (method !== undefined) {
                 method.call (this, client, message);
             }

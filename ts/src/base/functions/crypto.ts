@@ -151,7 +151,7 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash | null
       format: 'recovered',
     }), 'recovered');
     const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
-    const halfOrder = ((curve.Point).Fn.ORDER as bigint) / BigInt(2);
+    const halfOrder = ((curve.Point as any).Fn.ORDER as bigint) / BigInt(2);
     let counter = 0;
     while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
       signature = curve.Signature.fromBytes (curve.sign (messageBytes, secretBytes, {

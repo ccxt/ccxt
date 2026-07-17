@@ -105,7 +105,7 @@ export default class grvt extends grvtRest {
             return;
         }
         const channel = this.safeString (message, 'stream');
-        const method = this.safeValue (methods, (channel));
+        const method = this.safeValue (methods, (channel as string));
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -425,7 +425,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString));
+            const market = this.market ((symbolString as string));
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);

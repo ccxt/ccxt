@@ -1911,7 +1911,7 @@ export default class bitstamp extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1942,7 +1942,7 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const values = this.safeValue (response, 'funding_rate_history', []);
-        return this.parseFundingRateHistories (values, market, since, limit);
+        return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRateHistory (contract, market: Market = undefined) {
@@ -2299,7 +2299,7 @@ export default class bitstamp extends Exchange {
             '2': 'trade',
             '14': 'transfer',
         };
-        return this.safeString (types, (type), type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

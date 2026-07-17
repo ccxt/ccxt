@@ -551,7 +551,7 @@ export default class btcturk extends Exchange {
             await this.loadMarkets ();
         }
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -785,7 +785,7 @@ export default class btcturk extends Exchange {
             results.push (this.parseOHLCV (ohlcv, market));
         }
         const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as OHLCV[];
     }
 
     /**

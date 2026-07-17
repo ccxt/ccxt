@@ -164,8 +164,8 @@ export default class p2b extends p2bRest {
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < (symbols).length; i++) {
-            const market = this.market ((symbols)[i]);
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const market = this.market ((symbols as string[])[i]);
             messageHashes.push (name + '::' + market['symbol']);
             args.push (market['id']);
         }
@@ -334,7 +334,7 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
-        let tradesArray = this.safeValue (this.trades, symbol);
+        let tradesArray = this.safeValue (this.trades, symbol as string);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (tradesLimit);
@@ -481,7 +481,7 @@ export default class p2b extends p2bRest {
             'state.update': this.handleTicker,
             'deals.update': this.handleTrade,
         };
-        const endpoint = this.safeValue (methods, method);
+        const endpoint = this.safeValue (methods, method as string);
         if (endpoint !== undefined) {
             endpoint.call (this, client, message);
         }

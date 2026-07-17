@@ -160,7 +160,7 @@ export default class lighter extends lighterRest {
         // }
         //
         const data = this.safeDict (message, 'order_book', {});
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -550,7 +550,7 @@ export default class lighter extends lighterRest {
             this.handleLiquidation (client, message);
         }
         const data = this.safeList (message, 'trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -736,7 +736,7 @@ export default class lighter extends lighterRest {
         //         "type": "update/account_all_trades"
         //     }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const accountIndex = parts[1];
         const data = this.safeDict (message, 'trades', {});
@@ -923,7 +923,7 @@ export default class lighter extends lighterRest {
         //     }
         //
         const data = this.safeList (message, 'liquidation_trades', []);
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -1051,12 +1051,12 @@ export default class lighter extends lighterRest {
         //        "type": "update/user_stats"
         //    }
         //
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         let type = 'spot';
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
         }
-        const balance = this.safeDict (this.balance, (type), {});
+        const balance = this.safeDict (this.balance, (type as string), {});
         if (type === 'spot') {
             const assets = this.safeDict (message, 'assets', {});
             const assetIds = Object.keys (assets);
@@ -1231,7 +1231,7 @@ export default class lighter extends lighterRest {
             this.handlePing (client, message);
             return;
         }
-        const channel = this.safeString (message, 'channel', '');
+        const channel = this.safeString (message, 'channel', '') as string;
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
             return;
