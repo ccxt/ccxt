@@ -1053,13 +1053,20 @@ impl PredictionExchange {
         let mut searchQuery: Value = self.outcome_search_query(outcomeSymbol.clone());
         if is_true(&(!is_equal(&searchQuery, &Value::Null))) && is_true(&self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)])) {
             let mut searchLimit: Value = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]);
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.fetch_events(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), searchQuery.clone());
         m.insert("limit".to_string(), searchLimit.clone());
     m
 })]).await;
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                // plain miss (the guidance-rich throw below); let real transport errors propagate
+                if !is_true(&(is_instance(&e, &Value::Str("BadSymbol".to_string())))) {
+                    panic!("{}", e);
+                }
             }
             if is_true(&self.has_outcome(outcomeSymbol.clone())) {
                 return self.safe_outcome(outcomeSymbol.clone(), &[]);

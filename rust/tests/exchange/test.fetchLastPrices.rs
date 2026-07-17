@@ -30,8 +30,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_477: bool = true;
-        while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1340: bool = true;
+        while { if !__for_first_1340 { i = add(&i, &Value::Int(1)); } __for_first_1340 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&values, &i), checkedSymbol.clone());
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || is_true(&(is_greater_than(&exchange.safe_number(get_value(&values, &i), Value::Str("price".to_string()), &[]), &Value::Int(0)))));

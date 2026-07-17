@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo build *)",
+      "Bash(npm run *)",
+      "Bash(sed -n '415,430p' ccxt/src/pro/aftermath.rs)",
+      "Bash(awk 'NR<=423 && /pub.*fn /{line=NR\": \"$0} END{}' ccxt/src/pro/aftermath.rs)",
+      "Bash(awk -F: '$1 <= 423')",
+      "Bash(awk 'NR>=4600 && NR<=4860 && \\(/^\\\\s{4}[a-zA-Z_]+\\\\\\(/ || /this\\\\.isWs|isWs\\\\b|exchangeName|lowercaseName|className/\\)' /Users/cjg/Git/ccxt-rust/ccxt/build/rustTranspiler.ts)",
+      "Bash(awk *)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}

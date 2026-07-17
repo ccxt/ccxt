@@ -42,8 +42,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_463: bool = true;
-            while { if !__for_first_463 { i = add(&i, &Value::Int(1)); } __for_first_463 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1326: bool = true;
+            while { if !__for_first_1326 { i = add(&i, &Value::Int(1)); } __for_first_1326 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
             let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
@@ -56,8 +56,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkCodes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { i = add(&i, &Value::Int(1)); } __for_first_464 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1327: bool = true;
+            while { if !__for_first_1327 { i = add(&i, &Value::Int(1)); } __for_first_1327 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCodeLower: Value = to_lower(&(get_value(&networkCodes, &i)));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
             append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
@@ -65,8 +65,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { i = add(&i, &Value::Int(1)); } __for_first_465 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1328: bool = true;
+            while { if !__for_first_1328 { i = add(&i, &Value::Int(1)); } __for_first_1328 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
             let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
             // check networkCodeToId

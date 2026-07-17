@@ -547,8 +547,8 @@ impl MyriadCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_283: bool = true;
-            while { if !__for_first_283 { i = add(&i, &Value::Int(1)); } __for_first_283 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1215: bool = true;
+            while { if !__for_first_1215 { i = add(&i, &Value::Int(1)); } __for_first_1215 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
@@ -593,8 +593,8 @@ impl MyriadCore {
         let mut rawMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_285: bool = true;
-            while { if !__for_first_285 { i = add(&i, &Value::Int(1)); } __for_first_285 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1217: bool = true;
+            while { if !__for_first_1217 { i = add(&i, &Value::Int(1)); } __for_first_1217 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &i);
             let mut q: Value = get_value(&queries, &i);
             let __ws_arg_0 = self.extend(Value::Map({
@@ -609,8 +609,8 @@ impl MyriadCore {
             let mut found: Value = ternary(is_true(&(!is_equal(&foundList, &Value::Null))), foundList.clone(), Value::List(vec![]));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_284: bool = true;
-                while { if !__for_first_284 { j = add(&j, &Value::Int(1)); } __for_first_284 = false; is_less_than(&j, &get_array_length(&found)) } {
+                let mut __for_first_1216: bool = true;
+                while { if !__for_first_1216 { j = add(&j, &Value::Int(1)); } __for_first_1216 = false; is_less_than(&j, &get_array_length(&found)) } {
                 let mut raw: Value = get_value(&found, &j);
                 let mut raw: Value = get_value(&found, &j);
                 let mut networkId: Value = self.safe_string_k(raw.clone(), "networkId", &[]);
@@ -675,8 +675,8 @@ impl MyriadCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_286: bool = true;
-                while { if !__for_first_286 { i = add(&i, &Value::Int(1)); } __for_first_286 = false; is_less_than(&i, &rawMarketsLength) } {
+                let mut __for_first_1218: bool = true;
+                while { if !__for_first_1218 { i = add(&i, &Value::Int(1)); } __for_first_1218 = false; is_less_than(&i, &rawMarketsLength) } {
                 if is_less_than(&collected, &maxMarkets) {
                     append_to_array(&mut allRawMarkets, get_value(&rawMarkets, &i));
                     collected = self.sum(&[collected.clone(), Value::Int(1)]);
@@ -782,8 +782,8 @@ impl MyriadCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_287: bool = true;
-            while { if !__for_first_287 { i = add(&i, &Value::Int(1)); } __for_first_287 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1219: bool = true;
+            while { if !__for_first_1219 { i = add(&i, &Value::Int(1)); } __for_first_1219 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_prediction_position(get_value(&data, &i), &[]));
         }
         }
@@ -942,8 +942,8 @@ impl MyriadCore {
         let mut signedFields: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_288: bool = true;
-            while { if !__for_first_288 { i = add(&i, &Value::Int(1)); } __for_first_288 = false; is_less_than(&i, &get_array_length(&fields)) } {
+            let mut __for_first_1220: bool = true;
+            while { if !__for_first_1220 { i = add(&i, &Value::Int(1)); } __for_first_1220 = false; is_less_than(&i, &get_array_length(&fields)) } {
             append_to_array(&mut signedFields, get_value(&fields, &i));
         }
         }
@@ -1216,8 +1216,8 @@ impl MyriadCore {
         let mut orderOutcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_289: bool = true;
-            while { if !__for_first_289 { i = add(&i, &Value::Int(1)); } __for_first_289 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1221: bool = true;
+            while { if !__for_first_1221 { i = add(&i, &Value::Int(1)); } __for_first_1221 = false; is_less_than(&i, &ordersLength) } {
             append_to_array(&mut orderOutcomes, self.safe_string_k(get_value(&orders, &i), "outcome", &[]));
         }
         }
@@ -1225,8 +1225,8 @@ impl MyriadCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_290: bool = true;
-            while { if !__for_first_290 { i = add(&i, &Value::Int(1)); } __for_first_290 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1222: bool = true;
+            while { if !__for_first_1222 { i = add(&i, &Value::Int(1)); } __for_first_1222 = false; is_less_than(&i, &ordersLength) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut outcome: Value = self.safe_string_k(o.clone(), "outcome", &[]);
@@ -1773,8 +1773,8 @@ impl MyriadCore {
         let mut networkId: Value = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_291: bool = true;
-            while { if !__for_first_291 { i = add(&i, &Value::Int(1)); } __for_first_291 = false; is_less_than(&i, &idsLength) } {
+            let mut __for_first_1223: bool = true;
+            while { if !__for_first_1223 { i = add(&i, &Value::Int(1)); } __for_first_1223 = false; is_less_than(&i, &idsLength) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut fetched: Value = self.myriad_public_get_orders_hash(&[Value::Map({
@@ -2019,8 +2019,8 @@ impl MyriadCore {
         let mut ordersLength: Value = get_array_length(&orders);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_292: bool = true;
-            while { if !__for_first_292 { i = add(&i, &Value::Int(1)); } __for_first_292 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1224: bool = true;
+            while { if !__for_first_1224 { i = add(&i, &Value::Int(1)); } __for_first_1224 = false; is_less_than(&i, &ordersLength) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             append_to_array(&mut trades, self.order_to_trade(order.clone()));
@@ -2140,8 +2140,8 @@ impl MyriadCore {
         let mut result: Value = Value::Str("0".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_293: bool = true;
-            while { if !__for_first_293 { i = add(&i, &Value::Int(1)); } __for_first_293 = false; is_less_than(&i, &n) } {
+            let mut __for_first_1225: bool = true;
+            while { if !__for_first_1225 { i = add(&i, &Value::Int(1)); } __for_first_1225 = false; is_less_than(&i, &n) } {
             let mut v: Value = get_index_of(&digits, &get_value(&chars, &i));
             if is_greater_than(&v, &negate(&Value::Int(1))) {
                 result = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&result, &Value::Str("16".to_string())), &self.number_to_string(v.clone()));
@@ -2161,8 +2161,8 @@ impl MyriadCore {
         let mut scale: Value = Value::Str("1".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_294: bool = true;
-            while { if !__for_first_294 { i = add(&i, &Value::Int(1)); } __for_first_294 = false; is_less_than(&i, &decimals) } {
+            let mut __for_first_1226: bool = true;
+            while { if !__for_first_1226 { i = add(&i, &Value::Int(1)); } __for_first_1226 = false; is_less_than(&i, &decimals) } {
             scale = add(&scale, &Value::Str("0".to_string()));
         }
         }
@@ -2299,8 +2299,8 @@ impl MyriadCore {
         let mut outcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_295: bool = true;
-            while { if !__for_first_295 { i = add(&i, &Value::Int(1)); } __for_first_295 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
+            let mut __for_first_1227: bool = true;
+            while { if !__for_first_1227 { i = add(&i, &Value::Int(1)); } __for_first_1227 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
             let mut outcome: Value = self.safe_dict(rawOutcomes.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2633,8 +2633,8 @@ impl MyriadCore {
         let mut change: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_296: bool = true;
-            while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1228: bool = true;
+            while { if !__for_first_1228 { i = add(&i, &Value::Int(1)); } __for_first_1228 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -2804,8 +2804,8 @@ impl MyriadCore {
         let mut price: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_297: bool = true;
-            while { if !__for_first_297 { i = add(&i, &Value::Int(1)); } __for_first_297 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1229: bool = true;
+            while { if !__for_first_1229 { i = add(&i, &Value::Int(1)); } __for_first_1229 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -2866,8 +2866,8 @@ impl MyriadCore {
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1230: bool = true;
+            while { if !__for_first_1230 { i = add(&i, &Value::Int(1)); } __for_first_1230 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut row: Value = get_value(&rawBids, &i);
             let mut row: Value = get_value(&rawBids, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -2878,8 +2878,8 @@ impl MyriadCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1231: bool = true;
+            while { if !__for_first_1231 { i = add(&i, &Value::Int(1)); } __for_first_1231 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut row: Value = get_value(&rawAsks, &i);
             let mut row: Value = get_value(&rawAsks, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -2980,8 +2980,8 @@ impl MyriadCore {
         let mut selectedOutcome: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1232: bool = true;
+            while { if !__for_first_1232 { i = add(&i, &Value::Int(1)); } __for_first_1232 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut currentId: Value = self.safe_string_k(oc.clone(), "id", &[self.safe_string(oc.clone(), Value::Str("outcomeId".to_string()), &[])]);
@@ -3001,8 +3001,8 @@ impl MyriadCore {
         if !is_equal(&chartsList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_301: bool = true;
-                while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
+                let mut __for_first_1233: bool = true;
+                while { if !__for_first_1233 { i = add(&i, &Value::Int(1)); } __for_first_1233 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 if is_equal(&self.safe_string_k(chartObj.clone(), "timeframe", &[]), &bucketKey) {
@@ -3035,8 +3035,8 @@ impl MyriadCore {
         let mut usablePoints: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&points)) } {
+            let mut __for_first_1234: bool = true;
+            while { if !__for_first_1234 { i = add(&i, &Value::Int(1)); } __for_first_1234 = false; is_less_than(&i, &get_array_length(&points)) } {
             let mut point: Value = get_value(&points, &i);
             let mut point: Value = get_value(&points, &i);
             let mut pointOpen: Value = self.safe_number_k(point.clone(), "open", &[]);
@@ -3115,8 +3115,8 @@ impl MyriadCore {
         let mut marketKeys: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1235: bool = true;
+            while { if !__for_first_1235 { i = add(&i, &Value::Int(1)); } __for_first_1235 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3138,8 +3138,8 @@ impl MyriadCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1236: bool = true;
+            while { if !__for_first_1236 { i = add(&i, &Value::Int(1)); } __for_first_1236 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
@@ -3160,8 +3160,8 @@ impl MyriadCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1238: bool = true;
+            while { if !__for_first_1238 { i = add(&i, &Value::Int(1)); } __for_first_1238 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -3169,8 +3169,8 @@ impl MyriadCore {
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_305: bool = true;
-                while { if !__for_first_305 { j = add(&j, &Value::Int(1)); } __for_first_305 = false; is_less_than(&j, &get_array_length(&grouped)) } {
+                let mut __for_first_1237: bool = true;
+                while { if !__for_first_1237 { j = add(&j, &Value::Int(1)); } __for_first_1237 = false; is_less_than(&j, &get_array_length(&grouped)) } {
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut ticker: Value = self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
@@ -3251,8 +3251,8 @@ impl MyriadCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1239: bool = true;
+            while { if !__for_first_1239 { i = add(&i, &Value::Int(1)); } __for_first_1239 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut action: Value = self.safe_string_k(row.clone(), "action", &[]);
@@ -3352,8 +3352,8 @@ impl MyriadCore {
             let mut requestedTagsLength: Value = get_array_length(&requestedTags);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_308: bool = true;
-                while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &requestedTagsLength) } {
+                let mut __for_first_1240: bool = true;
+                while { if !__for_first_1240 { i = add(&i, &Value::Int(1)); } __for_first_1240 = false; is_less_than(&i, &requestedTagsLength) } {
                 // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                 let mut tagSlug: Value = get_value(&requestedTags, &i);
                 let mut tagSlug: Value = get_value(&requestedTags, &i);
@@ -3369,8 +3369,8 @@ impl MyriadCore {
         let mut rawMarketsLength: Value = get_array_length(&rawMarkets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_309: bool = true;
-            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &rawMarketsLength) } {
+            let mut __for_first_1241: bool = true;
+            while { if !__for_first_1241 { i = add(&i, &Value::Int(1)); } __for_first_1241 = false; is_less_than(&i, &rawMarketsLength) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
@@ -3404,8 +3404,8 @@ impl MyriadCore {
         let mut marketsList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1242: bool = true;
+            while { if !__for_first_1242 { i = add(&i, &Value::Int(1)); } __for_first_1242 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             append_to_array(&mut marketsList, self.parse_myriad_market(rawMarket.clone(), &[questionSlug.clone()]));
@@ -3564,8 +3564,8 @@ impl MyriadCore {
             let mut linesLength: Value = get_array_length(&lines);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_311: bool = true;
-                while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &linesLength) } {
+                let mut __for_first_1243: bool = true;
+                while { if !__for_first_1243 { i = add(&i, &Value::Int(1)); } __for_first_1243 = false; is_less_than(&i, &linesLength) } {
                 let mut line: Value = get_value(&lines, &i);
                 let mut line: Value = get_value(&lines, &i);
                 if is_greater_than(&get_array_length(&line), &Value::Int(0)) {
@@ -3708,8 +3708,8 @@ impl MyriadCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &changesLength) } {
+            let mut __for_first_1244: bool = true;
+            while { if !__for_first_1244 { i = add(&i, &Value::Int(1)); } __for_first_1244 = false; is_less_than(&i, &changesLength) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut outcomeId: Value = self.safe_string_k(change.clone(), "outcome", &[]);
@@ -3735,8 +3735,8 @@ impl MyriadCore {
         let mut updatedLength: Value = get_array_length(&updatedSymbols);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { k = add(&k, &Value::Int(1)); } __for_first_313 = false; is_less_than(&k, &updatedLength) } {
+            let mut __for_first_1245: bool = true;
+            while { if !__for_first_1245 { k = add(&k, &Value::Int(1)); } __for_first_1245 = false; is_less_than(&k, &updatedLength) } {
             let mut sym: Value = get_value(&updatedSymbols, &k);
             let mut sym: Value = get_value(&updatedSymbols, &k);
             client.resolve(&[get_value(&self.orderbooks, &sym), add(&Value::Str("orderbook::".to_string()), &sym)]);
@@ -3899,8 +3899,8 @@ impl MyriadCore {
             let mut makersLength: Value = get_array_length(&makers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_314: bool = true;
-                while { if !__for_first_314 { i = add(&i, &Value::Int(1)); } __for_first_314 = false; is_less_than(&i, &makersLength) } {
+                let mut __for_first_1246: bool = true;
+                while { if !__for_first_1246 { i = add(&i, &Value::Int(1)); } __for_first_1246 = false; is_less_than(&i, &makersLength) } {
                 let mut maker: Value = get_value(&makers, &i);
                 let mut maker: Value = get_value(&makers, &i);
                 let mut makerTrader: Value = self.safe_string_lower(maker.clone(), Value::Str("trader".to_string()), &[]);
@@ -3950,8 +3950,8 @@ impl MyriadCore {
                 let mut myStored: Value = self.myTrades.clone();
                 {
                                         let mut k: Value = Value::Int(0);
-                    let mut __for_first_315: bool = true;
-                    while { if !__for_first_315 { k = add(&k, &Value::Int(1)); } __for_first_315 = false; is_less_than(&k, &myLegsLength) } {
+                    let mut __for_first_1247: bool = true;
+                    while { if !__for_first_1247 { k = add(&k, &Value::Int(1)); } __for_first_1247 = false; is_less_than(&k, &myLegsLength) } {
                     myStored.append(get_value(&myLegs, &k));
                 }
                 }
@@ -4019,8 +4019,8 @@ impl MyriadCore {
         let mut resolvedSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = add(&i, &Value::Int(1)); } __for_first_316 = false; is_less_than(&i, &symbolsLength) } {
+            let mut __for_first_1248: bool = true;
+            while { if !__for_first_1248 { i = add(&i, &Value::Int(1)); } __for_first_1248 = false; is_less_than(&i, &symbolsLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4080,8 +4080,8 @@ impl MyriadCore {
         let mut ohlcvcLength: Value = get_array_length(&ohlcvc);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i = add(&i, &Value::Int(1)); } __for_first_317 = false; is_less_than(&i, &ohlcvcLength) } {
+            let mut __for_first_1249: bool = true;
+            while { if !__for_first_1249 { i = add(&i, &Value::Int(1)); } __for_first_1249 = false; is_less_than(&i, &ohlcvcLength) } {
             let mut candle: Value = get_value(&ohlcvc, &i);
             let mut candle: Value = get_value(&ohlcvc, &i);
             append_to_array(&mut result, Value::List(vec![get_value(&candle, &Value::Int(0)), get_value(&candle, &Value::Int(1)), get_value(&candle, &Value::Int(2)), get_value(&candle, &Value::Int(3)), get_value(&candle, &Value::Int(4)), get_value(&candle, &Value::Int(5))]));
@@ -4103,8 +4103,8 @@ impl MyriadCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i = add(&i, &Value::Int(1)); } __for_first_318 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1250: bool = true;
+            while { if !__for_first_1250 { i = add(&i, &Value::Int(1)); } __for_first_1250 = false; is_less_than(&i, &outcomesLength) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut outcomeId: Value = self.safe_string_k(oc.clone(), "outcome", &[]);
@@ -4305,8 +4305,8 @@ impl MyriadCore {
         let mut positionsLength: Value = get_array_length(&positions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { i = add(&i, &Value::Int(1)); } __for_first_319 = false; is_less_than(&i, &positionsLength) } {
+            let mut __for_first_1251: bool = true;
+            while { if !__for_first_1251 { i = add(&i, &Value::Int(1)); } __for_first_1251 = false; is_less_than(&i, &positionsLength) } {
             let mut p: Value = get_value(&positions, &i);
             let mut p: Value = get_value(&positions, &i);
             let mut id: Value = self.safe_string_k(p.clone(), "id", &[]);

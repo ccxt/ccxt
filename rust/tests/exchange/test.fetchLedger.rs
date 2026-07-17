@@ -16,8 +16,8 @@ pub async fn testFetchLedger(mut exchange: Value, mut skippedProperties: Value, 
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_478: bool = true;
-        while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&items)) } {
+        let mut __for_first_1341: bool = true;
+        while { if !__for_first_1341 { i = add(&i, &Value::Int(1)); } __for_first_1341 = false; is_less_than(&i, &get_array_length(&items)) } {
         testLedgerEntry(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&items, &i), code.clone(), now.clone());
     }
     }

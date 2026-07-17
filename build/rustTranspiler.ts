@@ -5705,9 +5705,15 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteNamespaceCalls(basePart, 'Math',    'crate::runtime::Math',     true);
         basePart = this.rewriteNamespaceCalls(basePart, 'Precise', 'crate::precise::Precise',  true);
 
-        // Strip catch-block bodies that don't parse as Rust.
-        basePart = this.stripCatchBlocks(basePart);
-        basePart = this.unwrapCatchUnwind(basePart);
+        // Try/catch handling: use `rewriteTryCatchAsync` (which lowers the AST's
+        // `catch_unwind` marker to `futures::FutureExt::catch_unwind` and, crucially,
+        // PRESERVES the catch body) — the same path the per-exchange pipeline uses.
+        // The old `stripCatchBlocks` + `unwrapCatchUnwind` pair dropped every catch
+        // body, so base methods like `fetch2` (retry/OperationFailed classification/
+        // delay/rethrow), `fetchWebEndpoint` (retry + muteOnFailure) and
+        // `safeDeterministicCall` silently lost their failure handling — a transient
+        // error became an immediate hard failure (review P0-B).
+        basePart = this.rewriteTryCatchAsync(basePart);
 
         // Rewrite dynamic `get_value(&self, &name)(args)` → `self.call_method`.
         basePart = this.rewriteDynamicSelfCalls(basePart);

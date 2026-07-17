@@ -3950,12 +3950,12 @@ impl Exchange {
             if is_true(&returnAsJson) && is_true(&(is_string(&content))) {
                 let mut jsoned: Value = self.parse_json_value(trim(&content)); // content should be trimmed before json parsing
                 if is_true(&jsoned) {
-                    return jsoned;
+                    return jsoned.clone();
                 }  else {
                     panic!("{}", crate::exchange_errors::bad_response(Value::Str("could not parse the response into json".to_string())));
                 }
             }  else {
-                return content;
+                return content.clone();
             }
         }
         if is_true(&muteOnFailure) {
@@ -5080,7 +5080,7 @@ impl Exchange {
                     m
                 });
             }
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
                 let mut request: Value = self.sign(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
                 if is_true(&fetchDataCacheEnabled) {
@@ -5092,8 +5092,29 @@ impl Exchange {
                     add_element_to_object(get_value_mut(&mut fetchData, &Value::Str("response".to_string())), &Value::Str("body".to_string()), response.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
-                return response;
-            }
+                return response.clone();
+             #[allow(unreachable_code)] { Value::Null }})).await;
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+                if is_true(&fetchDataCacheEnabled) {
+                    add_element_to_object(&mut fetchData, &Value::Str("error".to_string()), e.clone());
+                    self.add_fetch_cache(fetchData.clone());
+                }
+                if is_true(&is_instance(&e, &Value::Str("OperationFailed".to_string()))) {
+                    if is_less_than(&i, &retries) {
+                        if is_true(&self.verbose) {
+                            let mut index: Value = add(&i, &Value::Int(1));
+                            self.log(add(&add(&add(&add(&add(&add(&Value::Str("Request failed with the error: ".to_string()), &to_string_val(&e)), &Value::Str(", retrying ".to_string())), &to_string_val(&index)), &Value::Str(" of ".to_string())), &to_string_val(&retries)), &Value::Str("...".to_string())));
+                        }
+                        if is_true(&(!is_equal(&retryDelay, &Value::Null))) && is_true(&(!is_equal(&retryDelay, &Value::Int(0)))) {
+                            self.sleep(retryDelay.clone()).await;
+                        }
+                    }  else {
+                        panic!("{}", e);
+                    }
+                }  else {
+                    panic!("{}", e);
+                }
+             } }
         }
         }
         return Value::Null;
@@ -7941,13 +7962,22 @@ impl Exchange {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut errors: Value = Value::Int(0);
         while is_less_than_or_equal(&errors, &maxRetries) {
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if is_true(&timeframe) && !is_equal(&method, &Value::Str("fetchFundingRateHistory".to_string())) {
                     return self.call_method(method.clone(), &[symbol.clone(), timeframe.clone(), since.clone(), limit.clone(), params.clone()]).await;
                 }  else {
                     return self.call_method(method.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
                 }
-            }
+             #[allow(unreachable_code)] { Value::Null }})).await;
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+                if is_true(&is_instance(&e, &Value::Str("RateLimitExceeded".to_string()))) {
+                    panic!("{}", e);
+                }
+                errors = add(&errors, &Value::Int(1));
+                if is_greater_than(&errors, &maxRetries) {
+                    panic!("{}", e);
+                }
+             } }
         }
         return Value::List(vec![]);
 
@@ -9844,10 +9874,15 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_176: bool = true;
             while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
-                return orderBook;
-            }
+                return orderBook.clone();
+             #[allow(unreachable_code)] { Value::Null }})).await;
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+                if is_equal(&(add(&i, &Value::Int(1))), &fetchSnapshotMaxRetries) {
+                    panic!("{}", e);
+                }
+             } }
         }
         }
         return Value::Null;
