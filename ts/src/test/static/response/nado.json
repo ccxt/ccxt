@@ -1,0 +1,1545 @@
+{
+    "exchange": "nado",
+    "skipKeys": [],
+    "walletAddress": "0x1230000000000000000000000000000000000123",
+    "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "method": "time",
+                    "id": 2,
+                    "server_time": "1780000000123"
+                },
+                "parsedResponse": 1780000000123
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": "active",
+                    "request_type": "query_status"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "status": "success",
+                        "data": "active",
+                        "request_type": "query_status"
+                    }
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 2,
+                        "perp_count": 0,
+                        "spot_balances": [
+                            {
+                                "product_id": 0,
+                                "balance": {
+                                    "amount": "123450000000000000000"
+                                }
+                            },
+                            {
+                                "product_id": 5,
+                                "balance": {
+                                    "amount": "25000000000000000000"
+                                }
+                            }
+                        ],
+                        "perp_balances": [],
+                        "spot_products": [],
+                        "perp_products": []
+                    },
+                    "request_type": "query_subaccount_info"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 2,
+                        "perp_count": 0,
+                        "spot_balances": [
+                            {
+                                "product_id": 0,
+                                "balance": {
+                                    "amount": "123450000000000000000"
+                                }
+                            },
+                            {
+                                "product_id": 5,
+                                "balance": {
+                                    "amount": "25000000000000000000"
+                                }
+                            }
+                        ],
+                        "perp_balances": [],
+                        "spot_products": [],
+                        "perp_products": []
+                    },
+                    "USDT0": {
+                        "free": null,
+                        "used": null,
+                        "total": 123.45
+                    },
+                    "USDC": {
+                        "free": null,
+                        "used": null,
+                        "total": 25
+                    },
+                    "free": {
+                        "USDT0": null,
+                        "USDC": null
+                    },
+                    "used": {
+                        "USDT0": null,
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDT0": 123.45,
+                        "USDC": 25
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 0,
+                        "perp_count": 1,
+                        "spot_balances": [],
+                        "perp_balances": [
+                            {
+                                "product_id": 2,
+                                "balance": {
+                                    "amount": "100000000000000000",
+                                    "v_quote_balance": "-2400000000000000000000",
+                                    "last_cumulative_funding_x18": "-394223711772447555304"
+                                }
+                            }
+                        ],
+                        "spot_products": [],
+                        "perp_products": [
+                            {
+                                "product_id": 2,
+                                "oracle_price_x18": "25000000000000000000000",
+                                "risk": {
+                                    "long_weight_initial_x18": "950000000000000000",
+                                    "short_weight_initial_x18": "1050000000000000000",
+                                    "long_weight_maintenance_x18": "970000000000000000",
+                                    "short_weight_maintenance_x18": "1030000000000000000",
+                                    "price_x18": "25000000000000000000000"
+                                },
+                                "state": {
+                                    "cumulative_funding_long_x18": "-394223711772447555304",
+                                    "cumulative_funding_short_x18": "-394223711772447555304",
+                                    "available_settle": "20092193239667417956947",
+                                    "open_interest": "113605000000000000000"
+                                }
+                            }
+                        ]
+                    },
+                    "request_type": "query_subaccount_info"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product": {
+                                "product_id": 2,
+                                "oracle_price_x18": "25000000000000000000000",
+                                "risk": {
+                                    "long_weight_initial_x18": "950000000000000000",
+                                    "short_weight_initial_x18": "1050000000000000000",
+                                    "long_weight_maintenance_x18": "970000000000000000",
+                                    "short_weight_maintenance_x18": "1030000000000000000",
+                                    "price_x18": "25000000000000000000000"
+                                },
+                                "state": {
+                                    "cumulative_funding_long_x18": "-394223711772447555304",
+                                    "cumulative_funding_short_x18": "-394223711772447555304",
+                                    "available_settle": "20092193239667417956947",
+                                    "open_interest": "113605000000000000000"
+                                }
+                            },
+                            "product_id": 2,
+                            "balance": {
+                                "amount": "100000000000000000",
+                                "v_quote_balance": "-2400000000000000000000",
+                                "last_cumulative_funding_x18": "-394223711772447555304"
+                            }
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": null,
+                        "hedged": false,
+                        "side": "long",
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "entryPrice": 24000,
+                        "markPrice": 25000,
+                        "notional": 2500,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": null,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "marginRatio": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "events": [
+                        {
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 5,
+                            "submission_idx": "563011",
+                            "event_type": "deposit_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "1000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563011",
+                            "product_id": 5,
+                            "timestamp": "1680000000",
+                            "tx": {
+                                "deposit_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563011",
+                            "product_id": 5,
+                            "timestamp": "1680000000",
+                            "tx": {
+                                "deposit_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            },
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "event_type": "deposit_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "1000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "transaction_type": "deposit"
+                        },
+                        "id": "563011",
+                        "txid": null,
+                        "timestamp": 1680000000000,
+                        "datetime": "2023-03-28T10:40:00.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": null,
+                        "internal": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "events": [
+                        {
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 5,
+                            "submission_idx": "563012",
+                            "event_type": "withdraw_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "7000000000000000000"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563012",
+                            "product_id": 5,
+                            "timestamp": "1680000001",
+                            "tx": {
+                                "withdraw_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563012",
+                            "product_id": 5,
+                            "timestamp": "1680000001",
+                            "tx": {
+                                "withdraw_collateral": {
+                                    "sender": "0x1230000000000000000000000000000000000123"
+                                }
+                            },
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "event_type": "withdraw_collateral",
+                            "isolated": false,
+                            "isolated_product_id": null,
+                            "pre_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "11000000000000000000"
+                                    }
+                                }
+                            },
+                            "post_balance": {
+                                "spot": {
+                                    "product_id": 5,
+                                    "balance": {
+                                        "amount": "7000000000000000000"
+                                    }
+                                }
+                            },
+                            "transaction_type": "withdrawal"
+                        },
+                        "id": "563012",
+                        "txid": null,
+                        "timestamp": 1680000001000,
+                        "datetime": "2023-03-28T10:40:01.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 4,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": null,
+                        "internal": null
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT0:USDT0",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 25792.380748141517,
+                    "open": 25892.38035648705,
+                    "close": 25728,
+                    "last": 25728,
+                    "previousClose": null,
+                    "change": -164.38035648705124,
+                    "percentage": -0.6348599635253989,
+                    "average": 25810,
+                    "baseVolume": 552.048,
+                    "quoteVolume": 14238632.207250029,
+                    "info": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT0:USDT0": {
+                        "symbol": "BTC/USDT0:USDT0",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 25792.380748141517,
+                        "open": 25892.38035648705,
+                        "close": 25728,
+                        "last": 25728,
+                        "previousClose": null,
+                        "change": -164.38035648705124,
+                        "percentage": -0.6348599635253989,
+                        "average": 25810,
+                        "baseVolume": 552.048,
+                        "quoteVolume": 14238632.207250029,
+                        "info": {
+                            "product_id": "2",
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "base_currency": "BTC",
+                            "quote_currency": "USDT0",
+                            "last_price": "25728.0",
+                            "base_volume": "552.048",
+                            "quote_volume": "14238632.207250029",
+                            "price_change_percent_24h": "-0.6348599635253989"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    },
+                    "symbol": "BTC/USDT0:USDT0",
+                    "markPrice": 25783.996946729356,
+                    "indexPrice": 25878.913320746455,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.003664562348812546,
+                    "fundingTimestamp": 1694379600000,
+                    "fundingDatetime": "2023-09-10T21:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "24h"
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "interest_payments": [],
+                    "funding_payments": [
+                        {
+                            "product_id": 2,
+                            "idx": "5968022",
+                            "timestamp": "1701698400",
+                            "amount": "-12273223338657163",
+                            "balance_amount": "1000000000000000000",
+                            "rate_x18": "47928279191008320",
+                            "oracle_price_x18": "2243215034242228224820"
+                        }
+                    ],
+                    "next_idx": "1314805"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "idx": "5968022",
+                            "timestamp": "1701698400",
+                            "amount": "-12273223338657163",
+                            "balance_amount": "1000000000000000000",
+                            "rate_x18": "47928279191008320",
+                            "oracle_price_x18": "2243215034242228224820"
+                        },
+                        "symbol": "BTC/USDT0:USDT0",
+                        "code": "USDT0",
+                        "timestamp": 1701698400000,
+                        "datetime": "2023-12-04T14:00:00.000Z",
+                        "id": "5968022",
+                        "amount": -0.012273223338657163
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT0:USDT0": {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "base_currency": "BTC-PERP",
+                            "quote_currency": "USDT0",
+                            "last_price": 25744,
+                            "base_volume": 794.154,
+                            "quote_volume": 20475749.367766097,
+                            "product_type": "perpetual",
+                            "contract_price": 25830.738843799172,
+                            "contract_price_currency": "USD",
+                            "open_interest": 3059.325,
+                            "open_interest_usd": 79024625.11330591,
+                            "index_price": 25878.913320746455,
+                            "mark_price": 25783.996946729356,
+                            "funding_rate": -0.003664562348812546,
+                            "next_funding_rate_timestamp": 1694379600,
+                            "price_change_percent_24h": -0.6348599635253989
+                        },
+                        "symbol": "BTC/USDT0:USDT0",
+                        "markPrice": 25783.996946729356,
+                        "indexPrice": 25878.913320746455,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.003664562348812546,
+                        "fundingTimestamp": 1694379600000,
+                        "fundingDatetime": "2023-09-10T21:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "24h"
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT0:USDT0",
+                    "openInterestAmount": 3059.325,
+                    "openInterestValue": 79024625.11330591,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT0:USDT0": {
+                        "symbol": "BTC/USDT0:USDT0",
+                        "openInterestAmount": 3059.325,
+                        "openInterestValue": 79024625.11330591,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "base_currency": "BTC-PERP",
+                            "quote_currency": "USDT0",
+                            "last_price": 25744,
+                            "base_volume": 794.154,
+                            "quote_volume": 20475749.367766097,
+                            "product_type": "perpetual",
+                            "contract_price": 25830.738843799172,
+                            "contract_price_currency": "USD",
+                            "open_interest": 3059.325,
+                            "open_interest_usd": 79024625.11330591,
+                            "index_price": 25878.913320746455,
+                            "mark_price": 25783.996946729356,
+                            "funding_rate": -0.003664562348812546,
+                            "next_funding_rate_timestamp": 1694379600,
+                            "price_change_percent_24h": -0.6348599635253989
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    2
+                ],
+                "httpResponse": {
+                    "product_id": 2,
+                    "ticker_id": "BTC-PERP_USDT0",
+                    "bids": [
+                        [
+                            116215,
+                            0.128
+                        ],
+                        [
+                            116214,
+                            0.172
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            116225,
+                            0.043
+                        ],
+                        [
+                            116226,
+                            0.172
+                        ]
+                    ],
+                    "timestamp": 1757913317944
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT0:USDT0",
+                    "bids": [
+                        [
+                            116215,
+                            0.128
+                        ],
+                        [
+                            116214,
+                            0.172
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            116225,
+                            0.043
+                        ],
+                        [
+                            116226,
+                            0.172
+                        ]
+                    ],
+                    "timestamp": 1757913317944,
+                    "datetime": "2025-09-15T05:15:17.944Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "trade_id": 6351,
+                        "price": 112029.5896,
+                        "base_filled": -0.388,
+                        "quote_filled": 43467.4807648,
+                        "timestamp": 1757335618,
+                        "trade_type": "sell"
+                    },
+                    {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "trade_id": 6350,
+                        "price": 112032.58899999999,
+                        "base_filled": -0.179,
+                        "quote_filled": 20053.833431,
+                        "timestamp": 1757335618,
+                        "trade_type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "trade_id": 6350,
+                            "price": 112032.58899999999,
+                            "base_filled": -0.179,
+                            "quote_filled": 20053.833431,
+                            "timestamp": 1757335618,
+                            "trade_type": "sell"
+                        },
+                        "timestamp": 1757335618000,
+                        "datetime": "2025-09-08T12:46:58.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "6350",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 112032.58899999999,
+                        "amount": 0.179,
+                        "cost": 20053.833431,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "trade_id": 6351,
+                            "price": 112029.5896,
+                            "base_filled": -0.388,
+                            "quote_filled": 43467.4807648,
+                            "timestamp": 1757335618,
+                            "trade_type": "sell"
+                        },
+                        "timestamp": 1757335618000,
+                        "datetime": "2025-09-08T12:46:58.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "6351",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 112029.5896,
+                        "amount": 0.388,
+                        "cost": 43467.4807648,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "product_id": 2,
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "price_x18": "67777000000000000000000",
+                        "amount": "-10000000000000000",
+                        "expiration": "4294967295",
+                        "nonce": "1781144769000000000",
+                        "unfilled_amount": "-10000000000000000",
+                        "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "placed_at": 1781144769,
+                        "appendix": "1537",
+                        "order_type": "post_only"
+                    },
+                    "request_type": "query_order"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "product_id": 2,
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "price_x18": "67777000000000000000000",
+                        "amount": "-10000000000000000",
+                        "expiration": "4294967295",
+                        "nonce": "1781144769000000000",
+                        "unfilled_amount": "-10000000000000000",
+                        "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "placed_at": 1781144769,
+                        "appendix": "1537",
+                        "order_type": "post_only"
+                    },
+                    "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "clientOrderId": null,
+                    "timestamp": 1781144769000,
+                    "datetime": "2026-06-11T02:26:09.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT0:USDT0",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "side": "sell",
+                    "price": 67777,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "product_id": 2,
+                        "orders": [
+                            {
+                                "product_id": 2,
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "price_x18": "67777000000000000000000",
+                                "amount": "-10000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1781144769000000000",
+                                "unfilled_amount": "-10000000000000000",
+                                "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                "placed_at": 1781144769,
+                                "appendix": "1537",
+                                "order_type": "post_only"
+                            }
+                        ]
+                    },
+                    "request_type": "query_subaccount_orders"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "price_x18": "67777000000000000000000",
+                            "amount": "-10000000000000000",
+                            "expiration": "4294967295",
+                            "nonce": "1781144769000000000",
+                            "unfilled_amount": "-10000000000000000",
+                            "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "placed_at": 1781144769,
+                            "appendix": "1537",
+                            "order_type": "post_only"
+                        },
+                        "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "clientOrderId": null,
+                        "timestamp": 1781144769000,
+                        "datetime": "2026-06-11T02:26:09.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "type": "limit",
+                        "timeInForce": "PO",
+                        "postOnly": true,
+                        "side": "sell",
+                        "price": 67777,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "digest": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 2,
+                            "submission_idx": "563024",
+                            "last_fill_submission_idx": "563024",
+                            "amount": "100000000000000000",
+                            "price_x18": "25000000000000000000000",
+                            "base_filled": "100000000000000000",
+                            "quote_filled": "-2500000000000000000000",
+                            "fee": "500000000000000000",
+                            "builder_fee": "0",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "closed_margin": null,
+                            "first_fill_timestamp": "1680000000",
+                            "last_fill_timestamp": "1680000000",
+                            "expiration": "4294967295",
+                            "appendix": "1537",
+                            "nonce": "1761323164913106944",
+                            "isolated": false,
+                            "pre_balance": {},
+                            "post_balance": {}
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "status": "closed",
+                            "digest": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "product_id": 2,
+                            "submission_idx": "563024",
+                            "last_fill_submission_idx": "563024",
+                            "amount": "100000000000000000",
+                            "price_x18": "25000000000000000000000",
+                            "base_filled": "100000000000000000",
+                            "quote_filled": "-2500000000000000000000",
+                            "fee": "500000000000000000",
+                            "builder_fee": "0",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "closed_margin": null,
+                            "first_fill_timestamp": "1680000000",
+                            "last_fill_timestamp": "1680000000",
+                            "expiration": "4294967295",
+                            "appendix": "1537",
+                            "nonce": "1761323164913106944",
+                            "isolated": false,
+                            "pre_balance": {},
+                            "post_balance": {}
+                        },
+                        "id": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                        "clientOrderId": null,
+                        "timestamp": 1680000000000,
+                        "datetime": "2023-03-28T10:40:00.000Z",
+                        "lastTradeTimestamp": 1680000000000,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 25000,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 2500,
+                        "average": 25000,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT0",
+                            "cost": 0.5
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDT0",
+                                "cost": 0.5
+                            }
+                        ],
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "matches": [
+                        {
+                            "digest": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                            "order": {
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "priceX18": "25000000000000000000000",
+                                "amount": "100000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1761323164913106944",
+                                "appendix": "1537"
+                            },
+                            "base_filled": "10000000000000000",
+                            "quote_filled": "-250000000000000000000",
+                            "fee": "50000000000000000",
+                            "builder_fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "50000000000000000",
+                            "cumulative_base_filled": "10000000000000000",
+                            "cumulative_quote_filled": "-250000000000000000000",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "margin": null,
+                            "submission_idx": "563012",
+                            "isolated": false,
+                            "is_taker": true
+                        }
+                    ],
+                    "txs": [
+                        {
+                            "submission_idx": "563012",
+                            "product_id": 2,
+                            "timestamp": "1680000001"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "submission_idx": "563012",
+                            "product_id": 2,
+                            "timestamp": "1680000001",
+                            "digest": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                            "order": {
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "priceX18": "25000000000000000000000",
+                                "amount": "100000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1761323164913106944",
+                                "appendix": "1537"
+                            },
+                            "base_filled": "10000000000000000",
+                            "quote_filled": "-250000000000000000000",
+                            "fee": "50000000000000000",
+                            "builder_fee": "0",
+                            "sequencer_fee": "0",
+                            "cumulative_fee": "50000000000000000",
+                            "cumulative_base_filled": "10000000000000000",
+                            "cumulative_quote_filled": "-250000000000000000000",
+                            "closed_amount": "0",
+                            "realized_pnl": "0",
+                            "closed_net_entry": "0",
+                            "margin": null,
+                            "isolated": false,
+                            "is_taker": true
+                        },
+                        "timestamp": 1680000001000,
+                        "datetime": "2023-03-28T10:40:01.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "563012",
+                        "order": "0x2222222222222222222222222222222222222222222222222222222222222222",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 25000,
+                        "amount": 0.01,
+                        "cost": 250,
+                        "fee": {
+                            "currency": "USDT0",
+                            "cost": 0.05
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT0",
+                                "cost": 0.05
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "candlesticks": [
+                        {
+                            "product_id": 2,
+                            "granularity": 60,
+                            "submission_idx": "627709",
+                            "timestamp": "1680118140",
+                            "open_x18": "27235000000000000000000",
+                            "high_x18": "27298000000000000000000",
+                            "low_x18": "27235000000000000000000",
+                            "close_x18": "27298000000000000000000",
+                            "volume": "2000000000000000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1680118140000,
+                        27235,
+                        27298,
+                        27235,
+                        27298,
+                        2
+                    ]
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "product_id": "0",
+                        "ticker_id": null,
+                        "market_type": null,
+                        "name": "USDT0",
+                        "symbol": "USDT0",
+                        "maker_fee": null,
+                        "taker_fee": null,
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    },
+                    {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "market_type": "perp",
+                        "name": "Bitcoin Perp",
+                        "symbol": "BTC-PERP",
+                        "maker_fee": "0.0001",
+                        "taker_fee": "0.00035",
+                        "can_withdraw": false,
+                        "can_deposit": false
+                    },
+                    {
+                        "product_id": "5",
+                        "ticker_id": "USDC_USDT0",
+                        "market_type": "spot",
+                        "name": "USDC",
+                        "symbol": "USDC",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0",
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT0": {
+                        "info": {
+                            "product_id": "0",
+                            "ticker_id": null,
+                            "market_type": null,
+                            "name": "USDT0",
+                            "symbol": "USDT0",
+                            "maker_fee": null,
+                            "taker_fee": null,
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "0",
+                        "numericId": null,
+                        "code": "USDT0",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "USDT0",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "product_id": "2",
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "market_type": "perp",
+                            "name": "Bitcoin Perp",
+                            "symbol": "BTC-PERP",
+                            "maker_fee": "0.0001",
+                            "taker_fee": "0.00035",
+                            "can_withdraw": false,
+                            "can_deposit": false
+                        },
+                        "id": "2",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Bitcoin Perp",
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "info": {
+                            "product_id": "5",
+                            "ticker_id": "USDC_USDT0",
+                            "market_type": "spot",
+                            "name": "USDC",
+                            "symbol": "USDC",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "5",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "USDC",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
