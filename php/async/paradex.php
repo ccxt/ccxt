@@ -152,7 +152,9 @@ class paradex extends Exchange {
                         'bbo/{market}/interactive' => 1,
                         'funding/data' => 1,
                         'markets' => 1,
+                        'markets/history' => 1,
                         'markets/klines' => 1,
+                        'markets/settlement-price' => 1,
                         'markets/summary' => 1,
                         'orderbook/{market}' => 1,
                         'orderbook/{market}/impact-price' => 1,
@@ -1795,7 +1797,7 @@ class paradex extends Exchange {
             /**
              * edit an open limit order or TPSL order
              *
-             * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+             * @see https://docs.paradex.trade/api/prod/orders/modify
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to edit an order in
