@@ -39,9 +39,19 @@ public class ParadexApi extends Exchange
         return this.callAsync ("publicGetMarkets", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketsHistory", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketsKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketsKlines", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketsSettlementPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketsSettlementPrice", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetMarketsSummary (Object... optionalArgs)
