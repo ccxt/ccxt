@@ -159,6 +159,11 @@ export default class woo extends wooRest {
             'subMessageHashes': [ subHash ],
             'unsubMessageHashes': [ unsubHash ],
         };
+        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            params = this.omit (params, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
     }
 
@@ -658,7 +663,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.woox.io/#k-line
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/KLINE
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -670,19 +675,13 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
-            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+        const timeframes = [ '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '3d', '1w', '1M' ];
+        if (!this.inArray (timeframe, timeframes)) {
+            throw new ExchangeError (this.id + ' watchOHLCV() does not support the specified interval ' + timeframe);
         }
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const ohlcv = await this.watchPublic (topic, message);
+        const topic = 'kline@' + market['id'] + '@' + timeframe;
+        const ohlcv = await this.subscribePublicV3 (topic, topic, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (market['symbol'], limit);
         }
@@ -692,60 +691,58 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#unWatchOHLCV
-     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.woox.io/#k-line
+     * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/KLINE
      * @param {string} symbol unified symbol of the market
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @returns {bool} true on successful unsubscribe
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = 'ohlcv';
-        const name = 'kline';
-        const subHash = market['id'] + '@' + name + '_' + interval;
+        const subHash = 'kline@' + market['id'] + '@' + timeframe;
         params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublicV3 (subHash, market['symbol'], topic, params);
     }
 
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         "topic":"SPOT_BTC_USDT@kline_1m",
-        //         "ts":1618822432146,
-        //         "data":{
-        //             "symbol":"SPOT_BTC_USDT",
-        //             "type":"1m",
-        //             "open":56948.97,
-        //             "close":56891.76,
-        //             "high":56948.97,
-        //             "low":56889.06,
-        //             "volume":44.00947568,
-        //             "amount":2504584.9,
-        //             "startTime":1618822380000,
-        //             "endTime":1618822440000
+        //         "topic": "kline@SPOT_BTC_USDT@1m",
+        //         "ts": 1618822432146,
+        //         "data": {
+        //             "s": "SPOT_BTC_USDT",
+        //             "t": "1m",
+        //             "o": "56948.97",
+        //             "c": "56891.76",
+        //             "h": "56948.97",
+        //             "l": "56889.06",
+        //             "v": "44.00947568",
+        //             "a": "2504584.9",
+        //             "st": 1618822380000,
+        //             "et": 1618822440000,
+        //             "ts": 1614152260000,
+        //             "tts": 1614152250000
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
-        const marketId = this.safeString (data, 'symbol');
+        const data = this.safeDict (message, 'data');
+        const topic = this.safeString (message, 'topic');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const interval = this.safeString (data, 'type');
-        const timeframe = this.findTimeframe (interval);
+        const timeframe = this.safeString (data, 't');
         const parsed = [
-            this.safeInteger (data, 'startTime'),
-            this.safeFloat (data, 'open'),
-            this.safeFloat (data, 'high'),
-            this.safeFloat (data, 'low'),
-            this.safeFloat (data, 'close'),
-            this.safeFloat (data, 'volume'),
+            this.safeInteger (data, 'st'),
+            this.safeFloat (data, 'o'),
+            this.safeFloat (data, 'h'),
+            this.safeFloat (data, 'l'),
+            this.safeFloat (data, 'c'),
+            this.safeFloat (data, 'v'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
