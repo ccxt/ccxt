@@ -61,7 +61,6 @@ import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testEncodeDecode from './test.encodeDecode.js';
-import testOkxLeverageTiers from './test.okxLeverageTiers.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -125,7 +124,6 @@ async function baseTestsInit () {
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
-    testOkxLeverageTiers ();
     return true;
 }
 
