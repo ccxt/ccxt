@@ -1458,8 +1458,11 @@ export default class limitless extends Exchange {
                 bucketOrder.push (key);
             } else {
                 const candle = candles[key];
-                candle[2] = Math.max (candle[2], (pPrice === undefined) ? 0 : pPrice);
-                candle[3] = Math.min ((candle[3] === undefined) ? pPrice : candle[3], (pPrice === undefined) ? candle[3] : pPrice);
+                const pPriceOrZero = (pPrice === undefined) ? 0 : pPrice;
+                candle[2] = Math.max (candle[2], pPriceOrZero);
+                const candleLow = (candle[3] === undefined) ? pPrice : candle[3];
+                const pPriceOrCandleLow = (pPrice === undefined) ? candle[3] : pPrice;
+                candle[3] = Math.min (candleLow, pPriceOrCandleLow);
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }

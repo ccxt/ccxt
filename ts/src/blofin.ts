@@ -2399,7 +2399,7 @@ export default class blofin extends Exchange {
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
-            const initialMarginPercentageString = (typeof initialMarginPercentage === 'number') ? this.numberToString (initialMarginPercentage) : initialMarginPercentage;
+            const initialMarginPercentageString = this.numberToString (initialMarginPercentage);
             initialMarginString = Precise.stringMul (initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%

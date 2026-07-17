@@ -930,7 +930,10 @@ export default class htx extends htxRest {
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
-        const marketCode = ((market !== undefined) && (market['lowercaseId'] !== undefined)) ? market['lowercaseId'].toLowerCase () : undefined;
+        let marketCode: Str = undefined;
+        if ((market !== undefined) && (market['lowercaseId'] !== undefined)) {
+            marketCode = market['lowercaseId'].toLowerCase ();
+        }
         const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
