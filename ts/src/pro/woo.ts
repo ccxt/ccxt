@@ -99,7 +99,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPublicV3 (messageHash: string, topic: string, params = {}): Promise<FundingRate> {
+    async subscribePublicV3 (messageHash: string, topic: string, params = {}, subscription = {}) {
         const url = this.urls['api']['ws']['publicV3'];
         const requestId = this.requestId (url);
         const request: Dict = {
@@ -107,12 +107,12 @@ export default class woo extends wooRest {
             'cmd': 'SUBSCRIBE',
             'params': [ topic ],
         };
-        const subscription: Dict = {
+        const subscriptionRequest: Dict = this.extend ({
             'id': requestId.toString (),
             'version': 'v3',
             'topic': topic,
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        }, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscriptionRequest);
     }
 
     async unwatchPublic (subHash: string, symbol: string, topic: string, params = {}): Promise<any> {
@@ -762,7 +762,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.woox.io/#trade
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TRADE
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -775,13 +775,8 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = market['id'] + '@trade';
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const trades = await this.watchPublic (topic, message);
+        const topic = 'trade@' + market['id'];
+        const trades = await this.subscribePublicV3 (topic, topic, params);
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
@@ -791,11 +786,11 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#unWatchTrades
-     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.woox.io/#trade
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @description stops watching information on multiple trades made in a market
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TRADE
+     * @param {string} symbol unified market symbol of the market trades were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {bool} true on successful unsubscribe
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
@@ -803,31 +798,32 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         const topic = 'trades';
-        const subHash = market['id'] + '@trade';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        const subHash = 'trade@' + market['id'];
+        return await this.unwatchPublicV3 (subHash, market['symbol'], topic, params);
     }
 
     handleTrade (client: Client, message) {
         //
-        // {
-        //     "topic":"SPOT_ADA_USDT@trade",
-        //     "ts":1618820361552,
-        //     "data":{
-        //         "symbol":"SPOT_ADA_USDT",
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
-        //         "source":0
+        //     {
+        //         "topic": "trade@SPOT_BTC_USDT",
+        //         "ts": 1618820361552,
+        //         "data": {
+        //             "s": "SPOT_BTC_USDT",
+        //             "px": "42598.27",
+        //             "sx": "300",
+        //             "sd": "BUY",
+        //             "src": 0,
+        //             "rpi": false,
+        //             "ts": 1618820361540
+        //         }
         //     }
-        // }
         //
         const topic = this.safeString (message, 'topic');
-        const timestamp = this.safeInteger (message, 'ts');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
+        const trade = this.parseWsTrade (data, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -841,12 +837,13 @@ export default class woo extends wooRest {
     parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
-        //         "symbol":"SPOT_ADA_USDT",
-        //         "timestamp":1618820361552,
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
-        //         "source":0
+        //         "s": "SPOT_BTC_USDT",
+        //         "px": "42598.27",
+        //         "sx": "300",
+        //         "sd": "BUY",
+        //         "src": 0,
+        //         "rpi": false,
+        //         "ts": 1618820361540
         //     }
         // private trade
         //    {
@@ -878,14 +875,16 @@ export default class woo extends wooRest {
         //     "maker": false
         //   }
         //
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'executedPrice', 'price');
-        const amount = this.safeString2 (trade, 'executedQuantity', 'size');
+        let price = this.safeString2 (trade, 'executedPrice', 'price');
+        price = this.safeString (trade, 'px', price);
+        let amount = this.safeString2 (trade, 'executedQuantity', 'size');
+        amount = this.safeString (trade, 'sx', amount);
         const cost = Precise.stringMul (price, amount);
-        const side = this.safeStringLower (trade, 'side');
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const side = this.safeStringLower2 (trade, 'side', 'sd');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'ts');
         const maker = this.safeBool (trade, 'maker');
         let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
