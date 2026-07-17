@@ -7668,15 +7668,31 @@ export default class okx extends Exchange {
         //    ]
         //
         const tiers: List = [];
+        const isContract = this.safeBool (market, 'contract', false);
+        const contractSize = isContract ? this.safeString (market, 'contractSize', '1') : '1';
+        let currency = this.safeString (market, 'quote');
+        if (isContract) {
+            const marketInfo = this.safeDict (market, 'info', {});
+            const contractCurrencyId = this.safeString (marketInfo, 'ctValCcy');
+            if (contractCurrencyId !== undefined) {
+                currency = this.safeCurrencyCode (contractCurrencyId);
+            } else if (this.safeBool (market, 'inverse', false)) {
+                currency = this.safeString (market, 'quote');
+            } else {
+                currency = this.safeString (market, 'base');
+            }
+        }
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
             const marketId = this.safeString (tier, 'instId');
+            const minSize = this.safeString (tier, 'minSz');
+            const maxSize = this.safeString (tier, 'maxSz');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
                 'symbol': this.safeSymbol (marketId, market),
-                'currency': this.safeString (market, 'quote'),
-                'minNotional': this.safeNumber (tier, 'minSz'),
-                'maxNotional': this.safeNumber (tier, 'maxSz'),
+                'currency': currency,
+                'minNotional': (minSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (minSize, contractSize)),
+                'maxNotional': (maxSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxSize, contractSize)),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,
