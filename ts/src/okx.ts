@@ -7616,8 +7616,9 @@ export default class okx extends Exchange {
         if (type === 'MARGIN') {
             request['instId'] = market['id'];
         }
+        const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
         let quoteConversionRate: Str = '1';
-        if (this.safeBool (market, 'linear', false)) {
+        if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
             const ticker = await this.fetchMarkPrice (symbol);
             quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
         }
@@ -7675,7 +7676,7 @@ export default class okx extends Exchange {
         const tiers: List = [];
         const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
         const contractSize = isFutureOrSwap ? this.safeString (market, 'contractSize', '1') : '1';
-        const notionalMultiplier = this.safeBool (market, 'linear', false) ? Precise.stringMul (contractSize, quoteConversionRate) : contractSize;
+        const notionalMultiplier = isFutureOrSwap && this.safeBool (market, 'linear', false) ? Precise.stringMul (contractSize, quoteConversionRate) : contractSize;
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
             const marketId = this.safeString (tier, 'instId');
