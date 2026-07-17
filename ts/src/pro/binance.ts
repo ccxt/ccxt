@@ -4771,8 +4771,9 @@ export default class binance extends binanceRest {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
+        const codeValue = (code === undefined) ? 0 : code;
         try {
-            this.handleErrors ((code === undefined) ? 0 : code, msg, client.url, '', {}, this.json (error), error, {}, {});
+            this.handleErrors (codeValue, msg, client.url, '', {}, this.json (error), error, {}, {});
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash
