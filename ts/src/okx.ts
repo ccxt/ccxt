@@ -9175,7 +9175,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    handleErrors (httpCode: int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
