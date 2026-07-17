@@ -133,6 +133,10 @@ pub trait DerivedExchange: Send + Sync {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
+    // ── prediction-tier parsers (overridden by prediction venues) ────────
+    fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
+    fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
+    fn parse_prediction_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
     fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }

@@ -4578,6 +4578,12 @@ class RustTranspilerBuilder {
             parse_leverage:             ['leverage', 'market'],
             parse_market_leverage_tiers: ['info', 'market'],
             parse_deposit_withdraw_fee: ['fee', 'currency'],
+            // Prediction tier: parsePredictionTrades/Orders/Positions in the base
+            // call these per-row on the concrete venue, so they need sync virtual
+            // dispatch just like parse_trade/parse_order.
+            parse_prediction_trade:     ['trade', 'market'],
+            parse_prediction_order:     ['order', 'market'],
+            parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],

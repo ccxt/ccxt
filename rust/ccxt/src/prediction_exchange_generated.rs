@@ -2048,6 +2048,9 @@ impl PredictionExchange {
 }
 
     pub fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_prediction_order(...))
+        { let __v = self.derived().parse_prediction_order(order.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePredictionOrder() is not supported yet".to_string()))));
 
@@ -2055,6 +2058,9 @@ impl PredictionExchange {
 }
 
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_prediction_trade(...))
+        { let __v = self.derived().parse_prediction_trade(trade.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePredictionTrade() is not supported yet".to_string()))));
 
@@ -2062,6 +2068,9 @@ impl PredictionExchange {
 }
 
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_prediction_position(...))
+        { let __v = self.derived().parse_prediction_position(position.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePredictionPosition() is not supported yet".to_string()))));
 

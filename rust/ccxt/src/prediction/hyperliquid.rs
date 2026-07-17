@@ -207,6 +207,24 @@ impl crate::exchange::DerivedExchange for HyperliquidCore {
         let me = unsafe { &mut *(self as *const HyperliquidCore as *mut HyperliquidCore) };
         HyperliquidCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HyperliquidCore as *mut HyperliquidCore) };
+        HyperliquidCore::parse_prediction_trade(me, trade, &[market.clone()])
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HyperliquidCore as *mut HyperliquidCore) };
+        HyperliquidCore::parse_prediction_order(me, order, &[market.clone()])
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HyperliquidCore as *mut HyperliquidCore) };
+        HyperliquidCore::parse_prediction_position(me, position, &[market.clone()])
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HyperliquidCore.
         #[allow(invalid_reference_casting)]
