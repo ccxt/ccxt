@@ -380,7 +380,7 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name paradex#editOrder
  * @description edit an open limit order or TPSL order
- * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+ * @see https://docs.paradex.trade/api/prod/orders/modify
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to edit an order in
  * @param {string} type 'limit' or a TPSL order type
