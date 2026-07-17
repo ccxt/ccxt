@@ -9227,7 +9227,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
 
@@ -9416,7 +9416,7 @@ export default class Exchange extends BaseExchange {
 
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
-        return await this.createOrderWs (symbol, type, side, amount, price, params);
+        return await this.createOrderWs (symbol, type, side, amount as number, price, params);
     }
 
     async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -9577,7 +9577,7 @@ export default class Exchange extends BaseExchange {
 
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrder (id, symbol);
-        return await this.createOrder (symbol, type, side, amount, price, params);
+        return await this.createOrder (symbol, type, side, amount as number, price, params);
     }
 
     async editOrderWithClientOrderId (clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -9630,7 +9630,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
-    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
@@ -9656,10 +9656,10 @@ export default class Exchange extends BaseExchange {
     }
 
     async fetchUnifiedOrder (order, params = {}): Promise<Order> {
-        return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
+        return await this.fetchOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
@@ -9874,7 +9874,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
-    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
@@ -9915,7 +9915,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
-        return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
+        return this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
