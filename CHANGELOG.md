@@ -1,3 +1,41 @@
+<a id="v4.5.66"></a>
+# [v4.5.66](https://github.com/ccxt/ccxt/releases/tag/v4.5.66) - 2026-07-16
+
+## What's Changed
+* refactor: reduce safeN calls by [@kroitor](https://github.com/kroitor) in [#29200](https://github.com/ccxt/ccxt/pull/29200)
+* refactor: reduce safeN calls by [@kroitor](https://github.com/kroitor) in [#29202](https://github.com/ccxt/ccxt/pull/29202)
+* fix: safe_string uppercasing/lowercasing across all langs by [@ttodua](https://github.com/ttodua) in [#29199](https://github.com/ccxt/ccxt/pull/29199)
+* fix: implodeHostname dydx & blofin by [@ttodua](https://github.com/ttodua) in [#29207](https://github.com/ccxt/ccxt/pull/29207)
+* fix(build): keep setuptools intermediate tree out of root build/ by [@carlotestor](https://github.com/carlotestor) in [#29209](https://github.com/ccxt/ccxt/pull/29209)
+* chore: comment in tests by [@ttodua](https://github.com/ttodua) in [#29208](https://github.com/ccxt/ccxt/pull/29208)
+* docs(luno): add apis, update [@see](https://github.com/see), update docs by [@sc0Vu](https://github.com/sc0Vu) in [#29204](https://github.com/ccxt/ccxt/pull/29204)
+* refactor(build): pass head_commit.message via env in github workflows by [@kobihikri](https://github.com/kobihikri) in [#29203](https://github.com/ccxt/ccxt/pull/29203)
+* chore(okx): ticker comments by [@ttodua](https://github.com/ttodua) in [#26084](https://github.com/ccxt/ccxt/pull/26084)
+* doc: ccxt pro links by [@ttodua](https://github.com/ttodua) in [#28535](https://github.com/ccxt/ccxt/pull/28535)
+* perf: python inline imports by [@ttodua](https://github.com/ttodua) in [#27951](https://github.com/ccxt/ccxt/pull/27951)
+* fix(grvt): ternary transpilation by [@ttodua](https://github.com/ttodua) in [#29212](https://github.com/ccxt/ccxt/pull/29212)
+* fix(js): dynamic imports for nuxtjs etc by [@ttodua](https://github.com/ttodua) in [#26938](https://github.com/ccxt/ccxt/pull/26938)
+* feat: Prediction on ccxt by [@carlosmiei](https://github.com/carlosmiei) in [#28752](https://github.com/ccxt/ccxt/pull/28752)
+* fix(docs): restore blog label in nav NAV_LABELS by [@pcriadoperez](https://github.com/pcriadoperez) in [#29215](https://github.com/ccxt/ccxt/pull/29215)
+* docs(pacifica): update docs by [@sc0Vu](https://github.com/sc0Vu) in [#29214](https://github.com/ccxt/ccxt/pull/29214)
+* docs(toobit): add apis, update [@see](https://github.com/see), update docs by [@sc0Vu](https://github.com/sc0Vu) in [#29213](https://github.com/ccxt/ccxt/pull/29213)
+* docs(prediction): guide polish + home hero prediction support by [@pcriadoperez](https://github.com/pcriadoperez) in [#29217](https://github.com/ccxt/ccxt/pull/29217)
+* docs(prediction): reference prediction structures in [@returns](https://github.com/returns) by [@pcriadoperez](https://github.com/pcriadoperez) in [#29216](https://github.com/ccxt/ccxt/pull/29216)
+* fix(gemini): watchOrderBook fix by [@ttodua](https://github.com/ttodua) in [#29218](https://github.com/ccxt/ccxt/pull/29218)
+* chore(build): git mv check-dependencies.sh into build/ by [@carlotestor](https://github.com/carlotestor) in [#29220](https://github.com/ccxt/ccxt/pull/29220)
+* feat(mexc): update by [@sc0Vu](https://github.com/sc0Vu) in [#29205](https://github.com/ccxt/ccxt/pull/29205)
+* docs(onetrading): add apis, update [@see](https://github.com/see), update ws url by [@sc0Vu](https://github.com/sc0Vu) in [#29222](https://github.com/ccxt/ccxt/pull/29222)
+* fix(bingx): edit order by [@ttodua](https://github.com/ttodua) in [#29211](https://github.com/ccxt/ccxt/pull/29211)
+* chore(python): remove aiodns package req by [@ttodua](https://github.com/ttodua) in [#27129](https://github.com/ccxt/ccxt/pull/27129)
+
+## New Contributors
+* [@kobihikri](https://github.com/kobihikri) made their first contribution in [#29203](https://github.com/ccxt/ccxt/pull/29203)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.65...v4.5.66
+
+[Changes][v4.5.66]
+
+
 <a id="v4.5.65"></a>
 # [v4.5.65](https://github.com/ccxt/ccxt/releases/tag/v4.5.65) - 2026-07-13
 
@@ -13703,6 +13741,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.66]: https://github.com/ccxt/ccxt/compare/v4.5.65...v4.5.66
 [v4.5.65]: https://github.com/ccxt/ccxt/compare/v4.5.64...v4.5.65
 [v4.5.64]: https://github.com/ccxt/ccxt/compare/v4.5.63...v4.5.64
 [v4.5.63]: https://github.com/ccxt/ccxt/compare/v4.5.62...v4.5.63

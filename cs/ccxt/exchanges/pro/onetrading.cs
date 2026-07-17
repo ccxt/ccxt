@@ -24,7 +24,7 @@ public partial class onetrading : ccxt.onetrading
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://streams.onetrading.com/" },
+                    { "ws", "wss://streams.fast.onetrading.com" },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -325,7 +325,7 @@ public partial class onetrading : ccxt.onetrading
     /**
      * @method
      * @name onetrading#watchOrderBook
-     * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+     * @see https://docs.onetrading.com/websocket/orderbook/introduction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return

@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class onetrading extends onetrading$1["default"] {
     describe() {
@@ -26,7 +26,7 @@ class onetrading extends onetrading$1["default"] {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://streams.onetrading.com/',
+                    'ws': 'wss://streams.fast.onetrading.com',
                 },
             },
             'options': {
@@ -308,7 +308,7 @@ class onetrading extends onetrading$1["default"] {
     /**
      * @method
      * @name onetrading#watchOrderBook
-     * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+     * @see https://docs.onetrading.com/websocket/orderbook/introduction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return

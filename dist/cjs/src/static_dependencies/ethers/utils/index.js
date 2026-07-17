@@ -15,7 +15,13 @@ require('../../../base/functions/io.js');
 var sha3_js = require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  There are many simple utilities required to interact with
+ *  Ethereum and to simplify the library, without increasing
+ *  the library dependencies for simple functions.
+ *
+ *  @_section api/utils:Utilities  [about-utils]
+ */
 function id(value) {
     return '0x' + crypto.hash(value, sha3_js.keccak_256, 'hex');
 }

@@ -46,7 +46,7 @@ RUN cd python \
     && pip3 install -e . \
     && cd ..
 ## Install composer and everything else that it needs and manages
-RUN /ccxt/composer-install.sh
+RUN /ccxt/build/composer-install.sh
 RUN apt-get update && apt-get install -y --no-install-recommends zip unzip php-zip
 RUN mv /ccxt/composer.phar /usr/local/bin/composer
 RUN composer install

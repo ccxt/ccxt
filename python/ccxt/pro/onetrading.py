@@ -31,7 +31,7 @@ class onetrading(ccxt.async_support.onetrading):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://streams.onetrading.com/',
+                    'ws': 'wss://streams.fast.onetrading.com',
                 },
             },
             'options': {
@@ -307,7 +307,7 @@ class onetrading(ccxt.async_support.onetrading):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://developers.bitpanda.com/exchange/#market-ticker-channel
+        https://docs.onetrading.com/websocket/orderbook/introduction
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for

@@ -50,9 +50,9 @@ public class ToobitCore extends ToobitApi
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchBorrowRates", false );
                 put( "fetchBorrowRatesPerSymbol", false );
+                put( "fetchClosedOrders", true );
                 put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
-                put( "fetchClosedOrders", true );
                 put( "fetchCurrencies", true );
                 put( "fetchDepositAddress", true );
                 put( "fetchDeposits", true );

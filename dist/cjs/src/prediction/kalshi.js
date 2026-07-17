@@ -8,7 +8,6 @@ var Precise = require('../base/Precise.js');
 var rsa = require('../base/functions/rsa.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class kalshi

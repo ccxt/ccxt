@@ -104,7 +104,7 @@ public partial class onetrading
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bitpanda.com/exchange/#market-ticker-channel"/>  <br/>
+    /// See <see href="https://docs.onetrading.com/websocket/orderbook/introduction"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

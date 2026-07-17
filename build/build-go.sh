@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Resolve the repo root from the script's own location so this works
+# no matter which directory it is launched from. The script never
+# changes its own cwd -- the build runs in a subshell instead.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd -P)"
+
+if [[ -z "$REPO_ROOT" || ! -d "$REPO_ROOT/go/ccxt" ]]; then
+  echo "Error: could not locate repo root (resolved: '$REPO_ROOT')"
+  exit 1
+fi
+
 # Function to print a message with elapsed time
 print_message() {
   local start_time=$1
@@ -13,7 +24,7 @@ print_message() {
 
 timeout_kill() {
   local pid=$1
-  local timeout=$((60 * 15)) # 10 minutes in seconds
+  local timeout=$((60 * 15)) # 15 minutes in seconds
   local elapsed=0
 
   echo "Monitoring process $pid for timeout..."
@@ -58,7 +69,9 @@ export GOMAXPROCS=1
 echo "Will download modules"
 # go mod download
 echo "Will build the project"
-go build -p=1 -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
+# -C makes the go tool itself operate from the repo root (Go 1.20+),
+# so the script's cwd is never changed. -C must be the first flag.
+go build -C "$REPO_ROOT" -p=1 -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
 pid_go_build=$!
 
 if [[ -z "$pid_go_build" ]]; then

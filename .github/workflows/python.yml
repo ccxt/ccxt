@@ -39,7 +39,7 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     - name: Install python dependencies
-      run: pip install -r ci-requirements.txt
+      run: pip install -r build/ci-requirements.txt
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -164,7 +164,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Run Id Tests
@@ -200,7 +200,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests
