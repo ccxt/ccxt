@@ -1029,7 +1029,8 @@ export default class coinbase extends coinbaseRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage || 'unknown error');
+            // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
+            throw new ExchangeError ((errorMessage !== undefined) ? errorMessage : 'unknown error');
         }
         const method = this.safeValue (methods, channel);
         if (method) {

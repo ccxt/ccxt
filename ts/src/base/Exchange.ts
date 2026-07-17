@@ -3882,25 +3882,20 @@ export class BaseExchange {
     parseToInt (number): number {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
-        // numberToString may return undefined; keep definite number return (NaN) so callers stay number-typed
-        const stringifiedNumber = this.numberToString (number);
-        if (stringifiedNumber === undefined) {
-            return NaN;
-        }
+        // numberToString is typed as nullable under strictNullChecks; cast to string
+        // (erased at transpile-time, so output matches every target language) rather than
+        // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
+        const stringifiedNumber = this.numberToString (number) as string;
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
     }
 
     parseToNumeric (number): number {
-        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        const stringVersion = this.numberToString (number) as string; // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        // numberToString may return undefined; keep definite number return (NaN)
-        if (stringVersion === undefined) {
-            return NaN;
-        }
         if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
