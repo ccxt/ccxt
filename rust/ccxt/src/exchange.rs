@@ -1688,8 +1688,9 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
     } else if ty == "bool" {
         if matches!(v, Value::Bool(true)) { out[31] = 1; }
     } else if ty.starts_with("uint") || ty.starts_with("int") {
-        // uint256 (e.g. polymarket tokenId) exceeds u128 — use BigInt.
-        use num_bigint::BigInt;
+        // uint256 (e.g. polymarket tokenId) exceeds u128 — use BigInt. Signed
+        // intN uses two's-complement, sign-extended to 32 bytes.
+        use num_bigint::{BigInt, Sign};
         let n: BigInt = match v {
             Value::Int(i)   => BigInt::from(*i),
             Value::Float(f) => BigInt::from(*f as i64),
@@ -1703,9 +1704,16 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
             }
             _ => BigInt::from(0),
         };
-        let (_, be) = n.to_bytes_be();
-        let take = be.len().min(32);
-        out[32 - take..].copy_from_slice(&be[be.len() - take..]);
+        if ty.starts_with("uint") {
+            let (_, be) = n.to_bytes_be();
+            let take = be.len().min(32);
+            out[32 - take..].copy_from_slice(&be[be.len() - take..]);
+        } else {
+            let be = n.to_signed_bytes_be();
+            if n.sign() == Sign::Minus { out = [0xff; 32]; }
+            let take = be.len().min(32);
+            out[32 - take..].copy_from_slice(&be[be.len() - take..]);
+        }
     }
     out
 }

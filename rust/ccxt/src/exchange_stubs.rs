@@ -1181,10 +1181,18 @@ impl Exchange {
                 let b = to_bytes(v);
                 let n = b.len().min(32);
                 word[..n].copy_from_slice(&b[..n]);
-            } else if ty.starts_with("uint") || ty.starts_with("int") {
+            } else if ty.starts_with("uint") {
                 let (_, mag) = to_bigint(v).to_bytes_be();
                 let n = mag.len().min(32);
                 word[32 - n..].copy_from_slice(&mag[mag.len() - n..]);
+            } else if ty.starts_with("int") {
+                // signed intN — two's-complement, sign-extended to 32 bytes.
+                use num_bigint::Sign;
+                let bi = to_bigint(v);
+                let sbytes = bi.to_signed_bytes_be();
+                if bi.sign() == Sign::Minus { word = [0xff; 32]; }
+                let n = sbytes.len().min(32);
+                word[32 - n..].copy_from_slice(&sbytes[sbytes.len() - n..]);
             } else if ty == "bool" {
                 if matches!(v, Value::Bool(true)) { word[31] = 1; }
             } else {
