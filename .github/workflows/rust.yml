@@ -87,6 +87,12 @@ jobs:
       #   run: npm run buildRust --ws
       - name: Build tests
         run: npm run buildRust --tests
+      # Ordinary `cargo test` gate (review #8): the ccxt lib unit tests plus the
+      # hand-written base REST/WS + language-specific suites wired as #[test]s.
+      - name: Cargo test
+        run: |
+          cargo test --manifest-path rust/ccxt/Cargo.toml --features transpiled-base
+          cargo test --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate
       # - name: Test GO Types
       #   if: env.important_modified == 'true'
       #   run: npm run test-types-go

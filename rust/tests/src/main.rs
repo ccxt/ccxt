@@ -152,3 +152,25 @@ async fn main() -> ExitCode {
     }
 }
 
+
+// Make `cargo test` a meaningful gate (review #8). The heavy request/response
+// suites still run through the `ti-rust` CLI (they need generated fixtures and
+// per-exchange flags), but the self-contained hand-written base suite and the
+// language-specific typed-surface checks run here as ordinary `#[test]`s.
+#[cfg(test)]
+mod cargo_test_gate {
+    #[test]
+    fn base_rest_suite() {
+        crate::base_tests::run(false).expect("hand-written base REST tests failed");
+    }
+
+    #[test]
+    fn base_ws_suite() {
+        crate::base_tests::run(true).expect("hand-written base WS tests failed");
+    }
+
+    #[test]
+    fn language_specific_suite() {
+        crate::language_specific::run().expect("language-specific tests failed");
+    }
+}
