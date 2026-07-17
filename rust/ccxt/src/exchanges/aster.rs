@@ -4831,6 +4831,7 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&values, &key);
+            let mut value: Value = get_value(&values, &key);
             let mut isObj: Value = Value::Bool(is_true(&Value::Bool(is_array(&value))) || is_true(&self.is_dictionary(value.clone())));
             let mut valueJsonified: Value = ternary(is_true(&isObj), self.json(value.clone()), to_string_val(&value));
             let mut encoded: Value = self.encode_uri_component(valueJsonified.clone());
@@ -4854,6 +4855,7 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
             while { if !__for_first_226 { i = add(&i, &Value::Int(1)); } __for_first_226 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
+            let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
             let mut capitalizedKey: Value = self.capitalize(key.clone());
             add_element_to_object(&mut capitalized, &capitalizedKey, value.clone());

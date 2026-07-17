@@ -1002,6 +1002,7 @@ impl KrakenCore {
                 isSynthetic = Value::Bool(true);
             }
             let mut market: Value = get_value(&markets, &id);
+            let mut market: Value = get_value(&markets, &id);
             let mut baseIdRaw: Value = self.safe_string_k(market.clone(), "base", &[]);
             let mut quoteIdRaw: Value = self.safe_string_k(market.clone(), "quote", &[]);
             let mut baseId: Value = self.safe_currency_code(baseIdRaw.clone(), &[]);
@@ -1029,6 +1030,7 @@ impl KrakenCore {
             let mut spot: Value = Value::Bool(true);
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if is_true(&spot) && is_true(&(Value::Bool(in_op(&cachedCurrencies, &base)))) {
+                let mut currency: Value = get_value(&cachedCurrencies, &base);
                 let mut currency: Value = get_value(&cachedCurrencies, &base);
                 let mut currencyPrecision: Value = self.safe_number_k(currency.clone(), "precision", &[]);
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
@@ -1600,6 +1602,7 @@ impl KrakenCore {
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut ticker: Value = get_value(&tickers, &id);
+            let mut ticker: Value = get_value(&tickers, &id);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
         }
         }
@@ -1866,6 +1869,7 @@ impl KrakenCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&ledger, &key);
             add_element_to_object(&mut value, &Value::Str("id".to_string()), key.clone());
+            crate::set_value(&mut ledger, &key, value.clone());
             append_to_array(&mut items, value.clone());
         }
         }
@@ -1911,6 +1915,7 @@ impl KrakenCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&result, &key);
             add_element_to_object(&mut value, &Value::Str("id".to_string()), key.clone());
+            crate::set_value(&mut result, &key, value.clone());
             append_to_array(&mut items, value.clone());
         }
         }
@@ -2139,6 +2144,7 @@ impl KrakenCore {
         //     }
         //
         let mut result: Value = get_value(&response, &Value::Str("result".to_string()));
+        let mut trades: Value = get_value(&result, &id);
         let mut trades: Value = get_value(&result, &id);
         // trades is a sorted array: last (most recent trade) goes last
         let mut length: Value = get_array_length(&trades);
@@ -3264,6 +3270,7 @@ impl KrakenCore {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&result, &id);
+            let mut item: Value = get_value(&result, &id);
             let __ws_arg_13 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -3612,6 +3619,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&open, &id);
+            let mut item: Value = get_value(&open, &id);
             append_to_array(&mut orders, self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -3728,6 +3736,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_842 { i = add(&i, &Value::Int(1)); } __for_first_842 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
+            let mut item: Value = get_value(&closed, &id);
             let mut item: Value = get_value(&closed, &id);
             append_to_array(&mut orders, self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();

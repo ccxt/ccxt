@@ -1218,6 +1218,7 @@ impl GeminiCore {
             let mut lowerCaseId: Value = to_lower(&marketIdWithoutPerp);
             if is_true(&Value::Bool(in_op(&conflictingMarkets, &lowerCaseId))) {
                 let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
+                let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
                 baseId = get_value(&conflictingMarket, &Value::Str("base".to_string()));
                 quoteId = get_value(&conflictingMarket, &Value::Str("quote".to_string()));
                 if is_true(&isPerp) {

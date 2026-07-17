@@ -1054,6 +1054,7 @@ impl NdaxCore {
             let mut side: Value = ternary(is_true(&levelSide), asksKey.clone(), bidsKey.clone());
             let mut resultSide: Value = get_value(&result, &side);
             append_to_array(&mut resultSide, bidask.clone());
+            crate::set_value(&mut result, &side, resultSide.clone());
         }
         }
         { let __be_tmp = self.sort_by(get_value(&result, &Value::Str("bids".to_string())), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };

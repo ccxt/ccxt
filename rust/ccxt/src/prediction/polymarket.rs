@@ -672,6 +672,7 @@ impl PolymarketCore {
             let mut __for_first_1253: bool = true;
             while { if !__for_first_1253 { rei = add(&rei, &Value::Int(1)); } __for_first_1253 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
+            let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut ccxtMarkets: Value = self.parse_event_to_markets(rawEvent.clone());
             {
                                 let mut mi: Value = Value::Int(0);
@@ -741,6 +742,7 @@ impl PolymarketCore {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1260: bool = true;
             while { if !__for_first_1260 { qi = add(&qi, &Value::Int(1)); } __for_first_1260 = false; is_less_than(&qi, &get_array_length(&queries)) } {
+            let mut q: Value = get_value(&queries, &qi);
             let mut q: Value = get_value(&queries, &qi);
             let mut baseRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -834,6 +836,7 @@ impl PolymarketCore {
                 let mut __for_first_1259: bool = true;
                 while { if !__for_first_1259 { ei = add(&ei, &Value::Int(1)); } __for_first_1259 = false; is_less_than(&ei, &get_array_length(&allEvents)) } {
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
+                let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
                 if is_true(&eventId) && !is_true(&(Value::Bool(in_op(&seen, &eventId)))) {
                     add_element_to_object(&mut seen, &eventId, Value::Bool(true));
@@ -914,6 +917,7 @@ impl PolymarketCore {
                                         let mut ei: Value = Value::Int(0);
                     let mut __for_first_1261: bool = true;
                     while { if !__for_first_1261 { ei = add(&ei, &Value::Int(1)); } __for_first_1261 = false; is_less_than(&ei, &get_array_length(&tagEvents)) } {
+                    let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
                     if is_true(&(!is_equal(&eventId, &Value::Null))) && !is_true(&(Value::Bool(in_op(&seen, &eventId)))) {
@@ -1013,6 +1017,7 @@ impl PolymarketCore {
             let mut __for_first_1269: bool = true;
             while { if !__for_first_1269 { mi = add(&mi, &Value::Int(1)); } __for_first_1269 = false; is_less_than(&mi, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &mi);
+            let mut market: Value = get_value(&rawMarkets, &mi);
             let mut conditionId: Value = self.safe_string_k(market.clone(), "conditionId", &[]);
             let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[]);
             let mut marketSlug: Value = self.safe_string_k(market.clone(), "slug", &[conditionId.clone()]);
@@ -1070,6 +1075,8 @@ impl PolymarketCore {
                 let mut __for_first_1268: bool = true;
                 while { if !__for_first_1268 { oi = add(&oi, &Value::Int(1)); } __for_first_1268 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
+                let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
+                let mut clobTokenId: Value = get_value(&clobTokenIds, &oi);
                 let mut clobTokenId: Value = get_value(&clobTokenIds, &oi);
                 let mut outcomePrice: Value = self.safe_number(outcomePrices.clone(), oi.clone(), &[]);
                 if !is_true(&clobTokenId) {
@@ -1482,6 +1489,7 @@ impl PolymarketCore {
                 let mut __for_first_1278: bool = true;
                 while { if !__for_first_1278 { li = add(&li, &Value::Int(1)); } __for_first_1278 = false; is_less_than(&li, &lastTradesLength) } {
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
+                let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeTokenId: Value = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]);
                 if !is_equal(&lastTradeTokenId, &Value::Null) {
                     add_element_to_object(&mut lastTradesByTokenId, &lastTradeTokenId, lastTradeEntry.clone());
@@ -1499,6 +1507,7 @@ impl PolymarketCore {
                 if is_true(&(is_equal(&tokenId, &Value::Null))) || !is_true(&(Value::Bool(in_op(&outcomesByTokenId, &tokenId)))) {
                     continue;
                 }
+                let mut outcomeObj: Value = get_value(&outcomesByTokenId, &tokenId);
                 let mut outcomeObj: Value = get_value(&outcomesByTokenId, &tokenId);
                 let mut mid: Value = self.safe_string(midpoints.clone(), tokenId.clone(), &[]);
                 let mut tickerInput: Value = Value::Map({
@@ -1789,6 +1798,7 @@ impl PolymarketCore {
             if !is_true(&(Value::Bool(in_op(&buckets, &bucketKey)))) {
                 add_element_to_object(&mut buckets, &bucketKey, Value::List(vec![snappedMs.clone(), price.clone(), price.clone(), price.clone(), price.clone(), vol.clone()]));
             }  else {
+                let mut candle: Value = get_value(&buckets, &bucketKey);
                 let mut candle: Value = get_value(&buckets, &bucketKey);
                 { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &price); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
                 { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &price); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
@@ -3325,6 +3335,7 @@ impl PolymarketCore {
             let mut __for_first_1293: bool = true;
             while { if !__for_first_1293 { rei = add(&rei, &Value::Int(1)); } __for_first_1293 = false; is_less_than(&rei, &get_array_length(&rawEvents)) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
+            let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
             let mut ccxtMarketsLength: Value = get_array_length(&ccxtMarkets);
@@ -3355,6 +3366,7 @@ impl PolymarketCore {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1292: bool = true;
                 while { if !__for_first_1292 { mi = add(&mi, &Value::Int(1)); } __for_first_1292 = false; is_less_than(&mi, &get_array_length(&ccxtMarkets)) } {
+                let mut m: Value = get_value(&ccxtMarkets, &mi);
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 add_element_to_object(&mut self.markets, &get_value(&m, &Value::Str("market".to_string())), m.clone());
             }

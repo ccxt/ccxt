@@ -1488,6 +1488,7 @@ impl BtcmarketsCore {
             cost = self.amount_to_precision(symbol.clone(), amount.clone());
         }
         let mut rate: Value = get_value(&market, &takerOrMaker);
+        let mut rate: Value = get_value(&market, &takerOrMaker);
         let mut rateCost: Value = crate::precise::Precise::stringMul(&self.number_to_string(rate.clone()), &cost);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

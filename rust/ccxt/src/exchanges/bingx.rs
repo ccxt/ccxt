@@ -6612,6 +6612,7 @@ impl BingxCore {
                 let mut networkCode: Value = get_value(&networkCodes, &i);
                 let mut networkCode: Value = get_value(&networkCodes, &i);
                 let mut network: Value = get_value(&networks, &networkCode);
+                let mut network: Value = get_value(&networks, &networkCode);
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -6671,6 +6672,7 @@ impl BingxCore {
             let mut code: Value = get_value(&responseCodes, &i);
             let mut code: Value = get_value(&responseCodes, &i);
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
+                let mut entry: Value = get_value(&response, &code);
                 let mut entry: Value = get_value(&response, &code);
                 add_element_to_object(&mut depositWithdrawFees, &code, self.parse_deposit_withdraw_fee(entry.clone(), &[]));
             }
@@ -6753,6 +6755,7 @@ impl BingxCore {
             while { if !__for_first_293 { i = add(&i, &Value::Int(1)); } __for_first_293 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
+            let mut value: Value = get_value(&params, &key);
             let mut value: Value = get_value(&params, &key);
             if is_true(&Value::Bool(is_array(&value))) {
                 let mut arrStr: Value = Value::Str("[".to_string());
@@ -7377,6 +7380,7 @@ impl BingxCore {
             while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
+            let mut value: Value = get_value(&params, &key);
             let mut value: Value = get_value(&params, &key);
             if is_true(&Value::Bool(is_array(&value))) {
                 let mut arrStr: Value = Value::Null;

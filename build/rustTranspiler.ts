@@ -369,14 +369,19 @@ class RustTranspilerBuilder {
         let i = 0;
         while (i < lines.length) {
             const m = lines[i].match(bindRe);
-            // Only treat single-letter indices (`i`, `j`, `k`) as loop
-            // indices — avoids rewriting `get_value(&x, &someKey)` field
-            // reads where a write-back would be wrong / not compile.
-            if (m && /^[a-z]$/.test(m[4])) {
+            // `let x = get_value(&C, &K)` returns a COW *clone*, so mutating `x`
+            // (append/add/set) never reaches `C[K]` — JS relies on object
+            // identity here. Whenever the freshly-bound local is mutated, write
+            // the result back to `C[K]` (fixes e.g. convertOHLCVToTradingView's
+            // `result[timestamp].push(...)`). The mutation check below is the
+            // safety gate: a plain field *read* isn't followed by a mutation of
+            // the local, so it gets no (wrong) write-back — the earlier
+            // single-letter-index restriction was therefore unnecessary.
+            if (m && m[3] !== 'self') {
                 const [, indent, local, arr, idx] = m;
                 out.push(lines[i]);
                 let j = i + 1;
-                const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value)\\(&mut ${local}[,)]`);
+                const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value|append_to_array)\\(&mut ${local}[,)]`);
                 let mutated = false;
                 while (j < lines.length && mutRe.test(lines[j])) {
                     out.push(lines[j]);
@@ -5771,6 +5776,10 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.splitGetValueMutAdds(basePart);
         basePart = this.rewriteSelfFieldMutCloneCast(basePart);
         basePart = this.rewriteCallMethodToDirect(basePart);
+        // Write COW-detached `let x = get_value(&C,&K); mutate x` back to C[K]
+        // (the per-exchange pipeline already does this; the base needs it too for
+        // convertOHLCVToTradingView etc. — review P0-C).
+        basePart = this.writeBackIndexedMutations(basePart);
 
         // The prediction tier has many methods that mutate instance state
         // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The

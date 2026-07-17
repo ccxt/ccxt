@@ -1680,6 +1680,7 @@ impl BitfinexCore {
             let mut side: Value = ternary(is_true(&crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".to_string()))), Value::Str("bids".to_string()), Value::Str("asks".to_string()));
             let mut resultSide: Value = get_value(&result, &side);
             append_to_array(&mut resultSide, Value::List(vec![price.clone(), self.parse_number(amount.clone(), &[])]));
+            crate::set_value(&mut result, &side, resultSide.clone());
         }
         }
         { let __be_tmp = self.sort_by(get_value(&result, &Value::Str("bids".to_string())), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
@@ -4187,6 +4188,7 @@ impl BitfinexCore {
             let mut __for_first_327: bool = true;
             while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &ratesLength) } {
             let mut index: Value = subtract(&subtract(&ratesLength, &i), &Value::Int(1));
+            let mut valueAtIndex: Value = get_value(&rawRates, &index);
             let mut valueAtIndex: Value = get_value(&rawRates, &index);
             append_to_array(&mut reversedArray, valueAtIndex.clone());
         }

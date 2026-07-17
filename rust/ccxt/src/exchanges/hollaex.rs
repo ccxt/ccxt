@@ -687,6 +687,7 @@ impl HollaexCore {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&pairs, &key);
+            let mut market: Value = get_value(&pairs, &key);
             let mut baseId: Value = self.safe_string_k(market.clone(), "pair_base", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "pair_2", &[]);
             let mut base: Value = self.common_currency_code(to_upper(&baseId));
@@ -967,6 +968,7 @@ impl HollaexCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut orderbook: Value = get_value(&response, &marketId);
+            let mut orderbook: Value = get_value(&response, &marketId);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
             add_element_to_object(&mut result, &symbol, self.parse_order_book(get_value(&response, &marketId), symbol.clone(), &[timestamp.clone()]));
@@ -1102,6 +1104,7 @@ impl HollaexCore {
             while { if !__for_first_746 { i = add(&i, &Value::Int(1)); } __for_first_746 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
+            let mut ticker: Value = get_value(&tickers, &key);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[key.clone()]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
@@ -2525,6 +2528,7 @@ impl HollaexCore {
                 while { if !__for_first_749 { i = add(&i, &Value::Int(1)); } __for_first_749 = false; is_less_than(&i, &keysLength) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
+                let mut value: Value = get_value(&withdrawalFees, &key);
                 let mut value: Value = get_value(&withdrawalFees, &key);
                 let mut currencyId: Value = self.safe_string_k(value.clone(), "symbol", &[]);
                 let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);

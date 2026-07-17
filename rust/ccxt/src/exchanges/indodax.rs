@@ -963,6 +963,7 @@ impl IndodaxCore {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut rawTicker: Value = get_value(&tickers, &key);
+            let mut rawTicker: Value = get_value(&tickers, &key);
             let mut marketId: Value = replace_str(&key, &Value::Str("_".to_string()), &Value::Str("".to_string()));
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut parsed: Value = self.parse_ticker(rawTicker.clone(), &[market.clone()]);
@@ -1301,6 +1302,7 @@ impl IndodaxCore {
             while { if !__for_first_822 { i = add(&i, &Value::Int(1)); } __for_first_822 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
+            let mut marketOrders: Value = get_value(&rawOrders, &marketId);
             let mut marketOrders: Value = get_value(&rawOrders, &marketId);
             market = self.safe_market(&[marketId.clone()]);
             let mut parsedOrders: Value = self.parse_orders(marketOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);

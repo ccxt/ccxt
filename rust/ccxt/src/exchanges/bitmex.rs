@@ -1343,6 +1343,7 @@ impl BitmexCore {
             if !is_equal(&price, &Value::Null) {
                 let mut resultSide: Value = get_value(&result, &side);
                 append_to_array(&mut resultSide, Value::List(vec![price.clone(), amount.clone()]));
+                crate::set_value(&mut result, &side, resultSide.clone());
             }
         }
         }

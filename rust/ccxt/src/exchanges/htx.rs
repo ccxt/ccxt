@@ -2669,6 +2669,7 @@ impl HtxCore {
             })]);
             let mut contractType: Value = self.safe_string_k(info.clone(), "contract_type", &[]);
             let mut contractSuffix: Value = get_value(&futuresCharsMaps, &contractType);
+            let mut contractSuffix: Value = get_value(&futuresCharsMaps, &contractType);
             // see comment on formats a bit above
             let mut constructedId: Value = ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), add(&add(&add(&add(&get_value(&market, &Value::Str("base".to_string())), &Value::Str("-".to_string())), &get_value(&market, &Value::Str("quote".to_string()))), &Value::Str("-".to_string())), &contractSuffix), add(&add(&get_value(&market, &Value::Str("base".to_string())), &Value::Str("_".to_string())), &contractSuffix));
             if is_equal(&constructedId, &symbolOrMarketId) {

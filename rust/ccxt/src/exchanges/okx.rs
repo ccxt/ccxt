@@ -8516,6 +8516,7 @@ impl OkxCore {
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item.clone(), &[]);
                 let mut borrrowRateCode: Value = get_value(&borrowRateHistories, &code);
                 append_to_array(&mut borrrowRateCode, borrowRateStructure.clone());
+                crate::set_value(&mut borrowRateHistories, &code, borrrowRateCode.clone());
             }
         }
         }

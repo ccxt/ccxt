@@ -127,6 +127,7 @@ impl PredictionExchange {
             let mut __for_first_177: bool = true;
             while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &extraScopeParamsLength) } {
             let mut scopeKey: Value = get_value(&extraScopeParams, &i);
+            let mut scopeKey: Value = get_value(&extraScopeParams, &i);
             if is_true(&Value::Bool(in_op(&params, &scopeKey))) {
                 return Value::Null;
             }
@@ -158,6 +159,7 @@ impl PredictionExchange {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_178: bool = true;
                 while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut event: Value = get_value(&result, &i);
                 let mut event: Value = get_value(&result, &i);
                 let mut idMatch: Value = Value::Bool(is_true(&(!is_equal(&eventId, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "id", &[]), &eventId))));
                 let mut slugMatch: Value = Value::Bool(is_true(&(!is_equal(&slug, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "slug", &[]), &slug))));
@@ -229,6 +231,7 @@ impl PredictionExchange {
             let mut __for_first_180: bool = true;
             while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
+            let mut event: Value = get_value(&events, &i);
             let mut isActive: Value = self.safe_bool_k(event.clone(), "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if is_true(&(is_equal(&isActive, &Value::Null))) || is_true(&(is_equal(&isActive, &wantActive))) {
@@ -259,6 +262,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_182: bool = true;
             while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut title: Value = self.safe_string_lower(event.clone(), Value::Str("title".to_string()), &[Value::Str("".to_string())]);
             let mut description: Value = self.safe_string_lower(event.clone(), Value::Str("description".to_string()), &[Value::Str("".to_string())]);
@@ -313,12 +317,14 @@ impl PredictionExchange {
             let mut __for_first_186: bool = true;
             while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
+            let mut event: Value = get_value(&events, &i);
             let mut eventTags: Value = self.safe_list_k(event.clone(), "tags", &[Value::List(vec![])]);
             let mut matched: Value = Value::Bool(false);
             {
                                 let mut ti: Value = Value::Int(0);
                 let mut __for_first_185: bool = true;
                 while { if !__for_first_185 { ti = add(&ti, &Value::Int(1)); } __for_first_185 = false; is_less_than(&ti, &get_array_length(&eventTags)) } {
+                let mut tag: Value = get_value(&eventTags, &ti);
                 let mut tag: Value = get_value(&eventTags, &ti);
                 let mut tagLabel: Value = Value::Null;
                 if is_string(&tag) {
@@ -404,6 +410,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_187: bool = true;
             while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut id: Value = self.safe_string_k(event.clone(), "id", &[]);
             let mut slug: Value = self.safe_string_k(event.clone(), "slug", &[]);
@@ -605,6 +612,7 @@ impl PredictionExchange {
             let mut __for_first_189: bool = true;
             while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
+            let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
                 s = add(&s, &ch);
                 lastDash = Value::Bool(false);
@@ -620,6 +628,7 @@ impl PredictionExchange {
             let mut __for_first_190: bool = true;
             while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&replacementKeys)) } {
             let mut replacementKey: Value = get_value(&replacementKeys, &i);
+            let mut replacementKey: Value = get_value(&replacementKeys, &i);
             let mut replacementValue: Value = self.safe_string(replacements.clone(), replacementKey.clone(), &[]);
             s = replace_all_str(&s, &replacementKey, &replacementValue);
         }
@@ -630,6 +639,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&rawParts)) } {
+            let mut w: Value = get_value(&rawParts, &i);
             let mut w: Value = get_value(&rawParts, &i);
             if is_greater_than(&get_array_length(&w), &Value::Int(0)) && !is_true(&self.in_array(w.clone(), stopWords.clone())) {
                 append_to_array(&mut parts, w.clone());
@@ -679,6 +689,7 @@ impl PredictionExchange {
             let mut __for_first_192: bool = true;
             while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
+            let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
                 if is_true(&pendingSep) && is_true(&(!is_equal(&label, &Value::Str("".to_string())))) {
                     label = add(&label, &Value::Str("_".to_string()));
@@ -711,6 +722,7 @@ impl PredictionExchange {
             let mut __for_first_193: bool = true;
             while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
             let mut row: Value = get_value(&marketsList, &i);
+            let mut row: Value = get_value(&marketsList, &i);
             let mut copy: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -728,6 +740,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_194: bool = true;
             while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             { let __be_tmp = self.omit(get_value(&self.markets, &key), Value::Str("symbol".to_string()), &[]); add_element_to_object(&mut self.markets, &key, __be_tmp.clone()); };
         }
@@ -762,6 +775,7 @@ impl PredictionExchange {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_195: bool = true;
             while { if !__for_first_195 { j = add(&j, &Value::Int(1)); } __for_first_195 = false; is_less_than(&j, &get_array_length(&outcomesList)) } {
+            let mut oc: Value = get_value(&outcomesList, &j);
             let mut oc: Value = get_value(&outcomesList, &j);
             let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[]);
             let mut ocId: Value = self.safe_string2(oc.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]);
@@ -840,6 +854,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_197: bool = true;
             while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &marketsLength) } {
+            let mut m: Value = get_value(&markets, &i);
             let mut m: Value = get_value(&markets, &i);
             let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[]);
             if !is_equal(&marketHandle, &Value::Null) {
@@ -1001,6 +1016,7 @@ impl PredictionExchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_202: bool = true;
             while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&rawWords)) } {
+            let mut word: Value = get_value(&rawWords, &i);
             let mut word: Value = get_value(&rawWords, &i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
@@ -1784,6 +1800,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_203: bool = true;
                 while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &tradesLength) } {
+                let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
                 if !is_equal(&tradeAmount, &Value::Null) {

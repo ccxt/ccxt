@@ -1759,6 +1759,7 @@ impl BitmartCore {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut currency: Value = get_value(&result, &key);
+            let mut currency: Value = get_value(&result, &key);
             add_element_to_object(&mut result, &key, self.safe_currency_structure(currency.clone()));
         }
         }

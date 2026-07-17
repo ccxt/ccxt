@@ -2666,6 +2666,7 @@ impl HyperliquidCore {
                         let mut __for_first_1128: bool = true;
                         while { if !__for_first_1128 { wi = add(&wi, &Value::Int(1)); } __for_first_1128 = false; is_less_than(&wi, &wordsLength) } {
                         let mut word: Value = get_value(&words, &wi);
+                        let mut word: Value = get_value(&words, &wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if is_true(&(!is_equal(&word, &Value::Str("".to_string())))) && is_true(&(is_less_than(&get_index_of(&haystack, &word), &Value::Int(0)))) {
                             allWords = Value::Bool(false);
@@ -2691,6 +2692,7 @@ impl HyperliquidCore {
             // direct push on groupMap[parentSymbol] loses the element in go
             let mut parentMarkets: Value = get_value(&groupMap, &parentSymbol);
             append_to_array(&mut parentMarkets, mkt.clone());
+            crate::set_value(&mut groupMap, &parentSymbol, parentMarkets.clone());
             add_element_to_object(&mut groupMap, &parentSymbol, parentMarkets.clone());
         }
         }
@@ -2701,6 +2703,8 @@ impl HyperliquidCore {
             let mut __for_first_1131: bool = true;
             while { if !__for_first_1131 { gi = add(&gi, &Value::Int(1)); } __for_first_1131 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
             let mut key: Value = get_value(&groupKeys, &gi);
+            let mut key: Value = get_value(&groupKeys, &gi);
+            let mut groupMarkets: Value = get_value(&groupMap, &key);
             let mut groupMarkets: Value = get_value(&groupMap, &key);
             let mut event: Value = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -1556,6 +1556,7 @@ impl HitbtcCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut entry: Value = get_value(&response, &marketId);
+            let mut entry: Value = get_value(&response, &marketId);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(entry.clone(), &[market.clone()]));
         }
         }
@@ -1663,6 +1664,7 @@ impl HitbtcCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketInner: Value = self.market(marketId.clone());
+            let mut rawTrades: Value = get_value(&response, &marketId);
             let mut rawTrades: Value = get_value(&response, &marketId);
             let mut parsed: Value = self.parse_trades(rawTrades.clone(), &[marketInner.clone()]);
             trades = self.array_concat(trades.clone(), parsed.clone());
@@ -2125,6 +2127,7 @@ impl HitbtcCore {
             while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
+            let mut orderbook: Value = get_value(&response, &marketId);
             let mut orderbook: Value = get_value(&response, &marketId);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
@@ -3520,6 +3523,7 @@ impl HitbtcCore {
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
+            let mut fundingRateData: Value = get_value(&response, &marketId);
             let mut fundingRateData: Value = get_value(&response, &marketId);
             {
                                 let mut j: Value = Value::Int(0);

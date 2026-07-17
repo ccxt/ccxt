@@ -1262,6 +1262,7 @@ impl KrakenfuturesCore {
                 while { if !__for_first_849 { i = add(&i, &Value::Int(1)); } __for_first_849 = false; is_less_than(&i, &length) } {
                 let mut index: Value = subtract(&subtract(&length, &Value::Int(1)), &i);
                 let mut element: Value = get_value(&elements, &index);
+                let mut element: Value = get_value(&elements, &index);
                 let mut event: Value = self.safe_dict_k(element.clone(), "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3145,6 +3146,7 @@ impl KrakenfuturesCore {
             while { if !__for_first_858 { i = add(&i, &Value::Int(1)); } __for_first_858 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
+            let mut balance: Value = get_value(&balances, &currencyId);
             let mut balance: Value = get_value(&balances, &currencyId);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut splitCode: Value = split(&code, &Value::Str("_".to_string()));

@@ -1227,6 +1227,7 @@ impl P2bCore {
             let mut currencyId: Value = get_value(&keys, &i);
             let mut currencyId: Value = get_value(&keys, &i);
             let mut balance: Value = get_value(&response, &currencyId);
+            let mut balance: Value = get_value(&response, &currencyId);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut used: Value = self.safe_string_k(balance.clone(), "freeze", &[]);
             let mut available: Value = self.safe_string_k(balance.clone(), "available", &[]);
@@ -1698,6 +1699,7 @@ impl P2bCore {
             while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
+            let mut marketOrders: Value = get_value(&result, &marketId);
             let mut marketOrders: Value = get_value(&result, &marketId);
             let mut parsedOrders: Value = self.parse_orders(marketOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
             orders = self.array_concat(orders.clone(), parsedOrders.clone());

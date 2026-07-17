@@ -1396,6 +1396,7 @@ impl LunoCore {
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut ticker: Value = get_value(&tickers, &id);
+            let mut ticker: Value = get_value(&tickers, &id);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
         }
         }

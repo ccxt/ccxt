@@ -1132,6 +1132,7 @@ impl WhitebitCore {
             let mut currency: Value = get_value(&currenciesIds, &i);
             let mut currency: Value = get_value(&currenciesIds, &i);
             let mut data: Value = get_value(&response, &currency);
+            let mut data: Value = get_value(&response, &currency);
             let mut code: Value = self.safe_currency_code(currency.clone(), &[]);
             let mut withdraw: Value = self.safe_value_k(data.clone(), "withdraw", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1239,6 +1240,7 @@ impl WhitebitCore {
             let mut entry: Value = get_value(&currencyIds, &i);
             let mut splitEntry: Value = split(&entry, &Value::Str(" ".to_string()));
             let mut currencyId: Value = get_value(&splitEntry, &Value::Int(0));
+            let mut feeInfo: Value = get_value(&response, &entry);
             let mut feeInfo: Value = get_value(&response, &entry);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
@@ -1601,6 +1603,7 @@ impl WhitebitCore {
             let mut code: Value = get_value(&currencyKeys, &i);
             let mut code: Value = get_value(&currencyKeys, &i);
             let mut currency: Value = get_value(&currenciesData, &code);
+            let mut currency: Value = get_value(&currenciesData, &code);
             if !is_true(&currency) {
                 continue;
             }
@@ -1616,6 +1619,7 @@ impl WhitebitCore {
                 while { if !__for_first_1057 { j = add(&j, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&j, &get_array_length(&feeKeys)) } {
                 let mut feeKey: Value = get_value(&feeKeys, &j);
                 let mut feeKey: Value = get_value(&feeKeys, &j);
+                let mut fee: Value = get_value(&feesData, &feeKey);
                 let mut fee: Value = get_value(&feesData, &feeKey);
                 if is_true(&fee) && is_equal(&get_value(&fee, &Value::Str("ticker".to_string())), &code) {
                     feeData = fee.clone();
@@ -1943,6 +1947,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
+                    let mut orders: Value = get_value(&response, &marketId);
                     let mut orders: Value = get_value(&response, &marketId);
                     {
                                                 let mut j: Value = Value::Int(0);
@@ -2930,6 +2935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut id: Value = get_value(&balanceKeys, &i);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             let mut balance: Value = get_value(&response, &id);
+            let mut balance: Value = get_value(&response, &id);
             if !is_equal(&balance, &Value::Null) && is_true(&self.is_dictionary(balance.clone())) {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(balance.clone(), Value::Str("available".to_string()), Value::Str("main_balance".to_string()), &[]));
@@ -3097,6 +3103,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
+            let mut orders: Value = get_value(&response, &marketId);
             let mut orders: Value = get_value(&response, &marketId);
             {
                                 let mut j: Value = Value::Int(0);

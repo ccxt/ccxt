@@ -1027,6 +1027,7 @@ impl DeepcoinCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&markets, &symbol);
+            let mut market: Value = get_value(&markets, &symbol);
             if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
                 let mut additionalId: Value = add(&get_value(&market, &Value::Str("baseId".to_string())), &get_value(&market, &Value::Str("quoteId".to_string())));
                 add_element_to_object(&mut self.markets_by_id, &additionalId, Value::List(vec![market.clone()])); // some endpoints return swap market id as base+quote

@@ -1175,6 +1175,7 @@ impl HyperliquidCore {
             let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut offset: Value = get_value(&perpDexesOffset, &dexName);
+            let mut offset: Value = get_value(&perpDexesOffset, &dexName);
             let mut response: Value = get_value(&promises, &i);
             let mut response: Value = get_value(&promises, &i);
             let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({

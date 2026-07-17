@@ -4209,6 +4209,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut currencyId: Value = get_value(&keys, &i);
                 let mut content: Value = get_value(&balances, &currencyId);
                 add_element_to_object(&mut content, &Value::Str("currency".to_string()), currencyId.clone());
+                crate::set_value(&mut balances, &currencyId, content.clone());
                 append_to_array(&mut flatBalances, content.clone());
             }
             }

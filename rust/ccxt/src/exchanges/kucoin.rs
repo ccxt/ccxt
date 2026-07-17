@@ -11120,6 +11120,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item.clone(), &[]);
                 let mut borrowRateHistoriesCode: Value = get_value(&borrowRateHistories, &code);
                 append_to_array(&mut borrowRateHistoriesCode, borrowRateStructure.clone());
+                crate::set_value(&mut borrowRateHistories, &code, borrowRateHistoriesCode.clone());
             }
         }
         }

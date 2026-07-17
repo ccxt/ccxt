@@ -1466,6 +1466,7 @@ impl BigoneCore {
             let mut price: Value = get_value(&bidsAsksKeys, &i);
             let mut price: Value = get_value(&bidsAsksKeys, &i);
             let mut amount: Value = get_value(&bidsAsks, &price);
+            let mut amount: Value = get_value(&bidsAsks, &price);
             append_to_array(&mut result, Value::List(vec![self.parse_number(price.clone(), &[]), self.parse_number(amount.clone(), &[])]));
         }
         }

@@ -604,6 +604,7 @@ impl BithumbCore {
                     continue;
                 }
                 let mut market: Value = get_value(&data, &currencyId);
+                let mut market: Value = get_value(&data, &currencyId);
                 let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut active: Value = Value::Bool(true);
                 if is_true(&Value::Bool(is_array(&market))) {
@@ -938,6 +939,7 @@ impl BithumbCore {
                 while { if !__for_first_357 { j = add(&j, &Value::Int(1)); } __for_first_357 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
+                let mut ticker: Value = get_value(&data, &currencyId);
                 let mut ticker: Value = get_value(&data, &currencyId);
                 let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);

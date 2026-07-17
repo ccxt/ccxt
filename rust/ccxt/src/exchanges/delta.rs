@@ -1057,6 +1057,7 @@ impl DeltaCore {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
+            let mut item: Value = get_value(&input, &key);
             let mut numericIdString: Value = self.safe_string_k(item.clone(), "numericId", &[]);
             if is_equal(&numericIdString, &Value::Null) {
                 continue;

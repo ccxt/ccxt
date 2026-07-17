@@ -2793,6 +2793,7 @@ impl CoinsphCore {
                     encodedArrayParams = add(&encodedArrayParams, &Value::Str("&".to_string()));
                 }
                 let mut innerArray: Value = get_value(&query, &key);
+                let mut innerArray: Value = get_value(&query, &key);
                 query = self.omit(query.clone(), key.clone(), &[]);
                 let mut encodedArrayParam: Value = self.parse_array_param(innerArray.clone(), key.clone());
                 encodedArrayParams = add(&encodedArrayParams, &encodedArrayParam);

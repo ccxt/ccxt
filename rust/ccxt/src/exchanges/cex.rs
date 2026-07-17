@@ -718,6 +718,7 @@ impl CexCore {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
+            let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut deposit: Value = Value::Bool(is_equal(&self.safe_string_k(rawNetwork.clone(), "deposit", &[]), &Value::Str("enabled".to_string())));
             let mut withdraw: Value = Value::Bool(is_equal(&self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]), &Value::Str("enabled".to_string())));

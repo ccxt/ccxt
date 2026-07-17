@@ -654,6 +654,7 @@ impl CoinspotCore {
                     let mut currencyId: Value = get_value(&currencyIds, &j);
                     let mut currencyId: Value = get_value(&currencyIds, &j);
                     let mut balance: Value = get_value(&currencies, &currencyId);
+                    let mut balance: Value = get_value(&currencies, &currencyId);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
                     add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
@@ -878,6 +879,7 @@ impl CoinspotCore {
             let mut market: Value = self.safe_market(&[id.clone()]);
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+                let mut ticker: Value = get_value(&prices, &id);
                 let mut ticker: Value = get_value(&prices, &id);
                 add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
             }

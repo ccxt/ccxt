@@ -4371,6 +4371,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut key: Value = get_value(&paramsKeys, &i);
             returnString = add(&returnString, &key);
             let mut value: Value = get_value(&object, &key);
+            let mut value: Value = get_value(&object, &key);
             if is_equal(&value, &Value::Str("undefined".to_string())) {
                 returnString = add(&returnString, &Value::Str("null".to_string()));
             }  else if is_true(&Value::Bool(is_array(&value))) {

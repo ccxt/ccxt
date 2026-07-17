@@ -1781,3 +1781,29 @@ mod throttle_tests {
         assert!(start.elapsed().as_millis() < 50, "disabled throttle slept");
     }
 }
+
+#[cfg(all(test, feature = "transpiled-base"))]
+mod cow_alias_tests {
+    use super::Exchange;
+    use crate::Value;
+    use crate::runtime::get_array_length;
+
+    // convertOHLCVToTradingView does `result[key].push(...)` on an extracted
+    // local — a COW clone in Rust. Without the write-back the result columns
+    // stay empty. Assert the data survives (review P0-C).
+    #[test]
+    fn convert_ohlcv_to_trading_view_preserves_pushes() {
+        let ex = Exchange::new(None);
+        let row = Value::List(vec![
+            Value::Int(1_700_000_000_000), Value::Int(1), Value::Int(2),
+            Value::Int(0), Value::Int(1), Value::Int(10),
+        ]);
+        let ohlcvs = Value::List(vec![row.clone(), row]);
+        let r = ex.convert_ohlcv_to_trading_view(ohlcvs, &[]);
+        for key in ["t", "o", "h", "l", "c", "v"] {
+            let col = crate::get_value(&r, &Value::Str(key.to_string()));
+            assert_eq!(get_array_length(&col), Value::Int(2),
+                "result['{key}'] lost its pushes — COW write-back failed");
+        }
+    }
+}

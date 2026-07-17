@@ -3132,6 +3132,7 @@ impl MyriadCore {
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             append_to_array(&mut grouped, outcomeObj.clone());
+            crate::set_value(&mut outcomesByMarket, &key, grouped.clone());
             add_element_to_object(&mut outcomesByMarket, &key, grouped.clone());
         }
         }
@@ -3142,6 +3143,7 @@ impl MyriadCore {
             while { if !__for_first_1236 { i = add(&i, &Value::Int(1)); } __for_first_1236 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
+            let mut grouped: Value = get_value(&outcomesByMarket, &key);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             let mut firstOutcome: Value = get_value(&grouped, &Value::Int(0));
             let mut info: Value = self.safe_dict_k(firstOutcome.clone(), "info", &[Value::Map({
@@ -3166,6 +3168,7 @@ impl MyriadCore {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut response: Value = get_value(&responses, &i);
             let mut response: Value = get_value(&responses, &i);
+            let mut grouped: Value = get_value(&outcomesByMarket, &key);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             {
                                 let mut j: Value = Value::Int(0);

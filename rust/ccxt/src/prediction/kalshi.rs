@@ -609,6 +609,7 @@ impl KalshiCore {
 }));
                         }
                         let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
+                        let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -974,6 +975,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut oi: Value = Value::Int(0);
             let mut __for_first_1141: bool = true;
             while { if !__for_first_1141 { oi = add(&oi, &Value::Int(1)); } __for_first_1141 = false; is_less_than(&oi, &get_array_length(&outcomeLabels)) } {
+            let mut label: Value = get_value(&outcomeLabels, &oi);
             let mut label: Value = get_value(&outcomeLabels, &oi);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone(), subtitleOrTicker.clone(), label.clone());
             let mut winnerRaw: Value = Value::Null;
@@ -1460,6 +1462,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             let mut grouped: Value = get_value(&outcomesByTicker, &ticker);
             append_to_array(&mut grouped, outcomeObj.clone());
+            crate::set_value(&mut outcomesByTicker, &ticker, grouped.clone());
             add_element_to_object(&mut outcomesByTicker, &ticker, grouped.clone());
         }
         }
@@ -1502,6 +1505,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_true(&(is_equal(&marketTicker, &Value::Null))) || !is_true(&(Value::Bool(in_op(&outcomesByTicker, &marketTicker)))) {
                     continue;
                 }
+                let mut grouped: Value = get_value(&outcomesByTicker, &marketTicker);
                 let mut grouped: Value = get_value(&outcomesByTicker, &marketTicker);
                 {
                                         let mut j: Value = Value::Int(0);
@@ -2988,6 +2992,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1161: bool = true;
                 while { if !__for_first_1161 { mi = add(&mi, &Value::Int(1)); } __for_first_1161 = false; is_less_than(&mi, &parsedMarketsLength) } {
                 let mut m: Value = get_value(&parsedMarkets, &mi);
+                let mut m: Value = get_value(&parsedMarkets, &mi);
                 add_element_to_object(&mut self.markets, &get_value(&m, &Value::Str("market".to_string())), m.clone());
             }
             }
@@ -3197,6 +3202,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut ci: Value = Value::Int(0);
             let mut __for_first_1170: bool = true;
             while { if !__for_first_1170 { ci = add(&ci, &Value::Int(1)); } __for_first_1170 = false; is_less_than(&ci, &collectedLength) } {
+            let mut st: Value = get_value(&collected, &ci);
             let mut st: Value = get_value(&collected, &ci);
             let mut already: Value = self.safe_string(seen.clone(), st.clone(), &[]);
             if is_true(&(!is_equal(&st, &Value::Null))) && is_true(&(!is_equal(&st, &Value::Str("".to_string())))) && is_true(&(is_equal(&already, &Value::Null))) {

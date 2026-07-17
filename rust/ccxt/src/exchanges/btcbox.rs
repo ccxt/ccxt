@@ -506,6 +506,7 @@ impl BtcboxCore {
             let mut quoteId: Value = to_lower(&quote);
             let mut id: Value = to_lower(&baseCurr);
             let mut res: Value = get_value(&response1, &marketId);
+            let mut res: Value = get_value(&response1, &marketId);
             let mut symbol: Value = add(&add(&baseCurr, &Value::Str("/".to_string())), &quote);
             let mut fee: Value = ternary(is_true(&(is_equal(&id, &Value::Str("BTC".to_string())))), self.parse_number(Value::Str("0.0005".to_string()), &[]), self.parse_number(Value::Str("0.0010".to_string()), &[]));
             let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({

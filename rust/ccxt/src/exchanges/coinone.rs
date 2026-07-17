@@ -723,6 +723,7 @@ impl CoinoneCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut balance: Value = get_value(&balances, &currencyId);
+            let mut balance: Value = get_value(&balances, &currencyId);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "avail", &[]));
@@ -1574,6 +1575,7 @@ impl CoinoneCore {
             while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
+            let mut value: Value = get_value(&walletAddress, &key);
             let mut value: Value = get_value(&walletAddress, &key);
             if is_true(&(!is_true(&value))) || is_true(&(is_equal(&value, &Value::Str("-1".to_string())))) {
                 continue;

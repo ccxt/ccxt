@@ -1212,6 +1212,7 @@ impl ExmoCore {
                 let mut maxValue: Value = self.safe_string_k(provider.clone(), "max", &[]);
                 let mut activeProvider: Value = self.safe_bool_k(provider.clone(), "enabled", &[]);
                 let mut networkEntry: Value = get_value(&networks, &networkCode);
+                let mut networkEntry: Value = get_value(&networks, &networkCode);
                 if is_equal(&typeInner, &Value::Str("deposit".to_string())) {
                     add_element_to_object(&mut networkEntry, &Value::Str("deposit".to_string()), activeProvider.clone());
                     add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string())), &Value::Str("min".to_string()), minValue.clone());
@@ -1321,6 +1322,7 @@ impl ExmoCore {
             while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
+            let mut market: Value = get_value(&spotResponse, &id);
             let mut market: Value = get_value(&spotResponse, &id);
             let mut marginMarket: Value = self.safe_dict(marginPairsDict.clone(), id.clone(), &[]);
             let mut symbol: Value = replace_str(&id, &Value::Str("_".to_string()), &Value::Str("/".to_string()));
@@ -1504,6 +1506,7 @@ impl ExmoCore {
                 while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
+                let mut item: Value = get_value(&wallets, &currencyId);
                 let mut item: Value = get_value(&wallets, &currencyId);
                 let mut currency: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
@@ -2053,6 +2056,7 @@ impl ExmoCore {
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut resultMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
+            let mut items: Value = get_value(&response, &marketId);
             let mut items: Value = get_value(&response, &marketId);
             let mut trades: Value = self.parse_trades(items.clone(), &[resultMarket.clone(), since.clone(), limit.clone()]);
             result = self.array_concat(result.clone(), trades.clone());
