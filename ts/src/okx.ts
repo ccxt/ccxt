@@ -7616,6 +7616,11 @@ export default class okx extends Exchange {
         if (type === 'MARGIN') {
             request['instId'] = market['id'];
         }
+        let quoteConversionRate: Str = '1';
+        if (this.safeBool (market, 'linear', false)) {
+            const ticker = await this.fetchMarkPrice (symbol);
+            quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
+        }
         const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
         //
         //    {
@@ -7639,11 +7644,6 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        let quoteConversionRate: Str = '1';
-        if (this.safeBool (market, 'linear', false)) {
-            const ticker = await this.fetchMarkPrice (symbol);
-            quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
-        }
         return this.parseMarketLeverageTiers (data, market, quoteConversionRate);
     }
 
