@@ -657,7 +657,7 @@ export default class woo extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': (marketType as MarketType),
+            'type': (marketType),
             'spot': spot,
             'margin': margin,
             'swap': swap,
@@ -1784,7 +1784,7 @@ export default class woo extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500);
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -1957,7 +1957,7 @@ export default class woo extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, (timeInForce as string));
+        return this.safeString (timeInForces, (timeInForce));
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2055,7 +2055,7 @@ export default class woo extends Exchange {
             timestamp = this.safeInteger (order, 'timestamp');
         }
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
-        const clientOrderId = this.omitZero ((this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId') as string)); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero ((this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId'))); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2066,7 +2066,7 @@ export default class woo extends Exchange {
         const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero ((this.safeString (order, 'averageExecutedPrice') as string));
+        const average = this.omitZero ((this.safeString (order, 'averageExecutedPrice')));
         // const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
@@ -2315,7 +2315,7 @@ export default class woo extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500);
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -2550,7 +2550,7 @@ export default class woo extends Exchange {
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
-            'network': this.networkCodeToId ((networkCode as string), currency['code']),
+            'network': this.networkCodeToId ((networkCode), currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
         //
@@ -2731,7 +2731,7 @@ export default class woo extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     getCurrencyFromChaincode (networkizedCode, currency) {
@@ -2873,7 +2873,7 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     /**
@@ -3059,7 +3059,7 @@ export default class woo extends Exchange {
             'COMPLETED': 'ok',
             'CANCELED': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     /**
@@ -3542,7 +3542,7 @@ export default class woo extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -3595,7 +3595,7 @@ export default class woo extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     /**

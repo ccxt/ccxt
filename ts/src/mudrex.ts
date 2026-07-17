@@ -965,7 +965,7 @@ export default class mudrex extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             orders.push (this.parseOrder (rows[i], market));
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     /**

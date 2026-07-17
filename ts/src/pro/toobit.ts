@@ -791,7 +791,7 @@ export default class toobit extends toobitRest {
     async loadBalanceSnapshot (client, messageHash, marketType) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, (type as string), {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, (type), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1245,7 +1245,7 @@ export default class toobit extends toobitRest {
         if (code !== undefined) {
             const desc = this.safeString (message, 'desc');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
-            const exception = new ExchangeError ((msg as string)); // c# fix
+            const exception = new ExchangeError ((msg)); // c# fix
             client.reject (exception);
             return true;
         }

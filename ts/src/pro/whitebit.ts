@@ -983,7 +983,7 @@ export default class whitebit extends whitebitRest {
         const subs = client.subscriptions;
         const values = Object.values (subs);
         for (let i = 0; i < values.length; i++) {
-            const subscription = values[i] as any;
+            const subscription = values[i];
             if (subscription !== true) {
                 const subId = this.safeInteger (subscription, 'id');
                 if ((subId !== undefined) && (subId === id)) {

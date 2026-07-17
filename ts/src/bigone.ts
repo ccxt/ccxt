@@ -1271,7 +1271,7 @@ export default class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return this.safeTrade (result as any, market);
+        return this.safeTrade (result, market);
     }
 
     /**
@@ -1476,7 +1476,7 @@ export default class bigone extends Exchange {
             'LIMIT': 'limit',
             'MARKET': 'market',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1770,7 +1770,7 @@ export default class bigone extends Exchange {
                 'status': 'failed',
             }));
         }
-        return result as Order[];
+        return result;
     }
 
     /**

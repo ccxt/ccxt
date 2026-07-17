@@ -191,7 +191,7 @@ export default class blockchaincom extends blockchaincomRest {
             const timeframe = this.findTimeframe (timeframeId);
             const ohlcv = this.safeValue (message, 'price', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -754,7 +754,7 @@ export default class blockchaincom extends blockchaincomRest {
             'balances': this.handleBalance,
             'trading': this.handleOrders,
         };
-        const handler = this.safeValue (handlers, channel as string);
+        const handler = this.safeValue (handlers, channel);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;

@@ -1306,14 +1306,14 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode as string); // use default network code if not provided
         }
-        const currency = this.currency (currencyCode as string);
+        const currency = this.currency (currencyCode);
         let id = currency['id'];
         let idFromNetwork: Str = undefined;
         const networks = this.safeDict (currency, 'networks', {});
         let networkInfo: Dict = {};
         if (networkCode === undefined) {
             // network code is not provided and there is no default network code
-            let network = this.safeDict (networks, currencyCode as string); // trying to find network that has the same code as currency
+            let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
             if (network === undefined) {
                 // use the first network in the networks list if there is no network code with the same code as currency
                 const keys = Object.keys (networks);
@@ -1437,7 +1437,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        return this.parseDepositWithdrawFee (data) as any;
+        return this.parseDepositWithdrawFee (data);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1720,7 +1720,7 @@ export default class bitmart extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol as string);
+            market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
@@ -2133,7 +2133,7 @@ export default class bitmart extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
         }
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
@@ -2723,9 +2723,9 @@ export default class bitmart extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
-            'price': this.omitZero (priceString as string),
+            'price': this.omitZero (priceString),
             'triggerPrice': trailingActivationPrice,
-            'amount': this.omitZero (this.safeString (order, 'size') as string),
+            'amount': this.omitZero (this.safeString (order, 'size')),
             'cost': this.safeString2 (order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN (order, [ 'price_avg', 'priceAvg', 'deal_avg_price' ]),
             'filled': this.safeStringN (order, [ 'filled_size', 'filledSize', 'deal_size' ]),
@@ -2768,7 +2768,7 @@ export default class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, (type as string), {});
+        const statuses = this.safeDict (statusesByType, (type), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2909,7 +2909,7 @@ export default class bitmart extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            market = this.market (marketId as string);
+            market = this.market (marketId);
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' createOrders() supports spot orders only');
             }
@@ -2925,7 +2925,7 @@ export default class bitmart extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            let orderRequest = this.createSpotOrderRequest (marketId as string, type, side, amount, price, orderParams);
+            let orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }
@@ -3204,7 +3204,7 @@ export default class bitmart extends Exchange {
                 } else {
                     notional = (notional === undefined) ? this.numberToString (amount) : notional;
                 }
-                request['notional'] = this.decimalToPrecision (notional as string, TRUNCATE, market['precision']['price'], this.precisionMode);
+                request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
             } else if (side === 'sell') {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
@@ -4189,7 +4189,7 @@ export default class bitmart extends Exchange {
             '4': 'canceled', // Cancel
             '5': 'failed', // Fail
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -4615,7 +4615,7 @@ export default class bitmart extends Exchange {
             'OK': 'ok',
             'FINISHED': 'ok',
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransferToAccount (type) {
@@ -4623,7 +4623,7 @@ export default class bitmart extends Exchange {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseTransferFromAccount (type) {
@@ -4631,7 +4631,7 @@ export default class bitmart extends Exchange {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -5019,7 +5019,7 @@ export default class bitmart extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -5144,7 +5144,7 @@ export default class bitmart extends Exchange {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
             const first = this.safeString (symbols, 0);
-            market = this.market (first as string);
+            market = this.market (first);
         }
         const request: Dict = {};
         if (symbolsLength === 1) {
@@ -5591,7 +5591,7 @@ export default class bitmart extends Exchange {
             'Transfer': 'transfer',
             'Liquidation Clearance': 'settlement',
         };
-        return this.safeString (ledgerType, (type as string), type);
+        return this.safeString (ledgerType, (type), type);
     }
 
     fetchTransactionsRequest (flowType: Int = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

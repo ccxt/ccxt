@@ -1610,7 +1610,7 @@ export default class toobit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -1632,7 +1632,7 @@ export default class toobit extends Exchange {
         //            "settleRate": "0.0001"
         //        }, ...
         //
-        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+        return this.parseFundingRateHistories (response, market, since, limit);
     }
 
     parseFundingRateHistory (contract, market: Market = undefined) {
@@ -2647,7 +2647,7 @@ export default class toobit extends Exchange {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     /**

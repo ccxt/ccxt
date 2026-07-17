@@ -926,7 +926,7 @@ export default class delta extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type as MarketType,
+                'type': type,
                 'spot': spot,
                 'margin': false,
                 'swap': swap,
@@ -2518,7 +2518,7 @@ export default class delta extends Exchange {
             'commission_rebate': 'rebate',
             // 'promo_credit': 'promo_credit',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

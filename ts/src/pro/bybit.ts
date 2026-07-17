@@ -282,7 +282,7 @@ export default class bybit extends bybitRest {
                 'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
             },
         };
-        return await this.watch (url, requestId, request, requestId, true) as Order;
+        return await this.watch (url, requestId, request, requestId, true);
     }
 
     /**
@@ -329,7 +329,7 @@ export default class bybit extends bybitRest {
                 'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
             },
         };
-        return await this.watch (url, requestId, request, requestId, true) as Order;
+        return await this.watch (url, requestId, request, requestId, true);
     }
 
     /**
@@ -370,7 +370,7 @@ export default class bybit extends bybitRest {
                 'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
             },
         };
-        return await this.watch (url, requestId, request, requestId, true) as Order;
+        return await this.watch (url, requestId, request, requestId, true);
     }
 
     /**
@@ -416,7 +416,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
         params = this.cleanParams (params);
@@ -452,7 +452,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeValue (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
         const messageHashes: string[] = [];
@@ -645,7 +645,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchBidsAsks', params);
         params = this.cleanParams (params);

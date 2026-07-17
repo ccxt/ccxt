@@ -1968,7 +1968,7 @@ export default class foxbit extends Exchange {
             'INTERNAL_TRANSFERING': 'transfer',
             'OTHERS': 'transaction',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined) {

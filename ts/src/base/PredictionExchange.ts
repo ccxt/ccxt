@@ -1562,7 +1562,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         results = this.sortBy (results, 'timestamp');
         const outcomeHandle = this.safeString (outcomeObj, 'outcome');
-        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionOrder[];
+        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit);
     }
 
     /**

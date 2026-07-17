@@ -689,7 +689,7 @@ export default class hitbtc extends hitbtcRest {
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     parseWsTrade (trade, market: Market = undefined) {

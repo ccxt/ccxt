@@ -879,7 +879,7 @@ export default class bithumb extends Exchange {
             request['price'] = price;
             request['type'] = (side === 'buy') ? 'bid' : 'ask';
         } else {
-            method = 'privatePostTradeMarket' + this.capitalize ((side as string));
+            method = 'privatePostTradeMarket' + this.capitalize ((side));
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
@@ -957,7 +957,7 @@ export default class bithumb extends Exchange {
             'Completed': 'closed',
             'Cancel': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

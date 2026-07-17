@@ -108,7 +108,7 @@ export default class bitmart extends bitmartRest {
 
     async subscribe (unifiedName, channel, symbol, type, params = {}) {
         const market = this.market (symbol);
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['public']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         let request = {};
         let messageHash: Str = undefined;
         let rawHash: Str = undefined;
@@ -148,7 +148,7 @@ export default class bitmart extends bitmartRest {
         if (symbols === undefined) {
             symbols = [];
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['public']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
         const rawSubscriptions: string[] = [];
@@ -211,7 +211,7 @@ export default class bitmart extends bitmartRest {
             };
         }
         const messageHash = 'balance:' + type;
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
         let fetchBalanceSnapshot: Bool = undefined;
@@ -243,7 +243,7 @@ export default class bitmart extends bitmartRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -364,7 +364,7 @@ export default class bitmart extends bitmartRest {
         let marketType: Str = undefined;
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
-        const trades = await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
+        const trades = await this.subscribeMultiple ('trade', channelName, marketType, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -376,7 +376,7 @@ export default class bitmart extends bitmartRest {
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
         }
-        return result as Trade[];
+        return result;
     }
 
     /**
@@ -411,7 +411,7 @@ export default class bitmart extends bitmartRest {
         [ symbols, marketType, params ] = this.getParamsForMultipleSub ('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('trade', channelName, marketType as string, symbols, params);
+        return await this.subscribeMultiple ('trade', channelName, marketType, symbols, params);
     }
 
     getParamsForMultipleSub (methodName: string, symbols: string[], limit: Int = undefined, params = {}): [string[], Str, Dict] {
@@ -641,7 +641,7 @@ export default class bitmart extends bitmartRest {
                 'args': [ 'futures/order' ],
             };
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const newOrders = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         if (this.newUpdates) {
             return newOrders;
@@ -694,7 +694,7 @@ export default class bitmart extends bitmartRest {
                 'args': [ 'futures/order' ],
             };
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -974,7 +974,7 @@ export default class bitmart extends bitmartRest {
             'action': 'subscribe',
             'args': [ 'futures/position' ],
         };
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const newPositions = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash);
         if (this.newUpdates) {
             return newPositions;
@@ -1804,7 +1804,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        const orderbook = await this.subscribeMultiple ('orderbook', channel, type, symbols, params);
         return orderbook.limit ();
     }
 
@@ -1830,7 +1830,7 @@ export default class bitmart extends bitmartRest {
             channel = 'depth50';
         }
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
+        return await this.subscribeMultiple ('orderbook', channel, type, symbols, params);
     }
 
     /**
@@ -1907,7 +1907,7 @@ export default class bitmart extends bitmartRest {
 
     async authenticate (type, params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
         const messageHash = 'authenticated';
         const client = this.client (url);
         const future = client.reusableFuture (messageHash);
@@ -2045,7 +2045,7 @@ export default class bitmart extends bitmartRest {
         const unsubHash = 'unsubscribe::' + subHash;
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription (client, subHash as string, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
         this.cleanUnsubscription (client, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache (subscription);
     }

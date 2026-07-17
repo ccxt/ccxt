@@ -311,7 +311,7 @@ export default class coinone extends coinoneRest {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        let stored = this.safeValue (this.trades, (symbol as string));
+        let stored = this.safeValue (this.trades, (symbol));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
@@ -390,7 +390,7 @@ export default class coinone extends coinoneRest {
             return;
         }
         if (type === 'DATA') {
-            const topic = this.safeString (message, 'channel', '') as string;
+            const topic = this.safeString (message, 'channel', '');
             const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,

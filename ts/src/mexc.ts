@@ -1861,7 +1861,7 @@ export default class mexc extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
@@ -3735,7 +3735,7 @@ export default class mexc extends Exchange {
             '4': 'canceled',
             // '5': 'invalid', //  TODO: wt?
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     parseOrderTimeInForce (status) {
@@ -3755,7 +3755,7 @@ export default class mexc extends Exchange {
             'FILL_OR_KILL': 'FOK',
             'MARKET': 'IOC',
         };
-        return this.safeString (statuses, (orderType as string), orderType);
+        return this.safeString (statuses, (orderType), orderType);
     }
 
     async fetchAccountHelper (type, params) {
@@ -4667,7 +4667,7 @@ export default class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     /**
@@ -4964,7 +4964,7 @@ export default class mexc extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                result = this.safeDict (addressStructures, (key as string));
+                result = this.safeDict (addressStructures, (key));
             }
         }
         if (result === undefined) {
@@ -5235,7 +5235,7 @@ export default class mexc extends Exchange {
                 '10': 'pending', // MANUAL
             },
         };
-        const statuses = this.safeValue (statusesByType, (type as string), {});
+        const statuses = this.safeValue (statusesByType, (type), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -5281,7 +5281,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.fetchPositions (undefined, this.extend (request, params));
-        return this.safeValue (response, 0) as Position;
+        return this.safeValue (response, 0);
     }
 
     /**
@@ -5742,7 +5742,7 @@ export default class mexc extends Exchange {
             'FAILED': 'failed',
             'WAIT': 'pending',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     /**
@@ -5788,7 +5788,7 @@ export default class mexc extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, (network as string), network); // handle ETH > ERC-20 alias
+        network = this.safeString (networks, (network), network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, currency['code']);
         this.checkAddress (address);
         const request: Dict = {
@@ -5957,7 +5957,7 @@ export default class mexc extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], (networkId as string), networkId);
+            const networkCode = this.safeString (this.options['networks'], (networkId), networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[(networkCode as string)] = fee;
         }
@@ -6274,7 +6274,7 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage (response, market) as any; // tmp revert type
+        return this.parseLeverage (response, market); // tmp revert type
     }
 
     nonce () {

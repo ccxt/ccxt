@@ -77,7 +77,7 @@ export default class coinbase extends coinbaseRest {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
             productIds = marketIds || [];
-            messageHash = messageHash + '::' + (symbol as string[]).join (',');
+            messageHash = messageHash + '::' + (symbol).join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;

@@ -367,7 +367,7 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList (message, 'data', []);
         const dataEntry = this.safeDict (data, 0);
         const timestamp = this.safeInteger (dataEntry, 't');
-        const snapshot = this.parseOrderBook ((dataEntry as Dict), symbol, timestamp, 'b', 'a');
+        const snapshot = this.parseOrderBook ((dataEntry), symbol, timestamp, 'b', 'a');
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
         this.orderbooks[symbol] = orderbook;
@@ -479,18 +479,18 @@ export default class hashkey extends hashkeyRest {
             'side': side,
             'price': this.safeString (order, 'p'),
             'average': this.safeString (order, 'V'),
-            'amount': this.omitZero ((this.safeString (order, 'q') as string)),
+            'amount': this.omitZero ((this.safeString (order, 'q'))),
             'filled': this.safeString (order, 'z'),
             'remaining': this.safeString (order, 'r'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': this.omitZero ((this.safeString (order, 'Z') as string)),
+            'cost': this.omitZero ((this.safeString (order, 'Z'))),
             'trades': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (this.safeString (order, 'N')),
-                'amount': this.omitZero ((this.safeString (order, 'n') as string)),
+                'amount': this.omitZero ((this.safeString (order, 'n'))),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -604,7 +604,7 @@ export default class hashkey extends hashkeyRest {
             'id': this.safeString2 (trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': (market as Dict)['symbol'],
+            'symbol': (market)['symbol'],
             'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
@@ -771,7 +771,7 @@ export default class hashkey extends hashkeyRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

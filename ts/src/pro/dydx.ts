@@ -393,7 +393,7 @@ export default class dydx extends dydxRest {
         const ohlcv = this.safeDict (candles, 0, content);
         const parsed = this.parseOHLCV (ohlcv, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -434,7 +434,7 @@ export default class dydx extends dydxRest {
                 'v4_orderbook': this.handleOrderBook,
                 'v4_candles': this.handleOHLCV,
             };
-            const method = this.safeValue (methods, (topic as string));
+            const method = this.safeValue (methods, (topic));
             if (method !== undefined) {
                 method.call (this, client, message);
             }

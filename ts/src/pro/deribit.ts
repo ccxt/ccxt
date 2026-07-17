@@ -224,8 +224,8 @@ export default class deribit extends deribitRest {
             await this.authenticate ();
         }
         const channels: List = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const market = this.market ((symbols as string[])[i]);
+        for (let i = 0; i < (symbols).length; i++) {
+            const market = this.market ((symbols)[i]);
             channels.push ('ticker.' + market['id'] + '.' + interval);
         }
         const message: Dict = {
@@ -302,8 +302,8 @@ export default class deribit extends deribitRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels: List = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const market = this.market ((symbols as string[])[i]);
+        for (let i = 0; i < (symbols).length; i++) {
+            const market = this.market ((symbols)[i]);
             channels.push ('quote.' + market['id']);
         }
         const message: Dict = {
@@ -585,7 +585,7 @@ export default class deribit extends deribitRest {
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
-            descriptor = interval as string;
+            descriptor = interval;
         }
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
@@ -790,10 +790,10 @@ export default class deribit extends deribitRest {
         const data = this.safeValue (params, 'data', {});
         let orders: Order[] = [];
         if (Array.isArray (data)) {
-            orders = this.parseOrders (data) as Order[];
+            orders = this.parseOrders (data);
         } else {
             const order = this.parseOrder (data);
-            orders = [ order ] as Order[];
+            orders = [ order ];
         }
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -877,7 +877,7 @@ export default class deribit extends deribitRest {
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe as string) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
@@ -1042,9 +1042,9 @@ export default class deribit extends deribitRest {
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,
                 'chart': this.handleOHLCV,
-                'user': this.safeValue (userHandlers, this.safeString (parts, 1) as string),
+                'user': this.safeValue (userHandlers, this.safeString (parts, 1)),
             };
-            const handler = this.safeValue (handlers, channelId as string);
+            const handler = this.safeValue (handlers, channelId);
             if (handler !== undefined) {
                 handler.call (this, client, message);
                 return;

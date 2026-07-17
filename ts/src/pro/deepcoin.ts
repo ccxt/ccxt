@@ -490,7 +490,7 @@ export default class deepcoin extends deepcoinRest {
             '0': 'buy',
             '1': 'sell',
         };
-        return this.safeString (sides, (direction as string), direction);
+        return this.safeString (sides, (direction), direction);
     }
 
     handleTakerOrMaker (matchRole: Str): Str {
@@ -498,7 +498,7 @@ export default class deepcoin extends deepcoinRest {
             '0': 'maker',
             '1': 'taker',
         };
-        return this.safeString (roles, (matchRole as string), matchRole);
+        return this.safeString (roles, (matchRole), matchRole);
     }
 
     /**
@@ -1013,7 +1013,7 @@ export default class deepcoin extends deepcoinRest {
             '4': 'open',
             '6': 'canceled',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     /**
@@ -1123,7 +1123,7 @@ export default class deepcoin extends deepcoinRest {
             'contractSize': undefined,
             'side': this.parsePositionSide (direction),
             'notional': undefined,
-            'leverage': this.omitZero ((this.safeString (position, 'l') as string)),
+            'leverage': this.omitZero ((this.safeString (position, 'l'))),
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'collateral': undefined,
@@ -1222,7 +1222,7 @@ export default class deepcoin extends deepcoinRest {
         if (action === '0') {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subId = this.safeInteger (data, 'L');
-            const subscription = this.safeDict (subscriptionsById, (subId as number), {}); // original watch subscription
+            const subscription = this.safeDict (subscriptionsById, (subId), {}); // original watch subscription
             const subHash = this.safeString (subscription, 'subHash');
             const unsubHash = 'unsubscribe::' + subHash;
             const unsubsciption = this.safeDict (client.subscriptions, unsubHash, {}); // unWatch subscription
@@ -1233,7 +1233,7 @@ export default class deepcoin extends deepcoinRest {
     handleUnSubscription (client: Client, subscription: Dict) {
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = this.safeString (subscription, 'unsubHash');
-        this.cleanUnsubscription (client, (subHash as string), (unsubHash as string));
+        this.cleanUnsubscription (client, (subHash), (unsubHash));
         this.cleanCache (subscription);
     }
 
@@ -1261,7 +1261,7 @@ export default class deepcoin extends deepcoinRest {
         const data = this.safeDict (first, 'd', {});
         const requestId = this.safeInteger (data, 'L');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, (requestId as number), {});
+        const subscription = this.safeDict (subscriptionsById, (requestId), {});
         const messageHash = this.safeString (subscription, 'subHash');
         const feedback = this.id + ' ' + this.json (message);
         try {

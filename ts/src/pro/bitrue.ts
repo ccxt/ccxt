@@ -345,7 +345,7 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        return await this.watch (url as string, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     handleOrderBook (client: Client, message) {
@@ -428,7 +428,7 @@ export default class bitrue extends bitrueRest {
             }
             const baseId = this.safeStringLower (candidate, 'baseId', '');
             const quoteId = this.safeStringLower (candidate, 'quoteId', '');
-            if ((baseId as string) + (quoteId as string) === wsBaseQuote) {
+            if ((baseId) + (quoteId) === wsBaseQuote) {
                 return candidate;
             }
         }
@@ -843,7 +843,7 @@ export default class bitrue extends bitrueRest {
                 'BALANCE': this.handleBalance,
                 'ORDER': this.handleOrder,
             };
-            const handler = this.safeValue (handlers, event as string);
+            const handler = this.safeValue (handlers, event);
             if (handler !== undefined) {
                 handler.call (this, client, message);
             }

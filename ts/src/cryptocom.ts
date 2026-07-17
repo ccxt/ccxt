@@ -787,7 +787,7 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero ((this.safeString (market, 'expiry_timestamp_ms') as string));
+            const expiryString = this.omitZero ((this.safeString (market, 'expiry_timestamp_ms')));
             const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
@@ -939,7 +939,7 @@ export default class cryptocom extends Exchange {
         }
         symbol = this.symbol (symbol);
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol) as Ticker;
+        return this.safeValue (tickers, symbol);
     }
 
     /**
@@ -962,7 +962,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params);
         }
         let market: Market = undefined;
         const request: Dict = {};
@@ -1046,7 +1046,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1110,7 +1110,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300);
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -1343,7 +1343,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const order = this.safeDict (response, 'result', {});
-        return this.parseOrder (order as Dict, market);
+        return this.parseOrder (order, market);
     }
 
     createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
@@ -1357,7 +1357,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': (side as string).toUpperCase (),
+            'side': (side).toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -1487,7 +1487,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict, market);
+        return this.parseOrder (result, market);
     }
 
     /**
@@ -1587,7 +1587,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': (side as string).toUpperCase (),
+            'side': (side).toUpperCase (),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1714,7 +1714,7 @@ export default class cryptocom extends Exchange {
         const request = this.editOrderRequest (id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder (request);
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict);
+        return this.parseOrder (result);
     }
 
     editOrderRequest (id: string, symbol: Str, amount: Num, price: Num = undefined, params = {}) {
@@ -1796,7 +1796,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result as Dict, market);
+        return this.parseOrder (result, market);
     }
 
     /**
@@ -1953,7 +1953,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100);
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -2049,7 +2049,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId ((networkCode as string), code);
+        const networkId = this.networkCodeToId ((networkCode), code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
@@ -2437,7 +2437,7 @@ export default class cryptocom extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        return this.safeString (statuses, (status as string), status);
+        return this.safeString (statuses, (status), status);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -2446,7 +2446,7 @@ export default class cryptocom extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
         };
-        return this.safeString (timeInForces, (timeInForce as string), timeInForce);
+        return this.safeString (timeInForces, (timeInForce), timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -2901,7 +2901,7 @@ export default class cryptocom extends Exchange {
             'AUTO_CONVERSION': 'conversion',
             'MANUAL_CONVERSION': 'conversion',
         };
-        return this.safeString (ledgerType, (type as string), type);
+        return this.safeString (ledgerType, (type), type);
     }
 
     /**
@@ -3183,7 +3183,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -3237,7 +3237,7 @@ export default class cryptocom extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     /**
@@ -3516,7 +3516,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'result', {});
-        return this.parseTradingFee (data as Dict, market);
+        return this.parseTradingFee (data, market);
     }
 
     /**

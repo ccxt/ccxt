@@ -235,7 +235,7 @@ export default class Client {
     }
 
     onPingInterval () {
-        if (this.keepAlive && (this as any).isOpen ()) {
+        if (this.keepAlive && (this).isOpen ()) {
             const now = milliseconds ()
             this.lastPong = this.lastPong || now
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {

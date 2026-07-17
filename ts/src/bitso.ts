@@ -339,7 +339,7 @@ export default class bitso extends Exchange {
             'trade': 'trade',
             'fee': 'fee',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1127,7 +1127,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1295,7 +1295,7 @@ export default class bitso extends Exchange {
             'queued': 'open',
             'completed': 'closed',
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1360,7 +1360,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1431,7 +1431,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         const request: Dict = {
             'oid': id,
         };
@@ -1949,7 +1949,7 @@ export default class bitso extends Exchange {
             'complete': 'ok',
             'failed': 'failed',
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     nonce () {

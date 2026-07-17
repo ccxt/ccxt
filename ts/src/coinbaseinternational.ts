@@ -452,7 +452,7 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000);
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -534,7 +534,7 @@ export default class coinbaseinternational extends Exchange {
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const market = this.market (symbol);
         const page = this.safeInteger (params, pageKey, 1) - 1;
@@ -981,7 +981,7 @@ export default class coinbaseinternational extends Exchange {
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
+            return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
         const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
@@ -1942,7 +1942,7 @@ export default class coinbaseinternational extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     /**
@@ -2148,7 +2148,7 @@ export default class coinbaseinternational extends Exchange {
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
         const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
@@ -2232,7 +2232,7 @@ export default class coinbaseinternational extends Exchange {
         let maxEntriesPerRequest = 100;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         let market: Market = undefined;
         if (symbol !== undefined) {

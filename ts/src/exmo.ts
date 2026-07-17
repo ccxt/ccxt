@@ -684,7 +684,7 @@ export default class exmo extends Exchange {
                 }
             }
             if ((networkCode !== undefined) && (type !== undefined)) {
-                result['networks'][networkCode][type as string] = {
+                result['networks'][networkCode][type] = {
                     'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
                     'percentage': percentage,
                 };
@@ -1566,7 +1566,7 @@ export default class exmo extends Exchange {
             const trades = this.parseTrades (items, resultMarket, since, limit);
             result = this.arrayConcat (result, trades);
         }
-        return this.filterBySinceLimit (result, since, limit) as Trade[];
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     /**
@@ -2009,7 +2009,7 @@ export default class exmo extends Exchange {
                 orders = this.arrayConcat (orders, parsedOrders);
             }
         }
-        return orders as Order[];
+        return orders;
     }
 
     parseStatus (status) {

@@ -1127,7 +1127,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type as string), type);
+        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type), type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1184,7 +1184,7 @@ export default class hitbtc extends Exchange {
         //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
-        return this.parseTicker (response, market) as Ticker;
+        return this.parseTicker (response, market);
     }
 
     /**
@@ -1306,7 +1306,7 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const responseInner = await this.publicGetPublicTradesSymbol (this.extend (request, params));
-            return this.parseTrades (responseInner, market) as Trade[];
+            return this.parseTrades (responseInner, market);
         }
         const response = await this.publicGetPublicTrades (this.extend (request, params));
         let trades: Dict[] = [];
@@ -1543,7 +1543,7 @@ export default class hitbtc extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1735,7 +1735,7 @@ export default class hitbtc extends Exchange {
         }
         const response = await this.publicGetPublicOrderbookSymbol (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask') as OrderBook;
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask');
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -1861,7 +1861,7 @@ export default class hitbtc extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
         const market = this.market (symbol);
         let request: Dict = {
@@ -2002,7 +2002,7 @@ export default class hitbtc extends Exchange {
             }
         }
         const parsed = this.parseOrders (response, market, since, limit);
-        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
+        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
     }
 
     /**
@@ -2950,7 +2950,7 @@ export default class hitbtc extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000);
         }
         let market: Market = undefined;
         let request: Dict = {
@@ -3011,7 +3011,7 @@ export default class hitbtc extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     /**
@@ -3087,7 +3087,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i]));
         }
-        return result as Position[];
+        return result;
     }
 
     /**

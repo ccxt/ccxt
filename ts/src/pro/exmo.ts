@@ -61,7 +61,7 @@ export default class exmo extends exmoRest {
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
-        const url = this.urls['api']['ws'][type as string];
+        const url = this.urls['api']['ws'][type];
         const subscribe: Dict = {
             'method': 'subscribe',
             'topics': [ type + '/wallet' ],
@@ -392,7 +392,7 @@ export default class exmo extends exmoRest {
         }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
-        const url = this.urls['api']['ws'][type as string];
+        const url = this.urls['api']['ws'][type];
         let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'myTrades:' + type;
@@ -635,7 +635,7 @@ export default class exmo extends exmoRest {
         }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        const url = this.urls['api']['ws'][type as string];
+        const url = this.urls['api']['ws'][type];
         let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'orders:' + type;
@@ -933,7 +933,7 @@ export default class exmo extends exmoRest {
     async authenticate (params = {}) {
         const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
-        const url = this.urls['api']['ws'][type as string];
+        const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {

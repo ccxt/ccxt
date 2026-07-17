@@ -1527,7 +1527,7 @@ export default class cex extends Exchange {
             'withdraw': 'withdrawal',
             'commission': 'fee',
         };
-        return this.safeString (ledgerType, (type as string), type);
+        return this.safeString (ledgerType, (type), type);
     }
 
     /**

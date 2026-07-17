@@ -651,7 +651,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeDict (responseData, 'order', {});
-        return this.parseOrder (order as Dict, market);
+        return this.parseOrder (order, market);
     }
 
     parseOrderStatus (status: Str) {
@@ -998,7 +998,7 @@ export default class mercado extends Exchange {
         const ordersRaw = this.safeValue (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
         const trades = this.ordersToTrades (orders);
-        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit);
     }
 
     ordersToTrades (orders) {

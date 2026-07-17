@@ -300,7 +300,7 @@ export default class pacifica extends pacificaRest {
             }
             ordersToReturn.push (this.safeOrder ({ 'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': market['symbol'] }));
         }
-        return ordersToReturn as Order[];
+        return ordersToReturn;
     }
 
     /**
@@ -404,7 +404,7 @@ export default class pacifica extends pacificaRest {
             this.safeOrder ({
                 'info': response,
             }),
-        ] as Order[];
+        ];
     }
 
     /**

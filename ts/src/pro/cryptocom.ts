@@ -1233,7 +1233,7 @@ export default class cryptocom extends cryptocomRest {
             request['params']['instrument_name'] = market['id'];
         }
         const messageHash = this.nonce ();
-        return await this.watchPrivateRequest (messageHash, request) as Order[];
+        return await this.watchPrivateRequest (messageHash, request);
     }
 
     handleCancelAllOrders (client: Client, message) {

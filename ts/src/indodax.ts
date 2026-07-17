@@ -762,7 +762,7 @@ export default class indodax extends Exchange {
             'filled': 'closed',
             'cancelled': 'canceled',
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -933,7 +933,7 @@ export default class indodax extends Exchange {
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
-        return exchangeOrders as Order[];
+        return exchangeOrders;
     }
 
     /**
@@ -961,7 +961,7 @@ export default class indodax extends Exchange {
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed') as Order[];
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     /**
@@ -1362,7 +1362,7 @@ export default class indodax extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
         };
-        return this.safeString (statuses, status as string, status);
+        return this.safeString (statuses, status, status);
     }
 
     /**

@@ -444,7 +444,7 @@ export default class bydfi extends Exchange {
         //         ],
         //         "success": true
         //     }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseMarkets (data);
     }
 
@@ -670,7 +670,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -742,7 +742,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -818,7 +818,7 @@ export default class bydfi extends Exchange {
             '2': 'market',
             '3': 'liquidation',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     /**
@@ -895,7 +895,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         return result;
     }
@@ -954,7 +954,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -976,7 +976,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1FapiMarketTicker24hr (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -1144,7 +1144,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
@@ -1393,7 +1393,7 @@ export default class bydfi extends Exchange {
             'orders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -1463,7 +1463,7 @@ export default class bydfi extends Exchange {
             'editOrders': ordersRequests,
         };
         const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -1546,7 +1546,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
 
@@ -1618,7 +1618,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1664,7 +1664,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0, {});
         return this.parseOrder (order, market);
     }
@@ -1756,7 +1756,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1915,7 +1915,7 @@ export default class bydfi extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseOrderTimeInForce (timeInForce: Str): Str {
@@ -2069,7 +2069,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -2096,7 +2096,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
@@ -2245,7 +2245,7 @@ export default class bydfi extends Exchange {
         const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
         //
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2320,7 +2320,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2589,7 +2589,7 @@ export default class bydfi extends Exchange {
             //     }
             response = await this.privateGetV1FapiAccountBalance (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseBalance (data);
     }
 
@@ -2725,7 +2725,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -2888,7 +2888,7 @@ export default class bydfi extends Exchange {
             //
             response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const transactionParams: Dict = {
             'type': type,
         };

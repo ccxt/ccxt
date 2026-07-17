@@ -451,7 +451,7 @@ export default class bullish extends bullishRest {
             const data = this.safeDict (message, 'data', {});
             rawOrders.push (data); // update is a single order
         } else {
-            rawOrders = this.safeList (message, 'data', []) as List; // snapshot is a list of orders
+            rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
         }
         if (rawOrders.length > 0) {
             if (this.orders === undefined) {
@@ -561,7 +561,7 @@ export default class bullish extends bullishRest {
             const data = this.safeDict (message, 'data', {});
             rawTrades.push (data); // update is a single trade
         } else {
-            rawTrades = this.safeList (message, 'data', []) as List; // snapshot is a list of trades
+            rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
         }
         if (rawTrades.length > 0) {
             if (this.myTrades === undefined) {
@@ -729,7 +729,7 @@ export default class bullish extends bullishRest {
             const data = this.safeDict (message, 'data', {});
             rawPositions.push (data);
         } else {
-            rawPositions = this.safeList (message, 'data', []) as List;
+            rawPositions = this.safeList (message, 'data', []);
         }
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();

@@ -375,7 +375,7 @@ export default class bitopro extends Exchange {
     }
 
     parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []);
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const deposit = this.safeBool (rawCurrency, 'deposit');
@@ -941,7 +941,7 @@ export default class bitopro extends Exchange {
         //     }
         //
         const sparse = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit) as OHLCV[];
+        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit);
     }
 
     insertMissingCandles (candles, distance, since, limit) {

@@ -380,7 +380,7 @@ export default class btcmarkets extends Exchange {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         };
-        return this.safeString (statuses, (type as string), type);
+        return this.safeString (statuses, (type), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

@@ -1049,7 +1049,7 @@ export default class woofipro extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
         }
         let request: Dict = {};
         if (symbol !== undefined) {
@@ -1097,7 +1097,7 @@ export default class woofipro extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     parseIncome (income, market: Market = undefined) {
@@ -1918,10 +1918,10 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response || {}), extendParams) as Order;
+            return this.extend (this.parseOrder (response || {}), extendParams);
         }
         const data = this.safeDict (response, 'data', {});
-        return this.extend (this.parseOrder (data), extendParams) as Order;
+        return this.extend (this.parseOrder (data), extendParams);
     }
 
     /**
@@ -2117,7 +2117,7 @@ export default class woofipro extends Exchange {
         const maxLimit = (isTrigger) ? 100 : 500;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
         }
         let request: Dict = {};
         let market: Market = undefined;
@@ -2303,7 +2303,7 @@ export default class woofipro extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500);
         }
         let request: Dict = {};
         let market: Market = undefined;
@@ -2484,7 +2484,7 @@ export default class woofipro extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     /**

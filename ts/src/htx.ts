@@ -2868,7 +2868,7 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3126,7 +3126,7 @@ export default class htx extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -3176,7 +3176,7 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -4394,7 +4394,7 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchCanceledOrders', symbol, since, limit, params, 100) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledOrders', symbol, since, limit, params, 100);
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -4453,7 +4453,7 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params, 100) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params, 100);
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -5732,7 +5732,7 @@ export default class htx extends Exchange {
                 'fee': undefined,
                 'clientOrderId': undefined,
                 'average': undefined,
-            }, market) as Order;
+            }, market);
         } else if (market['linear']) {
             if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                 data = this.safeList (response, 'data', []);
@@ -5748,7 +5748,7 @@ export default class htx extends Exchange {
                 'side': side,
                 'price': price,
                 'amount': amount,
-            }) as Order;
+            });
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
@@ -5761,7 +5761,7 @@ export default class htx extends Exchange {
         if (result === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
-        return this.parseOrder (result, market) as Order;
+        return this.parseOrder (result, market);
     }
 
     /**
@@ -6098,7 +6098,7 @@ export default class htx extends Exchange {
         return this.extend (this.parseOrder (result, market), {
             'id': id,
             'status': 'canceled',
-        }) as Order;
+        });
     }
 
     /**
@@ -6281,10 +6281,10 @@ export default class htx extends Exchange {
         //     }
         //
         if (this.safeBool (market, 'linear') && !trigger && !stopLossTakeProfit) {
-            return this.parseCancelOrders (response) as Order[];
+            return this.parseCancelOrders (response);
         }
         const data = this.safeDict (response, 'data');
-        return this.parseCancelOrders (data) as Order[];
+        return this.parseCancelOrders (data);
     }
 
     parseCancelOrders (orders) {
@@ -6500,10 +6500,10 @@ export default class htx extends Exchange {
             //     }
             //
             if (this.safeBool (market, 'linear') && (!trigger && !trailing && !stopLossTakeProfit)) {
-                return this.parseCancelOrders (response) as Order[];
+                return this.parseCancelOrders (response);
             }
             const data = this.safeDict (response, 'data');
-            return this.parseCancelOrders (data) as Order[];
+            return this.parseCancelOrders (data);
         }
     }
 
@@ -6647,7 +6647,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false) as any; // cjg: to do remove this weird object or array ambiguity
+        const allAddresses = this.parseDepositAddresses (data, [ currency['code'] ], false); // cjg: to do remove this weird object or array ambiguity
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
@@ -7295,7 +7295,7 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50);
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7398,7 +7398,7 @@ export default class htx extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -7835,9 +7835,9 @@ export default class htx extends Exchange {
                     'Timestamp': timestamp,
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
-                request = this.keysort (request) as any;
+                request = this.keysort (request);
                 if (method !== 'POST') {
-                    const sortedQuery = this.keysort (query) as any;
+                    const sortedQuery = this.keysort (query);
                     request = this.extend (request, sortedQuery);
                 }
                 let auth = this.urlencode (request, true).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased
@@ -8599,7 +8599,7 @@ export default class htx extends Exchange {
             'other-types': 'transfer',
             'rebate': 'rebate',
         };
-        return this.safeString (types, (type as string), type);
+        return this.safeString (types, (type), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

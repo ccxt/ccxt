@@ -1191,7 +1191,7 @@ export default class blockchaincom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountName = this.safeString (params, 'account', 'primary') as string;
+        const accountName = this.safeString (params, 'account', 'primary');
         params = this.omit (params, 'account');
         const request: Dict = {
             'account': accountName,
