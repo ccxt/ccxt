@@ -295,8 +295,18 @@ export default class ndax extends ndaxRest {
                 const length = stored.length;
                 if (length && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
-                    const high = (parsed[1] === undefined) ? previous[1] : ((previous[1] === undefined) ? parsed[1] : Math.max (parsed[1], previous[1]));
-                    const low = (parsed[2] === undefined) ? previous[2] : ((previous[2] === undefined) ? parsed[2] : Math.min (parsed[2], previous[2]));
+                    let high = parsed[1];
+                    if (parsed[1] === undefined) {
+                        high = previous[1];
+                    } else if (previous[1] !== undefined) {
+                        high = Math.max (parsed[1], previous[1]);
+                    }
+                    let low = parsed[2];
+                    if (parsed[2] === undefined) {
+                        low = previous[2];
+                    } else if (previous[2] !== undefined) {
+                        low = Math.min (parsed[2], previous[2]);
+                    }
                     stored[length - 1] = [
                         parsed[0],
                         previous[1],
@@ -318,8 +328,8 @@ export default class ndax extends ndaxRest {
                             stored.shift ();
                         }
                         if ((marketId !== undefined) && (timeframe !== undefined)) {
-                        updates[marketId][timeframe] = true;
-                    }
+                            updates[marketId][timeframe] = true;
+                        }
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;

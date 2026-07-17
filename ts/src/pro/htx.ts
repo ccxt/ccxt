@@ -475,7 +475,7 @@ export default class htx extends htxRest {
             messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
-        let method: ((client: any, message: any, subscription: any) => void) | undefined = this.handleOrderBookSubscription;
+        let method: any = this.handleOrderBookSubscription;
         if (!market['spot']) {
             params = this.extend (params);
             params['data_type'] = 'incremental';

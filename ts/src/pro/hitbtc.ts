@@ -368,8 +368,8 @@ export default class hitbtc extends hitbtcRest {
             for (let i = 0; i < symbols.length; i++) {
                 const marketId = this.marketId (symbols[i]);
                 if (marketId !== undefined) {
-            marketIds.push (marketId);
-        }
+                    marketIds.push (marketId);
+                }
             }
         }
         const request: Dict = {

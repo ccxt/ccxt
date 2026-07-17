@@ -1569,9 +1569,9 @@ export default class gate extends gateRest {
         if (market !== undefined) {
             messageHash += ':' + market['id'];
             const mid = market['id'];
-                if (mid !== undefined) {
-                    payload = [ mid ];
-                }
+            if (mid !== undefined) {
+                payload = [ mid ];
+            }
         }
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);

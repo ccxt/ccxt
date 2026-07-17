@@ -437,7 +437,10 @@ export default class hollaex extends hollaexRest {
             const parts = key.split ('_');
             const currencyId = this.safeString (parts, 0);
             const code = this.safeCurrencyCode (currencyId);
-            const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
+            let account = this.account ();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const second = this.safeString (parts, 1);
             const freeOrTotal = (second === 'available') ? 'free' : 'total';
             account[freeOrTotal] = this.safeString (data, key);

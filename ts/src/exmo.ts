@@ -583,9 +583,7 @@ export default class exmo extends Exchange {
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
                 if (code !== undefined && typeInner !== undefined) {
-                    if (typeInner !== undefined) {
                     result[code][typeInner] = fee;
-                }
                 }
             }
             result[code]['info'] = providers;

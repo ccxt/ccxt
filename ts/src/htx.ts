@@ -3465,9 +3465,7 @@ export default class htx extends Exchange {
             const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code !== undefined && title !== undefined) {
-                if (title !== undefined) {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-            }
             }
             this.storeByKey (this.options['networkNamesByChainIds'], uniqueChainId, title);
             const networkCode = this.networkIdToCode (uniqueChainId, code);

@@ -6349,7 +6349,8 @@ export default class okx extends Exchange {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
             if (market['linear']) {
-                initialMarginString = Precise.stringMul ((typeof initialMarginPercentage === 'number') ? this.numberToString (initialMarginPercentage) : initialMarginPercentage, notionalString);
+                const initialMarginPercentageString = (typeof initialMarginPercentage === 'number') ? this.numberToString (initialMarginPercentage) : initialMarginPercentage;
+                initialMarginString = Precise.stringMul (initialMarginPercentageString, notionalString);
             } else {
                 initialMarginString = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), entryPriceString), leverageString);
             }
