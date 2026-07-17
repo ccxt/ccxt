@@ -396,9 +396,20 @@ impl Value {
             serde_json::Value::Null        => Value::Null,
             serde_json::Value::Bool(b)     => Value::Bool(*b),
             serde_json::Value::Number(n)   => {
-                if let Some(i) = n.as_i64()  { Value::Int(i) }
-                else if let Some(f) = n.as_f64() { Value::Float(f) }
-                else { Value::Null }
+                if let Some(i) = n.as_i64()  {
+                    Value::Int(i)
+                } else if n.is_u64() {
+                    // Integer in (i64::MAX, u64::MAX] — a large order/trade/
+                    // account id. `Value::Int` is i64 and `f64` would round it,
+                    // so preserve the exact digits as a string (Go does the
+                    // same). CCXT's safe_integer/safe_number read it back as a
+                    // number when needed.
+                    Value::Str(n.to_string())
+                } else if let Some(f) = n.as_f64() {
+                    Value::Float(f)
+                } else {
+                    Value::Null
+                }
             }
             serde_json::Value::String(s)   => Value::Str(s.clone()),
             serde_json::Value::Array(a)    => Value::Array(a.iter().map(Value::from_json).collect()),
@@ -1430,5 +1441,28 @@ impl Value {
     }
     pub fn store_array_to_asks(&mut self, delta: Value) {
         book_store_array_side(self, "asks", delta);
+    }
+}
+
+#[cfg(test)]
+mod json_int_precision_tests {
+    use super::Value;
+
+    #[test]
+    fn preserves_large_u64_ids_losslessly() {
+        // 12345678901234567890 > i64::MAX but ≤ u64::MAX — must not round.
+        let v: serde_json::Value = serde_json::from_str(r#"{"id": 12345678901234567890}"#).unwrap();
+        let parsed = Value::from_json(&v);
+        let id = crate::runtime::get_value(&parsed, &Value::Str("id".to_string()));
+        assert_eq!(id, Value::Str("12345678901234567890".to_string()));
+    }
+
+    #[test]
+    fn small_ints_stay_ints_floats_stay_floats() {
+        let v: serde_json::Value = serde_json::from_str(r#"{"a": 42, "b": -7, "c": 1.5}"#).unwrap();
+        let p = Value::from_json(&v);
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("a".to_string())), Value::Int(42));
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("b".to_string())), Value::Int(-7));
+        assert_eq!(crate::runtime::get_value(&p, &Value::Str("c".to_string())), Value::Float(1.5));
     }
 }
