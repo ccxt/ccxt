@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -485,6 +485,151 @@ class woo extends woo$1["default"] {
                     '-1103': errors.InvalidOrder, // { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
                     '-1104': errors.InvalidOrder, // { "code": -1104,  "message": "The order quantity is not following the step size rule for the symbol." }
                     '-1105': errors.InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
+                    '317136': errors.InvalidOrder, // Edit tpsl quantity is not allowed for quantity bracket
+                    '317137': errors.InvalidOrder, // Edit quantity should edit both legs
+                    '317138': errors.InvalidOrder, // Edit quantity should be same for both legs
+                    '317139': errors.InvalidOrder, // Trigger price of 1st leg should not be empty for STOP_BRACKET
+                    '317140': errors.InvalidOrder, // The quantity of a quantity TP/SL order should not be empty.
+                    '317141': errors.InvalidOrder, // The algo quantity TP/SL limit order should have field price
+                    '317142': errors.InvalidOrder, // The algo trigger type of quantity TP/SL should not be CLOSE_POSITION
+                    '317143': errors.InvalidOrder, // The side of TP/SL legs should be the same
+                    '317144': errors.InvalidOrder, // IndexPrice is not supported for non spot symbol `${symbol}`
+                    '317145': errors.InvalidOrder, // same as INVALID_PRICE_QUOTE_MIN but different ‘code’
+                    '317146': errors.InvalidOrder, // same as INVALID_PRICE_QUOTE_MAX but different ‘code’
+                    '317147': errors.InvalidOrder, // same as INVALID_PRICE_TICKER_SIZE but different ‘code’
+                    '317148': errors.BadRequest, // symbol can’t be empty.
+                    '317149': errors.OrderNotFound, // same with TRADE_NOT_FOUND with different ErrorCodes
+                    '317150': errors.InvalidOrder, // trigger price must be greater than `${price}`
+                    '317151': errors.InvalidOrder, // trigger price must be less than `${price}`
+                    '317152': errors.OrderNotFound, // The order not found for the order id : `${orderId}`
+                    '317153': errors.OrderNotFound, // child order not found for the order id : `${orderId}`
+                    '317154': errors.OperationFailed, // RPC failed: error: `${msg}`
+                    '317155': errors.BadSymbol, // unsupported symbol: `${symbol}`
+                    '317156': errors.BadSymbol, // unsupported symbol: `${symbol}`
+                    '317157': errors.InvalidOrder, // Trading with `${symbol1}`/`${symbol2}` is temporarily suspended. Please try again later.
+                    '317158': errors.InvalidOrder, // Trading with `${token}`-PERP is temporarily suspended. Please try again later.
+                    '317159': errors.BadSymbol, // This pair is currently not supported.
+                    '317160': errors.InvalidOrder, // The order id and symbol are not matched
+                    '317161': errors.InvalidOrder, // The order is completed
+                    '317162': errors.BadRequest, // The params should not be null or 0
+                    '317163': errors.InvalidOrder, // cannot edit TP/SL quantity under bracket order
+                    '317164': errors.InvalidOrder, // Invalid client order id
+                    '317165': errors.InvalidOrder, // invalid order id list
+                    '317166': errors.InvalidOrder, // invalid client order id list
+                    '317167': errors.InvalidOrder, // unsupported algo type: `${algoType}`
+                    '317168': errors.OperationFailed, // Order failed due to internal service error. Please contact customer service.
+                    '317169': errors.InvalidOrder, // Trading with `${left}`/`${right}` is temporarily suspended. Please try again later.
+                    '317170': errors.InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '317171': errors.BadRequest, // error path format
+                    '317172': errors.BadRequest, // The userId should not be null or 0
+                    '317173': errors.BadRequest, // The orderId should not be null or 0
+                    '317174': errors.InvalidOrder, // The order is processing
+                    '317176': errors.InvalidOrder, // The trigger after should from 0 to `${maxTriggerAfter}`
+                    '317177': errors.InvalidOrder, // Order has terminated
+                    '317178': errors.BadRequest, // The receive window is invalid.
+                    '317179': errors.BadRequest, // Request has failed as the receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317184': errors.OrderNotFound, // The order cannot be found, or it is already completed.
+                    '317206': errors.InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
+                    '317207': errors.InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302001': errors.ExchangeError, // data status is not expected
+                    '302002': errors.ExchangeError, // The data doesn’t exist.
+                    '302003': errors.BadRequest, // The param number is invalid.
+                    '302004': errors.BadRequest, // invalid params
+                    '302005': errors.ExchangeError, // An error has occurred due to other pending requests. Please try again later.
+                    '302101': errors.BadSymbol, // symbol is not exists
+                    '302102': errors.InsufficientFunds, // Your margin is insufficient! Please liquidate assets.
+                    '302103': errors.InsufficientFunds, // Your margin will be insufficient after withdrawal.
+                    '302104': errors.InsufficientFunds, // Your margin will be insufficient after this action.
+                    '302109': errors.OperationFailed, // create order engine error
+                    '302110': errors.ExchangeError, // application is lock now
+                    '302111': errors.InvalidOrder, // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
+                    '302112': errors.InvalidOrder, // Remaining order quantity is smaller than transaction quantity
+                    '302113': errors.InvalidOrder, // Order side is not same as transaction side
+                    '302114': errors.InvalidOrder, // Order price too small
+                    '302115': errors.InvalidOrder, // Order quantity too small
+                    '302117': errors.DuplicateOrderId, // The client_order_id is repeated.
+                    '302118': errors.InsufficientFunds, // no enough balance to close
+                    '302119': errors.InsufficientFunds, // Insufficient funds. Please enable margin trading. Note that certain coins do not allow for leverage trading.
+                    '302120': errors.InvalidOrder, // Please lower the leverage ratio below 1.0 and close your short positions.
+                    '302121': errors.InvalidOrder, // Please repay your interest.
+                    '302122': errors.InvalidOrder, // Remaining order amount is smaller than transaction quantity
+                    '302123': errors.ExchangeError, // user group data not found
+                    '302125': errors.InvalidOrder, // Quantity should be less than your position.
+                    '302126': errors.InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302127': errors.InvalidOrder, // Your order is terminated.
+                    '302128': errors.InsufficientFunds, // Insufficient `${token}`. Note that `${baseToken}` do not allow for margin trading.
+                    '302129': errors.OrderNotFound, // The order doesn’t exist.
+                    '302130': errors.InvalidOrder, // The order didn’t update.
+                    '302131': errors.InvalidOrder, // Please enable futures trading in Margin & Futures tab. You can create subaccounts to separate margin and futures positions.
+                    '302132': errors.InvalidOrder, // Attempt failed. Please close your negative positions and try again.
+                    '302133': errors.InvalidOrder, // Please repay your interest.
+                    '302134': errors.BadRequest, // The details are empty.
+                    '302135': errors.BadRequest, // The amount must be positive.
+                    '302136': errors.BadRequest, // Your balance must be positive.
+                    '302137': errors.InvalidOrder, // You don’t have enough position for MKT close. Please check your open orders.
+                    '302138': errors.InvalidOrder, // Insufficient position for reduce only order.
+                    '302140': errors.InvalidOrder, // The order price is too small.
+                    '302141': errors.InvalidOrder, // The order quantity is too small.
+                    '302142': errors.InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '302143': errors.ExchangeError, // Application not found.
+                    '302144': errors.InvalidOrder, // There isn’t a positive amount to repay the interest balance.
+                    '302145': errors.InsufficientFunds, // Your margin will be insufficient after disabling this token as collateral.
+                    '302147': errors.InvalidOrder, // Amount is required for buy market orders when margin disabled.
+                    '302148': errors.InvalidOrder, // Amount is required for ASK buy order when margin disabled.
+                    '302149': errors.InvalidOrder, // Amount is required for BID buy order when margin disabled.
+                    '302150': errors.InvalidOrder, // Quantity is required for sell market orders when margin disabled.
+                    '302151': errors.InvalidOrder, // Quantity is required for ASK sell order when margin disabled.
+                    '302152': errors.InvalidOrder, // Quantity is required for BID sell order when margin disabled.
+                    '302154': errors.InsufficientFunds, // Insufficient `${stableToken}`.
+                    '302155': errors.InsufficientFunds, // Insufficient `${token}`. Please enable margin trading for leverage trading.
+                    '302156': errors.InvalidOrder, // Short selling `${token}` is not available now.
+                    '302157': errors.InsufficientFunds, // Insufficient `${token}`. Please enable margin trading in Margin & Futures tab for spot leverage trading.
+                    '302159': errors.RequestTimeout, // Your request has timed out. Please try again later.
+                    '302160': errors.InvalidOrder, // Reduce only orders are only supported under spot pairs quoted by your account currency `${AccountCurrency}`.
+                    '302162': errors.InvalidOrder, // You are not able to place this order under Reduce Only trading mode.
+                    '302163': errors.InvalidOrder, // Reduce only orders are not allowed.
+                    '302164': errors.InvalidOrder, // The order value should be greater or equal to `${minNotional}`.
+                    '302165': errors.ExchangeError, // The token has no price.
+                    '302166': errors.InvalidOrder, // Token balance cannot be negative under Spot Only.
+                    '302167': errors.InvalidOrder, // Token balance cannot be negative under Spot & Futures.
+                    '302168': errors.InvalidOrder, // The token is not enabled for margin.
+                    '302169': errors.InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Margin.
+                    '302170': errors.InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Futures.
+                    '302171': errors.InvalidOrder, // Buy or sell orders by amount are not supported under Reduce Only trading mode.
+                    '302172': errors.InvalidOrder, // `${token}` max position size of `${maxPosition}` is exceeded.
+                    '302177': errors.InvalidOrder, // Pending new orders cannot be edited.
+                    '302178': errors.InvalidOrder, // Order is rejected as you have an existing market close order.
+                    '302185': errors.InvalidOrder, // Your order request cannot be processed at this moment because the position mode is currently being switched.
+                    '302186': errors.InvalidOrder, // The position side you’ve used is not compatible with your current position mode.
+                    '302188': errors.InvalidOrder, // exceed max open notional
+                    '302189': errors.InvalidOrder, // Changing isolated position leverage is not allowed when there is a pending order.
+                    '302190': errors.InvalidOrder, // Unable to adjust isolated margin while there are pending orders. Please cancel them to proceed.
+                    '302191': errors.InvalidOrder, // Only adjustments to futures isolated margin are allowed.
+                    '302192': errors.InvalidOrder, // The amount exceeds the withdrawable margin limit.
+                    '302193': errors.InsufficientFunds, // The amount exceeds the available USDT balance.
+                    '302194': errors.InvalidOrder, // Maximum number of isolated pending orders for `${symbol}` reached.
+                    '302195': errors.InvalidOrder, // The position side you’ve used is invalid
+                    '302196': errors.InvalidOrder, // Please use up all of your active futures credits before adding more.
+                    '302197': errors.InvalidOrder, // Futures credits cannot be reduced while there are open positions.
+                    '302198': errors.InvalidOrder, // Futures credits cannot be reduced while there are still pending orders.
+                    '302199': errors.InvalidOrder, // Please switch to futures trading mode to adjust futures credits.
+                    '302301': errors.InsufficientFunds, // The balance isn’t enough.
+                    '302303': errors.InvalidOrder, // Too many pending orders on reduce only order
+                    '302305': errors.InsufficientFunds, // Failed to update cross margin leverages due to insufficient margin. Please top up or close your cross positions to proceed.
+                    '302306': errors.BadRequest, // Invalid leverage, please provide positive integer leverage
+                    '302307': errors.AccountSuspended, // The account has been suspended
+                    '302308': errors.InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302309': errors.InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading
+                    '302310': errors.InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302311': errors.ExchangeError, // This request is currently being processed.
+                    '302312': errors.ExchangeError, // This request is currently being processed.
+                    '302313': errors.ExchangeError, // This request is currently being processed.
+                    '302314': errors.InvalidOrder, // Quantity should be less than your position.
+                    '302999': errors.ExchangeError, // An unknown error has occurred.
+                    '311001': errors.ExchangeError, // The data status is invalid.
+                    '311002': errors.ExchangeError, // The data does not exist.
+                    '311004': errors.ExchangeError, // The parameters are invalid.
+                    '311999': errors.OperationFailed, // There is a system error.
                 },
                 'broad': {
                     'Can not place': errors.ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
@@ -1109,7 +1254,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1129,7 +1274,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1149,7 +1294,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#createTrailingAmountOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1175,7 +1320,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#createTrailingPercentOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2468,7 +2613,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.woox.io/#get-current-holding-get-balance-new
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -2855,7 +3000,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.woox.io/#get-transfer-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -3037,7 +3182,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw-v3
+     * @see https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -4312,7 +4457,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://docs.woox.io/#get-all-position-info-new
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}

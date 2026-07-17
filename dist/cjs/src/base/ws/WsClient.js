@@ -16,7 +16,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var WebSocket__default = /*#__PURE__*/_interopDefaultLegacy(WebSocket);
 
-// eslint-disable-next-line no-shadow
+// ----------------------------------------------------------------------------
 // bun's 'ws' polyfill does not implement the 'upgrade' event (https://github.com/oven-sh/bun/issues/5951)
 // which makes the HTTP 101 Switching Protocols response fire the error handler,
 // so under bun we use its native WebSocket implementation instead of the 'ws' package

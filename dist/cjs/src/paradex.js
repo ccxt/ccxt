@@ -10,7 +10,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -154,7 +154,9 @@ class paradex extends paradex$1["default"] {
                         'bbo/{market}/interactive': 1,
                         'funding/data': 1,
                         'markets': 1,
+                        'markets/history': 1,
                         'markets/klines': 1,
+                        'markets/settlement-price': 1,
                         'markets/summary': 1,
                         'orderbook/{market}': 1,
                         'orderbook/{market}/impact-price': 1,
@@ -1734,7 +1736,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#editOrder
      * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @see https://docs.paradex.trade/api/prod/orders/modify
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or a TPSL order type

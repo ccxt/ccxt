@@ -153,7 +153,9 @@ public class ParadexCore extends ParadexApi
                         put( "bbo/{market}/interactive", 1 );
                         put( "funding/data", 1 );
                         put( "markets", 1 );
+                        put( "markets/history", 1 );
                         put( "markets/klines", 1 );
+                        put( "markets/settlement-price", 1 );
                         put( "markets/summary", 1 );
                         put( "orderbook/{market}", 1 );
                         put( "orderbook/{market}/impact-price", 1 );
@@ -1999,7 +2001,7 @@ public class ParadexCore extends ParadexApi
      * @method
      * @name paradex#editOrder
      * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @see https://docs.paradex.trade/api/prod/orders/modify
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or a TPSL order type

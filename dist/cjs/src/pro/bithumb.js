@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 var rsa = require('../base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bithumb extends bithumb$1["default"] {
     describe() {

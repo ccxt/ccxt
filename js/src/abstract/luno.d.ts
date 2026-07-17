@@ -3,6 +3,11 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     exchangeGetMarkets(params?: {}): Promise<implicitReturnType>;
     exchangePrivateGetCandles(params?: {}): Promise<implicitReturnType>;
+    exchangePrivateGetMove(params?: {}): Promise<implicitReturnType>;
+    exchangePrivateGetMoveListMoves(params?: {}): Promise<implicitReturnType>;
+    exchangePrivateGetTransfers(params?: {}): Promise<implicitReturnType>;
+    exchangePrivatePostConvert(params?: {}): Promise<implicitReturnType>;
+    exchangePrivatePostMove(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookTop(params?: {}): Promise<implicitReturnType>;
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
@@ -22,6 +27,7 @@ interface Exchange {
     privateGetWithdrawals(params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsId(params?: {}): Promise<implicitReturnType>;
     privateGetTransfers(params?: {}): Promise<implicitReturnType>;
+    privateGetUsersLinked(params?: {}): Promise<implicitReturnType>;
     privatePostAccounts(params?: {}): Promise<implicitReturnType>;
     privatePostAddressValidate(params?: {}): Promise<implicitReturnType>;
     privatePostPostorder(params?: {}): Promise<implicitReturnType>;
