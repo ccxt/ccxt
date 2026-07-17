@@ -40,11 +40,18 @@ impl Market {
         m.symbol  = safe_string(&v, "symbol", None).unwrap_or_default();
         m.base    = safe_string(&v, "base",   None).unwrap_or_default();
         m.quote   = safe_string(&v, "quote",  None).unwrap_or_default();
+        m.settle  = safe_string(&v, "settle",  None);
+        m.base_id  = safe_string(&v, "baseId",  None).unwrap_or_default();
+        m.quote_id = safe_string(&v, "quoteId", None).unwrap_or_default();
         m.market_type = safe_string(&v, "type", None).unwrap_or_else(|| "spot".to_owned());
         m.spot    = safe_bool(&v, "spot",   Some(false)).unwrap_or(false);
+        m.margin  = safe_bool(&v, "margin", Some(false)).unwrap_or(false);
         m.swap    = safe_bool(&v, "swap",   Some(false)).unwrap_or(false);
         m.future  = safe_bool(&v, "future", Some(false)).unwrap_or(false);
         m.option  = safe_bool(&v, "option", Some(false)).unwrap_or(false);
+        m.contract = safe_bool(&v, "contract", Some(false)).unwrap_or(false);
+        m.linear  = safe_bool(&v, "linear",  None);
+        m.inverse = safe_bool(&v, "inverse", None);
         m.active  = safe_bool(&v, "active", Some(true)).unwrap_or(true);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
@@ -156,6 +163,10 @@ impl Order {
         o.filled          = safe_number(&v, "filled",        None);
         o.remaining       = safe_number(&v, "remaining",     None);
         o.cost            = safe_number(&v, "cost",          None);
+        o.fee             = match crate::get_value(&v, &Value::Str("fee".to_string())) {
+            Value::Dict(m) => Some((*m).clone()),
+            _ => None,
+        };
         o.raw = v;
         o
     }
@@ -726,5 +737,46 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
     match v {
         Value::Arr(rows) => rows.iter().map(|row| decode(row.clone())).collect(),
         _ => Vec::new(),
+    }
+}
+
+#[cfg(test)]
+mod from_value_tests {
+    use super::{Market, Order};
+    use crate::Value;
+    use crate::value::HashMap;
+
+    fn dict(pairs: &[(&str, Value)]) -> Value {
+        let mut m = HashMap::new();
+        for (k, v) in pairs { m.insert(k.to_string(), v.clone()); }
+        Value::Map(m)
+    }
+
+    #[test]
+    fn market_assigns_declared_fields() {
+        let v = dict(&[
+            ("id", Value::Str("BTCUSDT".into())), ("symbol", Value::Str("BTC/USDT:USDT".into())),
+            ("settle", Value::Str("USDT".into())), ("baseId", Value::Str("BTC".into())),
+            ("quoteId", Value::Str("USDT".into())), ("margin", Value::Bool(true)),
+            ("contract", Value::Bool(true)), ("linear", Value::Bool(true)), ("inverse", Value::Bool(false)),
+        ]);
+        let m = Market::from_value(v);
+        assert_eq!(m.settle.as_deref(), Some("USDT"));
+        assert_eq!(m.base_id, "BTC");
+        assert_eq!(m.quote_id, "USDT");
+        assert!(m.margin && m.contract);
+        assert_eq!(m.linear, Some(true));
+        assert_eq!(m.inverse, Some(false));
+    }
+
+    #[test]
+    fn order_assigns_fee() {
+        let v = dict(&[
+            ("id", Value::Str("1".into())),
+            ("fee", dict(&[("currency", Value::Str("USDT".into())), ("cost", Value::Float(0.1))])),
+        ]);
+        let o = Order::from_value(v);
+        let fee = o.fee.expect("fee should be assigned");
+        assert_eq!(fee.get("currency"), Some(&Value::Str("USDT".into())));
     }
 }
