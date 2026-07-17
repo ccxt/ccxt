@@ -129,6 +129,13 @@ type ReadMarketFn = fn(*mut (), &str) -> Value;
 /// whole map each time.
 type HasMarketFn = fn(*mut (), &str) -> bool;
 
+/// Runs the Core's own `set_markets(markets)` — for a prediction venue this is
+/// the `PredictionExchange` override (outcome→symbol aliasing + populateOutcomes),
+/// so the outcome caches land on the live instance. Used by
+/// `ccxt::value::set_live_set_markets` to back `exchange.setMarkets(...)` on a
+/// `__live_id` snapshot in the prediction test setup.
+type SetMarketsFn = fn(*mut (), Value) -> Value;
+
 /// The leaked raw pointer to a boxed `<Exchange>Core`. `*mut ()` isn't
 /// `Send` by default; the unsafe impls assert that the Box lives forever
 /// on the heap (we leak it) and is touched serially from the test runner.
@@ -149,6 +156,7 @@ struct CoreEntry {
     write_field:   WriteFieldFn,
     read_market:   ReadMarketFn,
     has_market:    HasMarketFn,
+    set_markets:   SetMarketsFn,
 }
 
 static CORES: OnceLock<Mutex<HashMap<String, CoreEntry>>> = OnceLock::new();
@@ -465,6 +473,14 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 ccxt::runtime::in_op(&core.markets, &key)
                     || ccxt::runtime::in_op(&core.markets_by_id, &key)
             }
+            fn set_markets(ptr: *mut (), markets: Value) -> Value {
+                // `core.set_markets` resolves through the Deref chain: for a
+                // prediction venue it hits `PredictionExchange::set_markets`
+                // (aliasing + populateOutcomes); for a regular Core the base
+                // `Exchange::set_markets`. Either way it mutates the live Core.
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                core.set_markets(markets, &[])
+            }
             return Some(CoreEntry {
                 call:          <$core>::__call_dynamic_dispatch as DynCallFn,
                 ptr:           CorePtr(raw),
@@ -476,6 +492,7 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 write_field:   write_field   as WriteFieldFn,
                 read_market:   read_market   as ReadMarketFn,
                 has_market:    has_market    as HasMarketFn,
+                set_markets:   set_markets   as SetMarketsFn,
             });
         }
     }; }
@@ -527,10 +544,26 @@ pub fn has_market(id: &str, symbol: &str) -> bool {
     }
 }
 
+/// Runs `set_markets(markets)` on the cached live Core for `id` (backs
+/// `exchange.setMarkets(...)` on a `__live_id` snapshot). Returns `Value::Null`
+/// for a non-live id. Used by the prediction test setup to seed event-derived
+/// outcome markets onto the real Core.
+pub fn live_set_markets(id: &str, markets: Value) -> Value {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return Value::Null };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.set_markets)(e.ptr.0, markets),
+        None    => Value::Null,
+    }
+}
+
 /// Wire the heavy-field resolver into the ccxt crate. Call once from
 /// `main` before any live dispatch.
 pub fn init_live_lookup() {
     ccxt::value::set_live_lookup(live_lookup);
+    ccxt::value::set_live_set_markets(live_set_markets);
 }
 
 /// camelCase → snake_case, matching the transpiler's `toSnakeCase`.

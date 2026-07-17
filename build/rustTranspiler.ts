@@ -5768,6 +5768,17 @@ impl std::ops::DerefMut for ${coreName} {
         // walks each fn and promotes any that assign to a `self.<field>`.
         if (structName !== 'Exchange') {
             basePart = this.promoteSelfMutMethods(basePart);
+            // promoteSelfMutMethods just turned several `&self` methods into
+            // `&mut self` (set_events, index_market_outcomes, populate_outcomes,
+            // …). The earlier stripMutSelfFieldClones/borrow-conflict passes
+            // skipped them while they were still `&self`, leaving writes like
+            // `add_element_to_object(&mut self.outcomes.clone(), …)` that mutate a
+            // throwaway clone (so the outcome cache stayed empty). Re-run the
+            // self-field mut-clone cleanup now that they are `&mut self`.
+            basePart = this.stripMutSelfFieldClones(basePart);
+            basePart = this.splitAddElementBorrowConflicts(basePart);
+            basePart = this.splitGetValueMutAdds(basePart);
+            basePart = this.rewriteSelfFieldMutCloneCast(basePart);
             // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
             // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
             // that borrow `*self` mutably and immutably at once; hoist the inner

@@ -338,6 +338,20 @@ impl Value {
     pub fn set_markets(&mut self, markets: Value) -> Value {
         #[cfg(feature = "transpiled-base")]
         {
+            // If this snapshot is backed by a live Core (`__live_id`), route to
+            // it so the Core's own `set_markets` runs — for a prediction venue
+            // that's `PredictionExchange::set_markets` (outcome→symbol aliasing +
+            // populateOutcomes), populating the outcome caches on the very
+            // instance the method dispatch uses. Without this, the prediction
+            // static request tests seed markets onto a throwaway snapshot and the
+            // live Core resolves every outcome by (re)fetching events.
+            if let Value::Dict(m) = &*self {
+                if let Some(Value::Str(id)) = m.get("__live_id") {
+                    if let Some(cb) = live_set_markets_get() {
+                        return cb(&id.clone(), markets);
+                    }
+                }
+            }
             let mut ex = self.snapshot_as_exchange();
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".to_string()), ex.markets.clone());
@@ -492,6 +506,28 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
         // SAFETY: only ever stored as `fn(&str, &str) -> Option<Value>`
         // via `set_live_lookup`; the pointer-to-fn round-trip is sound.
         Some(unsafe { std::mem::transmute::<usize, LiveLookupFn>(n) })
+    }
+}
+
+// Companion to `LiveLookupFn` but for writing: routes `exchange.setMarkets(...)`
+// on a `__live_id` snapshot to the registered *live* Core, so the Core's
+// `PredictionExchange::set_markets` override (outcome aliasing + populateOutcomes)
+// runs against the real instance the method dispatch will use. Returns the
+// resulting markets. See `Value::set_markets`.
+type LiveSetMarketsFn = fn(id: &str, markets: Value) -> Value;
+static LIVE_SET_MARKETS_PTR: std::sync::atomic::AtomicUsize =
+    std::sync::atomic::AtomicUsize::new(0);
+
+pub fn set_live_set_markets(f: LiveSetMarketsFn) {
+    LIVE_SET_MARKETS_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+}
+
+fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
+    let n = LIVE_SET_MARKETS_PTR.load(std::sync::atomic::Ordering::Acquire);
+    if n == 0 { None } else {
+        // SAFETY: only ever stored as `fn(&str, Value) -> Value` via
+        // `set_live_set_markets`; the pointer-to-fn round-trip is sound.
+        Some(unsafe { std::mem::transmute::<usize, LiveSetMarketsFn>(n) })
     }
 }
 

@@ -194,7 +194,7 @@ impl PredictionExchange {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_179: bool = true;
                     while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&result)) } {
-                    { let __be_tmp = self.safe_number(get_value(&result, &i), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &i), &sortKey, __be_tmp); };
+                    { let __be_tmp = self.safe_number(get_value(&result, &i), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &i), &sortKey, __be_tmp.clone()); };
                 }
                 }
                 result = self.sort_by(result.clone(), sortKey.clone(), &[Value::Bool(true), Value::Int(0)]);
@@ -409,13 +409,13 @@ impl PredictionExchange {
             let mut slug: Value = self.safe_string_k(event.clone(), "slug", &[]);
             let mut handle: Value = self.safe_string_k(event.clone(), "event", &[]);
             if !is_equal(&id, &Value::Null) {
-                add_element_to_object(&mut self.events.clone(), &id, event.clone());
+                add_element_to_object(&mut self.events, &id, event.clone());
             }
             if !is_equal(&handle, &Value::Null) {
-                add_element_to_object(&mut self.events.clone(), &handle, event.clone());
+                add_element_to_object(&mut self.events, &handle, event.clone());
             }
             if !is_equal(&slug, &Value::Null) {
-                add_element_to_object(&mut self.events_by_slug.clone(), &slug, event.clone());
+                add_element_to_object(&mut self.events_by_slug, &slug, event.clone());
             }
         }
         }
@@ -729,7 +729,7 @@ impl PredictionExchange {
             let mut __for_first_194: bool = true;
             while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
-            { let __be_tmp = self.omit(get_value(&self.markets, &key), Value::Str("symbol".to_string()), &[]); add_element_to_object(&mut self.markets, &key, __be_tmp); };
+            { let __be_tmp = self.omit(get_value(&self.markets, &key), Value::Str("symbol".to_string()), &[]); add_element_to_object(&mut self.markets, &key, __be_tmp.clone()); };
         }
         }
         self.populate_outcomes();
@@ -769,7 +769,7 @@ impl PredictionExchange {
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
             add_element_to_object(&mut oc, &Value::Str("outcomeId".to_string()), ocId.clone());
-            { let __be_tmp = self.safe_string2(oc.clone(), Value::Str("market".to_string()), Value::Str("marketSymbol".to_string()), &[]); add_element_to_object(&mut oc, &Value::Str("market".to_string()), __be_tmp); };
+            { let __be_tmp = self.safe_string2(oc.clone(), Value::Str("market".to_string()), Value::Str("marketSymbol".to_string()), &[]); add_element_to_object(&mut oc, &Value::Str("market".to_string()), __be_tmp.clone()); };
             if !is_equal(&ocSymbol, &Value::Null) {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
                 // on a real collision of same handle but different outcomeId, disambiguate the
@@ -788,12 +788,12 @@ impl PredictionExchange {
                     }
                 }
                 add_element_to_object(&mut oc, &Value::Str("outcome".to_string()), ocSymbol.clone());
-                add_element_to_object(&mut self.outcomes.clone(), &ocSymbol, oc.clone());
+                add_element_to_object(&mut self.outcomes, &ocSymbol, oc.clone());
             }  else {
                 add_element_to_object(&mut oc, &Value::Str("outcome".to_string()), ocSymbol.clone());
             }
             if !is_equal(&ocId, &Value::Null) {
-                add_element_to_object(&mut self.outcomes_by_id.clone(), &ocId, oc.clone());
+                add_element_to_object(&mut self.outcomes_by_id, &ocId, oc.clone());
             }
         }
         }
@@ -843,7 +843,7 @@ impl PredictionExchange {
             let mut m: Value = get_value(&markets, &i);
             let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[]);
             if !is_equal(&marketHandle, &Value::Null) {
-                add_element_to_object(&mut self.markets.clone(), &marketHandle, m.clone());
+                add_element_to_object(&mut self.markets, &marketHandle, m.clone());
             }
         }
         }
@@ -2033,8 +2033,8 @@ impl PredictionExchange {
         // outcomeId and market - so books match the PredictionOrderBook structure.
         let mut fallback: Value = self.safe_string2(orderbook.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[]);
         add_element_to_object(&mut orderbook, &Value::Str("outcome".to_string()), ternary(is_true(&(is_equal(&outcomeObj, &Value::Null))), fallback.clone(), self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback.clone()])));
-        { let __be_tmp = ternary(is_true(&(is_equal(&outcomeObj, &Value::Null))), self.safe_string_k(orderbook.clone(), "outcomeId", &[]), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[])); add_element_to_object(&mut orderbook, &Value::Str("outcomeId".to_string()), __be_tmp); };
-        { let __be_tmp = ternary(is_true(&(is_equal(&outcomeObj, &Value::Null))), self.safe_string_k(orderbook.clone(), "market", &[]), self.safe_string_k(outcomeObj.clone(), "market", &[])); add_element_to_object(&mut orderbook, &Value::Str("market".to_string()), __be_tmp); };
+        { let __be_tmp = ternary(is_true(&(is_equal(&outcomeObj, &Value::Null))), self.safe_string_k(orderbook.clone(), "outcomeId", &[]), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[])); add_element_to_object(&mut orderbook, &Value::Str("outcomeId".to_string()), __be_tmp.clone()); };
+        { let __be_tmp = ternary(is_true(&(is_equal(&outcomeObj, &Value::Null))), self.safe_string_k(orderbook.clone(), "market", &[]), self.safe_string_k(outcomeObj.clone(), "market", &[])); add_element_to_object(&mut orderbook, &Value::Str("market".to_string()), __be_tmp.clone()); };
         return self.omit(orderbook.clone(), Value::Str("symbol".to_string()), &[]);
 
     Value::Null
