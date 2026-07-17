@@ -2906,15 +2906,29 @@ export default class binance extends Exchange {
                         return this.markets[futuresSymbol];
                     }
                 }
-            } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
-                return this.createExpiredOptionMarket (symbol);
+            } else {
+                const symbolParts = symbol.split ('-');
+                const partsLength = symbolParts.length;
+                // a valid binance option ends with the call/put flag and carries expiry+strike segments,
+                // e.g. the market id BTC-241227-60000-C (4 parts) or the unified symbol
+                // ETH/USDT:USDT-240628-3000-C (4 parts), so require more than 3 dash-separated parts
+                // to avoid misclassifying ids that merely contain "-C"/"-P"
+                if ((partsLength > 3) && ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')))) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
+                    return this.createExpiredOptionMarket (symbol);
+                }
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        let isOption = false;
+        if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            const partsLength = parts.length;
+            // see the comment in market () on the option id format
+            isOption = (partsLength > 3) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
+        }
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
