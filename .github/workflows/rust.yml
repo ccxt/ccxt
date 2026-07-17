@@ -76,6 +76,13 @@ jobs:
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
         run: npm run buildRust
+      # Check the `ccxt` package in isolation, not only as part of the workspace:
+      # Cargo feature unification from ccxt_tests would otherwise mask a broken
+      # default/no-default-features consumer build (review P0-A).
+      - name: Check ccxt package (isolated feature sets)
+        run: |
+          cargo check --manifest-path rust/ccxt/Cargo.toml --no-default-features
+          cargo check --manifest-path rust/ccxt/Cargo.toml --all-features
       # - name: Build Ws
       #   run: npm run buildRust --ws
       - name: Build tests
