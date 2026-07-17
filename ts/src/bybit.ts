@@ -6731,7 +6731,7 @@ export default class bybit extends Exchange {
             }
             symbols = this.marketSymbols (symbols);
         } else if (symbols !== undefined) {
-            symbol = symbols;
+            symbol = symbols as any;
             symbols = [ this.symbol (symbol) ];
         }
         const request: Dict = {};
