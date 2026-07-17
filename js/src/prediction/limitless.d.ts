@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/limitless.js';
-import type { int, Int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Bool, Account, fetchEventsParams, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
+import type { int, Int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Bool, Account, fetchEventsParams, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
 /**
  * @class limitless
  * @augments Exchange
@@ -326,7 +326,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
-    getPositionFromClobEntry(label: Str, entry?: NullableDict): PredictionPosition | undefined;
+    getPositionFromClobEntry(label: string, entry?: Dict): PredictionPosition;
     /**
      * @ignore
      * @method
@@ -398,5 +398,5 @@ export default class limitless extends Exchange {
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): any;
 }

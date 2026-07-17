@@ -1,5 +1,5 @@
 import Exchange from './abstract/aster.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class aster
  * @augments Exchange
@@ -18,7 +18,7 @@ export default class aster extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name aster#fetchMarkets
@@ -139,11 +139,11 @@ export default class aster extends Exchange {
      */
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
-        symbol: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        price: Num;
-        side: undefined;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        price: number;
+        side: any;
         info: any;
     };
     /**
@@ -205,9 +205,9 @@ export default class aster extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        fundingRate: number;
+        timestamp: number;
+        datetime: string;
     };
     /**
      * @method
@@ -244,7 +244,7 @@ export default class aster extends Exchange {
      */
     fetchPositionMode(symbol?: Str, params?: {}): Promise<{
         info: any;
-        hedged: boolean | undefined;
+        hedged: boolean;
     }>;
     /**
      * @method
@@ -269,8 +269,8 @@ export default class aster extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    parseOrderStatus(status: Str): Str;
-    parseOrderType(type: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -359,7 +359,7 @@ export default class aster extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name aster#cancelAllOrders
@@ -431,7 +431,7 @@ export default class aster extends Exchange {
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
-    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     /**
      * @method
      * @name aster#fetchMarginAdjustmentHistory
@@ -473,11 +473,11 @@ export default class aster extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
     };
     /**
      * @method
@@ -534,28 +534,28 @@ export default class aster extends Exchange {
     parseAccountPositions(account: any, filterClosed?: boolean): List;
     parseAccountPosition(position: any, market?: Market): {
         info: any;
-        id: undefined;
-        symbol: Str;
-        timestamp: Int;
-        datetime: string | undefined;
+        id: any;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
         initialMargin: number;
         initialMarginPercentage: number;
         maintenanceMargin: number;
         maintenanceMarginPercentage: number;
-        entryPrice: Num;
+        entryPrice: number;
         notional: number;
         leverage: number;
         unrealizedPnl: number;
         contracts: number;
         contractSize: any;
-        marginRatio: Num;
-        liquidationPrice: Num;
-        markPrice: undefined;
+        marginRatio: number;
+        liquidationPrice: number;
+        markPrice: any;
         collateral: number;
         marginMode: string;
-        side: Str;
+        side: string;
         hedged: boolean;
-        percentage: Num;
+        percentage: number;
     };
     /**
      * @method
@@ -610,7 +610,7 @@ export default class aster extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
     encodeValuesWithJson(values: Dict): string;
     capitalizeKeys(dict: Dict): Dict;
@@ -624,6 +624,6 @@ export default class aster extends Exchange {
      * @returns response from exchange
      */
     signIn(params?: {}): Promise<boolean>;
-    initializeClient(params?: {}): Promise<boolean | undefined>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    initializeClient(params?: {}): Promise<boolean>;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

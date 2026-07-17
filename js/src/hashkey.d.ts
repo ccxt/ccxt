@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -25,9 +25,9 @@ export default class hashkey extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -50,7 +50,7 @@ export default class hashkey extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name hashkey#fetchOrderBook
@@ -230,14 +230,14 @@ export default class hashkey extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
-        id: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        currency: Str;
-        amount: undefined;
-        fromAccount: undefined;
-        toAccount: undefined;
-        status: Str;
+        id: string;
+        timestamp: number;
+        datetime: string;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: string;
         info: any;
     };
     /**
@@ -250,9 +250,9 @@ export default class hashkey extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: Str;
+        id: string;
         type: string;
-        code: undefined;
+        code: any;
         info: any;
     };
     parseAccountType(type: any): string;
@@ -327,9 +327,9 @@ export default class hashkey extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
-    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
-    createSwapOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
+    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
+    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name hashkey#createSwapOrder
@@ -659,8 +659,8 @@ export default class hashkey extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

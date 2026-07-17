@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Market, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -77,7 +77,7 @@ export default class whitebit extends whitebitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    handleMyTrades(client: Client, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -91,7 +91,7 @@ export default class whitebit extends whitebitRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: Dict | undefined): void;
+    handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderType(status: any): string;
     /**
@@ -106,9 +106,9 @@ export default class whitebit extends whitebitRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    watchPublic(messageHash: any, method: any, reqParams?: (string | number | boolean | undefined)[], params?: {}): Promise<any>;
+    watchPublic(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
     watchMultipleSubscription(messageHash: any, method: any, symbol: any, isNested?: boolean, params?: {}): Promise<any>;
-    watchPrivate(messageHash: any, method: any, reqParams?: (string | number | boolean | undefined)[], params?: {}): Promise<any>;
+    watchPrivate(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
@@ -118,6 +118,6 @@ export default class whitebit extends whitebitRest {
     ping(client: Client): {
         id: number;
         method: string;
-        params: never[];
+        params: undefined[];
     };
 }

@@ -84,7 +84,7 @@ export default class bitbank extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -175,7 +175,7 @@ export default class bitbank extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

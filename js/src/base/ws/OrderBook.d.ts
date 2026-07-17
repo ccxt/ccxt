@@ -1,6 +1,7 @@
 import { IOrderBookSide } from './OrderBookSide.js';
 import { Int, Str } from '../types.js';
 interface CustomOrderBookProp {
+    cache: any[];
 }
 declare class OrderBook implements CustomOrderBookProp {
     cache: any[];

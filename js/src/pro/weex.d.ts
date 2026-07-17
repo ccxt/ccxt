@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, St
 import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
     describe(): any;
-    requestId(): string | undefined;
+    requestId(): string;
     subscribePublic(messageHashes: any, channels: any, isContract?: boolean, params?: {}, subscription?: {}): Promise<any>;
     subscribePrivate(messageHash: any, subscribeHash: any, channel: any, isContract?: boolean, params?: {}, subscription?: {}): Promise<any>;
     authenticate(url: any): void;
@@ -103,7 +103,7 @@ export default class weex extends weexRest {
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
     /**
      * @method
      * @name weex#watchOHLCV
@@ -155,7 +155,7 @@ export default class weex extends weexRest {
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     /**
      * @method
      * @name weex#watchOrderBook
@@ -225,7 +225,7 @@ export default class weex extends weexRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(message: any, market?: Market): Ticker;
+    parseWsBidAsk(message: any, market?: any): Ticker;
     /**
      * @method
      * @name weex#watchMyTrades
@@ -253,7 +253,7 @@ export default class weex extends weexRest {
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: Market): Trade;
+    parseWsMyTrade(trade: any, market?: any): Trade;
     /**
      * @method
      * @name weex#watchOrders
@@ -280,7 +280,7 @@ export default class weex extends weexRest {
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     /**
      * @method
      * @name weex#watchBalance
@@ -321,7 +321,7 @@ export default class weex extends weexRest {
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    parseWsPosition(position: any, market?: any): Position;
     getMarketFromClientAndMessage(client: Client, message: any): import("../base/types.js").MarketInterface;
     pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;

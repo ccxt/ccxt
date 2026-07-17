@@ -10,7 +10,7 @@ declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest
 declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash | null, fixedLength?: boolean): {
     r: string;
     s: string;
-    v: number | undefined;
+    v: number;
 };
 declare function eddsa(request: Hex, secret: Input, curve: CurveFnEDDSA): string;
 declare function crc32(str: any, signed?: boolean): number;

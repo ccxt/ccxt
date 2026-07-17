@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -24,10 +24,10 @@ export default class bingx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchSwapMarkets(params: any): Promise<Market[]>;
-    fetchInverseSwapMarkets(params: any): Promise<Market[]>;
+    fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchInverseSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -127,9 +127,9 @@ export default class bingx extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        fundingRate: number;
+        timestamp: number;
+        datetime: string;
     };
     /**
      * @method
@@ -147,11 +147,11 @@ export default class bingx extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
         type: string;
     };
     /**
@@ -297,7 +297,7 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name bingx#createOrder
@@ -346,9 +346,9 @@ export default class bingx extends Exchange {
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
-    parseOrderType(type: Str): Str;
+    parseOrderType(type: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     /**
      * @method
      * @name bingx#cancelOrder
@@ -579,7 +579,7 @@ export default class bingx extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: string): string;
     /**
      * @method
      * @name bingx#setMarginMode
@@ -781,7 +781,7 @@ export default class bingx extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     /**
      * @method
      * @name bingx#fetchTradingFee
@@ -795,7 +795,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    customEncode(params: any): Str;
+    customEncode(params: any): string;
     /**
      * @method
      * @name bingx#fetchMarketLeverageTiers
@@ -810,10 +810,10 @@ export default class bingx extends Exchange {
     sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
     nonce(): number;
     setSandboxMode(enable: boolean): void;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

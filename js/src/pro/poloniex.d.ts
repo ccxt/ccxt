@@ -1,5 +1,5 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
@@ -191,14 +191,14 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     handleOHLCV(client: Client, message: any): any;
     handleTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
     parseStatus(status: any): string;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
     handleOrder(client: Client, message: any): any;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     handleTicker(client: Client, message: any): any;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;

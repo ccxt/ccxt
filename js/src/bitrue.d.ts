@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -17,9 +17,9 @@ export default class bitrue extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -39,7 +39,7 @@ export default class bitrue extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bitrue#fetchMarkets
@@ -145,7 +145,7 @@ export default class bitrue extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -311,13 +311,13 @@ export default class bitrue extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        currency: Str;
-        amount: Num;
-        fromAccount: Str;
-        toAccount: Str;
+        id: any;
+        timestamp: number;
+        datetime: string;
+        currency: string;
+        amount: number;
+        fromAccount: string;
+        toAccount: string;
         status: string;
     };
     /**
@@ -377,9 +377,9 @@ export default class bitrue extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
 }

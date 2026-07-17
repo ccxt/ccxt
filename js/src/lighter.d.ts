@@ -1,5 +1,5 @@
 import Exchange from './abstract/lighter.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
 /**
  * @class lighter
  * @augments Exchange
@@ -20,8 +20,8 @@ export default class lighter extends Exchange {
     handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
     createSubAccount(name: string, params?: {}): Promise<any>;
-    createAuth(params?: {}): Str;
-    pow(n: string, m: string): string | undefined;
+    createAuth(params?: {}): string;
+    pow(n: string, m: string): string;
     hashMessage(message: string): string;
     signHash(hash: any, privateKey: any): string;
     signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
@@ -29,8 +29,8 @@ export default class lighter extends Exchange {
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: object): Promise<any>;
     changeApiKey(params?: object): Promise<any>;
     setSandboxMode(enable: boolean): void;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
-    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<Int>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any[];
+    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<number>;
     /**
      * @method
      * @name lighter#createOrder
@@ -78,9 +78,9 @@ export default class lighter extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -110,7 +110,7 @@ export default class lighter extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name lighter#fetchOrderBook
@@ -218,9 +218,9 @@ export default class lighter extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: Str;
+        id: string;
         type: string;
-        code: undefined;
+        code: any;
         info: any;
     };
     /**
@@ -250,11 +250,11 @@ export default class lighter extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrderType(type: any): string;
-    parseOrderTypeInteger(typeInteger: any): Str;
+    parseOrderTypeInteger(typeInteger: any): string;
     parseOrderTimeInForce(tif: any): string;
-    parseOrderTimeInForceInteger(tifInteger: any): Str;
+    parseOrderTimeInForceInteger(tifInteger: any): string;
     /**
      * @method
      * @name lighter#transfer
@@ -316,7 +316,7 @@ export default class lighter extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name lighter#withdraw
@@ -444,7 +444,7 @@ export default class lighter extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

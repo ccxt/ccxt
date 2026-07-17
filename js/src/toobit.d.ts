@@ -1,5 +1,5 @@
 import Exchange from './abstract/toobit.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class toobit
  * @augments Exchange
@@ -16,9 +16,9 @@ export default class toobit extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -39,7 +39,7 @@ export default class toobit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name toobit#fetchMarkets
@@ -119,10 +119,10 @@ export default class toobit extends Exchange {
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
-        timestamp: undefined;
-        datetime: undefined;
-        price: Num;
-        side: undefined;
+        timestamp: any;
+        datetime: any;
+        price: number;
+        side: any;
         info: any;
     };
     /**
@@ -138,12 +138,12 @@ export default class toobit extends Exchange {
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseBidsAsksCustom(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseBidAskCustom(ticker: any): {
-        timestamp: Str;
-        symbol: Str;
-        bid: Num;
-        bidVolume: Num;
-        ask: Num;
-        askVolume: Num;
+        timestamp: string;
+        symbol: string;
+        bid: number;
+        bidVolume: number;
+        ask: number;
+        askVolume: number;
         info: any;
     };
     /**
@@ -174,9 +174,9 @@ export default class toobit extends Exchange {
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        fundingRate: number;
+        timestamp: number;
+        datetime: string;
     };
     /**
      * @method
@@ -204,11 +204,11 @@ export default class toobit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): {}[];
-    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): {}[];
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
+    createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderType(status: any): string | undefined;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(status: any): string;
     /**
      * @method
      * @name toobit#cancelOrder
@@ -349,10 +349,10 @@ export default class toobit extends Exchange {
     parseTradingFee(data: any, market?: Market): {
         info: any;
         symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
+        maker: number;
+        taker: number;
+        percentage: any;
+        tierBased: any;
     };
     /**
      * @method
@@ -380,7 +380,7 @@ export default class toobit extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsOrWithdrawalsHelper(type: any, code: any, since: any, limit: any, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name toobit#fetchDepositAddress
@@ -453,8 +453,8 @@ export default class toobit extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

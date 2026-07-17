@@ -174,8 +174,8 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
-    createContractOrder(symbol: string, type: any, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
+    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    createContractOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     /**
      * @method
      * @name xt#fetchOrder
@@ -416,7 +416,7 @@ export default class xt extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): LeverageTiers;
     /**
      * @method
      * @name xt#fetchMarketLeverageTiers
@@ -477,11 +477,11 @@ export default class xt extends Exchange {
     parseFundingHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
     };
     /**
      * @method
@@ -519,14 +519,14 @@ export default class xt extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: Str;
-        timestamp: undefined;
-        datetime: undefined;
-        currency: undefined;
-        amount: undefined;
-        fromAccount: undefined;
-        toAccount: undefined;
-        status: undefined;
+        id: string;
+        timestamp: any;
+        datetime: any;
+        currency: any;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
     };
     /**
      * @method
@@ -559,11 +559,11 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
+        body: string;
         headers: Dict;
     };
 }

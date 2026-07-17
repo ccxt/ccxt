@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currency, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class whitebit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name whitebit#fetchTransactionFees
@@ -51,7 +51,7 @@ export default class whitebit extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method
      * @name whitebit#fetchTradingFees
@@ -178,10 +178,10 @@ export default class whitebit extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -335,9 +335,9 @@ export default class whitebit extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderType(type: Str): Str;
+    parseOrderType(type: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     /**
      * @method
      * @name whitebit#fetchOrderTrades
@@ -449,7 +449,7 @@ export default class whitebit extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name whitebit#fetchDeposit
@@ -524,11 +524,11 @@ export default class whitebit extends Exchange {
     parseFundingHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        code: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: undefined;
-        amount: Num;
+        code: any;
+        timestamp: number;
+        datetime: string;
+        id: any;
+        amount: number;
     };
     parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     /**
@@ -638,11 +638,11 @@ export default class whitebit extends Exchange {
      */
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
-        currency: Str;
+        currency: string;
         rate: number;
-        period: Int;
-        timestamp: undefined;
-        datetime: undefined;
+        period: number;
+        timestamp: any;
+        datetime: any;
         info: any;
     };
     isFiat(currency: string): boolean;
@@ -662,9 +662,9 @@ export default class whitebit extends Exchange {
     parseFundingRateHistory(info: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        fundingRate: number;
+        timestamp: number;
+        datetime: string;
     };
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
@@ -673,5 +673,5 @@ export default class whitebit extends Exchange {
         body: any;
         headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

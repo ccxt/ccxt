@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
     subscribe(unifiedName: any, channel: any, symbol: any, type: any, params?: {}): Promise<any>;
-    subscribeMultiple(unifiedName: string, channel: Str, type: Str, symbols?: Strings, params?: {}): Promise<any>;
+    subscribeMultiple(unifiedName: string, channel: string, type: string, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitmart#watchBalance
@@ -177,7 +177,7 @@ export default class bitmart extends bitmartRest {
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
     handleTrade(client: Client, message: any): void;
-    handleTradeLoop(entry: any): string | undefined;
+    handleTradeLoop(entry: any): string;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleTicker(client: Client, message: any): void;
     parseWsSwapTicker(ticker: any, market?: Market): Ticker;

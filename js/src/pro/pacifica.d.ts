@@ -3,7 +3,7 @@ import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 export default class pacifica extends pacificaRest {
     describe(): any;
-    setupApiKeyHeaders(key?: Str): void;
+    setupApiKeyHeaders(key?: string): void;
     /**
      * @method
      * @name pacifica#createOrderWs
@@ -262,6 +262,6 @@ export default class pacifica extends pacificaRest {
     };
     handlePong(client: Client, message: any): any;
     requestId(): string;
-    wrapAsPostAction(operationType: Str, request: Dict): Dict;
+    wrapAsPostAction(operationType: string, request: Dict): Dict;
     handleWsPost(client: Client, message: Dict): void;
 }

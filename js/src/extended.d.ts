@@ -1,13 +1,13 @@
 import Exchange from './abstract/extended.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class extended
  * @augments Exchange
  */
 export default class extended extends Exchange {
     describe(): any;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: any): Dict | undefined;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").MarketInterface>>;
+    indexByStringifiedNumericId(input: any): Dict;
     /**
      * @method
      * @name extended#fetchMarkets
@@ -27,7 +27,7 @@ export default class extended extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
+    parseCurrency(currency: Dict): Currency;
     /**
      * @method
      * @name extended#fetchTicker
@@ -363,20 +363,20 @@ export default class extended extends Exchange {
     getExtendedStarkAmount(amount: string, resolution: any, roundUp?: boolean): string;
     fetchExtendedAccount(params?: {}): Promise<any>;
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: {}): {
-        starkKey: Str;
-        collateralPosition: Str;
-        baseAssetId: Str;
+        starkKey: string;
+        collateralPosition: string;
+        baseAssetId: string;
         baseAmount: string;
-        quoteAssetId: Str;
+        quoteAssetId: string;
         quoteAmount: string;
-        feeAssetId: Str;
+        feeAssetId: string;
         feeAmount: string;
-        expiration: string | undefined;
-        salt: Int;
+        expiration: string;
+        salt: number;
     };
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: {}): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: {}): Dict;
-    createExtendedOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Dict>;
+    createExtendedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name extended#createOrder
@@ -544,11 +544,11 @@ export default class extended extends Exchange {
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
 }

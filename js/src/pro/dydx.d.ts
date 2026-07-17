@@ -1,5 +1,5 @@
 import dydxRest from '../dydx.js';
-import type { Int, Trade, OrderBook, OHLCV, Market } from '../base/types.js';
+import type { Int, Trade, OrderBook, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class dydx extends dydxRest {
     describe(): any;
@@ -26,7 +26,7 @@ export default class dydx extends dydxRest {
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
     /**
      * @method
      * @name dydx#watchOrderBook

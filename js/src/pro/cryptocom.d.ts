@@ -168,7 +168,7 @@ export default class cryptocom extends cryptocomRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: Market): Ticker;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     /**
      * @method
      * @name cryptocom#watchOHLCV
@@ -206,7 +206,7 @@ export default class cryptocom extends cryptocomRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription?: Dict | undefined): void;
+    handleOrders(client: Client, message: any, subscription?: any): void;
     /**
      * @method
      * @name cryptocom#watchPositions

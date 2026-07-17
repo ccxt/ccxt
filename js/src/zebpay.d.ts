@@ -1,5 +1,5 @@
 import Exchange from './abstract/zebpay.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees } from './base/types.js';
 /**
  * @class zebpay
  * @augments Exchange
@@ -16,11 +16,11 @@ export default class zebpay extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
-        info: undefined;
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: Dict;
     }>;
     /**
      * @method
@@ -51,7 +51,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name zebpay#fetchTradingFee
@@ -190,7 +190,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    orderRequest(symbol: any, type: any, amount: any, request: any, price?: Num, params?: {}): any[];
+    orderRequest(symbol: any, type: any, amount: any, request: any, price?: any, params?: {}): any[];
     /**
      * @method
      * @name zebpay#cancelOrder
@@ -327,26 +327,26 @@ export default class zebpay extends Exchange {
     parseBalance(response: any): Balances;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
-        symbol: Str;
-        timestamp: number | undefined;
-        datetime: Str;
-        initialMargin: Num;
-        initialMarginPercentage: undefined;
-        maintenanceMargin: undefined;
-        maintenanceMarginPercentage: undefined;
-        entryPrice: Num;
-        notional: Num;
-        leverage: Num;
-        unrealizedPnl: undefined;
-        contracts: Num;
-        contractSize: Num;
-        marginRatio: undefined;
-        liquidationPrice: Num;
-        markPrice: undefined;
-        collateral: undefined;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        initialMargin: number;
+        initialMarginPercentage: any;
+        maintenanceMargin: any;
+        maintenanceMarginPercentage: any;
+        entryPrice: number;
+        notional: number;
+        leverage: number;
+        unrealizedPnl: any;
+        contracts: number;
+        contractSize: number;
+        marginRatio: any;
+        liquidationPrice: number;
+        markPrice: any;
+        collateral: any;
         marginType: string;
-        side: Str;
-        percentage: undefined;
+        side: string;
+        percentage: any;
     };
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
@@ -355,8 +355,8 @@ export default class zebpay extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

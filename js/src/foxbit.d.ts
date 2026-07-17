@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
 export default class foxbit extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name foxbit#fetchMarkets
@@ -260,10 +260,10 @@ export default class foxbit extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: Str;
-        eta: undefined;
-        url: undefined;
+        status: string;
+        updated: string;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -310,44 +310,44 @@ export default class foxbit extends Exchange {
     parseTradingFee(entry: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseTrade(trade: any, market?: Market): Trade;
-    parseOrderStatus(status: Str): Str;
-    parseOrder(order: any, market?: Market): Order;
+    parseTrade(trade: any, market?: any): Trade;
+    parseOrderStatus(status: Str): string;
+    parseOrder(order: any, market?: any): Order;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        address: Str;
-        tag: Str;
-        currency: Str;
-        network: Str;
+        address: string;
+        tag: string;
+        currency: string;
+        network: string;
         info: any;
     };
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: any, currency?: Currency, since?: Int, limit?: Int): Transaction;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: Str;
+        id: string;
         info: Dict;
-        timestamp: number | undefined;
-        datetime: string | undefined;
+        timestamp: number;
+        datetime: string;
         direction: string;
-        account: undefined;
-        referenceId: undefined;
-        referenceAccount: undefined;
+        account: any;
+        referenceId: any;
+        referenceAccount: any;
         type: string;
-        currency: Str;
-        amount: Num;
+        currency: string;
+        amount: number;
         before: number;
         after: number;
         status: string;
         fee: {
-            cost: Num;
-            currency: Str;
+            cost: number;
+            currency: string;
         };
     };
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
+        body: string;
         headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

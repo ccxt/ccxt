@@ -172,7 +172,7 @@ export default class bingx extends bingxRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
-    parseWsPosition(position: any, market?: Market): Position;
+    parseWsPosition(position: any, market?: any): Position;
     handlePositions(client: Client, message: any): void;
     handleErrorMessage(client: any, message: any): boolean;
     keepAliveListenKey(params?: {}): Promise<void>;

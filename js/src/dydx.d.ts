@@ -66,10 +66,10 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    handlePublicAddress(methodName: Str, params: Dict): [Str, Dict];
+    handlePublicAddress(methodName: string, params: Dict): any[];
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
-    parseOrderType(type: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
     /**
      * @method
      * @name dydx#fetchOrder
@@ -160,11 +160,11 @@ export default class dydx extends Exchange {
         v: any;
     };
     signOnboardingAction(): object;
-    signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
+    signDydxTx(privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee?: any): string;
     retrieveCredentials(): any;
     fetchDydxAccount(): Promise<import("./base/types.js").Dictionary<any>>;
-    pow(n: string, m: Str): string | undefined;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
+    pow(n: string, m: string): string;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any[];
     createOrderIdFromParts(address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string;
     fetchLatestBlockHeight(params?: {}): Promise<int>;
     /**
@@ -246,7 +246,7 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
-    estimateTxFee(message: any, memo: Str, account: any): Promise<any>;
+    estimateTxFee(message: any, memo: string, account: any): Promise<any>;
     /**
      * @method
      * @name dydx#transfer
@@ -356,9 +356,9 @@ export default class dydx extends Exchange {
     sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     setSandboxMode(enable: boolean): void;
 }

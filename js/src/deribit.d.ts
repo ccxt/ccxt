@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -26,7 +26,7 @@ export default class deribit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     codeFromOptions(methodName: any, params?: {}): any;
     /**
      * @method
@@ -38,9 +38,9 @@ export default class deribit extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: Int;
-        eta: undefined;
-        url: undefined;
+        updated: number;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -54,9 +54,9 @@ export default class deribit extends Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         info: any;
-        id: Str;
-        type: Str;
-        code: undefined;
+        id: string;
+        type: string;
+        code: any;
     };
     /**
      * @method
@@ -172,8 +172,8 @@ export default class deribit extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseOrderStatus(status: Str): Str;
-    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseTimeInForce(timeInForce: Str): string;
     parseOrderType(orderType: any): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -320,7 +320,7 @@ export default class deribit extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parsePosition(position: Dict, market?: Market): Position;
     /**
@@ -401,12 +401,12 @@ export default class deribit extends Exchange {
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
-            fee: Num;
+            fee: number;
             percentage: boolean;
         };
         deposit: {
-            fee: undefined;
-            percentage: undefined;
+            fee: any;
+            percentage: any;
         };
         networks: {};
     };
@@ -521,8 +521,8 @@ export default class deribit extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

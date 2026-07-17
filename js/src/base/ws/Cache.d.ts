@@ -22,7 +22,7 @@ declare class ArrayCacheBySymbolById extends ArrayCache {
     append(item: any): void;
 }
 declare class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
-    constructor(maxSize?: Int);
+    constructor(maxSize?: any);
 }
 declare class ArrayCacheBySymbolBySide extends ArrayCache {
     constructor();

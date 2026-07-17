@@ -104,7 +104,7 @@ export default class apex extends apexRest {
      */
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     /**
      * @method
      * @name apex#watchMyTrades

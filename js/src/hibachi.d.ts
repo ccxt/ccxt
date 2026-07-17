@@ -75,8 +75,8 @@ export default class hibachi extends Exchange {
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    orderMessage(market: any, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
-    createOrderRequest(nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    createOrderRequest(nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name hibachi#createOrder
@@ -101,7 +101,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): any;
+    editOrderRequest(nonce: number, id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name hibachi#editOrder
@@ -163,7 +163,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    encodeWithdrawMessage(amount: Num, maxFees: Num, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
     /**
      * @method
      * @name hibachi#withdraw
@@ -214,7 +214,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @ignore
      * @method
@@ -287,10 +287,10 @@ export default class hibachi extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
+        body: string;
         headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     parseTransactionType(type: any): string;
     parseTransactionStatus(status: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -354,14 +354,14 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseSettlement(settlement: any, market?: Market): {
+    parseSettlement(settlement: any, market?: any): {
         info: any;
         symbol: string;
-        price: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        price: number;
+        timestamp: number;
+        datetime: string;
     };
-    parseSettlements(settlements: any, market?: Market): Dict[];
+    parseSettlements(settlements: any, market?: any): any[];
     /**
      * @method
      * @name hibachi#fetchMySettlementHistory

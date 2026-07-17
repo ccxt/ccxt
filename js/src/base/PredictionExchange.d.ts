@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams, Currencies } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments BaseExchange
@@ -8,18 +8,18 @@ import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, P
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
  */
 export default class PredictionExchange extends BaseExchange {
-    outcomes: Dictionary<any> | undefined;
-    outcomes_by_id: Dictionary<any> | undefined;
-    events: Dictionary<any> | undefined;
-    events_by_slug: Dictionary<any> | undefined;
+    outcomes: Dictionary<any>;
+    outcomes_by_id: Dictionary<any>;
+    events: Dictionary<any>;
+    events_by_slug: Dictionary<any>;
     describe(): any;
     isPrediction(): boolean;
-    parseSearchQueries(params?: {}): string[];
-    requireEventQuery(params?: {}): undefined;
-    applyEventFetchParams(events: any[], params?: {}, queries?: Strings): any[];
+    parseSearchQueries(params?: {}): Strings;
+    requireEventQuery(params?: {}): any;
+    applyEventFetchParams(events: any[], params?: {}, queries?: string[]): any[];
     filterEventsByStatus(events: any[], status?: Str): any[];
-    filterEventsBySearchIn(events: any[], queries: Strings, searchIn?: Str): any[];
-    filterEventsByTags(events: any[], tags?: Strings): any[];
+    filterEventsBySearchIn(events: any[], queries: string[], searchIn?: Str): any[];
+    filterEventsByTags(events: any[], tags?: string[]): any[];
     fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
     setEvents(events: any[]): Dictionary<any>;
@@ -27,18 +27,18 @@ export default class PredictionExchange extends BaseExchange {
     loadEventsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadEvents(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     getEvent(eventIdOrSlug: string): any;
-    outcome(outcomeSymbol: Str): any;
-    hasOutcome(outcomeIdOrSymbol: Str): boolean;
+    outcome(outcomeSymbol: string): any;
+    hasOutcome(outcomeIdOrSymbol: string): boolean;
     safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
-    slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
-    slugToOutcomeSymbol(eventSlug: Str, marketSlug: Str, outcome: Str): string;
-    setMarkets(markets: any, currencies?: Currencies | undefined): Dictionary<any> | undefined;
+    slugToMarketSymbol(eventSlug: Str, marketSlug: string): string;
+    slugToOutcomeSymbol(eventSlug: Str, marketSlug: string, outcome: string): string;
+    setMarkets(markets: any, currencies?: any): Dictionary<any>;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;
-    loadOutcomes(outcomes?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any> | undefined>;
+    loadOutcomes(outcomes?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     /**
      * @ignore
      * @method
@@ -48,7 +48,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<any>;
+    loadOutcome(outcomeSymbol: string, reload?: boolean): Promise<any>;
     outcomeSearchQuery(outcomeSymbol: string): Str;
     fetchOutcome(outcomeSymbol: string): Promise<any>;
     /**
@@ -78,7 +78,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name fetchOHLCV
@@ -340,11 +340,11 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction settlement structures
      */
     fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionSettlement[]>;
-    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Dict | undefined): PredictionOrder;
-    safePredictionTrade(trade: Dict, outcomeObj?: Dict | undefined): PredictionTrade;
-    safePredictionTicker(ticker: Dict, outcomeObj?: Dict | undefined): PredictionTicker;
+    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: any): PredictionOrder;
+    safePredictionTrade(trade: Dict, outcomeObj?: any): PredictionTrade;
+    safePredictionTicker(ticker: Dict, outcomeObj?: any): PredictionTicker;
     safePredictionPosition(position: Dict): PredictionPosition;
-    safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict | undefined): PredictionOrderBook;
+    safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict): PredictionOrderBook;
     parsePredictionTicker(ticker: Dict, market?: Market): PredictionTicker;
     parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
@@ -387,18 +387,18 @@ export default class PredictionExchange extends BaseExchange {
      */
     parsePredictionPositions(positions: any[], params?: {}): PredictionPosition[];
     filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any;
-    filterByOutcomesSinceLimit(array: any, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any;
-    amountToPredictionPrecision(outcome: Str, amount: any): Str;
-    priceToPredictionPrecision(outcome: Str, price: any): Str;
-    costToPredictionPrecision(outcome: Str, cost: any): Str;
-    padHexToEven(hex: Str): string;
-    padHexAddress(address: Str): string;
-    rlpEncodeBytes(hex: Str): string;
+    filterByOutcomesSinceLimit(array: any, outcomes?: string[], since?: Int, limit?: Int, tail?: boolean): any;
+    amountToPredictionPrecision(outcome: string, amount: any): string;
+    priceToPredictionPrecision(outcome: string, price: any): string;
+    costToPredictionPrecision(outcome: string, cost: any): string;
+    padHexToEven(hex: string): string;
+    padHexAddress(address: string): string;
+    rlpEncodeBytes(hex: string): string;
     rlpEncodeList(items: string[]): string;
-    intToRlpHex(value: Int): string;
-    hexToRlpBytes(hexValue: Str): string;
+    intToRlpHex(value: number): string;
+    hexToRlpBytes(hexValue: string): string;
     signEvmTransaction(tx: Dict, privateKey: string): string;
-    ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
-    sendEvmTransaction(rpcUrl: Str, chainId: number, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str): Promise<string>;
-    waitForTransactionReceipt(rpcUrl: Str, txHash: Str, timeout?: number): Promise<any>;
+    ethRpc(rpcUrl: string, method: string, rpcParams: any[]): Promise<any>;
+    sendEvmTransaction(rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string>;
+    waitForTransactionReceipt(rpcUrl: string, txHash: string, timeout?: number): Promise<any>;
 }

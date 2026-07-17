@@ -34,7 +34,7 @@ declare class testMainClass {
     addPadding(message: string, size: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): {};
-    testSafe(methodName: any, exchange: any, args?: never[], isPublic?: boolean): Promise<boolean>;
+    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
@@ -42,7 +42,7 @@ declare class testMainClass {
     getExchangeCode(exchange: any, codes?: Strings): string;
     getMarketsFromExchange(exchange: any, spot?: boolean): {};
     getValidSymbol(exchange: any, spot?: boolean): any;
-    testExchange(exchange: any, providedSymbol?: undefined): Promise<boolean>;
+    testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
     runPredictionTests(exchange: any): Promise<boolean>;
     assertPredictionEvents(exchange: any, events: any): boolean;
     assertPredictionEvent(exchange: any, event: any): boolean;
@@ -58,16 +58,16 @@ declare class testMainClass {
     loadMarketsFromFile(id: string): any;
     loadEventsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
-    loadStaticData(folder: string, targetExchange?: Str): {} | undefined;
-    removeHostnamefromUrl(url: string): string | undefined;
+    loadStaticData(folder: string, targetExchange?: Str): {};
+    removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
-    assertStaticRequestOutput(exchange: any, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
+    assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
-    sanitizeDataInput(input: any): List | undefined;
-    testRequestStatically(exchange: any, method: string, data: object, type: Str, skipKeys: string[]): Promise<boolean>;
+    sanitizeDataInput(input: any): List;
+    testRequestStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<boolean>;
     initOfflineExchange(exchangeName: string): Exchange;
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
@@ -76,7 +76,7 @@ declare class testMainClass {
     checkIfExchangeIsDisabled(exchangeName: string, exchangeData: object): boolean;
     runStaticRequestTests(targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticTests(type: string, targetExchange?: Str, testName?: Str): Promise<boolean>;
-    runStaticResponseTests(exchangeName?: undefined, test?: undefined): Promise<boolean>;
+    runStaticResponseTests(exchangeName?: any, test?: any): Promise<boolean>;
     runBrokerIdTests(): Promise<boolean>;
     testBinance(): Promise<boolean>;
     testOkx(): Promise<boolean>;

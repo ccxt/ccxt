@@ -129,7 +129,7 @@ export default class hitbtc extends hitbtcRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): any;
-    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     /**
      * @method
      * @name hitbtc#watchOrders
@@ -232,5 +232,5 @@ export default class hitbtc extends hitbtcRest {
     handleOrderRequest(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
-    handleError(client: Client, message: any): true | undefined;
+    handleError(client: Client, message: any): boolean;
 }

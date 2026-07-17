@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate, NullableDict } from './base/types.js';
 /**
  * @class cryptocom
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
+    parseCurrency(currency: Dict): Currency;
     /**
      * @method
      * @name cryptocom#fetchMarkets
@@ -121,7 +121,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name cryptocom#createOrder
@@ -152,7 +152,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createAdvancedOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createAdvancedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name cryptocom#editOrder
@@ -169,7 +169,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: Str, amount: Num, price?: Num, params?: {}): any;
+    editOrderRequest(id: string, symbol: string, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name cryptocom#cancelAllOrders
@@ -238,7 +238,7 @@ export default class cryptocom extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseAddress(addressString: any): Str[];
+    parseAddress(addressString: any): string[];
     /**
      * @method
      * @name cryptocom#withdraw
@@ -301,8 +301,8 @@ export default class cryptocom extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrderStatus(status: Str): Str;
-    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseTimeInForce(timeInForce: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseDepositStatus(status: any): string;
     parseWithdrawalStatus(status: any): string;
@@ -344,9 +344,9 @@ export default class cryptocom extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: Str;
-        type: Str;
-        code: undefined;
+        id: string;
+        type: string;
+        code: any;
         info: any;
     };
     /**
@@ -365,9 +365,9 @@ export default class cryptocom extends Exchange {
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
-        price: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        price: number;
+        timestamp: number;
+        datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
     /**
@@ -457,8 +457,8 @@ export default class cryptocom extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

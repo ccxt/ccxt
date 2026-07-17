@@ -1,5 +1,5 @@
 import Exchange from './abstract/latoken.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, int } from './base/types.js';
 /**
  * @class latoken
  * @augments Exchange
@@ -33,7 +33,7 @@ export default class latoken extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
+    parseCurrency(currency: Dict): Currency;
     /**
      * @method
      * @name latoken#fetchBalance
@@ -102,18 +102,18 @@ export default class latoken extends Exchange {
     fetchPublicTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
+        maker: number;
+        taker: number;
+        percentage: any;
+        tierBased: any;
     }>;
     fetchPrivateTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
+        maker: number;
+        taker: number;
+        percentage: any;
+        tierBased: any;
     }>;
     /**
      * @method
@@ -128,9 +128,9 @@ export default class latoken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
-    parseTimeInForce(timeInForce: Str): Str;
+    parseTimeInForce(timeInForce: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -234,7 +234,7 @@ export default class latoken extends Exchange {
      */
     fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     parseTransactionType(type: any): string;
     /**
      * @method
@@ -269,7 +269,7 @@ export default class latoken extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

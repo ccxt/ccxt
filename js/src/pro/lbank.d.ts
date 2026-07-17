@@ -92,7 +92,7 @@ export default class lbank extends lbankRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: any, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method

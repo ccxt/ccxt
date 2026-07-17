@@ -1,5 +1,5 @@
 import Exchange from './abstract/backpack.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
 /**
  * @class backpack
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class backpack extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name backpack#fetchMarkets
@@ -146,9 +146,9 @@ export default class backpack extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: undefined;
-        eta: undefined;
-        url: undefined;
+        updated: any;
+        eta: any;
+        url: any;
         info: any;
     }>;
     /**
@@ -211,7 +211,7 @@ export default class backpack extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name backpack#fetchDepositAddress
@@ -265,7 +265,7 @@ export default class backpack extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     encodeOrderSide(side: any): string;
     /**
      * @method
@@ -324,8 +324,8 @@ export default class backpack extends Exchange {
      */
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
-    parseOrderSide(side: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseOrderSide(side: Str): string;
     /**
      * @method
      * @name backpack#fetchPositions
@@ -353,20 +353,20 @@ export default class backpack extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: undefined;
-        timestamp: number | undefined;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
-        rate: Num;
+        code: any;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
+        rate: number;
     };
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
     generateBatchPayload(params: any, ts: any, recvWindow: any, instruction: any): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

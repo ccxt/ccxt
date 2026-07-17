@@ -3,7 +3,7 @@ import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, 
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
-    getUrl(channel: Str, access?: string): string;
+    getUrl(channel: string, access?: string): string;
     subscribeMultiple(access: any, channel: any, symbols?: Strings, params?: {}): Promise<any>;
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     /**
@@ -278,7 +278,7 @@ export default class okx extends okxRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any, market?: Market): any;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any, market?: any): any;
     handleOrderBook(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;
     /**
@@ -292,7 +292,7 @@ export default class okx extends okxRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalanceAndPosition(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;
-    orderToTrade(order: any, market?: Market): Trade;
+    orderToTrade(order: any, market?: any): Trade;
     /**
      * @method
      * @name okx#watchMyTrades

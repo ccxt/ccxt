@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -40,9 +40,9 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolios(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: Str;
-        type: Str;
-        code: Str;
+        id: string;
+        type: string;
+        code: string;
         info: any;
     };
     /**
@@ -122,7 +122,7 @@ export default class coinbase extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -140,8 +140,8 @@ export default class coinbase extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<Market[]>;
     fetchMarketsV3(params?: {}): Promise<Market[]>;
-    parseSpotMarket(market: any, feeTier: any): Market;
-    parseContractMarket(market: any, feeTier: any): Market;
+    parseSpotMarket(market: any, feeTier: any): MarketInterface;
+    parseContractMarket(market: any, feeTier: any): MarketInterface;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     /**
      * @method
@@ -215,7 +215,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    findAccountId(code: any, params?: {}): Promise<Str>;
+    findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     /**
@@ -260,9 +260,9 @@ export default class coinbase extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): Str;
-    parseOrderType(type: Str): Str;
-    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string;
+    parseOrderType(type: Str): string;
+    parseTimeInForce(timeInForce: Str): string;
     /**
      * @method
      * @name coinbase#cancelOrder
@@ -507,18 +507,18 @@ export default class coinbase extends Exchange {
      */
     fetchDepositMethodId(id: string, params?: {}): Promise<{
         info: any;
-        id: Str;
-        currency: Str;
-        verified: boolean | undefined;
-        tag: Str;
+        id: string;
+        currency: string;
+        verified: boolean;
+        tag: string;
     }>;
     parseDepositMethodIds(ids: any, params?: {}): any[];
     parseDepositMethodId(depositId: any): {
         info: any;
-        id: Str;
-        currency: Str;
-        verified: boolean | undefined;
-        tag: Str;
+        id: string;
+        currency: string;
+        verified: boolean;
+        tag: string;
     };
     /**
      * @method
@@ -626,10 +626,10 @@ export default class coinbase extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     /**
      * @method
      * @name coinbase#fetchDepositAddresses

@@ -18,7 +18,7 @@ export default class deepcoin extends deepcoinRest {
     watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
     unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
-    authenticate(params?: {}): Promise<Str>;
+    authenticate(params?: {}): Promise<string>;
     /**
      * @method
      * @name deepcoin#watchTicker

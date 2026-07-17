@@ -5,7 +5,6 @@ export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
 export type IndexType = number | string;
-export type MaybeIndexType = IndexType | undefined;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
@@ -40,8 +39,8 @@ export interface TradingFeeInterface {
 }
 export type Fee = FeeInterface | undefined;
 export interface MarketMarginModes {
-    isolated: Bool;
-    cross: Bool;
+    isolated: boolean;
+    cross: boolean;
 }
 export interface Precision {
     amount: Num;
@@ -61,19 +60,19 @@ export interface MarketInterface {
     active: Bool;
     type: MarketType;
     subType?: SubType;
-    spot: Bool;
-    margin: Bool;
-    swap: Bool;
-    future: Bool;
-    option: Bool;
-    prediction?: Bool;
-    contract: Bool;
+    spot: boolean;
+    margin: boolean;
+    swap: boolean;
+    future: boolean;
+    option: boolean;
+    prediction?: boolean;
+    contract: boolean;
     settle: Str;
     settleId: Str;
     contractSize: Num;
     linear: Bool;
     inverse: Bool;
-    quanto?: Bool;
+    quanto?: boolean;
     expiry: Int;
     expiryDatetime: Str;
     strike: Num;

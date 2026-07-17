@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -55,7 +55,7 @@ export default class bitget extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bitget#fetchMarketLeverageTiers
@@ -119,7 +119,7 @@ export default class bitget extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name bitget#fetchDepositAddress
@@ -231,10 +231,10 @@ export default class bitget extends Exchange {
     parseTradingFee(data: any, market?: Market): {
         info: any;
         symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
+        maker: number;
+        taker: number;
+        percentage: any;
+        tierBased: any;
     };
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -281,7 +281,7 @@ export default class bitget extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseUtaBalance(balance: any): Balances;
     parseBalance(balance: any): Balances;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -342,8 +342,8 @@ export default class bitget extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createUtaOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createUtaOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createUtaOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     /**
      * @method
@@ -712,11 +712,11 @@ export default class bitget extends Exchange {
     parseFundingHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        timestamp: Int;
-        datetime: string | undefined;
-        code: Str;
-        amount: Num;
-        id: Str;
+        timestamp: number;
+        datetime: string;
+        code: string;
+        amount: number;
+        id: string;
     };
     parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
@@ -859,12 +859,12 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
+        id: string;
+        currency: string;
         amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     }>;
     /**
@@ -879,12 +879,12 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
+        id: string;
+        currency: string;
         amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     }>;
     /**
@@ -899,12 +899,12 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
+        id: string;
+        currency: string;
         amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     }>;
     /**
@@ -918,21 +918,21 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
-        id: Str;
-        currency: Str;
+        id: string;
+        currency: string;
         amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     }>;
     parseMarginLoan(info: any, currency?: Currency, market?: Market): {
-        id: Str;
-        currency: Str;
+        id: string;
+        currency: string;
         amount: number;
-        symbol: Str;
-        timestamp: undefined;
-        datetime: undefined;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
         info: any;
     };
     /**
@@ -976,11 +976,11 @@ export default class bitget extends Exchange {
      */
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
-        currency: Str;
+        currency: string;
         rate: number;
         period: number;
-        timestamp: Int;
-        datetime: string | undefined;
+        timestamp: number;
+        datetime: string;
         info: any;
     };
     /**
@@ -1127,12 +1127,12 @@ export default class bitget extends Exchange {
      */
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: {}): Promise<LongShortRatio[]>;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: NullableDict;
+        headers: Dict;
     };
 }

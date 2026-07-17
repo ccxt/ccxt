@@ -27,7 +27,7 @@ export default class bitrue extends bitrueRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
     findSwapMarketByWsBaseQuote(wsBaseQuote: string): any;

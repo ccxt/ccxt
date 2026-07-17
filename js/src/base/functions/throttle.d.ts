@@ -23,6 +23,6 @@ declare class Throttler {
     leakyBucketLoop(): Promise<void>;
     rollingWindowLoop(): Promise<void>;
     loop(): Promise<void>;
-    throttle(cost?: Num): Promise<unknown>;
+    throttle(cost?: any): Promise<unknown>;
 }
 export { Throttler, };

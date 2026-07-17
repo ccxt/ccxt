@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -19,11 +19,11 @@ export default class htx extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: number | Str;
-        eta: undefined;
-        url: Str;
-        info: undefined;
+        status: string;
+        updated: any;
+        eta: any;
+        url: string;
+        info: Dict;
     }>;
     /**
      * @method
@@ -56,12 +56,12 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    fetchTradingLimitsById(id: Str, params?: {}): Promise<{
+    fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
             amount: {
-                min: Num;
-                max: Num;
+                min: number;
+                max: number;
             };
         };
     }>;
@@ -69,8 +69,8 @@ export default class htx extends Exchange {
         info: any;
         limits: {
             amount: {
-                min: Num;
-                max: Num;
+                min: number;
+                max: number;
             };
         };
     };
@@ -144,10 +144,10 @@ export default class htx extends Exchange {
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
-        timestamp: undefined;
-        datetime: undefined;
-        price: Num;
-        side: Str;
+        timestamp: any;
+        datetime: any;
+        price: number;
+        side: string;
         info: any;
     };
     /**
@@ -252,9 +252,9 @@ export default class htx extends Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         info: any;
-        id: Str;
+        id: string;
         type: any;
-        code: undefined;
+        code: any;
     };
     /**
      * @method
@@ -277,8 +277,8 @@ export default class htx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
+    parseCurrency(rawCurrency: Dict): Currency;
+    networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     networkCodeToId(networkCode: string, currencyCode?: Str): any;
     /**
      * @method
@@ -402,7 +402,7 @@ export default class htx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -445,8 +445,8 @@ export default class htx extends Exchange {
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<any>;
-    createContractOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<any>;
+    createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
      * @name htx#createOrder
@@ -560,11 +560,11 @@ export default class htx extends Exchange {
      */
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: Str;
-        address: Str;
-        tag: Str;
-        network: Str;
-        note: Str;
+        currency: string;
+        address: string;
+        tag: string;
+        network: string;
+        note: string;
         info: any;
     };
     /**
@@ -587,7 +587,7 @@ export default class htx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<List>;
+    fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<List>;
     /**
      * @method
      * @name htx#fetchDeposits
@@ -613,7 +613,7 @@ export default class htx extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): Str;
+    parseTransactionStatus(status: Str): string;
     /**
      * @method
      * @name htx#withdraw
@@ -732,10 +732,10 @@ export default class htx extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     /**
      * @method
      * @name htx#fetchFundingHistory
@@ -768,11 +768,11 @@ export default class htx extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
     };
     parsePosition(position: Dict, market?: Market): Position;
     /**
@@ -918,12 +918,12 @@ export default class htx extends Exchange {
      */
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: Str;
-        currency: Str;
-        amount: undefined;
-        symbol: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
+        id: string;
+        currency: string;
+        amount: any;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
         info: any;
     };
     /**
@@ -958,9 +958,9 @@ export default class htx extends Exchange {
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
-        price: Num;
-        timestamp: Int;
-        datetime: string | undefined;
+        price: number;
+        timestamp: number;
+        datetime: string;
     };
     /**
      * @method

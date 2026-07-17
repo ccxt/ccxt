@@ -1,4 +1,3 @@
-import type { Market } from './../base/types.js';
 import coinbaseRest from '../coinbase.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 export default class coinbase extends coinbaseRest {
@@ -14,7 +13,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: Str | Strings, params?: {}): Promise<any>;
+    subscribe(name: string, isPrivate: boolean, symbol?: any, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -26,7 +25,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str | Strings): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: any): Promise<any>;
     /**
      * @ignore
      * @method
@@ -52,7 +51,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     unSubscribeMultiple(topic: string, name: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
-    createWSAuth(name: string, productIds: Str[]): Dict;
+    createWSAuth(name: string, productIds: string[]): Dict;
     /**
      * @method
      * @name coinbase#watchTicker
@@ -94,7 +93,7 @@ export default class coinbase extends coinbaseRest {
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTickers(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: any, market?: any): Ticker;
     /**
      * @method
      * @name coinbase#watchTrades
@@ -195,7 +194,7 @@ export default class coinbase extends coinbaseRest {
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleTrade(client: any, message: any): void;
     handleOrder(client: any, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): void;
     tryResolveUsdc(client: any, messageHash: any, result: any): void;

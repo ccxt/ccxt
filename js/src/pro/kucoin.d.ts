@@ -1,16 +1,16 @@
 import kucoinRest from '../kucoin.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
     negotiate(privateChannel: any, isFuturesMethod?: boolean, params?: {}): Promise<any>;
-    negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string | undefined>;
+    negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string>;
     requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
+    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
     subscribePublicUta(messageHash: any, channel: any, symbol: any, params?: {}, subscription?: NullableDict): Promise<any>;
     subscribePrivateUta(messageHashes: any, subscribeHash: any, channel: any, symbol?: Str, params?: {}, subscription?: NullableDict): Promise<any>;
     getUtaUrl(): Promise<string>;
-    authenticateUta(): Promise<Str>;
+    authenticateUta(): Promise<string>;
     unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
     subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
     unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
@@ -55,7 +55,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    subscribePublicMultipleUta(messageHashes: any, channel: any, symbols: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
+    subscribePublicMultipleUta(messageHashes: any, channel: any, symbols: any, params?: {}, subscription?: any): Promise<any>;
     watchUtaTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
     handleContractTicker(client: Client, message: any): void;

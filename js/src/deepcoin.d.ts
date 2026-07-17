@@ -17,9 +17,9 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: Dict): Market;
-    setMarkets(markets: any, currencies?: undefined): import("./base/types.js").Dictionary<any> | undefined;
+    setMarkets(markets: any, currencies?: any): import("./base/types.js").Dictionary<any>;
     /**
      * @method
      * @name deepcoin#fetchOrderBook
@@ -74,7 +74,7 @@ export default class deepcoin extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     getProductGroupFromMarket(market: Market): string;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseTakerOrMaker(execType: Str): Str;
+    parseTakerOrMaker(execType: Str): string;
     /**
      * @method
      * @name deepcoin#fetchBalance
@@ -195,10 +195,10 @@ export default class deepcoin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
-    createRegularOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
-    createTriggerOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
-    handleTypePostOnlyAndTimeInForce(type: Str, params: any): any[];
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createRegularOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createTriggerOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    handleTypePostOnlyAndTimeInForce(type: OrderType, params: any): any[];
     /**
      * @method
      * @name deepcoin#createMarketOrderWithCost
@@ -240,7 +240,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<Order | undefined>;
+    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name deepcoin#fetchOpenOrder
@@ -251,7 +251,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order | undefined>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name deepcoin#fetchCanceledAndClosedOrders
@@ -485,8 +485,8 @@ export default class deepcoin extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: Str;
-        headers: NullableDict;
+        body: string;
+        headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

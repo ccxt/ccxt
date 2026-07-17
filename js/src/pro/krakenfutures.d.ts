@@ -1,5 +1,5 @@
 import krakenfuturesRest from '../krakenfutures.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
     describe(): any;
@@ -95,7 +95,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: Str[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchOrderBook
@@ -120,7 +120,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    parseWsPosition(position: any, market?: any): Position;
     /**
      * @method
      * @name krakenfutures#watchOrders
@@ -157,20 +157,20 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsOrderTrade(trade: any, market?: any): Trade;
     handleOrder(client: Client, message: any): any;
     handleOrderSnapshot(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: any, market?: any): Order;
     handleTicker(client: Client, message: any): void;
     handleBidAsk(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: any, market?: any): Ticker;
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: Market): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: {}): Promise<any>;
+    parseWsMyTrade(trade: any, market?: any): Trade;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: any): Bool;
