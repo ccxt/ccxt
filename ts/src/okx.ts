@@ -7751,10 +7751,15 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseMarketLeverageTiers (data, market);
+        let quoteConversionRate: Str = '1';
+        if (this.safeBool (market, 'linear', false)) {
+            const ticker = await this.fetchMarkPrice (symbol);
+            quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
+        }
+        return this.parseMarketLeverageTiers (data, market, quoteConversionRate);
     }
 
-    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined, quoteConversionRate: Str = '1'): LeverageTier[] {
         /**
          * @ignore
          * @method
@@ -7780,15 +7785,20 @@ export default class okx extends Exchange {
         //    ]
         //
         const tiers: List = [];
+        const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
+        const contractSize = isFutureOrSwap ? this.safeString (market, 'contractSize', '1') : '1';
+        const notionalMultiplier = this.safeBool (market, 'linear', false) ? Precise.stringMul (contractSize, quoteConversionRate) : contractSize;
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
             const marketId = this.safeString (tier, 'instId');
+            const minSize = this.safeString (tier, 'minSz');
+            const maxSize = this.safeString (tier, 'maxSz');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
                 'symbol': this.safeSymbol (marketId, market),
                 'currency': this.safeString (market, 'quote'),
-                'minNotional': this.safeNumber (tier, 'minSz'),
-                'maxNotional': this.safeNumber (tier, 'maxSz'),
+                'minNotional': (minSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (minSize, notionalMultiplier)),
+                'maxNotional': (maxSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxSize, notionalMultiplier)),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,
