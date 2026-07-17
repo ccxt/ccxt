@@ -686,6 +686,7 @@ closes all open positions for a market type
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#closeallpositions)
 * [delta](/exchanges/delta.md#closeallpositions)
+* [mexc](/exchanges/mexc.md#closeallpositions)
 * [weex](/exchanges/weex.md#closeallpositions)
 
 ---

@@ -5889,6 +5889,7 @@ public partial class bingx : Exchange
     public virtual object parseParams(object parameters)
     {
         // const sortedParams = this.keysort (params);
+        object copied = this.clone(parameters);
         object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
         object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -5908,10 +5909,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
+                ((IDictionary<string,object>)copied)[(string)key] = arrStr;
             }
         }
-        return parameters;
+        return copied;
     }
 
     /**
@@ -6280,10 +6281,10 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.swapV1PrivatePostTradeCancelReplace(this.extend(request, parameters));
+            response = await this.swapV1PrivatePostTradeCancelReplace(request);
         } else
         {
-            response = await this.spotV1PrivatePostTradeOrderCancelReplace(this.extend(request, parameters));
+            response = await this.spotV1PrivatePostTradeOrderCancelReplace(request);
         }
         object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);

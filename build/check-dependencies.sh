@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Check that all transitive dependencies are explicitly listed in composer.json
 # This ensures dependency transparency and helps catch unexpected additions
@@ -37,8 +37,18 @@ color() {
     esac
 }
 
+# Resolve repo root from this script's location so it works when invoked as:
+#   ./build/check-dependencies.sh
+#   cd build && ./check-dependencies.sh
+#   /abs/path/to/ccxt/build/check-dependencies.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+if [ ! -f "$REPO_ROOT/composer.json" ] || [ ! -f "$REPO_ROOT/package.json" ] || [ ! -f "$REPO_ROOT/pyproject.toml" ]; then
+    color red "error: could not locate repo root (resolved: '$REPO_ROOT')"
+    exit 1
+fi
 
 color cyan "Checking composer.json dependency completeness..."
 echo ""

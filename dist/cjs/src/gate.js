@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange

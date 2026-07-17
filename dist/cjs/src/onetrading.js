@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class onetrading
@@ -27,7 +27,7 @@ class onetrading extends onetrading$1["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -180,9 +180,10 @@ class onetrading extends onetrading$1["default"] {
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
+                        'account/orders/client/{client_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
-                        'account/trades/{trade_id}',
+                        'account/trade/{trade_id}',
                     ],
                     'post': [
                         'account/orders',

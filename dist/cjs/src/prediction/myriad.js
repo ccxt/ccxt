@@ -10,7 +10,7 @@ var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+/// <reference lib="es2015" />
 // ---------------------------------------------------------------------------
 /**
  * @class myriad
