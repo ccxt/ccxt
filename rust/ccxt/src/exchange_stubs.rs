@@ -2920,7 +2920,56 @@ impl Exchange {
 
     pub fn init_throttler(&mut self) { /* stub */
     }
-    pub async fn throttle(&self, _cost: &[Value]) -> Value {
+    /// Leaky-bucket rate limiter, mirroring `ts/src/base/functions/throttle.ts`.
+    /// `rateLimit` is milliseconds-per-token, so `refillRate = 1/rateLimit`
+    /// tokens/ms; `tokens` may go negative (a request proceeds when `tokens >= 0`
+    /// and then subtracts its cost), and the next request waits until the bucket
+    /// refills back to zero. State lives in `internals.throttle` behind an async
+    /// mutex, so concurrent calls on one instance serialize (the TS single queue).
+    /// A no-op when `enableRateLimit` is false or the rate is effectively
+    /// unlimited.
+    pub async fn throttle(&self, cost: &[Value]) -> Value {
+        if !matches!(self.enableRateLimit, Value::Bool(true)) {
+            return Value::Null;
+        }
+        let tb = |key: &str| -> Option<f64> {
+            crate::get_value(&self.tokenBucket, &Value::Str(key.to_string())).as_f64()
+        };
+        let rate_limit = self.rateLimit.as_f64().unwrap_or(0.0);
+        let refill_rate = tb("refillRate")
+            .unwrap_or_else(|| if rate_limit > 0.0 { 1.0 / rate_limit } else { f64::MAX });
+        if !(refill_rate.is_finite() && refill_rate > 0.0) {
+            return Value::Null; // effectively unlimited
+        }
+        let capacity = tb("capacity").unwrap_or(1.0);
+        let delay_ms = tb("delay").unwrap_or(0.001) * 1000.0;
+        let this_cost = cost.first().and_then(|v| v.as_f64())
+            .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
+
+        let now_ms = || std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64)
+            .unwrap_or(0);
+
+        let mut guard = self.internals.throttle.lock().await;
+        let (tokens, last_ms) = &mut *guard;
+        if *last_ms == 0 {
+            *last_ms = now_ms();
+        }
+        // Refill for the elapsed time (capped at capacity).
+        let n = now_ms();
+        *tokens = (*tokens + refill_rate * (n - *last_ms).max(0) as f64).min(capacity);
+        *last_ms = n;
+        // In deficit → wait until the bucket refills to zero, holding the lock so
+        // requests stay serialized.
+        if *tokens < 0.0 {
+            let wait = ((-*tokens) / refill_rate).max(delay_ms);
+            tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
+            let n2 = now_ms();
+            *tokens = (*tokens + refill_rate * (n2 - *last_ms).max(0) as f64).min(capacity);
+            *last_ms = n2;
+        }
+        *tokens -= this_cost;
         Value::Null
     }
 

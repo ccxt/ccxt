@@ -62,6 +62,10 @@ pub struct Internals {
     pub describe_cb:    Option<DescribeCallback>,
     pub last_rest_ts:   i64,
     pub headers:        HashMap<String, String>,
+    /// Leaky-bucket rate-limiter state, `(tokens, last_refill_ms)`, shared and
+    /// interior-mutable so the `&self` async `throttle()` can serialize requests
+    /// on one exchange instance. See `Exchange::throttle`.
+    pub throttle:       std::sync::Arc<tokio::sync::Mutex<(f64, i64)>>,
     /// Cached dispatch table built from `self.api`. Maps the snake-case
     /// implicit API name (e.g. `public_get_exchange_info`) to
     /// `(path, api_scope, http_verb)`.
@@ -169,6 +173,7 @@ impl Default for Internals {
             describe_cb:      None,
             last_rest_ts:     0,
             headers:          HashMap::new(),
+            throttle:         std::sync::Arc::new(tokio::sync::Mutex::new((0.0, 0))),
             implicit_api:     HashMap::new(),
             derived_ptr:      &DEFAULT_DERIVED as &dyn DerivedExchange as *const _,
             call_async_fn:       None,
@@ -1745,4 +1750,34 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+#[cfg(test)]
+mod throttle_tests {
+    use super::Exchange;
+    use crate::Value;
+
+    // The leaky-bucket limiter must space requests by ~rateLimit ms (real time).
+    #[tokio::test]
+    async fn spaces_requests_by_rate_limit() {
+        let mut ex = Exchange::new(None);
+        ex.enableRateLimit = Value::Bool(true);
+        ex.rateLimit = Value::Int(15); // 15 ms per token
+        let start = std::time::Instant::now();
+        for _ in 0..5 { ex.throttle(&[]).await; }
+        let elapsed = start.elapsed().as_millis();
+        // 1st immediate, next 4 each wait ~15ms → ≥ ~45ms (generous lower bound).
+        assert!(elapsed >= 45, "throttle did not space requests: {elapsed}ms");
+    }
+
+    // Disabled rate limiting must not sleep at all.
+    #[tokio::test]
+    async fn disabled_is_noop() {
+        let mut ex = Exchange::new(None);
+        ex.enableRateLimit = Value::Bool(false);
+        ex.rateLimit = Value::Int(1000);
+        let start = std::time::Instant::now();
+        for _ in 0..5 { ex.throttle(&[]).await; }
+        assert!(start.elapsed().as_millis() < 50, "disabled throttle slept");
+    }
 }
