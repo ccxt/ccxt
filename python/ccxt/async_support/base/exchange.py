@@ -16,7 +16,7 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from ccxt.base.types import Int, MaybeIndexType, Str, Num, Strings
+from ccxt.base.types import Int, NullableIndexType, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
