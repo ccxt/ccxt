@@ -9523,7 +9523,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
