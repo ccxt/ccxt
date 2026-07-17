@@ -11,14 +11,29 @@ jobs:
     name: Update changelog
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout master
+        uses: actions/checkout@v4
         with:
+          ref: master
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
-      - uses: rhysd/changelog-from-release/action@v3
+      - name: Generate and push changelog
+        uses: rhysd/changelog-from-release/action@v3
         with:
           file: CHANGELOG.md
           github_token: ${{ secrets.GH_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test release announcement
+        run: npm run test-release-announcement
+      - name: Post release announcement to Telegram and Discord
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node --experimental-strip-types utils/release-announcement.ts --changelog CHANGELOG.md
   failed-release:
     if: ${{ github.event.workflow_run.conclusion != 'success' }}
     runs-on: ubuntu-latest
