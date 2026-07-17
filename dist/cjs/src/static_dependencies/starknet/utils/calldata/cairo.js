@@ -8,6 +8,7 @@ var felt$1 = require('../cairoDataTypes/felt.js');
 var uint256$1 = require('../cairoDataTypes/uint256.js');
 require('../cairoDataTypes/uint512.js');
 
+// ----------------------------------------------------------------------------
 // Intended for internal usage, maybe should be exported somewhere else and not exported to utils
 /**
  * Checks if the given name ends with "_len".

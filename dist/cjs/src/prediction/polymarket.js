@@ -12,6 +12,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class polymarket

@@ -13,7 +13,7 @@ require('../base/functions/encode.js');
 var crypto = require('../base/functions/crypto.js');
 require('../base/functions/io.js');
 
-/// <reference lib="es2015" />
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class limitless

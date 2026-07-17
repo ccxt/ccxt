@@ -6,7 +6,7 @@ var pacifica$1 = require('../pacifica.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class pacifica extends pacifica$1["default"] {
     describe() {
