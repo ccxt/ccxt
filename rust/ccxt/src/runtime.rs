@@ -795,9 +795,58 @@ pub fn repeat(s: &Value, n: &Value) -> Value {
     match s { Value::Str(s) => Value::Str(s.repeat(count)), _ => Value::Null }
 }
 
-/// `totp(secret)` — time-based one-time password. Stub: returns "000000".
-pub fn totp(_secret: Value) -> Value {
-    Value::Str("000000".to_string())
+/// RFC 4648 base32 decode (upper-case A–Z 2–7, `=` padding ignored). Unknown
+/// characters (e.g. spaces already stripped by `totp`) are skipped.
+fn base32_decode(s: &str) -> Vec<u8> {
+    const ALPHA: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    let mut buf: u32 = 0;
+    let mut bits: u32 = 0;
+    let mut out = Vec::new();
+    for c in s.bytes() {
+        let up = c.to_ascii_uppercase();
+        let val = match ALPHA.iter().position(|&x| x == up) {
+            Some(v) => v as u32,
+            None => continue,
+        };
+        buf = (buf << 5) | val;
+        bits += 5;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((buf >> bits) as u8);
+        }
+    }
+    out
+}
+
+/// `totp(secret)` — RFC 6238 time-based one-time password (HMAC-SHA1, 30s step,
+/// 6 digits), mirroring `ts/src/base/functions/totp.ts`. The `secret` is a
+/// base32 string (spaces allowed, as in "4TDV WOGO"). Returns `Value::Null` for
+/// a non-string secret.
+pub fn totp(secret: Value) -> Value {
+    use hmac::{Hmac, Mac};
+    use sha1::Sha1;
+    let sec = match &secret {
+        Value::Str(s) => s.replace(' ', ""),
+        _ => return Value::Null,
+    };
+    let key = base32_decode(&sec);
+    let epoch = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let counter: u64 = epoch / 30;
+    let mut mac = match Hmac::<Sha1>::new_from_slice(&key) {
+        Ok(m) => m,
+        Err(_) => return Value::Null,
+    };
+    mac.update(&counter.to_be_bytes());
+    let digest = mac.finalize().into_bytes(); // 20 bytes
+    let offset = (digest[19] & 0x0f) as usize;
+    let code = ((digest[offset] as u32 & 0x7f) << 24)
+        | ((digest[offset + 1] as u32) << 16)
+        | ((digest[offset + 2] as u32) << 8)
+        | (digest[offset + 3] as u32);
+    Value::Str(format!("{:06}", code % 1_000_000))
 }
 
 /// `encode(s)` — UTF-8 bytes of a string as a byte-array Value.
@@ -911,9 +960,64 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     Value::Map(m)
 }
 
-/// `eddsa(message, secret, hash)` — EdDSA signature. Stub.
-pub fn eddsa(_a: Value, _b: Value, _c: Value) -> Value {
-    Value::Str(String::new())
+/// Strip PEM armor (`-----BEGIN…-----` / `-----END…-----`) and base64-decode the
+/// body to DER bytes. Returns the input's raw base64 decode if there is no armor.
+fn pem_to_der(pem: &str) -> Vec<u8> {
+    use base64::{engine::general_purpose::STANDARD, Engine as _};
+    let body: String = pem
+        .lines()
+        .filter(|l| !l.starts_with("-----"))
+        .collect::<Vec<_>>()
+        .join("");
+    STANDARD.decode(body.trim()).unwrap_or_default()
+}
+
+/// `eddsa(request, secret, curve)` — Ed25519 signature, mirroring
+/// `ts/src/base/functions/crypto.ts`. `request` is the message (already-bytes
+/// `Value::Arr` as produced by `encode(...)`, or a hex/utf8 string); `secret` is
+/// either a 32-byte raw seed string or a base64/PEM PKCS#8 key (seed at DER
+/// offset 16). Returns the standard-base64 signature. Fails loudly (NotSupported
+/// panic) rather than returning an empty/invalid signature.
+pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
+    use ed25519_dalek::{Signer, SigningKey};
+    let bad = |why: &str| -> ! {
+        panic!("{}", crate::exchange_errors::not_supported(
+            Value::Str(format!("eddsa: {why}"))));
+    };
+    let msg: Vec<u8> = match &request {
+        Value::Arr(_) => crate::exchange::value_to_bytes(&request),
+        Value::Str(s) => {
+            let t = s.trim_start_matches("0x");
+            hex::decode(t).unwrap_or_else(|_| s.as_bytes().to_vec())
+        }
+        _ => bad("request must be bytes or a string"),
+    };
+    // The seed (32 bytes) comes in as either raw bytes (`Value::Arr`, e.g.
+    // pacifica's base58-decoded key sliced to 32), a 32-char raw string, or a
+    // base64/PEM PKCS#8 key (seed at DER offset 16).
+    let seed: [u8; 32] = match &secret {
+        Value::Arr(_) => {
+            let b = crate::exchange::value_to_bytes(&secret);
+            if b.len() >= 32 { b[..32].try_into().unwrap() } else { bad("seed shorter than 32 bytes") }
+        }
+        Value::Str(sec_s) if sec_s.len() == 32 => {
+            sec_s.as_bytes().try_into().unwrap()
+        }
+        Value::Str(sec_s) => {
+            let der = pem_to_der(sec_s);
+            if der.len() >= 48 {
+                der[16..48].try_into().unwrap()
+            } else if der.len() >= 32 {
+                der[der.len() - 32..].try_into().unwrap()
+            } else {
+                bad("secret is not a 32-byte seed or a decodable PKCS#8 key");
+            }
+        }
+        _ => bad("secret must be a string or byte array"),
+    };
+    let sk = SigningKey::from_bytes(&seed);
+    let sig = sk.sign(&msg);
+    Value::Str(b64_encode(&sig.to_bytes()))
 }
 
 /// Standard base64.

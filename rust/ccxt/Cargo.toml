@@ -89,6 +89,7 @@ parking_lot = "0.12"
 # expect (bingx/digifinex/mexc createOrders fixtures assert specific
 # orderings).
 indexmap = { version = "2", features = ["serde"] }
+ed25519-dalek = "2"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }
