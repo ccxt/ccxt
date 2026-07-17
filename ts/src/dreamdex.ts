@@ -1507,8 +1507,8 @@ export default class dreamdex extends Exchange {
         const nonce = this.safeString (nonceResponse, 'nonce');
         const issuedAt = this.iso8601 (now);
         const url = this.safeString (this.urls['api'], 'rest');
-        const urlReplaced = url.replace ('https://', '').replace ('http://', '');
-        const message = urlReplaced + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI: ' + url + "\n" + 'Version: 1' + "\n" + 'Chain ID: 5031' + "\n" + 'Nonce: ' + nonce + "\n" + 'Issued At: ' + issuedAt; // eslint-disable-line quotes
+        // colon-space is split ('X:' + ' ') so the PHP transpiler's key-arrow regex can't rewrite it to 'X => '
+        const message = url + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI:' + ' ' + url + "\n" + 'Version:' + ' ' + '1' + "\n" + 'Chain ID:' + ' ' + '5031' + "\n" + 'Nonce:' + ' ' + nonce + "\n" + 'Issued At:' + ' ' + issuedAt; // eslint-disable-line quotes
         const hash = this.hashMessage (message);
         const sig = this.signHash (hash, this.privateKey);
         const loginRequest: Dict = {
