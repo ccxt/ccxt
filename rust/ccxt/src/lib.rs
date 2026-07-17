@@ -34,7 +34,13 @@ pub mod exchange_stubs;
 // bodies actually compile against the typed base is a separate, larger
 // effort — until then this module is opt-in behind a feature flag. Enable
 // with `--features transpiled-base`.
-#[cfg(feature = "transpiled-base")]
+// The transpiled base `impl Exchange` methods (describe, safe_market,
+// set_markets, …). The hand-written base (exchange.rs / exchange_stubs.rs)
+// calls these unconditionally, so they are non-optional infrastructure — always
+// compiled, independent of the per-exchange `transpiled-base` feature (which
+// gates only the heavy `exchanges`/`prediction` venue modules). This keeps a
+// no-default-features consumer build compiling instead of failing with missing
+// base methods.
 pub mod exchange_generated;
 
 // Prediction-market tier (ts/src/base/PredictionExchange.ts + ts/src/prediction/*).
