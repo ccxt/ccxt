@@ -1212,13 +1212,24 @@ impl Exchange {
 
     // ── exchange-specific signing helpers (above-the-marker base methods) ──
     // These wrap heavy crypto (curve25519, StarkNet, dydx protobuf, lighter
-    // zk-proofs) that has not yet been ported to Rust. They are stubbed so
-    // the crate compiles; the signing code paths return Value::Null until a
-    // real implementation lands.
+    // zk-proofs) that has not yet been ported to Rust. The terminal
+    // signature-producing methods fail loudly with NotSupported rather than
+    // returning a null/empty signature — an unsigned request silently sent to an
+    // exchange is worse than an explicit error (review #4). The static request
+    // fixtures mark the affected private cases `disabledRS`, as Go/Java do.
+
+    /// Fail loudly for an unported crypto/signing primitive. Diverges (`-> !`),
+    /// so it satisfies any `-> Value` stub body.
+    fn crypto_not_supported(&self, what: &str) -> ! {
+        let id = match &self.id { Value::Str(s) => s.clone(), _ => String::new() };
+        panic!("{}", crate::exchange_errors::not_supported(Value::Str(
+            format!("{id} {what}() signing is not implemented in the Rust port yet"),
+        )));
+    }
 
     /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
     pub fn axolotl(&self, _payload: Value, _hex_key: Value, _ed25519: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("axolotl")
     }
 
     /// `retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash)`.
@@ -1244,14 +1255,14 @@ impl Exchange {
 
     /// `starknetSign(msgHash, pri)`.
     pub fn starknet_sign(&self, _msg_hash: Value, _pri: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("starknetSign")
     }
 
     /// `extendedStarknetSign(msgHash, pri)` — starknet-curve signing for the
     /// `extended` exchange. Stub: starknet crypto (poseidon/stark-curve) is
     /// not ported to Rust yet, matching `starknet_sign` above.
     pub fn extended_starknet_sign(&self, _msg_hash: Value, _pri: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("extendedStarknetSign")
     }
 
     /// `extendedStarknetGetSelectorFromName(name)`.
@@ -1281,7 +1292,7 @@ impl Exchange {
 
     /// `encodeDydxTxRaw(signDoc, signature)`.
     pub fn encode_dydx_tx_raw(&self, _sign_doc: Value, _signature: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("encodeDydxTxRaw")
     }
 
     /// `encodeDydxTxForSimulation(message, memo, sequence, publicKey)`.
@@ -1335,7 +1346,7 @@ impl Exchange {
 
     /// `lighterGenerateApiKey(signer)`.
     pub fn lighter_generate_api_key(&self, _signer: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterGenerateApiKey")
     }
 
     /// `getZKTransferSignatureObj(seeds, order)` — apex StarkEx signing.
@@ -1344,7 +1355,7 @@ impl Exchange {
         _seeds: Value,
         _optional_args: &[Value],
     ) -> Value {
-        Value::Null
+        self.crypto_not_supported("getZKTransferSignatureObj")
     }
 
     /// `getZKContractSignatureObj(seeds, order)` — apex StarkEx signing.
@@ -1353,7 +1364,7 @@ impl Exchange {
         _seeds: Value,
         _optional_args: &[Value],
     ) -> Value {
-        Value::Null
+        self.crypto_not_supported("getZKContractSignatureObj")
     }
 
     /// `futuresTransfer(code, amount, type, params?)` — binance futures
@@ -1370,43 +1381,43 @@ impl Exchange {
 
     /// `lighterSign*(signer, request)` — lighter zk-proof signing helpers.
     pub fn lighter_sign_create_order(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignCreateOrder")
     }
     pub fn lighter_sign_create_grouped_orders(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignCreateGroupedOrders")
     }
     pub fn lighter_sign_cancel_order(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignCancelOrder")
     }
     pub fn lighter_sign_cancel_all_orders(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignCancelAllOrders")
     }
     pub fn lighter_sign_withdraw(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignWithdraw")
     }
     pub fn lighter_sign_create_sub_account(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignCreateSubAccount")
     }
     pub fn lighter_sign_modify_order(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignModifyOrder")
     }
     pub fn lighter_sign_transfer(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignTransfer")
     }
     pub fn lighter_sign_update_leverage(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignUpdateLeverage")
     }
     pub fn lighter_sign_update_margin(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignUpdateMargin")
     }
     pub fn lighter_sign_approve_integrator(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignApproveIntegrator")
     }
     pub fn lighter_sign_change_pubkey(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterSignChangePubkey")
     }
     pub fn lighter_create_auth_token(&self, _signer: Value, _request: Value) -> Value {
-        Value::Null
+        self.crypto_not_supported("lighterCreateAuthToken")
     }
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
