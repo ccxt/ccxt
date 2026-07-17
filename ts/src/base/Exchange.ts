@@ -181,7 +181,13 @@ let SignMode = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
-const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
+//
+// Match a full JSON string key (with escapes) + unquoted number value. The key group is
+// required so we never rewrite `":N` sequences that appear *inside* string values
+// (nested/stringified JSON like "{\"y\":123}" — the naive /":([+.0-9eE-]+)/ form matched
+// the escaped quote before y and turned the payload into invalid JSON, making parseJson
+// return undefined whenever a precision-risky integer forced the slow path).
+const QUOTE_JSON_NUMBERS_REGEX = /("(?:\\.|[^"\\])*"):([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
 /**
@@ -1455,7 +1461,7 @@ export class BaseExchange {
         // no quoteJsonNumbers guard needed here: parseJson returns early when
         // quoteJsonNumbers is false, so this is only reached after an integer
         // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
-        return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
+        return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '$1:"$2"');
     }
 
     async loadMarketsHelper (reload = false, params = {}) {

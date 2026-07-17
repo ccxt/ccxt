@@ -29,6 +29,20 @@ function testOnJsonResponse () {
     // opt-out
     const plain = new Exchange ({ 'id': 'mock', 'quoteJsonNumbers': false });
     deepStrictEqual (plain.parseJson ('{"orderId":1234567890123456789,"qty":1.5}'), { 'orderId': Number ('1234567890123456789'), 'qty': 1.5 }); // same double rounding either way
+    // nested/stringified JSON inside a string value must not break the slow path
+    // (QUOTE_JSON_NUMBERS_REGEX must not rewrite numbers that live inside strings)
+    const nested = exchange.parseJson ('{"orderId":2077817338468081664,"x":"{\\"y\\":123}"}');
+    strictEqual (nested['orderId'], '2077817338468081664');
+    strictEqual (nested['x'], '{"y":123}');
+    // string value may itself contain a precision-risky integer token — still only a string
+    const nestedBig = exchange.parseJson ('{"ok":1,"payload":"{\\"orderId\\":2077817338468081664}"}');
+    strictEqual (nestedBig['ok'], 1);
+    strictEqual (nestedBig['payload'], '{"orderId":2077817338468081664}');
+    // property + nested string both present: only real numeric properties are quoted
+    const nestedMixed = exchange.parseJson ('{"orderId":2077817338468081664,"note":"{\\"n\\":-1.5e10}","qty":1.5}');
+    strictEqual (nestedMixed['orderId'], '2077817338468081664');
+    strictEqual (nestedMixed['note'], '{"n":-1.5e10}');
+    strictEqual (Number (nestedMixed['qty']), 1.5);
 }
 
 export default testOnJsonResponse;
