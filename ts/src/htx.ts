@@ -3532,7 +3532,7 @@ export default class htx extends Exchange {
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
-    networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    networkCodeToId (networkCode: Str, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (networkCode === undefined) {
             return undefined;
         }
