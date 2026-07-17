@@ -1640,7 +1640,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     {
