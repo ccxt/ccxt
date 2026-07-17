@@ -309,7 +309,7 @@ export default class backpack extends backpackRest {
         //
         const microseconds = this.safeInteger (ticker, 'E');
         if (microseconds === undefined) {
-            return;
+            return undefined;
         }
         const timestamp = this.parseToInt (microseconds / 1000);
         const marketId = this.safeString (ticker, 's');
@@ -982,7 +982,7 @@ export default class backpack extends backpackRest {
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if ((nonce === undefined) || (firstDeltaStart === undefined)) {
-            return;
+            return -1;
         }
         if (nonce < firstDeltaStart - 1) {
             return -1;
@@ -992,7 +992,7 @@ export default class backpack extends backpackRest {
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
-                return;
+                return -1;
             }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;

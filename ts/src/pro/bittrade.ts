@@ -437,7 +437,7 @@ export default class bittrade extends bittradeRest {
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
-            return;
+            return orderbook;
         }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
@@ -514,7 +514,7 @@ export default class bittrade extends bittradeRest {
         //
         const id = this.safeString (message, 'id');
         if (id === undefined) {
-            return;
+            return message;
         }
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, (id as string));
@@ -610,7 +610,7 @@ export default class bittrade extends bittradeRest {
         if (status === 'error') {
             const id = this.safeString (message, 'id');
             if (id === undefined) {
-                return;
+                return false;
             }
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, (id as string));

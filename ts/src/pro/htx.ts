@@ -230,7 +230,7 @@ export default class htx extends htxRest {
         const tick = this.safeValue (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
-            return;
+            return message;
         }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -321,7 +321,7 @@ export default class htx extends htxRest {
         const data = this.safeValue (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
-            return;
+            return message;
         }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -2458,7 +2458,7 @@ export default class htx extends htxRest {
         if (status === 'error') {
             const id = this.safeString (message, 'id');
             if (id === undefined) {
-                return;
+                return false;
             }
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = this.safeValue (subscriptionsById, id);

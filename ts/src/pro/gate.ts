@@ -690,7 +690,7 @@ export default class gate extends gateRest {
         const firstDelta = cache[0];
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if ((nonce === undefined) || (firstDeltaStart === undefined)) {
-            return;
+            return -1;
         }
         if (nonce < firstDeltaStart) {
             return -1;
@@ -700,7 +700,7 @@ export default class gate extends gateRest {
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
-                return;
+                return -1;
             }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
@@ -2166,12 +2166,12 @@ export default class gate extends gateRest {
 
     getTypeByMarket (market: Market) {
         if (market === undefined) {
-            return;
+            return undefined;
         }
         if (market['spot']) {
             return 'spot';
         if (market === undefined) {
-            return;
+            return undefined;
         }
         } else if (market['option']) {
             return 'options';

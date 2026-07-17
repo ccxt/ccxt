@@ -823,7 +823,7 @@ export default class mexc extends mexcRest {
         const firstDelta = this.safeValue (cache, 0);
         const firstDeltaNonce = this.safeIntegerN (firstDelta, [ 'r', 'version', 'fromVersion' ]);
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
-            return;
+            return -1;
         }
         if (nonce < firstDeltaNonce - 1) {
             return -1;
@@ -832,7 +832,7 @@ export default class mexc extends mexcRest {
             const delta = cache[i];
             const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
             if (deltaNonce === undefined) {
-                return;
+                return -1;
             }
             if (deltaNonce >= nonce) {
                 return i;
@@ -2132,7 +2132,7 @@ export default class mexc extends mexcRest {
         // }
         const channel = this.safeString (message, 'channel');
         if (channel === undefined) {
-            return;
+            return true;
         }
         const channelParts = channel.split ('@');
         const channelId = this.safeString (channelParts, 1);
