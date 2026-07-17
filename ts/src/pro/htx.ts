@@ -971,7 +971,10 @@ export default class htx extends htxRest {
     getV5LinearChannelAndMessageHash (topic, market: Market = undefined, params = {}) {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
         const channel = topic;
-        const messageHash = ((contractCode === undefined) || (contractCode === '*')) ? topic : (topic + '.' + contractCode.toLowerCase ());
+        let messageHash = topic;
+        if ((contractCode !== undefined) && (contractCode !== '*')) {
+            messageHash = topic + '.' + contractCode.toLowerCase ();
+        }
         params = this.omit (params, 'contract_code');
         const requestParams = this.extend ({
             'contract_code': contractCode,
