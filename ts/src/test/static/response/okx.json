@@ -3,6 +3,160 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "linear swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USDT:USDT"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "markPx": "63500",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 6350,
+                        "maxNotional": 12700,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "markPx": "63500",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:BTC"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USD-SWAP",
+                            "minSz": "1000",
+                            "maxSz": "2000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:BTC",
+                        "currency": "USD",
+                        "minNotional": 100000,
+                        "maxNotional": 200000,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USD-SWAP",
+                            "minSz": "1000",
+                            "maxSz": "2000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "option leverage tiers unchanged",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:BTC-241227-60000-P"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USD-241227-60000-P",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:BTC-241227-60000-P",
+                        "currency": "USD",
+                        "minNotional": 10,
+                        "maxNotional": 20,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USD-241227-60000-P",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "margin leverage tiers unchanged",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USDT",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT",
+                        "currency": "USDT",
+                        "minNotional": 10,
+                        "maxNotional": 20,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USDT",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
