@@ -3461,7 +3461,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response),
+            this.safeOrder (response as any),
         ];
     }
 
@@ -3503,7 +3503,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response),
+            this.safeOrder (response as any),
         ];
     }
 

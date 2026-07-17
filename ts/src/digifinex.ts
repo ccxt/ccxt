@@ -3995,7 +3995,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const transfers = this.safeList (response, 'data', []);
-        return this.parseTransfers (transfers, currency, since, limit);
+        return this.parseTransfers (transfers, currency as any, since, limit);
     }
 
     /**

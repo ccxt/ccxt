@@ -3665,7 +3665,7 @@ export class BaseExchange {
         return result;
     }
 
-    parseTicker (ticker: Dict | undefined, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         if (ticker === undefined) {
             throw new NotSupported (this.id + ' parseTicker() is not supported yet');
         }
@@ -3676,21 +3676,21 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
-    parseTrade (trade: Dict | undefined, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         if (trade === undefined) {
             throw new NotSupported (this.id + ' parseTrade() is not supported yet');
         }
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction: Dict | undefined, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         if (transaction === undefined) {
             throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
         }
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer: Dict | undefined, currency: Currency | Str = undefined): TransferEntry {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         if (transfer === undefined) {
             throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
         }
@@ -3728,7 +3728,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
-    parsePosition (position: Dict | undefined, market: Market = undefined): Position {
+    parsePosition (position: Dict, market: Market = undefined): Position {
         if (position === undefined) {
             throw new NotSupported (this.id + ' parsePosition() is not supported yet');
         }
@@ -4590,7 +4590,7 @@ export class BaseExchange {
         return balance as any;
     }
 
-    safeOrder (order: Dict | undefined, market: Market = undefined): Order {
+    safeOrder (order: Dict, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         if (order === undefined) {
@@ -5988,7 +5988,7 @@ export class BaseExchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseADLRank (info: Dict | undefined, market: Market = undefined): ADL {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         if (info === undefined) {
             throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
         }
@@ -6054,7 +6054,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency | Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
+    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
         transfers = this.toArray (transfers);
         let result: TransferEntry[] = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -8636,7 +8636,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (both, since, limit);
     }
 
-    parseConversion (conversion: Dict | undefined, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+    parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         if (conversion === undefined) {
             throw new NotSupported (this.id + ' parseConversion () is not supported yet');
         }
@@ -8728,7 +8728,7 @@ export class BaseExchange {
         await Promise.all ([ this.loadMarkets (), this.signIn () ]);
     }
 
-    parseMarginModification (data: Dict | undefined, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         if (data === undefined) {
             throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
         }
