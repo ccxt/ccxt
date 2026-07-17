@@ -73,11 +73,14 @@ export default class mudrex extends mudrexRest {
         const messageHash = 'ticker:' + symbol;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
+        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
+        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const assetId = baseIdString.toLowerCase () + quoteIdString.toLowerCase ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
             'params': [ 'ticker@1s' ],
-            'assets': [ ((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase () ],
+            'assets': [ assetId ],
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
@@ -94,7 +97,9 @@ export default class mudrex extends mudrexRest {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
-                assets.push (((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase ());
+                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
+                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+                assets.push (baseIdString.toLowerCase () + quoteIdString.toLowerCase ());
             }
         }
         const url = this.urls['api']['ws'];
@@ -131,7 +136,9 @@ export default class mudrex extends mudrexRest {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const stream = prefix + '@' + interval + '@' + ((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase ();
+        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
+        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase () + streamQuoteId.toLowerCase ();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();

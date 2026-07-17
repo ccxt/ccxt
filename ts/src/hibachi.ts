@@ -885,7 +885,9 @@ export default class hibachi extends Exchange {
         const market = this.market (symbol);
         const takerFee = this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045));
         const makerFee = this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015));
-        const feeRate = Math.max ((takerFee === undefined) ? 0 : takerFee, (makerFee === undefined) ? 0 : makerFee);
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max (takerFeeValue, makerFeeValue);
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1016,7 +1018,9 @@ export default class hibachi extends Exchange {
         const market = this.market (symbol);
         const takerFee = this.safeNumber (market, 'taker', 0);
         const makerFee = this.safeNumber (market, 'maker', 0);
-        const feeRate = Math.max ((takerFee === undefined) ? 0 : takerFee, (makerFee === undefined) ? 0 : makerFee);
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max (takerFeeValue, makerFeeValue);
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {

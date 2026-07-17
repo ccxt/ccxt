@@ -433,13 +433,17 @@ export default class ndax extends ndaxRest {
                 timestamp = this.safeInteger (bidask, 2);
             } else {
                 const newTimestamp = this.safeInteger (bidask, 2);
-                timestamp = Math.max ((timestamp === undefined) ? 0 : timestamp, (newTimestamp === undefined) ? 0 : newTimestamp);
+                const currentTimestampValue = (timestamp === undefined) ? 0 : timestamp;
+                const newTimestampValue = (newTimestamp === undefined) ? 0 : newTimestamp;
+                timestamp = Math.max (currentTimestampValue, newTimestampValue);
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger (bidask, 0);
             } else {
                 const newNonce = this.safeInteger (bidask, 0);
-                nonce = Math.max ((nonce === undefined) ? 0 : nonce, (newNonce === undefined) ? 0 : newNonce);
+                const currentNonceValue = (nonce === undefined) ? 0 : nonce;
+                const newNonceValue = (newNonce === undefined) ? 0 : newNonce;
+                nonce = Math.max (currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger (bidask, 3);

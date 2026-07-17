@@ -1447,7 +1447,11 @@ export default class dydx extends Exchange {
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         const walletAddress = this.getWalletAddress ();
         const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
-        const orderId = this.createOrderIdFromParts (walletAddress, (subaccountId === undefined) ? 0 : subaccountId, (clientOrderId === undefined) ? 0 : clientOrderId, (orderFlag === undefined) ? 0 : orderFlag, (clobPairId === undefined) ? 0 : clobPairId);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts (walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [ orderId, this.extend (signingPayload, params) ];
     }
 
