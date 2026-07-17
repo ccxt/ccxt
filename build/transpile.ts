@@ -1702,15 +1702,18 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
-            // strip TypeScript overload signature lines (body-less declarations ending with ';')
-            // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            // strip leading blank / line-comment lines first so a // note above overload
+            // signatures does not block the overload stripper (otherwise lines[0] is a comment,
+            // overloads are not removed, and the signature regex fails → unCamelCase(undefined)).
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
                 lines.shift ()
             }
-            // strip leading blank / line-comment lines so a standalone section-divider comment
-            // block (or a method preceded by // comments) isn't mistaken for the signature. the
-            // main Exchange base has neither, so this is a no-op there; the prediction base uses
-            // section dividers between method groups.
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            // re-strip any blanks/comments left between overloads and the implementation
             while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
                 lines.shift ()
             }
@@ -1732,19 +1735,20 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // signature line, return type captured non-greedily to allow tuples like [Str, Dict]
+            let methodSignatureRegex = /(async |)(\S+)(?:\s*<[^>]+>)?\s*\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // optional TS generics; return type non-greedy for tuples
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
                 log.red (methods[i])
                 log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
+                throw new Error ('transpileMethodsToAllLanguages: could not parse method signature in ' + className)
             }
 
             // async or not
-            let keyword = matches?.[1] as string
+            let keyword = matches[1] as string
 
             // method name
-            let method = matches?.[2] as string
+            let method = matches[2] as string
 
             if (process.argv.includes ('--check-parsers')) {
                 this.checkIfMethodLacksParser (className, method, part)
@@ -1755,10 +1759,10 @@ class Transpiler {
             method = unCamelCase (method)
 
             // method arguments
-            const args = (matches?.[3] as string).trim ()
+            const args = (matches[3] as string).trim ()
 
             // return type
-            let returnType = matches?.[4] as string
+            let returnType = matches[4] as string
 
             // extract argument names and local variables
             const argsArray = args.length ? args.split (',').map (x => x.trim ()) : []
