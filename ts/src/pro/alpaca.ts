@@ -596,7 +596,7 @@ export default class alpaca extends alpacaRest {
         const datetime = this.safeString (trade, 'filled_at');
         let type = this.safeString (trade, 'type');
         if (type === undefined) {
-            return;
+            return undefined;
         }
         if (type.indexOf ('limit') >= 0) {
             // might be limit or stop-limit

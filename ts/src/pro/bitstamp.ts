@@ -157,7 +157,7 @@ export default class bitstamp extends bitstampRest {
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
         if (firstElementNonce === undefined) {
-            return;
+            return -1;
         }
         const nonce = this.safeInteger (orderbook, 'nonce');
         if ((nonce === undefined) || (nonce < firstElementNonce)) {

@@ -1347,7 +1347,7 @@ export default class backpack extends backpackRest {
         const markPrice = this.safeString (position, 'M');
         const netQuantity = this.safeNumber (position, 'q');
         if (netQuantity === undefined) {
-            return;
+            return undefined;
         }
         let hedged: Bool = false;
         let side: Str = 'long';
@@ -1360,7 +1360,7 @@ export default class backpack extends backpackRest {
         }
         const microseconds = this.safeInteger (position, 'E');
         if (microseconds === undefined) {
-            return;
+            return undefined;
         }
         const timestamp = this.parseToInt (microseconds / 1000);
         const maintenanceMarginPercentage = this.safeNumber (position, 'm');

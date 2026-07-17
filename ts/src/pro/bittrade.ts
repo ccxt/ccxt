@@ -105,7 +105,7 @@ export default class bittrade extends bittradeRest {
         const tick = this.safeValue (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
-            return;
+            return message;
         }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -184,7 +184,7 @@ export default class bittrade extends bittradeRest {
         const data = this.safeValue (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
-            return;
+            return message;
         }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
