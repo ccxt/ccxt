@@ -1849,6 +1849,24 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         let type = secondPart[0].trim ()
+                        // Normalise union parameter types so we never emit invalid PHP like
+                        // `?Dict | null` or `?Currency | Str`. Split on `|`, drop the `undefined`
+                        // member (it only signals nullability, already carried by the default /
+                        // the leading `?`). If one named type remains, keep it as a nullable hint;
+                        // if several distinct types remain, PHP cannot express the union, so fall
+                        // back to an untyped parameter (mixed-like) rather than a broken hint.
+                        if (type.indexOf (' | ') !== -1) {
+                            const unionParts = type.split ('|').map ((p) => p.trim ());
+                            const nonUndefined = unionParts.filter ((p) => p !== 'undefined');
+                            if (unionParts.length !== nonUndefined.length) {
+                                nullable = true;
+                            }
+                            if (nonUndefined.length === 1) {
+                                type = nonUndefined[0];
+                            } else {
+                                type = 'any'; // multiple concrete union members -> emit no PHP type hint
+                            }
+                        }
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {
