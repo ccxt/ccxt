@@ -1062,7 +1062,16 @@ impl Exchange {
         match &value {
             Value::Int(_) => value,
             Value::Float(f) => Value::Int(*f as i64),
-            Value::Str(s) => Value::Int(s.trim().parse::<i64>().unwrap_or(0)),
+            Value::Str(s) => {
+                let t = s.trim();
+                // A uint256 (e.g. polymarket tokenId) overflows i64; keep the
+                // decimal/0x-hex string so downstream big-int consumers
+                // (eth_abi_encode) encode the full value instead of truncating.
+                match t.parse::<i64>() {
+                    Ok(n) => Value::Int(n),
+                    Err(_) => Value::Str(t.to_string()),
+                }
+            }
             _ => Value::Int(0),
         }
     }
@@ -1124,9 +1133,66 @@ impl Exchange {
         ))
     }
 
-    /// `ethAbiEncode(types, values)` — ETH ABI encoding is not yet ported.
-    pub fn eth_abi_encode(&self, _types: Value, _values: Value) -> Value {
-        Value::Null
+    /// `ethAbiEncode(types, values)` — Solidity `abi.encode` of a head-only
+    /// (all-static) tuple: every element becomes one 32-byte word. Supports the
+    /// static types the callers use (address, bytesN, uint*/int*, bool). Dynamic
+    /// types (`bytes`, `string`, arrays) are not needed (polymarket ERC-7739) and
+    /// return Null. Values arrive as: bytesN → binary `Value::Arr` (or 0x-hex
+    /// string); uint/int → `Value::Int` or a decimal/0x-hex string (big uint256
+    /// like tokenId exceed i64, so string form is preserved by convert_to_big_int);
+    /// address → 0x-hex string. Result is a binary `Value::Arr` that `hash(...)`
+    /// consumes via value_to_bytes.
+    pub fn eth_abi_encode(&self, types: Value, values: Value) -> Value {
+        use num_bigint::BigInt;
+        let ts: Vec<Value> = match &types  { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
+        let vs: Vec<Value> = match &values { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
+        let to_bytes = |v: &Value| -> Vec<u8> {
+            match v {
+                Value::Arr(a) => a.iter().filter_map(|x| if let Value::Int(n) = x { Some(*n as u8) } else { None }).collect(),
+                Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
+                _ => Vec::new(),
+            }
+        };
+        let to_bigint = |v: &Value| -> BigInt {
+            match v {
+                Value::Int(n)   => BigInt::from(*n),
+                Value::Float(f) => BigInt::from(*f as i64),
+                Value::Str(s)   => {
+                    let t = s.trim();
+                    if let Some(h) = t.strip_prefix("0x") {
+                        BigInt::parse_bytes(h.as_bytes(), 16).unwrap_or_default()
+                    } else {
+                        BigInt::parse_bytes(t.as_bytes(), 10).unwrap_or_default()
+                    }
+                }
+                _ => BigInt::from(0),
+            }
+        };
+        let mut out: Vec<u8> = Vec::new();
+        for (t, v) in ts.iter().zip(vs.iter()) {
+            let ty = match t { Value::Str(s) => s.as_str(), _ => return Value::Null };
+            let mut word = [0u8; 32];
+            if ty == "address" {
+                let b = to_bytes(v);
+                let n = b.len().min(20);
+                word[32 - n..].copy_from_slice(&b[b.len() - n..]);
+            } else if ty.starts_with("bytes") && ty != "bytes" {
+                // fixed bytesN — left-aligned
+                let b = to_bytes(v);
+                let n = b.len().min(32);
+                word[..n].copy_from_slice(&b[..n]);
+            } else if ty.starts_with("uint") || ty.starts_with("int") {
+                let (_, mag) = to_bigint(v).to_bytes_be();
+                let n = mag.len().min(32);
+                word[32 - n..].copy_from_slice(&mag[mag.len() - n..]);
+            } else if ty == "bool" {
+                if matches!(v, Value::Bool(true)) { word[31] = 1; }
+            } else {
+                return Value::Null; // unsupported (dynamic) type
+            }
+            out.extend_from_slice(&word);
+        }
+        Value::Array(out.into_iter().map(|b| Value::Int(b as i64)).collect())
     }
 
     /// `setProperty(this, key, value)` — dynamic field setter. The typed

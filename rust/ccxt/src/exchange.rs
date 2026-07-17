@@ -1567,6 +1567,41 @@ pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
 /// EIP-712 `encode` — produces the `\x19\x01 || domainSeparator ||
 /// hashStruct(message)` preimage. The caller keccak-hashes this into the
 /// 32-byte digest that gets ECDSA-signed (hyperliquid, etc.).
+type Eip712Types = std::collections::BTreeMap<String, Vec<(String, String)>>;
+
+/// Strip a trailing `[...]` array suffix from an EIP-712 field type, so
+/// `Order[]` and `Order` both resolve to the struct name `Order`.
+fn eip712_base_type(ty: &str) -> &str {
+    match ty.find('[') { Some(i) => &ty[..i], None => ty }
+}
+
+/// EIP-712 `encodeType`: the primary type's signature followed by every
+/// referenced struct type, sorted alphabetically (per the spec), so a nested
+/// `TypedDataSign(Order contents,…)` correctly appends `Order(uint256 salt,…)`.
+fn eip712_encode_type(primary: &str, types: &Eip712Types) -> String {
+    fn collect(name: &str, types: &Eip712Types, deps: &mut std::collections::BTreeSet<String>) {
+        if let Some(fields) = types.get(name) {
+            for (_, ty) in fields {
+                let base = eip712_base_type(ty).to_string();
+                if types.contains_key(&base) && deps.insert(base.clone()) {
+                    collect(&base, types, deps);
+                }
+            }
+        }
+    }
+    let fmt = |name: &str| -> String {
+        let fields = types.get(name).cloned().unwrap_or_default();
+        let inner: Vec<String> = fields.iter().map(|(n, t)| format!("{t} {n}")).collect();
+        format!("{}({})", name, inner.join(","))
+    };
+    let mut deps = std::collections::BTreeSet::new();
+    collect(primary, types, &mut deps);
+    deps.remove(primary);
+    let mut out = fmt(primary);
+    for dep in &deps { out.push_str(&fmt(dep)); } // BTreeSet iterates sorted
+    out
+}
+
 pub(crate) fn eip712_encode(domain: &Value, types: &Value, message: &Value) -> Vec<u8> {
     let dm = match domain { Value::Dict(m) => m, _ => return Vec::new() };
     // EIP712Domain field set — canonical order, only the keys present.
@@ -1575,39 +1610,59 @@ pub(crate) fn eip712_encode(domain: &Value, types: &Value, message: &Value) -> V
                    ("verifyingContract", "address"), ("salt", "bytes32")] {
         if dm.contains_key(n) { domain_fields.push((n.to_string(), t.to_string())); }
     }
-    let domain_sep = eip712_hash_struct("EIP712Domain", &domain_fields, domain);
-    // The primary type is the single key of `types`.
-    let (primary, fields) = match types {
-        Value::Dict(m) => match m.iter().next() {
-            Some((k, Value::Arr(arr))) => {
-                let f: Vec<(String, String)> = arr.iter().filter_map(|it| match it {
+    // Domain has no nested structs — a flat (empty type-map) hash.
+    let mut domain_types: Eip712Types = Eip712Types::new();
+    domain_types.insert("EIP712Domain".to_string(), domain_fields);
+    let domain_sep = eip712_hash_struct("EIP712Domain", domain, &domain_types);
+
+    // Collect all user-defined types (name → fields), excluding EIP712Domain.
+    let mut type_map: Eip712Types = Eip712Types::new();
+    if let Value::Dict(m) = types {
+        for (name, def) in m.iter() {
+            if name == "EIP712Domain" { continue; }
+            if let Value::Arr(arr) = def {
+                let fields: Vec<(String, String)> = arr.iter().filter_map(|it| match it {
                     Value::Dict(fm) => Some((
                         fm.get("name")?.as_str()?.to_string(),
                         fm.get("type")?.as_str()?.to_string(),
                     )),
                     _ => None,
                 }).collect();
-                (k.clone(), f)
+                type_map.insert(name.clone(), fields);
             }
-            _ => return Vec::new(),
-        },
-        _ => return Vec::new(),
-    };
-    let struct_hash = eip712_hash_struct(&primary, &fields, message);
+        }
+    }
+    if type_map.is_empty() { return Vec::new(); }
+    // Primary type = the one not referenced as a field type by any other type
+    // (the top-level struct). Falls back to the first key.
+    let referenced: std::collections::HashSet<String> = type_map.values()
+        .flat_map(|fs| fs.iter().map(|(_, t)| eip712_base_type(t).to_string()))
+        .collect();
+    let primary = type_map.keys().find(|k| !referenced.contains(*k)).cloned()
+        .unwrap_or_else(|| type_map.keys().next().cloned().unwrap_or_default());
+    let struct_hash = eip712_hash_struct(&primary, message, &type_map);
     let mut out = vec![0x19u8, 0x01u8];
     out.extend_from_slice(&domain_sep);
     out.extend_from_slice(&struct_hash);
     out
 }
 
-fn eip712_hash_struct(type_name: &str, fields: &[(String, String)], data: &Value) -> Vec<u8> {
-    let inner: Vec<String> = fields.iter().map(|(n, t)| format!("{t} {n}")).collect();
-    let type_str = format!("{}({})", type_name, inner.join(","));
+/// EIP-712 `hashStruct(typeName, data)`: keccak(typeHash ‖ encoded-fields),
+/// where a field whose type is itself a struct in `types` is hashed recursively.
+fn eip712_hash_struct(type_name: &str, data: &Value, types: &Eip712Types) -> Vec<u8> {
+    let type_str = eip712_encode_type(type_name, types);
     let mut enc = hash_raw(type_str.as_bytes(), "keccak"); // typeHash (32 bytes)
     let dm = match data { Value::Dict(m) => Some(m), _ => None };
-    for (name, ty) in fields {
+    let fields = types.get(type_name).cloned().unwrap_or_default();
+    for (name, ty) in &fields {
         let v = dm.and_then(|m| m.get(name)).cloned().unwrap_or(Value::Null);
-        enc.extend_from_slice(&eip712_encode_value(ty, &v));
+        let base = eip712_base_type(ty);
+        if types.contains_key(base) {
+            // Nested struct field — recurse.
+            enc.extend_from_slice(&eip712_hash_struct(base, &v, types));
+        } else {
+            enc.extend_from_slice(&eip712_encode_value(ty, &v));
+        }
     }
     hash_raw(&enc, "keccak")
 }
@@ -1629,14 +1684,24 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
     } else if ty == "bool" {
         if matches!(v, Value::Bool(true)) { out[31] = 1; }
     } else if ty.starts_with("uint") || ty.starts_with("int") {
-        let n: u128 = match v {
-            Value::Int(i) => (*i).max(0) as u128,
-            Value::Float(f) => f.max(0.0) as u128,
-            Value::Str(s) => s.trim().parse().unwrap_or(0),
-            _ => 0,
+        // uint256 (e.g. polymarket tokenId) exceeds u128 — use BigInt.
+        use num_bigint::BigInt;
+        let n: BigInt = match v {
+            Value::Int(i)   => BigInt::from(*i),
+            Value::Float(f) => BigInt::from(*f as i64),
+            Value::Str(s)   => {
+                let t = s.trim();
+                if let Some(h) = t.strip_prefix("0x") {
+                    BigInt::parse_bytes(h.as_bytes(), 16).unwrap_or_default()
+                } else {
+                    BigInt::parse_bytes(t.as_bytes(), 10).unwrap_or_default()
+                }
+            }
+            _ => BigInt::from(0),
         };
-        let be = n.to_be_bytes();
-        out[32 - be.len()..].copy_from_slice(&be);
+        let (_, be) = n.to_bytes_be();
+        let take = be.len().min(32);
+        out[32 - take..].copy_from_slice(&be[be.len() - take..]);
     }
     out
 }
