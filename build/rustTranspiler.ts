@@ -3968,6 +3968,12 @@ class RustTranspilerBuilder {
      * folds extra args correctly for all base + REST methods without
      * us having to enumerate them by hand.
      */
+    // Tests that failed to transpile and were therefore dropped from the suite.
+    // Collected across the base/WS/exchange/main test passes and reported (and
+    // failed on) at the end of generation so a green run can't silently ship a
+    // smaller suite than the source (review #7).
+    private droppedTests: Array<{ kind: string; name: string; error: string }> = [];
+
     private _discoveredVariadicsCache: Record<string, number> | null = null;
     /** Names of every `pub async fn` in a generated Rust file (for async-await
      *  propagation seeds — e.g. a venue's implicit-API endpoints). */
@@ -6358,6 +6364,7 @@ impl std::ops::DerefMut for ${coreName} {
                 written.push(testName);
             } catch (e: any) {
                 log.red(`[rust] Error transpiling test ${testName}:`, e.message ?? e);
+                this.droppedTests.push({ kind: 'base', name: testName, error: String(e.message ?? e) });
             }
         }
         // Transpile the Go-style aggregator (`tests.init.ts` →
@@ -6616,6 +6623,7 @@ impl std::ops::DerefMut for ${coreName} {
                 written.push(testName);
             } catch (e: any) {
                 log.red(`[rust] Error transpiling WS test ${testName}:`, e.message ?? e);
+                this.droppedTests.push({ kind: 'ws', name: testName, error: String(e.message ?? e) });
             }
         }
 
@@ -7199,6 +7207,7 @@ impl std::ops::DerefMut for ${coreName} {
                     written.push({ name: testName, entry, isAsync, extraArgs, isMethodTest: !isValidator });
                 } catch (e: any) {
                     log.red(`[rust] Error transpiling exchange test ${testName}:`, e.message ?? e);
+                    this.droppedTests.push({ kind: 'exchange', name: testName, error: String(e.message ?? e) });
                 }
             }
         }
@@ -7491,6 +7500,7 @@ impl std::ops::DerefMut for ${coreName} {
             log.magenta('→', (outFile as any).yellow);
         } catch (e: any) {
             log.red(`[rust] Error transpiling tests.ts:`, e.message ?? e);
+            this.droppedTests.push({ kind: 'main', name: 'tests.ts', error: String(e.message ?? e) });
         }
     }
 
@@ -7540,8 +7550,40 @@ impl std::ops::DerefMut for ${coreName} {
 
         this.transpileErrorHierarchy();
         this.transpileTests();
+        this.reportDroppedTests();
 
         log.bright.green('Transpiled successfully.');
+    }
+
+    /**
+     * Fail closed if any test was dropped because it couldn't be transpiled
+     * (review #7). Silently shipping a smaller suite than the source lets a
+     * green run hide lost coverage. A test that genuinely can't be ported yet
+     * must be listed in the allow-list below with a reason, so the skip is
+     * reviewed rather than invisible.
+     */
+    reportDroppedTests() {
+        // Reviewed, intentional skips: `<kind>:<name>` → reason. Keep this list
+        // small and shrinking; every entry is coverage Rust is missing.
+        const allowlist: Record<string, string> = {
+            // (none yet — all source tests currently transpile)
+        };
+        const unexpected = this.droppedTests.filter(t => !(`${t.kind}:${t.name}` in allowlist));
+        if (this.droppedTests.length) {
+            log.yellow(`[rust] ${this.droppedTests.length} test(s) were dropped during transpilation:`);
+            for (const t of this.droppedTests) {
+                const known = (`${t.kind}:${t.name}` in allowlist) ? ' (allow-listed)' : '';
+                log.yellow(`  - ${t.kind}: ${t.name}${known} — ${t.error.split('\n')[0]}`);
+            }
+        }
+        if (unexpected.length) {
+            throw new Error(
+                `[rust] ${unexpected.length} test(s) failed to transpile and would be silently ` +
+                `dropped from the suite. Fix the transpiler, or add an explicit reviewed entry to ` +
+                `the allow-list in reportDroppedTests(). Dropped: ` +
+                unexpected.map(t => `${t.kind}:${t.name}`).join(', '),
+            );
+        }
     }
 }
 
