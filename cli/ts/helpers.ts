@@ -13,7 +13,7 @@ let add_static_result;
 
 try {
     // @ts-ignore
-    add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
+    add_static_result = (await import ('../../build/utils/update-static-tests-data')).add_static_result;
 } catch (e) {
     // noop
 }
