@@ -290,6 +290,37 @@ public Object describe()
         return result;
     }
 
+    public Object normalizeTagKey(Object tag)
+    {
+        // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
+        // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+        // of the same tag compare equal — venues surface tags in different forms and callers
+        // pass any of them. keeping the word boundary avoids cross-word false positives that
+        // plain concatenation would create ("us open" vs "household")
+        Object lower = ((String)tag).toLowerCase();
+        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Object chars = this.stringToCharsArray(lower);
+        Object s = "";
+        Object pendingSep = false;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
+        {
+            Object ch = Helpers.GetValue(chars, i);
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(s, "")))))
+                {
+                    s = Helpers.add(s, " ");
+                }
+                s = Helpers.add(s, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        return s;
+    }
+
     public Object filterEventsByTags(Object events, Object... optionalArgs)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
@@ -307,7 +338,12 @@ public Object describe()
         Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
         {
-            ((java.util.List<Object>)wanted).add(((String)Helpers.GetValue(tags, i)).toLowerCase());
+            Object wantedKey = this.normalizeTagKey(Helpers.GetValue(tags, i));
+            if (Helpers.isTrue(!Helpers.isEqual(wantedKey, "")))
+            {
+                // an empty normalized key would substring-match every tag
+                ((java.util.List<Object>)wanted).add(wantedKey);
+            }
         }
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
@@ -328,10 +364,10 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
                 {
-                    Object tagLower = ((String)tagLabel).toLowerCase();
+                    Object tagKey = this.normalizeTagKey(tagLabel);
                     for (var wi = 0; Helpers.isLessThan(wi, Helpers.getArrayLength(wanted)); wi++)
                     {
-                        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tagLower, Helpers.GetValue(wanted, wi)), 0)))
+                        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tagKey, Helpers.GetValue(wanted, wi)), 0)))
                         {
                             matched = true;
                             break;
