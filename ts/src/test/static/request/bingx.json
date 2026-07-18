@@ -116,6 +116,7 @@
         "createOrder": [
             {
                 "disabledJava": true,
+                "disabledGO": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A70%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=80&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784383896118&type=TRIGGER_MARKET&signature=0cef0d572efb9db4120082609487258adc8bd5b721ebb7e4ace5973018fe4815",
