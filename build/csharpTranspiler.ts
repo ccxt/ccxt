@@ -551,10 +551,15 @@ class NewTranspiler {
                 }
             }
         } else {
+            // generated ccxt types (Currencies, MarketInterface, ...) are C# structs (value
+            // types) — an optional param can only default to null if declared nullable (CS1750)
+            const isStructType = paramType !== 'object' && paramType !== 'string'
+                && !paramType.startsWith('List<') && !paramType.startsWith('Dictionary<')
+                && paramType !== 'BaseExchange' && paramType !== 'Exchange';
             if (isOptional) {
                 if (param.initializer !== undefined) {
                         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return `${paramType} ${safeName} = null`
+                            return isStructType ? `${paramType}? ${safeName} = null` : `${paramType} ${safeName} = null`
                         }
                         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }

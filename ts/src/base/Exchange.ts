@@ -6658,9 +6658,11 @@ export class BaseExchange {
         return rate;
     }
 
-    requireValue <T>(value: T | undefined, message: Str = undefined): T {
+    requireValue <T>(value: T | undefined, message?: Str): T;
+    requireValue (value: any, message: Str = undefined): any {
         if (value === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + ((message !== undefined) ? message : 'value is required'));
+            const errorMessage = (message !== undefined) ? message : 'value is required';
+            throw new ArgumentsRequired (this.id + ' ' + errorMessage);
         }
         return value;
     }
