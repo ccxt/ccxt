@@ -1456,7 +1456,7 @@ export class BaseExchange {
         // quoteJsonNumbers is false, so this is only reached after an integer
         // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
         if (responseBody.includes ('\\"')) {
-            // check PR https://github.com/ccxt/ccxt/pull/24135 for the reasoning behind this regex
+            // check https://github.com/ccxt/ccxt/pull/29239 for explanation
             return responseBody.replace(
                 /(?:"(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
                 (match, number) => (number ? `"${number}"` : match)
