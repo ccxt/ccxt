@@ -20,7 +20,8 @@ const filesToDelete =[
 ]
 
 const whiteListFolders = [
-    `go${dirSep}v4${dirSep}protoc`
+    `go${dirSep}v4${dirSep}protoc`,
+    `go${dirSep}v4${dirSep}prediction`
 ]
 
 
