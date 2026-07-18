@@ -83,6 +83,14 @@ jobs:
         run: |
           cargo check --manifest-path rust/ccxt/Cargo.toml --no-default-features
           cargo check --manifest-path rust/ccxt/Cargo.toml --all-features
+      # Clippy on the hand-written runtime with the noisy style/complexity/perf
+      # groups allowed but `correctness`/`suspicious` denied (review #11).
+      # Generated files self-allow clippy::all, so this gates the code that
+      # actually needs review.
+      - name: Clippy (ccxt lib)
+        run: |
+          rustup component add clippy
+          cargo clippy --manifest-path rust/ccxt/Cargo.toml --features transpiled-base -- -D warnings
       # - name: Build Ws
       #   run: npm run buildRust --ws
       - name: Build tests

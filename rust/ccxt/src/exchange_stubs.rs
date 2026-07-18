@@ -1964,7 +1964,7 @@ impl Exchange {
         }
     }
 
-    /// `yymmdd()` / `yyyymmdd()` — date formatters.
+    // `yymmdd()` / `yyyymmdd()` — date formatters.
     // ── methods called by transpiled base tests ─────────────────────────────
 
     /// Test helper: tests sometimes call `exchange.clone()` to deep-copy

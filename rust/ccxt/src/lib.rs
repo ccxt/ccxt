@@ -15,7 +15,13 @@
 //   src/pro/mod.rs             – pub mod declarations for WS exchanges
 //   src/pro/*.rs               – individual WebSocket exchange implementations
 
-#![allow(non_snake_case, dead_code, unused_variables, unused_imports, clippy::all)]
+// Hand-written code keeps rustc's naming/dead-code allowances (the transpiled
+// surface uses camelCase) and silences the noisy Clippy *style/complexity/perf*
+// groups, but leaves Clippy's `correctness` and `suspicious` groups ENABLED so
+// real defects in the hand-written runtime aren't masked (review #11). Generated
+// files carry their own blanket `clippy::all` allow.
+#![allow(non_snake_case, dead_code, unused_variables, unused_imports)]
+#![allow(clippy::style, clippy::complexity, clippy::perf)]
 
 pub mod error;
 pub mod value;
