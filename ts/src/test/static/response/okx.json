@@ -15,9 +15,9 @@
                             "tier": "1",
                             "instId": "BTC-USDT-SWAP",
                             "instType": "SWAP",
-                            "markPx": "63500",
-                            "minSz": "10",
-                            "maxSz": "20",
+                            "markPx": "0.123456789123456789",
+                            "minSz": "0",
+                            "maxSz": "1000000000000000000",
                             "mmr": "0.01",
                             "maxLever": "5"
                         }
@@ -28,19 +28,64 @@
                         "tier": 1,
                         "symbol": "BTC/USDT:USDT",
                         "currency": "USDT",
-                        "minNotional": 6350,
-                        "maxNotional": 12700,
+                        "minNotional": 0,
+                        "maxNotional": 1234567891234568.0,
                         "maintenanceMarginRate": 0.01,
                         "maxLeverage": 5,
                         "info": {
                             "tier": "1",
                             "instId": "BTC-USDT-SWAP",
                             "instType": "SWAP",
-                            "markPx": "63500",
-                            "minSz": "10",
-                            "maxSz": "20",
+                            "markPx": "0.123456789123456789",
+                            "minSz": "0",
+                            "maxSz": "1000000000000000000",
                             "mmr": "0.01",
                             "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "linear USD future leverage tiers preserve raw contract value",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:USD-310404"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instFamily": "BTC-USD_UM_XPERP",
+                            "instId": "",
+                            "instType": "FUTURES",
+                            "markPx": "64000",
+                            "minSz": "0",
+                            "maxSz": "25000",
+                            "mmr": "0.01",
+                            "maxLever": "50",
+                            "uly": "BTC-USD"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:USD-310404",
+                        "currency": "USD",
+                        "minNotional": 0,
+                        "maxNotional": 160000.00000000003,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 50,
+                        "info": {
+                            "tier": "1",
+                            "instFamily": "BTC-USD_UM_XPERP",
+                            "instId": "",
+                            "instType": "FUTURES",
+                            "markPx": "64000",
+                            "minSz": "0",
+                            "maxSz": "25000",
+                            "mmr": "0.01",
+                            "maxLever": "50",
+                            "uly": "BTC-USD"
                         }
                     }
                 ]
