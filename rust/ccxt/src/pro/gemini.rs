@@ -268,6 +268,15 @@ impl crate::exchange::DerivedExchange for GeminiCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -403,7 +412,7 @@ impl GeminiCore {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // regular v2 trade
@@ -465,7 +474,7 @@ impl GeminiCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "trade",
@@ -490,7 +499,7 @@ impl GeminiCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "l2_updates",
@@ -541,8 +550,8 @@ impl GeminiCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_347: bool = true;
-                while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                let mut __for_first_360: bool = true;
+                while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&trades)) } {
                 let mut trade: Value = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
                 stored.append(trade.clone());
             }
@@ -552,7 +561,7 @@ impl GeminiCore {
         }
 }
 
-    pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
+    pub fn handle_trades_for_multidata(&self, mut client: Value, mut trades: Value, mut timestamp: Value) {
         if !is_equal(&trades, &Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut storesForSymbols: Value = Value::Map({
@@ -561,8 +570,8 @@ impl GeminiCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_348: bool = true;
-                while { if !__for_first_348 { i = add(&i, &Value::Int(1)); } __for_first_348 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                let mut __for_first_361: bool = true;
+                while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&trades)) } {
                 let mut marketId: Value = get_value(&get_value(&trades, &i), &Value::Str("symbol".to_string()));
                 let mut market: Value = self.safe_market(&[to_lower(&marketId)]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -581,10 +590,11 @@ impl GeminiCore {
             let mut symbols: Value = object_keys(&storesForSymbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_349: bool = true;
-                while { if !__for_first_349 { i = add(&i, &Value::Int(1)); } __for_first_349 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_362: bool = true;
+                while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
+                let mut stored: Value = get_value(&storesForSymbols, &symbol);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
                 let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
                 client.resolve(&[stored.clone(), messageHash.clone()]);
@@ -691,8 +701,8 @@ impl GeminiCore {
         let mut changesLength: Value = get_array_length(&changes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_350: bool = true;
-            while { if !__for_first_350 { i = add(&i, &Value::Int(1)); } __for_first_350 = false; is_less_than(&i, &changesLength) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &changesLength) } {
             let mut index: Value = subtract(&subtract(&changesLength, &i), &Value::Int(1));
             let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
             stored.append(parsed.clone());
@@ -759,13 +769,14 @@ impl GeminiCore {
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_351: bool = true;
-            while { if !__for_first_351 { i = add(&i, &Value::Int(1)); } __for_first_351 = false; is_less_than(&i, &get_array_length(&changes)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&changes)) } {
             let mut delta: Value = get_value(&changes, &i);
             let mut delta: Value = get_value(&changes, &i);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
             let mut side: Value = ternary(is_true(&(is_equal(&get_value(&delta, &Value::Int(0)), &Value::Str("buy".to_string())))), Value::Str("bids".to_string()), Value::Str("asks".to_string()));
+            let mut bookside: Value = get_value(&orderbook, &side);
             let mut bookside: Value = get_value(&orderbook, &side);
             bookside.store(price.clone(), size.clone());
             add_element_to_object(&mut orderbook, &side, bookside.clone());
@@ -860,8 +871,8 @@ impl GeminiCore {
         let mut messageHash: Value = add(&Value::Str("bidsasks:".to_string()), &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_352: bool = true;
-            while { if !__for_first_352 { i = add(&i, &Value::Int(1)); } __for_first_352 = false; is_less_than(&i, &get_array_length(&rawBidAskChanges)) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&rawBidAskChanges)) } {
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
             let mut rawSide: Value = self.safe_string_k(entry.clone(), "side", &[]);
@@ -913,8 +924,8 @@ impl GeminiCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i = add(&i, &Value::Int(1)); } __for_first_353 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut messageHash: Value = add(&add(&itemHashName, &Value::Str(":".to_string())), &symbol);
@@ -966,8 +977,8 @@ impl GeminiCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i = add(&i, &Value::Int(1)); } __for_first_354 = false; is_less_than(&i, &get_array_length(&rawOrderBookChanges)) } {
+            let mut __for_first_367: bool = true;
+            while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&rawOrderBookChanges)) } {
             let mut entry: Value = get_value(&rawOrderBookChanges, &i);
             let mut entry: Value = get_value(&rawOrderBookChanges, &i);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
@@ -990,7 +1001,7 @@ impl GeminiCore {
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_l2_updates(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_l2_updates(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "l2_updates",
@@ -1129,8 +1140,8 @@ impl GeminiCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_355: bool = true;
-            while { if !__for_first_355 { i = add(&i, &Value::Int(1)); } __for_first_355 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_368: bool = true;
+            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut order: Value = self.parse_ws_order(get_value(&message, &i), &[]);
             orders.append(order.clone());
         }
@@ -1138,7 +1149,7 @@ impl GeminiCore {
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1311,8 +1322,8 @@ impl GeminiCore {
             let mut eventsLength: Value = get_array_length(&events);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_356: bool = true;
-                while { if !__for_first_356 { i = add(&i, &Value::Int(1)); } __for_first_356 = false; is_less_than(&i, &get_array_length(&events)) } {
+                let mut __for_first_369: bool = true;
+                while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&events)) } {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
                 let mut eventType: Value = self.safe_string_k(event.clone(), "type", &[]);

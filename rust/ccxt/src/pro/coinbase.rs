@@ -274,6 +274,15 @@ impl crate::exchange::DerivedExchange for CoinbaseCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -1161,7 +1170,7 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "channel": "market_trades",
@@ -1294,7 +1303,7 @@ impl CoinbaseCore {
         client.resolve(&[self.orders.clone(), Value::Str("user".to_string())]);
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1363,6 +1372,7 @@ impl CoinbaseCore {
             let mut side: Value = self.safe_string(get_value(&self.options, &Value::Str("sides".to_string())), sideId.clone(), &[]);
             let mut price: Value = self.safe_number_k(trade.clone(), "price_level", &[]);
             let mut amount: Value = self.safe_number_k(trade.clone(), "new_quantity", &[]);
+            let mut orderbookSide: Value = get_value(&orderbook, &side);
             let mut orderbookSide: Value = get_value(&orderbook, &side);
             orderbookSide.store(price.clone(), amount.clone());
         }

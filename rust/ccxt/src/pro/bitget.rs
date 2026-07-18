@@ -288,6 +288,15 @@ impl crate::exchange::DerivedExchange for BitgetCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -427,7 +436,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn get_inst_type(&mut self, mut methodName: Value, mut market: Value, optional_args: &[Value]) -> Value {
+    pub fn get_inst_type(&self, mut methodName: Value, mut market: Value, optional_args: &[Value]) -> Value {
         let mut uta = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -508,9 +517,6 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.un_watch_channel(symbol.clone(), Value::Str("ticker".to_string()), Value::Str("ticker".to_string()), Value::Str("watchTicker".to_string()), &[params.clone()]).await;
 
     Value::Null
@@ -1619,7 +1625,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "action": "snapshot",
@@ -1677,6 +1683,7 @@ impl BitgetCore {
             while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &length) } {
             let mut index: Value = subtract(&subtract(&length, &i), &Value::Int(1));
             let mut rawTrade: Value = get_value(&data, &index);
+            let mut rawTrade: Value = get_value(&data, &index);
             let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -1685,7 +1692,7 @@ impl BitgetCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -2406,7 +2413,7 @@ impl BitgetCore {
         }
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot

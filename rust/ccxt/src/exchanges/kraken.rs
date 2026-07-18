@@ -226,9 +226,7 @@ impl crate::exchange::DerivedExchange for KrakenCore {
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenCore as *mut KrakenCore) };
-        KrakenCore::parse_order(me, order, &[market.clone()])
+        KrakenCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenCore.
@@ -2498,7 +2496,7 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder

@@ -258,6 +258,15 @@ impl crate::exchange::DerivedExchange for IndependentreserveCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -358,7 +367,7 @@ impl IndependentreserveCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -396,7 +405,7 @@ impl IndependentreserveCore {
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -542,8 +551,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_411: bool = true;
-                while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_424: bool = true;
+                while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &bidsLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1))));
                 }
@@ -551,8 +560,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_412: bool = true;
-                while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_425: bool = true;
+                while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &asksLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1))));
                 }
@@ -592,8 +601,8 @@ impl IndependentreserveCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_413: bool = true;
-            while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }

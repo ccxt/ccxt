@@ -279,6 +279,15 @@ impl crate::exchange::DerivedExchange for BydfiCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -764,9 +773,7 @@ impl BydfiCore {
         if is_equal(&symbolsLength, &Value::Int(0)) || !is_true(&Value::Bool(is_array(&get_value(&symbolsAndTimeframes, &Value::Int(0))))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
+        self.load_markets(&[]).await;
         let mut channels: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
@@ -818,9 +825,7 @@ impl BydfiCore {
         if is_equal(&symbolsLength, &Value::Int(0)) || !is_true(&Value::Bool(is_array(&get_value(&symbolsAndTimeframes, &Value::Int(0))))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
+        self.load_markets(&[]).await;
         let mut channels: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
@@ -1188,7 +1193,7 @@ impl BydfiCore {
         client.resolve(&[orders.clone(), symbolMessageHash.clone()]);
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

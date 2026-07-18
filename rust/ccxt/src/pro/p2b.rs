@@ -265,6 +265,15 @@ impl crate::exchange::DerivedExchange for P2bCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -490,8 +499,8 @@ impl P2bCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { i = add(&i, &Value::Int(1)); } __for_first_539 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_554: bool = true;
+            while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
@@ -561,8 +570,8 @@ impl P2bCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_540: bool = true;
-                while { if !__for_first_540 { i = add(&i, &Value::Int(1)); } __for_first_540 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_555: bool = true;
+                while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 append_to_array(&mut messageHashes, add(&Value::Str("deals::".to_string()), &get_value(&symbols, &i)));
             }
             }
@@ -675,7 +684,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //        "method": "deals.update",
@@ -708,8 +717,8 @@ impl P2bCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_541: bool = true;
-            while { if !__for_first_541 { i = add(&i, &Value::Int(1)); } __for_first_541 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { i = add(&i, &Value::Int(1)); } __for_first_556 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut item: Value = get_value(&trades, &i);
             let mut item: Value = get_value(&trades, &i);
             let mut trade: Value = self.parse_trade(item.clone(), &[market.clone()]);
@@ -828,8 +837,8 @@ impl P2bCore {
         if !is_equal(&bids, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_542: bool = true;
-                while { if !__for_first_542 { i = add(&i, &Value::Int(1)); } __for_first_542 = false; is_less_than(&i, &get_array_length(&bids)) } {
+                let mut __for_first_557: bool = true;
+                while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&bids)) } {
                 let mut bid: Value = self.safe_value(bids.clone(), i.clone(), &[]);
                 let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(bid.clone(), Value::Int(1), &[]);
@@ -841,8 +850,8 @@ impl P2bCore {
         if !is_equal(&asks, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_543: bool = true;
-                while { if !__for_first_543 { i = add(&i, &Value::Int(1)); } __for_first_543 = false; is_less_than(&i, &get_array_length(&asks)) } {
+                let mut __for_first_558: bool = true;
+                while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&asks)) } {
                 let mut ask: Value = self.safe_value(asks.clone(), i.clone(), &[]);
                 let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(ask.clone(), Value::Int(1), &[]);

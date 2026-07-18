@@ -1567,7 +1567,7 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn convert_derivatives_id(&mut self, mut currency: Value, mut type_var: Value) -> Value {
+    pub fn convert_derivatives_id(&self, mut currency: Value, mut type_var: Value) -> Value {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",

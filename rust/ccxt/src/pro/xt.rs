@@ -280,6 +280,15 @@ impl crate::exchange::DerivedExchange for XtCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -437,8 +446,8 @@ impl XtCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer2(delta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]);
@@ -460,8 +469,8 @@ impl XtCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&obBids)) } {
             let mut bid: Value = get_value(&obBids, &i);
             let mut bid: Value = get_value(&obBids, &i);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -471,8 +480,8 @@ impl XtCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_649: bool = true;
-            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { i = add(&i, &Value::Int(1)); } __for_first_664 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
             let mut ask: Value = get_value(&obAsks, &i);
             let mut ask: Value = get_value(&obAsks, &i);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -1119,8 +1128,8 @@ impl XtCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_665: bool = true;
+            while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
@@ -1183,8 +1192,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("position::contract".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_651: bool = true;
-            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_666: bool = true;
+            while { if !__for_first_666 { i = add(&i, &Value::Int(1)); } __for_first_666 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1355,8 +1364,8 @@ impl XtCore {
         let mut newTickers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_667: bool = true;
+            while { if !__for_first_667 { i = add(&i, &Value::Int(1)); } __for_first_667 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut tickerData: Value = get_value(&data, &i);
             let mut tickerData: Value = get_value(&data, &i);
             let mut ticker: Value = self.parse_ticker(tickerData.clone(), &[]);
@@ -1371,8 +1380,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&messageHashStart, &Value::Str("::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_668: bool = true;
+            while { if !__for_first_668 { i = add(&i, &Value::Int(1)); } __for_first_668 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1461,7 +1470,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         // spot
         //
@@ -1617,8 +1626,8 @@ impl XtCore {
                 let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_654: bool = true;
-                    while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+                    let mut __for_first_669: bool = true;
+                    while { if !__for_first_669 { i = add(&i, &Value::Int(1)); } __for_first_669 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -1631,8 +1640,8 @@ impl XtCore {
                 let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_655: bool = true;
-                    while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+                    let mut __for_first_670: bool = true;
+                    while { if !__for_first_670 { i = add(&i, &Value::Int(1)); } __for_first_670 = false; is_less_than(&i, &get_array_length(&obBids)) } {
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -1650,7 +1659,7 @@ impl XtCore {
         }
 }
 
-    pub fn parse_ws_order_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1715,7 +1724,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -2055,8 +2064,8 @@ impl XtCore {
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { j = add(&j, &Value::Int(1)); } __for_first_656 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+            let mut __for_first_671: bool = true;
+            while { if !__for_first_671 { j = add(&j, &Value::Int(1)); } __for_first_671 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut subHash: Value = get_value(&subMessageHashes, &j);

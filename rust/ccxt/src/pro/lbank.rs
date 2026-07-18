@@ -269,6 +269,15 @@ impl crate::exchange::DerivedExchange for LbankCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -818,7 +827,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         // request
         //     {
@@ -858,8 +867,8 @@ impl LbankCore {
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_462: bool = true;
-            while { if !__for_first_462 { i = add(&i, &Value::Int(1)); } __for_first_462 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());
@@ -872,7 +881,7 @@ impl LbankCore {
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // request
@@ -1004,7 +1013,7 @@ impl LbankCore {
         client.resolve(&[myOrders.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

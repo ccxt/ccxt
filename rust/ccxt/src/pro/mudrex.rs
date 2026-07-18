@@ -8,13 +8,13 @@ use crate::runtime::*;
 use crate::pro::*;
 
 
-pub struct BequantCore {
-    pub parent: crate::pro::hitbtc::HitbtcCore,
+pub struct MudrexCore {
+    pub parent: crate::exchanges::mudrex::MudrexCore,
 }
 
-impl BequantCore {
+impl MudrexCore {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::pro::hitbtc::HitbtcCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::mudrex::MudrexCore::new(config) };
         s.init();
         s
     }
@@ -28,7 +28,7 @@ impl BequantCore {
             self as &Self as *const dyn crate::exchange::DerivedExchange;
         self.exchange.bind_derived(ptr);
         // Populate describe()-derived fields.
-        let described = BequantCore::describe(self);
+        let described = MudrexCore::describe(self);
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
         self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
         self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
@@ -118,7 +118,7 @@ impl BequantCore {
         // calls (cancel_order, fetch_order, …) to this Core's
         // call_dynamic, bypassing the base stubs.
         let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, BequantCore::__call_dynamic_dispatch);
+        self.exchange.bind_call_async(core_ptr, MudrexCore::__call_dynamic_dispatch);
     }
 
     /// Type-erased trampoline used by Exchange::dispatch_to_derived.
@@ -142,7 +142,11 @@ impl BequantCore {
     /// Returns Value::Null for unknown names.
     pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
         match method {
-
+            "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "request_id" => self.request_id(),
+            "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             // Go-style inheritance: an un-overridden method dispatches
             // to the parent exchange Core.
             _ => self.parent.call_dynamic(method, args).await,
@@ -150,7 +154,7 @@ impl BequantCore {
     }
 }
 
-impl crate::exchange::DerivedExchange for BequantCore {
+impl crate::exchange::DerivedExchange for MudrexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
@@ -273,52 +277,314 @@ impl crate::exchange::DerivedExchange for BequantCore {
     }
 }
 
-impl std::ops::Deref for BequantCore {
-    type Target = crate::pro::hitbtc::HitbtcCore;
+impl std::ops::Deref for MudrexCore {
+    type Target = crate::exchanges::mudrex::MudrexCore;
     fn deref(&self) -> &Self::Target { &self.parent }
 }
 
-impl std::ops::DerefMut for BequantCore {
+impl std::ops::DerefMut for MudrexCore {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
 }
 
-impl BequantCore {
+impl MudrexCore {
     pub fn describe(&self) -> Value {
-        // eslint-disable-next-line new-cap
-        let mut restInstance = crate::exchanges::bequant::BequantCore::new(None);
-        let mut restDescribe: Value = restInstance.describe();
-        let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
-        return self.deep_extend(extended.clone(), &[Value::Map({
+        return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bequant".to_string()));
-        m.insert("name".to_string(), Value::Str("Bequant".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("MT".to_string())]));
-        m.insert("pro".to_string(), Value::Bool(true));
+        m.insert("has".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Bool(true));
+        m.insert("watchOHLCV".to_string(), Value::Bool(true));
+        m.insert("watchTicker".to_string(), Value::Bool(true));
+        m.insert("watchTickers".to_string(), Value::Bool(true));
+    m
+}));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
-        m.insert("ws".to_string(), Value::Map({
+        m.insert("ws".to_string(), Value::Str("wss://trade.mudrex.com/fapi/v1/price/ws/linear".to_string()));
+    m
+}));
+    m
+}));
+        m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/public".to_string()));
-        m.insert("private".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/trading".to_string()));
+        m.insert("broker".to_string(), Value::Str("42ce8902-8585-448c-a1e8-0371a6ca7ca8".to_string()));
     m
 }));
-    m
-}));
-        m.insert("www".to_string(), Value::Str("https://bequant.io".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.bequant.io/".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://bequant.io/fees-and-limits".to_string())]));
-        m.insert("referral".to_string(), Value::Str("https://bequant.io".to_string()));
+        m.insert("streaming".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("keepAlive".to_string(), Value::Int(20000));
     m
 }));
     m
 })]);
 
     Value::Null
+}
+
+    pub fn ping(&self, mut client: Value) -> Value {
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.request_id());
+        m.insert("method".to_string(), Value::Str("PING".to_string()));
+    m
+});
+
+    Value::Null
+}
+
+    pub fn request_id(&self) -> Value {
+        let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]), Value::Int(1)]);
+        add_element_to_object(&mut self.options.clone(), &Value::Str("correlationId".to_string()), reqid.clone());
+        return reqid;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @description injects the broker Partner-Id into the websocket connection headers
+ */
+    pub fn set_broker_headers(&self) {
+        let mut brokerId: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
+        if is_equal(&brokerId, &Value::Null) {
+            return;
+        }
+        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut innerOptions: Value = self.safe_dict_k(wsOptions.clone(), "options", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut headers: Value = self.safe_dict_k(innerOptions.clone(), "headers", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        add_element_to_object(&mut headers, &Value::Str("Partner-Id".to_string()), brokerId.clone());
+        add_element_to_object(&mut innerOptions, &Value::Str("headers".to_string()), headers.clone());
+        add_element_to_object(&mut wsOptions, &Value::Str("options".to_string()), innerOptions.clone());
+        add_element_to_object(&mut self.options.clone(), &Value::Str("ws".to_string()), wsOptions.clone());
+}
+
+    pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        symbol = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        self.set_broker_headers();
+        let mut subscribe: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), self.request_id());
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
+                m.insert("params".to_string(), Value::List(vec![Value::Str("ticker@1s".to_string())]));
+                m.insert("assets".to_string(), Value::List(vec![add(&to_lower(&get_value(&market, &Value::Str("baseId".to_string()))), &to_lower(&get_value(&market, &Value::Str("quoteId".to_string()))))]));
+            m
+        });
+        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut messageHashes: Value = Value::List(vec![]);
+        let mut assets: Value = Value::List(vec![]);
+        if !is_equal(&symbols, &Value::Null) {
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_505: bool = true;
+                while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut market: Value = self.market(get_value(&symbols, &i));
+                append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
+                append_to_array(&mut assets, add(&to_lower(&get_value(&market, &Value::Str("baseId".to_string()))), &to_lower(&get_value(&market, &Value::Str("quoteId".to_string())))));
+            }
+            }
+        }
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        self.set_broker_headers();
+        let mut subscribe: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), self.request_id());
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
+                m.insert("params".to_string(), Value::List(vec![Value::Str("ticker@1s".to_string())]));
+                m.insert("assets".to_string(), assets.clone());
+            m
+        });
+        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut ticker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone()]).await;
+        if is_true(&self.newUpdates) {
+            let mut result: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            add_element_to_object(&mut result, &get_value(&ticker, &Value::Str("symbol".to_string())), ticker.clone());
+            return result;
+        }
+        return self.filter_by_array_tickers(self.tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+
+    Value::Null
+}
+
+    pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        symbol = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
+        params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
+        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        if !is_equal(&interval, &Value::Str("1s".to_string())) && !is_equal(&interval, &Value::Str("1m".to_string())) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".to_string()))));
+        }
+        let mut prefix: Value = Value::Str("kline".to_string());
+        if is_equal(&priceType, &Value::Str("mark".to_string())) {
+            prefix = Value::Str("markKline".to_string());
+        }
+        let mut stream: Value = add(&add(&add(&add(&add(&prefix, &Value::Str("@".to_string())), &interval), &Value::Str("@".to_string())), &to_lower(&get_value(&market, &Value::Str("baseId".to_string())))), &to_lower(&get_value(&market, &Value::Str("quoteId".to_string()))));
+        let mut messageHash: Value = stream.clone();
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        self.set_broker_headers();
+        let mut subscribe: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), self.request_id());
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
+                m.insert("params".to_string(), Value::List(vec![stream.clone()]));
+            m
+        });
+        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
+        if is_true(&self.newUpdates) {
+            limit = ohlcv.get_limit(symbol.clone(), limit.clone());
+        }
+        return self.filter_by_since_limit(ohlcv.clone(), &[since.clone(), limit.clone(), Value::Int(0), Value::Bool(true)]);
+
+    Value::Null
+}
+
+    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+        if is_equal(&self.safe_string_k(message.clone(), "method", &[]), &Value::Str("PONG".to_string())) {
+            return;
+        }
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
+        if !is_equal(&error, &Value::Null) {
+            self.handle_error_message(client.clone(), message.clone());
+            return;
+        }
+        let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
+        if !is_equal(&stream, &Value::Null) {
+            if is_greater_than_or_equal(&get_index_of(&stream, &Value::Str("kline".to_string())), &Value::Int(0)) || is_greater_than_or_equal(&get_index_of(&stream, &Value::Str("markKline".to_string())), &Value::Int(0)) {
+                self.handle_ohlcv(client.clone(), message.clone());
+            }  else if is_greater_than_or_equal(&get_index_of(&stream, &Value::Str("ticker".to_string())), &Value::Int(0)) {
+                self.handle_ticker(client.clone(), message.clone());
+            }
+        }
+}
+
+    pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
+        let mut msg: Value = self.safe_string_k(error.clone(), "msg", &[]);
+        let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &msg);
+        if is_equal(&code, &Value::Str("429".to_string())) {
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
+        }
+        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+}
+
+    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+        let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
+        let mut parts: Value = split(&stream, &Value::Str("@".to_string()));
+        let mut interval: Value = get_value(&parts, &Value::Int(1));
+        let mut tf: Value = self.find_timeframe(interval.clone(), &[]);
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut s: Value = self.safe_string_k(data.clone(), "s", &[]);
+        if is_equal(&s, &Value::Null) {
+            return;
+        }
+        let mut market: Value = self.safe_market(&[to_upper(&s)]);
+        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut parsed: Value = Value::List(vec![self.safe_timestamp(data.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
+        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), tf.clone(), &[]);
+        if is_equal(&stored, &Value::Null) {
+            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+            stored = ArrayCacheByTimestamp::new(limit.clone());
+            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &tf, stored.clone());
+        }
+        stored.append(parsed.clone());
+        let mut messageHash: Value = stream.clone();
+        client.resolve(&[stored.clone(), messageHash.clone()]);
+}
+
+    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_506: bool = true;
+            while { if !__for_first_506 { i = add(&i, &Value::Int(1)); } __for_first_506 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut t: Value = get_value(&data, &i);
+            let mut t: Value = get_value(&data, &i);
+            let mut s: Value = self.safe_string_k(t.clone(), "s", &[]);
+            if is_equal(&s, &Value::Null) {
+                continue;
+            }
+            let mut market: Value = self.safe_market(&[to_upper(&s)]);
+            let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+            let mut timestamp: Value = self.milliseconds();
+            let mut last: Value = self.safe_number_k(t.clone(), "p", &[]);
+            let mut result: Value = self.safe_ticker(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), symbol.clone());
+                    m.insert("timestamp".to_string(), timestamp.clone());
+                    m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                    m.insert("last".to_string(), last.clone());
+                    m.insert("close".to_string(), last.clone());
+                    m.insert("info".to_string(), t.clone());
+                m
+            }), &[]);
+            add_element_to_object(&mut self.tickers.clone(), &symbol, result.clone());
+            let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+            client.resolve(&[result.clone(), messageHash.clone()]);
+            client.resolve(&[result.clone(), Value::Str("tickers".to_string())]);
+        }
+        }
 }
 }

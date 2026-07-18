@@ -11133,7 +11133,7 @@ impl BinanceCore {
     Value::Null
 }
 
-    pub fn parse_position_risk(&mut self, mut position: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_position_risk(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // usdm

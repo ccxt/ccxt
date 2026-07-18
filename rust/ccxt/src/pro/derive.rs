@@ -267,6 +267,15 @@ impl crate::exchange::DerivedExchange for DeriveCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -815,7 +824,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
         //
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
@@ -1110,7 +1119,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
         //
         //
         let mut myTrades: Value = self.myTrades.clone();

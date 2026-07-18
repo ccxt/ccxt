@@ -281,6 +281,15 @@ impl crate::exchange::DerivedExchange for PoloniexCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -688,7 +697,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn handle_order_request(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_request(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "id": "1234567",
@@ -705,8 +714,8 @@ impl PoloniexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i = add(&i, &Value::Int(1)); } __for_first_569 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = get_value(&data, &i);
             let mut order: Value = get_value(&data, &i);
             let mut parsedOrder: Value = self.parse_ws_order(order.clone(), &[]);
@@ -869,8 +878,8 @@ impl PoloniexCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_570: bool = true;
-                while { if !__for_first_570 { i = add(&i, &Value::Int(1)); } __for_first_570 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_585: bool = true;
+                while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("::".to_string())), &get_value(&symbols, &i)));
             }
             }
@@ -1072,7 +1081,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //        "channel": "trades",
@@ -1093,8 +1102,8 @@ impl PoloniexCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { i = add(&i, &Value::Int(1)); } __for_first_571 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut item: Value = get_value(&data, &i);
             let mut item: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -1119,7 +1128,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // handleTrade
@@ -1210,7 +1219,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_ws_order_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1315,8 +1324,8 @@ impl PoloniexCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = self.safe_value(data.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut eventType: Value = self.safe_string_k(order.clone(), "eventType", &[]);
@@ -1345,8 +1354,8 @@ impl PoloniexCore {
                     let mut previousOrderTrades: Value = get_value(&previousOrder, &Value::Str("trades".to_string()));
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_572: bool = true;
-                        while { if !__for_first_572 { j = add(&j, &Value::Int(1)); } __for_first_572 = false; is_less_than(&j, &get_array_length(&previousOrderTrades)) } {
+                        let mut __for_first_587: bool = true;
+                        while { if !__for_first_587 { j = add(&j, &Value::Int(1)); } __for_first_587 = false; is_less_than(&j, &get_array_length(&previousOrderTrades)) } {
                         let mut previousOrderTrade: Value = get_value(&previousOrderTrades, &j);
                         let mut previousOrderTrade: Value = get_value(&previousOrderTrades, &j);
                         let mut cost: Value = self.number_to_string(get_value(&previousOrderTrade, &Value::Str("cost".to_string())));
@@ -1395,8 +1404,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.market(marketId.clone());
@@ -1411,7 +1420,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1519,8 +1528,8 @@ impl PoloniexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut item: Value = get_value(&data, &i);
             let mut item: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -1535,8 +1544,8 @@ impl PoloniexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("ticker::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_591: bool = true;
+            while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1608,8 +1617,8 @@ impl PoloniexCore {
         let mut update: Value = Value::Bool(is_equal(&type_var, &Value::Str("update".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut item: Value = get_value(&data, &i);
             let mut item: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -1636,8 +1645,8 @@ impl PoloniexCore {
                 if !is_equal(&bids, &Value::Null) {
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_577: bool = true;
-                        while { if !__for_first_577 { j = add(&j, &Value::Int(1)); } __for_first_577 = false; is_less_than(&j, &get_array_length(&bids)) } {
+                        let mut __for_first_592: bool = true;
+                        while { if !__for_first_592 { j = add(&j, &Value::Int(1)); } __for_first_592 = false; is_less_than(&j, &get_array_length(&bids)) } {
                         let mut bid: Value = self.safe_value(bids.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(bid.clone(), Value::Int(1), &[]);
@@ -1649,8 +1658,8 @@ impl PoloniexCore {
                 if !is_equal(&asks, &Value::Null) {
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_578: bool = true;
-                        while { if !__for_first_578 { j = add(&j, &Value::Int(1)); } __for_first_578 = false; is_less_than(&j, &get_array_length(&asks)) } {
+                        let mut __for_first_593: bool = true;
+                        while { if !__for_first_593 { j = add(&j, &Value::Int(1)); } __for_first_593 = false; is_less_than(&j, &get_array_length(&asks)) } {
                         let mut ask: Value = self.safe_value(asks.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(ask.clone(), Value::Int(1), &[]);
@@ -1725,8 +1734,8 @@ impl PoloniexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_595: bool = true;
+            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = self.safe_value(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1760,7 +1769,7 @@ impl PoloniexCore {
         crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }

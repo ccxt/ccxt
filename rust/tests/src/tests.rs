@@ -1793,7 +1793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn assert_static_request_output(&mut self, mut exchange: Value, mut type_var: Value, mut skipKeys: Value, mut storedUrl: Value, mut requestUrl: Value, mut storedOutput: Value, mut newOutput: Value) -> Value {
+    pub fn assert_static_request_output(&self, mut exchange: Value, mut type_var: Value, mut skipKeys: Value, mut storedUrl: Value, mut requestUrl: Value, mut storedOutput: Value, mut newOutput: Value) -> Value {
         if !is_equal(&storedUrl, &requestUrl) {
             // remove the host part from the url
             let mut firstPath: Value = self.remove_hostnamefrom_url(storedUrl.clone());

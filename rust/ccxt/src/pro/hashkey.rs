@@ -270,6 +270,15 @@ impl crate::exchange::DerivedExchange for HashkeyCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -473,8 +482,8 @@ impl HashkeyCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_362: bool = true;
-            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -593,7 +602,7 @@ impl HashkeyCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -631,8 +640,8 @@ impl HashkeyCore {
             data = self.sort_by(data.clone(), Value::Str("t".to_string()), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_363: bool = true;
-                while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_376: bool = true;
+                while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -808,7 +817,7 @@ impl HashkeyCore {
         client.resolve(&[orders.clone(), symbolSpecificMessageHash.clone()]);
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
@@ -934,7 +943,7 @@ impl HashkeyCore {
         client.resolve(&[tradesArray.clone(), symbolSpecificMessageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // watchTrades
@@ -1030,8 +1039,8 @@ impl HashkeyCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_364: bool = true;
-                while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_377: bool = true;
+                while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str(":".to_string())), &symbol));

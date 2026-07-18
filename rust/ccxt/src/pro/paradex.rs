@@ -265,6 +265,15 @@ impl crate::exchange::DerivedExchange for ParadexCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -445,7 +454,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -581,8 +590,8 @@ impl ParadexCore {
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_553: bool = true;
-            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&inserts)) } {
+            let mut __for_first_568: bool = true;
+            while { if !__for_first_568 { i = add(&i, &Value::Int(1)); } __for_first_568 = false; is_less_than(&i, &get_array_length(&inserts)) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
             let mut side: Value = self.safe_string_k(insert.clone(), "side", &[]);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
@@ -676,8 +685,8 @@ impl ParadexCore {
         if !is_equal(&symbols, &Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_554: bool = true;
-                while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_569: bool = true;
+                while { if !__for_first_569 { i = add(&i, &Value::Int(1)); } __for_first_569 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                 append_to_array(&mut messageHashes, messageHash.clone());
             }
@@ -929,8 +938,8 @@ impl ParadexCore {
             if is_greater_than(&symbolsLength, &Value::Int(0)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_555: bool = true;
-                    while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut __for_first_570: bool = true;
+                    while { if !__for_first_570 { i = add(&i, &Value::Int(1)); } __for_first_570 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                     append_to_array(&mut messageHashes, messageHash.clone());
                 }

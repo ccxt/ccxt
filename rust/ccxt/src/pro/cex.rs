@@ -280,6 +280,15 @@ impl crate::exchange::DerivedExchange for CexCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -525,7 +534,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_trades_snapshot(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades_snapshot(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "history",
@@ -540,7 +549,7 @@ impl CexCore {
         self.handle_trades_inner(client.clone(), message.clone());
 }
 
-    pub fn parse_ws_old_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_old_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //  snapshot trade
@@ -578,7 +587,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "history-update",
@@ -590,7 +599,7 @@ impl CexCore {
         self.handle_trades_inner(client.clone(), message.clone());
 }
 
-    pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades_inner(&self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut symbol: Value = self.safe_string(get_value(&self.options, &Value::Str("watchTrades".to_string())), Value::Str("symbol".to_string()), &[]);
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
@@ -605,6 +614,7 @@ impl CexCore {
             let mut __for_first_239: bool = true;
             while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &dataLength) } {
             let mut index: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
+            let mut rawTrade: Value = get_value(&data, &index);
             let mut rawTrade: Value = get_value(&data, &index);
             let mut parsed: Value = self.parse_ws_old_trade(rawTrade.clone(), &[market.clone()]);
             stored.append(parsed.clone());
@@ -1039,7 +1049,7 @@ impl CexCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1237,7 +1247,7 @@ impl CexCore {
         client.resolve(&[storedOrders.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_order_update(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order_update(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //      {

@@ -6,8 +6,8 @@
 
 use ccxt::Value;
 use ccxt::exchanges::{
-    aftermath::AftermathCore, alpaca::AlpacaCore, apex::ApexCore,
-    arkham::ArkhamCore, ascendex::AscendexCore, aster::AsterCore,
+    alpaca::AlpacaCore, apex::ApexCore,
+    aster::AsterCore,
     backpack::BackpackCore, bequant::BequantCore, bigone::BigoneCore,
     binance::BinanceCore, binancecoinm::BinancecoinmCore,
     binanceus::BinanceusCore, binanceusdm::BinanceusdmCore,
@@ -20,18 +20,18 @@ use ccxt::exchanges::{
     blockchaincom::BlockchaincomCore, blofin::BlofinCore,
     btcbox::BtcboxCore, btcmarkets::BtcmarketsCore, btcturk::BtcturkCore,
     bullish::BullishCore, bybit::BybitCore, bydfi::BydfiCore, cex::CexCore,
-    coinbase::CoinbaseCore, coinbaseadvanced::CoinbaseadvancedCore,
+    coinbase::CoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore,
     coinbaseinternational::CoinbaseinternationalCore,
     coincheck::CoincheckCore, coinex::CoinexCore, coinmate::CoinmateCore,
-    coinmetro::CoinmetroCore, coinone::CoinoneCore, coinsph::CoinsphCore,
+    coinone::CoinoneCore, coinsph::CoinsphCore,
     coinspot::CoinspotCore, cryptocom::CryptocomCore,
     cryptomus::CryptomusCore, deepcoin::DeepcoinCore, delta::DeltaCore,
     deribit::DeribitCore, derive::DeriveCore, digifinex::DigifinexCore,
     dydx::DydxCore, exmo::ExmoCore, fmfwio::FmfwioCore, foxbit::FoxbitCore,
-    gate::GateCore, gateio::GateioCore, gemini::GeminiCore, grvt::GrvtCore,
+    gate::GateCore, gemini::GeminiCore, grvt::GrvtCore,
     hashkey::HashkeyCore, hibachi::HibachiCore, hitbtc::HitbtcCore,
-    hollaex::HollaexCore, htx::HtxCore, huobi::HuobiCore,
+    hollaex::HollaexCore, htx::HtxCore,
     hyperliquid::HyperliquidCore,
     independentreserve::IndependentreserveCore, indodax::IndodaxCore,
     kraken::KrakenCore, krakenfutures::KrakenfuturesCore,
@@ -39,13 +39,13 @@ use ccxt::exchanges::{
     latoken::LatokenCore, lbank::LbankCore, lighter::LighterCore,
     luno::LunoCore, mercado::MercadoCore, mexc::MexcCore,
     modetrade::ModetradeCore, myokx::MyokxCore, ndax::NdaxCore,
-    novadax::NovadaxCore, okx::OkxCore, okxus::OkxusCore,
-    onetrading::OnetradingCore, oxfun::OxfunCore, p2b::P2bCore,
+    okx::OkxCore, okxus::OkxusCore,
+    onetrading::OnetradingCore, p2b::P2bCore,
     pacifica::PacificaCore, paradex::ParadexCore, paymium::PaymiumCore,
     phemex::PhemexCore, poloniex::PoloniexCore, tokocrypto::TokocryptoCore,
-    toobit::ToobitCore, upbit::UpbitCore, wavesexchange::WavesexchangeCore,
+    toobit::ToobitCore, upbit::UpbitCore,
     weex::WeexCore, whitebit::WhitebitCore, woo::WooCore,
-    woofipro::WoofiproCore, xt::XtCore, yobit::YobitCore, zaif::ZaifCore,
+    woofipro::WoofiproCore, xt::XtCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     kucoineu::KucoineuCore, mudrex::MudrexCore,
@@ -69,11 +69,8 @@ use futures::FutureExt;
 /// one line here. Keep this in sync with `rust/ccxt/src/exchanges/mod.rs`.
 macro_rules! for_each_core {
     ($cb:ident) => {
-        $cb!(aftermath, AftermathCore);
         $cb!(alpaca, AlpacaCore);
         $cb!(apex, ApexCore);
-        $cb!(arkham, ArkhamCore);
-        $cb!(ascendex, AscendexCore);
         $cb!(aster, AsterCore);
         $cb!(backpack, BackpackCore);
         $cb!(bequant, BequantCore);
@@ -109,13 +106,11 @@ macro_rules! for_each_core {
         $cb!(bydfi, BydfiCore);
         $cb!(cex, CexCore);
         $cb!(coinbase, CoinbaseCore);
-        $cb!(coinbaseadvanced, CoinbaseadvancedCore);
         $cb!(coinbaseexchange, CoinbaseexchangeCore);
         $cb!(coinbaseinternational, CoinbaseinternationalCore);
         $cb!(coincheck, CoincheckCore);
         $cb!(coinex, CoinexCore);
         $cb!(coinmate, CoinmateCore);
-        $cb!(coinmetro, CoinmetroCore);
         $cb!(coinone, CoinoneCore);
         $cb!(coinsph, CoinsphCore);
         $cb!(coinspot, CoinspotCore);
@@ -131,7 +126,6 @@ macro_rules! for_each_core {
         $cb!(fmfwio, FmfwioCore);
         $cb!(foxbit, FoxbitCore);
         $cb!(gate, GateCore);
-        $cb!(gateio, GateioCore);
         $cb!(gemini, GeminiCore);
         $cb!(grvt, GrvtCore);
         $cb!(hashkey, HashkeyCore);
@@ -139,7 +133,6 @@ macro_rules! for_each_core {
         $cb!(hitbtc, HitbtcCore);
         $cb!(hollaex, HollaexCore);
         $cb!(htx, HtxCore);
-        $cb!(huobi, HuobiCore);
         $cb!(hyperliquid, HyperliquidCore);
         $cb!(independentreserve, IndependentreserveCore);
         $cb!(indodax, IndodaxCore);
@@ -156,11 +149,9 @@ macro_rules! for_each_core {
         $cb!(modetrade, ModetradeCore);
         $cb!(myokx, MyokxCore);
         $cb!(ndax, NdaxCore);
-        $cb!(novadax, NovadaxCore);
         $cb!(okx, OkxCore);
         $cb!(okxus, OkxusCore);
         $cb!(onetrading, OnetradingCore);
-        $cb!(oxfun, OxfunCore);
         $cb!(p2b, P2bCore);
         $cb!(pacifica, PacificaCore);
         $cb!(paradex, ParadexCore);
@@ -170,13 +161,11 @@ macro_rules! for_each_core {
         $cb!(tokocrypto, TokocryptoCore);
         $cb!(toobit, ToobitCore);
         $cb!(upbit, UpbitCore);
-        $cb!(wavesexchange, WavesexchangeCore);
         $cb!(weex, WeexCore);
         $cb!(whitebit, WhitebitCore);
         $cb!(woo, WooCore);
         $cb!(woofipro, WoofiproCore);
         $cb!(xt, XtCore);
-        $cb!(yobit, YobitCore);
         $cb!(zaif, ZaifCore);
         $cb!(zebpay, ZebpayCore);
         $cb!(bybiteu, BybiteuCore);

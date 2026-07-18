@@ -8,13 +8,13 @@ use crate::runtime::*;
 use crate::pro::*;
 
 
-pub struct CoinbaseadvancedCore {
-    pub parent: crate::pro::coinbase::CoinbaseCore,
+pub struct BybiteuCore {
+    pub parent: crate::pro::bybit::BybitCore,
 }
 
-impl CoinbaseadvancedCore {
+impl BybiteuCore {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::pro::coinbase::CoinbaseCore::new(config) };
+        let mut s = Self { parent: crate::pro::bybit::BybitCore::new(config) };
         s.init();
         s
     }
@@ -28,7 +28,7 @@ impl CoinbaseadvancedCore {
             self as &Self as *const dyn crate::exchange::DerivedExchange;
         self.exchange.bind_derived(ptr);
         // Populate describe()-derived fields.
-        let described = CoinbaseadvancedCore::describe(self);
+        let described = BybiteuCore::describe(self);
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
         self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
         self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
@@ -118,7 +118,7 @@ impl CoinbaseadvancedCore {
         // calls (cancel_order, fetch_order, …) to this Core's
         // call_dynamic, bypassing the base stubs.
         let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, CoinbaseadvancedCore::__call_dynamic_dispatch);
+        self.exchange.bind_call_async(core_ptr, BybiteuCore::__call_dynamic_dispatch);
     }
 
     /// Type-erased trampoline used by Exchange::dispatch_to_derived.
@@ -150,7 +150,7 @@ impl CoinbaseadvancedCore {
     }
 }
 
-impl crate::exchange::DerivedExchange for CoinbaseadvancedCore {
+impl crate::exchange::DerivedExchange for BybiteuCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
@@ -253,6 +253,15 @@ impl crate::exchange::DerivedExchange for CoinbaseadvancedCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -264,22 +273,120 @@ impl crate::exchange::DerivedExchange for CoinbaseadvancedCore {
     }
 }
 
-impl std::ops::Deref for CoinbaseadvancedCore {
-    type Target = crate::pro::coinbase::CoinbaseCore;
+impl std::ops::Deref for BybiteuCore {
+    type Target = crate::pro::bybit::BybitCore;
     fn deref(&self) -> &Self::Target { &self.parent }
 }
 
-impl std::ops::DerefMut for CoinbaseadvancedCore {
+impl std::ops::DerefMut for BybiteuCore {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
 }
 
-impl CoinbaseadvancedCore {
+impl BybiteuCore {
     pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+        // eslint-disable-next-line new-cap
+        let mut restInstance = crate::exchanges::bybiteu::BybiteuCore::new(None);
+        let mut restDescribe: Value = restInstance.describe();
+        let mut parentWsDescribe: Value = self.parent.describe_data();
+        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
+        return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("coinbaseadvanced".to_string()));
-        m.insert("name".to_string(), Value::Str("Coinbase Advanced".to_string()));
-        m.insert("alias".to_string(), Value::Bool(true));
+        m.insert("id".to_string(), Value::Str("bybiteu".to_string()));
+        m.insert("name".to_string(), Value::Str("Bybit EU".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("hostname".to_string(), Value::Str("bybit.eu".to_string()));
+        m.insert("certified".to_string(), Value::Bool(false));
+        m.insert("urls".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".to_string()));
+    m
+}));
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("unified".to_string(), Value::Str("wss://stream.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream.{hostname}/spot/private/v3".to_string()));
+    m
+}));
+        m.insert("contract".to_string(), Value::Str("wss://stream.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream.bybit.eu/v5/trade".to_string()));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("test".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/inverse".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/linear".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/option".to_string()));
+    m
+}));
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("unified".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream-testnet.{hostname}/spot/private/v3".to_string()));
+    m
+}));
+        m.insert("contract".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream-testnet.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream-testnet.bybit.eu/v5/trade".to_string()));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("demotrading".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".to_string()));
+    m
+}));
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("unified".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream-demo.{hostname}/spot/private/v3".to_string()));
+    m
+}));
+        m.insert("contract".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream-demo.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream-demo.bybit.eu/v5/trade".to_string()));
+    m
+}));
+    m
+}));
+    m
+}));
+    m
+}));
     m
 })]);
 

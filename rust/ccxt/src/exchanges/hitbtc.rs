@@ -240,9 +240,7 @@ impl crate::exchange::DerivedExchange for HitbtcCore {
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_position(me, position, &[market.clone()])
+        HitbtcCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
@@ -3665,7 +3663,7 @@ impl HitbtcCore {
     Value::Null
 }
 
-    pub fn parse_position(&mut self, mut position: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     [

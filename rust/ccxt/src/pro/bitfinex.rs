@@ -274,6 +274,15 @@ impl crate::exchange::DerivedExchange for BitfinexCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -790,7 +799,7 @@ impl BitfinexCore {
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value, mut subscription: Value) {
         //
         // initial snapshot
         //
@@ -860,7 +869,7 @@ impl BitfinexCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    [
@@ -1149,6 +1158,7 @@ impl BitfinexCore {
                     let mut size: Value = ternary(is_true(&(is_less_than(&delta2, &Value::Int(0)))), negate(&delta2), delta2.clone());
                     let mut side: Value = ternary(is_true(&(is_less_than(&delta2, &Value::Int(0)))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
                     let mut bookside: Value = get_value(&orderbook, &side);
+                    let mut bookside: Value = get_value(&orderbook, &side);
                     let mut idString: Value = self.safe_string(delta.clone(), Value::Int(0), &[]);
                     let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
                     bookside.store_array(Value::List(vec![price.clone(), size.clone(), idString.clone()]));
@@ -1171,6 +1181,7 @@ impl BitfinexCore {
                     let mut size: Value = ternary(is_true(&(is_less_than(&amount, &Value::Int(0)))), negate(&amount), amount.clone());
                     let mut side: Value = ternary(is_true(&(is_less_than(&amount, &Value::Int(0)))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
                     let mut bookside: Value = get_value(&orderbook, &side);
+                    let mut bookside: Value = get_value(&orderbook, &side);
                     bookside.store_array(Value::List(vec![price.clone(), size.clone(), counter.clone()]));
                 }
                 }
@@ -1187,6 +1198,7 @@ impl BitfinexCore {
                 let mut size: Value = ternary(is_true(&(is_less_than(&deltas2, &Value::Int(0)))), negate(&deltas2), deltas2.clone());
                 let mut side: Value = ternary(is_true(&(is_less_than(&deltas2, &Value::Int(0)))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
                 let mut bookside: Value = get_value(&orderbookItem, &side);
+                let mut bookside: Value = get_value(&orderbookItem, &side);
                 // price = 0 means that you have to remove the order from your book
                 let mut amount: Value = ternary(is_true(&crate::precise::Precise::stringGt(&price, &Value::Str("0".to_string()))), size.clone(), Value::Str("0".to_string()));
                 let mut idString: Value = self.safe_string(deltas.clone(), Value::Int(0), &[]);
@@ -1197,6 +1209,7 @@ impl BitfinexCore {
                 let mut price: Value = self.safe_string(deltas.clone(), Value::Int(0), &[]);
                 let mut size: Value = ternary(is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))), crate::precise::Precise::stringNeg(&amount), amount.clone());
                 let mut side: Value = ternary(is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
+                let mut bookside: Value = get_value(&orderbookItem, &side);
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 bookside.store_array(Value::List(vec![self.parse_number(price.clone(), &[]), self.parse_number(size.clone(), &[]), self.parse_number(counter.clone(), &[])]));
             }
@@ -1686,7 +1699,7 @@ impl BitfinexCore {
     Value::Null
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //   [

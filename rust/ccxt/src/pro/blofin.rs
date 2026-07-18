@@ -276,6 +276,15 @@ impl crate::exchange::DerivedExchange for BlofinCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -449,7 +458,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //       arg: {
@@ -489,7 +498,7 @@ impl BlofinCore {
         }
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_trade(trade.clone(), &[market.clone()]);
 
@@ -715,7 +724,7 @@ impl BlofinCore {
         let mut channel: Value = Value::Str("tickers".to_string());
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[firstMarket.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
+        let mut url: Value = get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string()));
         let mut messageHashes: Value = Value::List(vec![]);
         let mut args: Value = Value::List(vec![]);
         {
@@ -925,7 +934,7 @@ impl BlofinCore {
             m
         });
         let mut request: Value = self.get_subscription_request(Value::List(vec![sub.clone()]));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
+        let mut url: Value = get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string()));
         let __ws_arg_1 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
 
@@ -1057,7 +1066,7 @@ impl BlofinCore {
         }
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -1161,7 +1170,7 @@ impl BlofinCore {
             m
         });
         let mut request: Value = self.get_subscription_request(Value::List(vec![requestParams.clone()]));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
+        let mut url: Value = get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string()));
         let __ws_arg_2 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
 
@@ -1274,7 +1283,7 @@ impl BlofinCore {
         }
         let mut request: Value = self.get_subscription_request(rawSubscriptions.clone());
         let mut privateOrPublic: Value = ternary(is_true(&isPublic), Value::Str("public".to_string()), Value::Str("private".to_string()));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &privateOrPublic));
+        let mut url: Value = get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &privateOrPublic);
         let __ws_arg_3 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 
@@ -1373,7 +1382,7 @@ impl BlofinCore {
             m
         });
         let mut marketType: Value = Value::Str("swap".to_string()); // for now
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
+        let mut url: Value = get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string()));
         let __ws_arg_4 = self.deep_extend(request.clone(), &[params.clone()]);
         self.watch(url.clone(), messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 

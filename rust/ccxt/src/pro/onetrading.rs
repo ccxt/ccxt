@@ -271,6 +271,15 @@ impl crate::exchange::DerivedExchange for OnetradingCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -563,8 +572,8 @@ impl OnetradingCore {
         let mut datetime: Value = self.safe_string_k(message.clone(), "time", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_544: bool = true;
+            while { if !__for_first_544 { i = add(&i, &Value::Int(1)); } __for_first_544 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument", &[]);
@@ -801,8 +810,8 @@ impl OnetradingCore {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { i = add(&i, &Value::Int(1)); } __for_first_530 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_545: bool = true;
+            while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }
@@ -923,7 +932,7 @@ impl OnetradingCore {
         client.resolve(&[self.orders.clone(), Value::Str("orders".to_string())]);
 }
 
-    pub fn parse_trading_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trading_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1130,8 +1139,8 @@ impl OnetradingCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i = add(&i, &Value::Int(1)); } __for_first_532 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_547: bool = true;
+            while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut order: Value = self.parse_order(get_value(&rawOrders, &i), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[Value::Str("".to_string())]);
             orders.append(order.clone());
@@ -1139,8 +1148,8 @@ impl OnetradingCore {
             let mut rawTrades: Value = self.safe_value_k(get_value(&rawOrders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut ii: Value = Value::Int(0);
-                let mut __for_first_531: bool = true;
-                while { if !__for_first_531 { ii = add(&ii, &Value::Int(1)); } __for_first_531 = false; is_less_than(&ii, &get_array_length(&rawTrades)) } {
+                let mut __for_first_546: bool = true;
+                while { if !__for_first_546 { ii = add(&ii, &Value::Int(1)); } __for_first_546 = false; is_less_than(&ii, &get_array_length(&rawTrades)) } {
                 let mut trade: Value = self.parse_trade(get_value(&rawTrades, &ii), &[]);
                 symbol = self.safe_string_k(trade.clone(), "symbol", &[symbol.clone()]);
                 self.myTrades.append(trade.clone());
@@ -1425,8 +1434,8 @@ impl OnetradingCore {
         let mut balanceKeys: Value = Value::List(vec![Value::Str("locked".to_string()), Value::Str("unlocked".to_string()), Value::Str("spent".to_string()), Value::Str("spent_on_fees".to_string()), Value::Str("credited".to_string()), Value::Str("deducted".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { i = add(&i, &Value::Int(1)); } __for_first_533 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
+            let mut __for_first_548: bool = true;
+            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
             let mut newBalance: Value = self.safe_value(update.clone(), get_value(&balanceKeys, &i), &[]);
             if !is_equal(&newBalance, &Value::Null) {
                 self.update_balance(newBalance.clone());
@@ -1550,13 +1559,13 @@ impl OnetradingCore {
         let mut marketIds: Value = object_keys(&subscription);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_535: bool = true;
-            while { if !__for_first_535 { i = add(&i, &Value::Int(1)); } __for_first_535 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_550: bool = true;
+            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketIdtimeframes: Value = object_keys(&get_value(&subscription, &get_value(&marketIds, &i)));
             {
                                 let mut ii: Value = Value::Int(0);
-                let mut __for_first_534: bool = true;
-                while { if !__for_first_534 { ii = add(&ii, &Value::Int(1)); } __for_first_534 = false; is_less_than(&ii, &get_array_length(&marketIdtimeframes)) } {
+                let mut __for_first_549: bool = true;
+                while { if !__for_first_549 { ii = add(&ii, &Value::Int(1)); } __for_first_549 = false; is_less_than(&ii, &get_array_length(&marketIdtimeframes)) } {
                 let mut marketTimeframeId: Value = self.safe_value(timeframes.clone(), timeframe.clone(), &[]);
                 let mut property: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1656,8 +1665,8 @@ impl OnetradingCore {
         let mut keys: Value = object_keys(&timeframes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { i = add(&i, &Value::Int(1)); } __for_first_536 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_551: bool = true;
+            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&get_value(&get_value(&timeframes, &key), &Value::Str("unit".to_string())), &get_value(&timeframe, &Value::Str("unit".to_string()))) && is_equal(&get_value(&get_value(&timeframes, &key), &Value::Str("period".to_string())), &get_value(&timeframe, &Value::Str("period".to_string()))) {
@@ -1777,8 +1786,8 @@ impl OnetradingCore {
             if !is_equal(&subscription, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_537: bool = true;
-                    while { if !__for_first_537 { i = add(&i, &Value::Int(1)); } __for_first_537 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                    let mut __for_first_552: bool = true;
+                    while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
@@ -1797,8 +1806,8 @@ impl OnetradingCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { i = add(&i, &Value::Int(1)); } __for_first_538 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));

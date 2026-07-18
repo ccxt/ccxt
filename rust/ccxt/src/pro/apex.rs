@@ -276,6 +276,15 @@ impl crate::exchange::DerivedExchange for ApexCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -438,7 +447,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "recentlyTrade.H.BTCUSDT",
@@ -489,7 +498,7 @@ impl ApexCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public
@@ -505,12 +514,12 @@ impl ApexCore {
         //     }
         //
         let mut id: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("i".to_string()), Value::Str("id".to_string()), Value::Str("v".to_string())]), &[]);
-        let mut marketId: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("s".to_string()), Value::Str("symbol".to_string())]), &[]);
+        let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::List(vec![Value::Str("t".to_string()), Value::Str("T".to_string()), Value::Str("createdAt".to_string())]), &[]);
-        let mut side: Value = self.safe_string_lower_n(trade.clone(), Value::List(vec![Value::Str("S".to_string()), Value::Str("side".to_string())]), &[]);
-        let mut price: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("p".to_string()), Value::Str("price".to_string())]), &[]);
+        let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("S".to_string()), Value::Str("side".to_string()), &[]);
+        let mut price: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
         let mut amount: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("q".to_string()), Value::Str("v".to_string()), Value::Str("size".to_string())]), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1299,6 +1308,7 @@ impl ApexCore {
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { ii = add(&ii, &Value::Int(1)); } __for_first_14 = false; is_less_than(&ii, &get_array_length(&positions)) } {
                 let mut position: Value = get_value(&positions, &ii);
+                let mut position: Value = get_value(&positions, &ii);
                 cache.append(position.clone());
             }
             }
@@ -1428,7 +1438,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn handle_error_message(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         //
         //   {
         //       "success": false,
@@ -1522,7 +1532,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
@@ -1556,6 +1566,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {
+                let mut method: Value = get_value(&methods, &key);
                 let mut method: Value = get_value(&methods, &key);
                 method.call(&[client.clone(), message.clone()]);
                 return;

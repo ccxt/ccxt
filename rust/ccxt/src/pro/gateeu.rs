@@ -8,13 +8,13 @@ use crate::runtime::*;
 use crate::pro::*;
 
 
-pub struct HuobiCore {
-    pub parent: crate::pro::htx::HtxCore,
+pub struct GateeuCore {
+    pub parent: crate::pro::gate::GateCore,
 }
 
-impl HuobiCore {
+impl GateeuCore {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::pro::htx::HtxCore::new(config) };
+        let mut s = Self { parent: crate::pro::gate::GateCore::new(config) };
         s.init();
         s
     }
@@ -28,7 +28,7 @@ impl HuobiCore {
             self as &Self as *const dyn crate::exchange::DerivedExchange;
         self.exchange.bind_derived(ptr);
         // Populate describe()-derived fields.
-        let described = HuobiCore::describe(self);
+        let described = GateeuCore::describe(self);
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
         self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
         self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
@@ -118,7 +118,7 @@ impl HuobiCore {
         // calls (cancel_order, fetch_order, …) to this Core's
         // call_dynamic, bypassing the base stubs.
         let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, HuobiCore::__call_dynamic_dispatch);
+        self.exchange.bind_call_async(core_ptr, GateeuCore::__call_dynamic_dispatch);
     }
 
     /// Type-erased trampoline used by Exchange::dispatch_to_derived.
@@ -150,7 +150,7 @@ impl HuobiCore {
     }
 }
 
-impl crate::exchange::DerivedExchange for HuobiCore {
+impl crate::exchange::DerivedExchange for GateeuCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
@@ -253,6 +253,15 @@ impl crate::exchange::DerivedExchange for HuobiCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -264,21 +273,38 @@ impl crate::exchange::DerivedExchange for HuobiCore {
     }
 }
 
-impl std::ops::Deref for HuobiCore {
-    type Target = crate::pro::htx::HtxCore;
+impl std::ops::Deref for GateeuCore {
+    type Target = crate::pro::gate::GateCore;
     fn deref(&self) -> &Self::Target { &self.parent }
 }
 
-impl std::ops::DerefMut for HuobiCore {
+impl std::ops::DerefMut for GateeuCore {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
 }
 
-impl HuobiCore {
+impl GateeuCore {
     pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+        // eslint-disable-next-line new-cap
+        let mut restInstance = crate::exchanges::gateeu::GateeuCore::new(None);
+        let mut restDescribe: Value = restInstance.describe();
+        let mut parentWsDescribe: Value = self.parent.describe_data();
+        let mut extended: Value = self.deep_extend(parentWsDescribe.clone(), &[restDescribe.clone()]);
+        return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("alias".to_string(), Value::Bool(true));
-        m.insert("id".to_string(), Value::Str("huobi".to_string()));
+        m.insert("id".to_string(), Value::Str("gateeu".to_string()));
+        m.insert("name".to_string(), Value::Str("Gate EU".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("certified".to_string(), Value::Bool(false));
+        m.insert("urls".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Str("wss://ws.gateeu.com/v4".to_string()));
+        m.insert("spot".to_string(), Value::Str("wss://api.gateeu.com/ws/v4/".to_string()));
+    m
+}));
+    m
+}));
     m
 })]);
 

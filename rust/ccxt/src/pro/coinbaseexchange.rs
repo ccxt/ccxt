@@ -174,9 +174,7 @@ impl CoinbaseexchangeCore {
 impl crate::exchange::DerivedExchange for CoinbaseexchangeCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseexchangeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseexchangeCore as *mut CoinbaseexchangeCore) };
-        CoinbaseexchangeCore::parse_ticker(me, ticker, &[market.clone()])
+        CoinbaseexchangeCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_trade(&self.parent, trade, market)
@@ -276,6 +274,15 @@ impl crate::exchange::DerivedExchange for CoinbaseexchangeCore {
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
+    }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
@@ -823,7 +830,7 @@ impl CoinbaseexchangeCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "type": "match",
@@ -881,7 +888,7 @@ impl CoinbaseexchangeCore {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // private trades
@@ -1172,7 +1179,7 @@ impl CoinbaseexchangeCore {
         }
 }
 
-    pub fn parse_ws_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_oid", &[]);
@@ -1406,6 +1413,7 @@ impl CoinbaseexchangeCore {
                 let mut side: Value = self.safe_string(sides.clone(), key.clone(), &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);
                 let mut amount: Value = self.safe_number(change.clone(), Value::Int(2), &[]);
+                let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store(price.clone(), amount.clone());
             }

@@ -5,15 +5,16 @@
 use crate::Value;
 use crate::get_value;
 use crate::runtime::*;
+use crate::pro::*;
 
 
-pub struct HuobiCore {
-    pub parent: crate::exchanges::htx::HtxCore,
+pub struct KucoineuCore {
+    pub parent: crate::pro::kucoin::KucoinCore,
 }
 
-impl HuobiCore {
+impl KucoineuCore {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::htx::HtxCore::new(config) };
+        let mut s = Self { parent: crate::pro::kucoin::KucoinCore::new(config) };
         s.init();
         s
     }
@@ -27,7 +28,7 @@ impl HuobiCore {
             self as &Self as *const dyn crate::exchange::DerivedExchange;
         self.exchange.bind_derived(ptr);
         // Populate describe()-derived fields.
-        let described = HuobiCore::describe(self);
+        let described = KucoineuCore::describe(self);
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
         self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
         self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
@@ -117,7 +118,7 @@ impl HuobiCore {
         // calls (cancel_order, fetch_order, …) to this Core's
         // call_dynamic, bypassing the base stubs.
         let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, HuobiCore::__call_dynamic_dispatch);
+        self.exchange.bind_call_async(core_ptr, KucoineuCore::__call_dynamic_dispatch);
     }
 
     /// Type-erased trampoline used by Exchange::dispatch_to_derived.
@@ -149,7 +150,7 @@ impl HuobiCore {
     }
 }
 
-impl crate::exchange::DerivedExchange for HuobiCore {
+impl crate::exchange::DerivedExchange for KucoineuCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
@@ -252,6 +253,15 @@ impl crate::exchange::DerivedExchange for HuobiCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -263,21 +273,34 @@ impl crate::exchange::DerivedExchange for HuobiCore {
     }
 }
 
-impl std::ops::Deref for HuobiCore {
-    type Target = crate::exchanges::htx::HtxCore;
+impl std::ops::Deref for KucoineuCore {
+    type Target = crate::pro::kucoin::KucoinCore;
     fn deref(&self) -> &Self::Target { &self.parent }
 }
 
-impl std::ops::DerefMut for HuobiCore {
+impl std::ops::DerefMut for KucoineuCore {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
 }
 
-impl HuobiCore {
+impl KucoineuCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("huobi".to_string()));
-        m.insert("alias".to_string(), Value::Bool(true));
+        m.insert("id".to_string(), Value::Str("kucoineu".to_string()));
+        m.insert("name".to_string(), Value::Str("KuCoin EU".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("hostname".to_string(), Value::Str("kucoin.eu".to_string()));
+        m.insert("certified".to_string(), Value::Bool(false));
+        m.insert("urls".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public".to_string(), Value::Str("https://api.kucoin.eu".to_string()));
+        m.insert("private".to_string(), Value::Str("https://api.kucoin.eu".to_string()));
+    m
+}));
+    m
+}));
     m
 })]);
 

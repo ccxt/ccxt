@@ -299,6 +299,15 @@ impl crate::exchange::DerivedExchange for BybitCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -933,9 +942,6 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.un_watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
@@ -1562,9 +1568,6 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
@@ -1796,15 +1799,12 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -1854,7 +1854,7 @@ impl BybitCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public
@@ -2283,6 +2283,7 @@ impl BybitCore {
                 let mut __for_first_212: bool = true;
                 while { if !__for_first_212 { ii = add(&ii, &Value::Int(1)); } __for_first_212 = false; is_less_than(&ii, &get_array_length(&positions)) } {
                 let mut position: Value = get_value(&positions, &ii);
+                let mut position: Value = get_value(&positions, &ii);
                 cache.append(position.clone());
             }
             }
@@ -2658,7 +2659,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn handle_order_ws(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_ws(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "reqId":"1",
@@ -3234,7 +3235,7 @@ impl BybitCore {
     Value::Null
 }
 
-    pub fn handle_error_message(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         //
         //   {
         //       "success": false,
@@ -3320,7 +3321,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&self, mut client: Value, mut message: Value) {
         let mut topic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("op".to_string()), &[Value::Str("".to_string())]);
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
@@ -3391,6 +3392,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &key), &Value::Int(0)) {
+                let mut method: Value = get_value(&methods, &key);
                 let mut method: Value = get_value(&methods, &key);
                 method.call(&[client.clone(), message.clone()]);
                 return;

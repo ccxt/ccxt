@@ -164,9 +164,7 @@ impl AlpacaCore {
 impl crate::exchange::DerivedExchange for AlpacaCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AlpacaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AlpacaCore as *mut AlpacaCore) };
-        AlpacaCore::parse_ticker(me, ticker, &[market.clone()])
+        AlpacaCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_trade(&self.parent, trade, market)
@@ -233,9 +231,7 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
     }
     fn parse_my_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AlpacaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AlpacaCore as *mut AlpacaCore) };
-        AlpacaCore::parse_my_trade(me, trade, &[market.clone()])
+        AlpacaCore::parse_my_trade(self, trade, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
@@ -269,6 +265,15 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
+    }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
@@ -407,7 +412,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //         "T": "q",
@@ -683,7 +688,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "T": "t",
@@ -880,7 +885,7 @@ impl AlpacaCore {
         client.resolve(&[orders.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -951,7 +956,7 @@ impl AlpacaCore {
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
 }
 
-    pub fn parse_my_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {

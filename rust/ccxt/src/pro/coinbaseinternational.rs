@@ -270,6 +270,15 @@ impl crate::exchange::DerivedExchange for CoinbaseinternationalCore {
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
+    }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
@@ -521,9 +530,6 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.subscribe(Value::Str("RISK".to_string()), &[Value::List(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
@@ -979,7 +985,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //       "sequence": 0,
@@ -1011,7 +1017,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1085,9 +1091,6 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
-            self.load_markets(&[]).await;
-        }
         return self.subscribe_multiple(Value::Str("LEVEL2".to_string()), &[symbols.clone(), params.clone()]).await;
 
     Value::Null
@@ -1162,6 +1165,7 @@ impl CoinbaseinternationalCore {
         let mut side: Value = ternary(is_true(&(is_equal(&rawSide, &Value::Str("buy".to_string())))), Value::Str("bids".to_string()), Value::Str("asks".to_string()));
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_float(delta.clone(), Value::Int(2), &[]);
+        let mut bookside: Value = get_value(&orderbook, &side);
         let mut bookside: Value = get_value(&orderbook, &side);
         bookside.store(price.clone(), amount.clone());
 }

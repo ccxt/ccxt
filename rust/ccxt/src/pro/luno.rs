@@ -161,9 +161,7 @@ impl crate::exchange::DerivedExchange for LunoCore {
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
-        LunoCore::parse_trade(me, trade, &[market.clone()])
+        LunoCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_order(&self.parent, order, market)
@@ -260,6 +258,15 @@ impl crate::exchange::DerivedExchange for LunoCore {
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
+    }
+    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
+    }
+    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
+    }
+    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
@@ -377,7 +384,7 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_trades(&self, mut client: Value, mut message: Value, mut subscription: Value) {
         //
         //     {
         //         "sequence": "110980825",
@@ -409,8 +416,8 @@ impl LunoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
@@ -421,7 +428,7 @@ impl LunoCore {
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -448,6 +455,7 @@ impl LunoCore {
  * @method
  * @name luno#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://www.luno.com/en/developers/api#tag/Streaming-API
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
@@ -576,8 +584,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.custom_parse_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -674,8 +682,8 @@ impl LunoCore {
         let mut handlers: Value = Value::List(vec![Value::Null.clone(), Value::Null.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { j = add(&j, &Value::Int(1)); } __for_first_476 = false; is_less_than(&j, &get_array_length(&handlers)) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { j = add(&j, &Value::Int(1)); } __for_first_489 = false; is_less_than(&j, &get_array_length(&handlers)) } {
             let mut handler: Value = get_value(&handlers, &j);
             let mut handler: Value = get_value(&handlers, &j);
             handler.call(&[client.clone(), message.clone(), get_value(&subscriptions, &Value::Int(0))]);

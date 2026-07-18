@@ -269,9 +269,7 @@ impl crate::exchange::DerivedExchange for PhemexCore {
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_transaction(me, transaction, &[currency.clone()])
+        PhemexCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
@@ -2648,7 +2646,7 @@ impl PhemexCore {
     Value::Null
 }
 
-    pub fn parse_swap_balance(&mut self, mut response: Value) -> Value {
+    pub fn parse_swap_balance(&self, mut response: Value) -> Value {
         // usdt
         //   {
         //       "info": {
@@ -4499,7 +4497,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_transaction(&mut self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // withdraw
