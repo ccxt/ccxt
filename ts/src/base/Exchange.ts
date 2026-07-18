@@ -1457,7 +1457,7 @@ export class BaseExchange {
         // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
         if (responseBody.includes ('\\"')) {
             // check https://github.com/ccxt/ccxt/pull/29239 for explanation
-            return responseBody.replace(
+            return responseBody.replace (
                 /(?:"(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
                 (match, number) => (number ? `"${number}"` : match)
             );
