@@ -4,7 +4,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Fee , NullableDict} from '../base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';

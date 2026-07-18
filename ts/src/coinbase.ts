@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 

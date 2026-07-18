@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------

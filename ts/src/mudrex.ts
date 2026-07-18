@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, NullableDict } from './base/types.js';
+import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 

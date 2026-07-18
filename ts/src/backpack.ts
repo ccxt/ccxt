@@ -6,7 +6,7 @@ import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
