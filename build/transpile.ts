@@ -1702,10 +1702,11 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
-            // strip leading blank / line-comment lines first so a // note above overload
-            // signatures does not block the overload stripper (otherwise lines[0] is a comment,
-            // overloads are not removed, and the signature regex fails → unCamelCase(undefined)).
-            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+            // strip leading blank / comment lines first (// line comments AND /* */ block comments
+            // like /* eslint-disable ... */) so a note above overload signatures does not block the
+            // overload stripper (otherwise lines[0] is a comment, overloads are not removed, and the
+            // signature regex fails → unCamelCase(undefined)).
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
             // strip TypeScript overload signature lines (body-less declarations ending with ';')
@@ -1714,7 +1715,7 @@ class Transpiler {
                 lines.shift ()
             }
             // re-strip any blanks/comments left between overloads and the implementation
-            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
             if (lines.length === 0) {
