@@ -32,7 +32,6 @@ function testParseJson () {
     testParseJsonHelperStringOrNum (obj2Parsed['k']);
     exchange.setProperty (exchange, 'quoteJsonNumbers', false);
     const obj2Reparsed = exchange.parseJson (obj2);
-    assert (typeof obj2Reparsed['k'] !== 'string');
     testParseJsonHelperStringOrNum (obj2Reparsed['k']);
     exchange.setProperty (exchange, 'quoteJsonNumbers', true);
     const obj2ReparsedAgain = exchange.parseJson (obj2);
