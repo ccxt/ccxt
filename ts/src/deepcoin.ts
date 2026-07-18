@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Dictionary, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -571,7 +571,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    setMarkets (markets, currencies = undefined): Dictionary<Market> {
+    setMarkets (markets, currencies = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
