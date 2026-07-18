@@ -26,8 +26,8 @@ fn populate(ex: &mut ccxt::exchange::Exchange, described: Value) {
 
 fn count(v: &Value) -> String {
     match v {
-        Value::Array(a) => format!("Array[{}]", a.len()),
-        Value::Map(m)   => format!("Map[{}]",   m.len()),
+        Value::Arr(a) => format!("Array[{}]", a.len()),
+        Value::Dict(m)   => format!("Map[{}]",   m.len()),
         Value::Null     => "Null".to_string(),
         other           => format!("{:?}", std::mem::discriminant(other)),
     }

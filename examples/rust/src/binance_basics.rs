@@ -48,7 +48,7 @@ async fn main() {
         .catch_unwind().await
         .unwrap_or(Value::Null);
     let markets_count = match &markets {
-        Value::Array(a) => a.len(),
+        Value::Arr(a) => a.len(),
         _ => 0,
     };
     println!("   ✓ live response: Array of {markets_count} markets");
@@ -66,11 +66,11 @@ async fn main() {
     let tickers_result = panic::AssertUnwindSafe(binance.fetch_tickers(&[]))
         .catch_unwind().await;
     match tickers_result {
-        Ok(Value::Map(m))    => {
+        Ok(Value::Dict(m))    => {
             println!("   ✓ parsed: {} tickers", m.len());
-            print_a_few_tickers(&Value::Map(m));
+            print_a_few_tickers(&Value::Dict(m));
         }
-        Ok(Value::Array(a))  => println!("   ✓ parsed: {} entries", a.len()),
+        Ok(Value::Arr(a))  => println!("   ✓ parsed: {} entries", a.len()),
         Ok(other)            => println!("   returned: {other:?}"),
         Err(_)               => println!("   ✗ parse_ticker panicked"),
     }
@@ -82,9 +82,9 @@ async fn main() {
         &[Value::Null, Value::Int(5)],
     )).catch_unwind().await;
     match trades_result {
-        Ok(Value::Array(a)) => {
+        Ok(Value::Arr(a)) => {
             println!("   ✓ parsed: {} trades", a.len());
-            print_a_few_trades(&Value::Array(a));
+            print_a_few_trades(&Value::Arr(a));
         }
         Ok(other)           => println!("   returned: {other:?}"),
         Err(_)              => println!("   ✗ parse_trade panicked"),
@@ -92,7 +92,7 @@ async fn main() {
 }
 
 fn print_a_few_markets(markets: &Value) {
-    let arr = match markets { Value::Array(a) => a, _ => return };
+    let arr = match markets { Value::Arr(a) => a, _ => return };
     for m in arr.iter().take(5) {
         let id     = ccxt::value::safe_string(m, "id",     Some("?")).unwrap_or_default();
         let symbol = ccxt::value::safe_string(m, "symbol", Some("?")).unwrap_or_default();
@@ -103,12 +103,12 @@ fn print_a_few_markets(markets: &Value) {
 }
 
 fn populate_markets(b: &mut BinanceCore, markets_array: &Value) {
-    use std::collections::HashMap;
-    let arr = match markets_array { Value::Array(a) => a, _ => return };
+    use ccxt::value::HashMap;
+    let arr = match markets_array { Value::Arr(a) => a, _ => return };
     let mut by_symbol: HashMap<String, Value> = HashMap::new();
     let mut by_id: HashMap<String, Value> = HashMap::new();
     let mut symbols: Vec<Value> = vec![];
-    for m in arr {
+    for m in arr.iter() {
         if let Some(sym) = ccxt::value::safe_string(m, "symbol", None) {
             by_symbol.insert(sym.clone(), m.clone());
             symbols.push(Value::Str(sym));
@@ -123,7 +123,7 @@ fn populate_markets(b: &mut BinanceCore, markets_array: &Value) {
 }
 
 fn print_a_few_tickers(tickers: &Value) {
-    let map = match tickers { Value::Map(m) => m, _ => return };
+    let map = match tickers { Value::Dict(m) => m, _ => return };
     for sym in ["BTC/USDT", "ETH/USDT", "SOL/USDT"] {
         if let Some(t) = map.get(sym) {
             let last = ccxt::value::safe_string(t, "last", Some("?")).unwrap_or_default();
@@ -134,7 +134,7 @@ fn print_a_few_tickers(tickers: &Value) {
 }
 
 fn print_a_few_trades(trades: &Value) {
-    let arr = match trades { Value::Array(a) => a, _ => return };
+    let arr = match trades { Value::Arr(a) => a, _ => return };
     for t in arr.iter().take(5) {
         let side  = ccxt::value::safe_string(t, "side",   Some("?")).unwrap_or_default();
         let price = ccxt::value::safe_string(t, "price",  Some("?")).unwrap_or_default();
@@ -147,8 +147,8 @@ fn print_a_few_trades(trades: &Value) {
 fn print_value(label: &str, v: &Value) {
     match v {
         Value::Null => println!("   {label}: <null>"),
-        Value::Map(m) => println!("   {label}: Map with {} entries", m.len()),
-        Value::Array(a) => println!("   {label}: Array of {} items", a.len()),
+        Value::Dict(m) => println!("   {label}: Map with {} entries", m.len()),
+        Value::Arr(a) => println!("   {label}: Array of {} items", a.len()),
         Value::Str(s) => {
             let preview: String = s.chars().take(80).collect();
             println!("   {label}: \"{preview}…\"");

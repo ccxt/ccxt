@@ -91,6 +91,10 @@ jobs:
         run: |
           rustup component add clippy
           cargo clippy --manifest-path rust/ccxt/Cargo.toml --features transpiled-base -- -D warnings
+      # Build the standalone consumer examples so they can't drift from the API
+      # (review #10).
+      - name: Build Rust examples
+        run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       # - name: Build Ws
       #   run: npm run buildRust --ws
       - name: Build tests
