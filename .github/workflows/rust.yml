@@ -161,7 +161,6 @@ jobs:
         run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            rm -f ./rust/
             git add rust/
             git commit -m "[Automated changes] Rust files" || echo "No changes to commit."
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
