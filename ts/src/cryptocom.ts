@@ -2308,6 +2308,8 @@ export default class cryptocom extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const quote = this.safeString (market, 'quote');
         const last = this.safeString (ticker, 'a');
+        // 'vv' is the 24h traded volume value in USD, so it is the quote volume only for USD and USD-pegged stable quotes
+        const quoteIsUsd = (quote === 'USD') || (quote === 'USDT') || (quote === 'USDC') || (quote === 'PYUSD');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2327,7 +2329,7 @@ export default class cryptocom extends Exchange {
             'percentage': this.safeString (ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
-            'quoteVolume': (quote === 'USD') ? this.safeString (ticker, 'vv') : undefined,
+            'quoteVolume': quoteIsUsd ? this.safeString (ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
