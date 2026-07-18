@@ -7617,7 +7617,7 @@ export default class okx extends Exchange {
             request['instId'] = market['id'];
         }
         const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
-        const contractSize = isFutureOrSwap ? this.safeString (market, 'contractSize', '1') : '1';
+        const contractSize = (isFutureOrSwap) ? this.safeString (market, 'contractSize', '1') : '1';
         let notionalMultiplier = contractSize;
         if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
             const ticker = await this.fetchMarkPrice (symbol);
