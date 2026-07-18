@@ -7617,10 +7617,12 @@ export default class okx extends Exchange {
             request['instId'] = market['id'];
         }
         const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
-        let quoteConversionRate: Str = '1';
+        const contractSize = isFutureOrSwap ? this.safeString (market, 'contractSize', '1') : '1';
+        let notionalMultiplier = contractSize;
         if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
             const ticker = await this.fetchMarkPrice (symbol);
-            quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
+            const quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
+            notionalMultiplier = Precise.stringMul (contractSize, quoteConversionRate);
         }
         const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
         //
@@ -7645,10 +7647,21 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseMarketLeverageTiers (data, market, quoteConversionRate);
+        const tiers = this.parseMarketLeverageTiers (data, market);
+        if (isFutureOrSwap) {
+            for (let i = 0; i < tiers.length; i++) {
+                const tier = tiers[i];
+                const minNotional = this.safeString (tier, 'minNotional');
+                const maxNotional = this.safeString (tier, 'maxNotional');
+                tier['minNotional'] = (minNotional === undefined) ? undefined : this.parseNumber (Precise.stringMul (minNotional, notionalMultiplier));
+                tier['maxNotional'] = (maxNotional === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxNotional, notionalMultiplier));
+                tiers[i] = tier;
+            }
+        }
+        return tiers;
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined, quoteConversionRate: Str = '1'): LeverageTier[] {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         /**
          * @ignore
          * @method
@@ -7674,20 +7687,15 @@ export default class okx extends Exchange {
         //    ]
         //
         const tiers: List = [];
-        const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
-        const contractSize = isFutureOrSwap ? this.safeString (market, 'contractSize', '1') : '1';
-        const notionalMultiplier = isFutureOrSwap && this.safeBool (market, 'linear', false) ? Precise.stringMul (contractSize, quoteConversionRate) : contractSize;
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
             const marketId = this.safeString (tier, 'instId');
-            const minSize = this.safeString (tier, 'minSz');
-            const maxSize = this.safeString (tier, 'maxSz');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
                 'symbol': this.safeSymbol (marketId, market),
                 'currency': this.safeString (market, 'quote'),
-                'minNotional': (minSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (minSize, notionalMultiplier)),
-                'maxNotional': (maxSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxSize, notionalMultiplier)),
+                'minNotional': this.safeNumber (tier, 'minSz'),
+                'maxNotional': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,
