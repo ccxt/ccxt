@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, List, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -171,7 +171,7 @@ const dynamicImport = async (moduleName: string) => await import (/* webpackIgno
 // ----------------------------------------------------------------------------
 //
 let protobufMexc: any = undefined;
-let encodeAsAny: ((msg: any) => any) | undefined = undefined;
+let encodeAsAny: ((message: any) => any) | undefined = undefined;
 let AuthInfo: any = undefined;
 let Tx: any = undefined;
 let TxBody: any = undefined;
@@ -2162,8 +2162,8 @@ export class BaseExchange {
         sequence,
         publicKey
     ): string {
-        const encode = encodeAsAny;
-        if (encode === undefined) {
+        const encodeFn = encodeAsAny;
+        if (encodeFn === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if ((Tx === undefined) || (TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined)) {
@@ -2173,7 +2173,7 @@ export class BaseExchange {
             throw new Error ('Public key cannot be undefined');
         }
         const messages = [ message ];
-        const encodedMessages = messages.map ((msg) => encode (msg));
+        const encodedMessages = messages.map ((msg) => encodeFn (msg));
         const tx = Tx.fromPartial ({
             'body': TxBody.fromPartial ({
                 'messages': encodedMessages,
@@ -2183,7 +2183,7 @@ export class BaseExchange {
                 'fee': {},
                 'signerInfos': [
                     {
-                        'publicKey': encode ({
+                        'publicKey': encodeFn ({
                             'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                             'value': publicKey,
                         }),
@@ -2205,8 +2205,8 @@ export class BaseExchange {
         authenticators,
         fee: any = undefined
     ): [ string, Dict ] {
-        const encode = encodeAsAny;
-        if (encode === undefined) {
+        const encodeFn = encodeAsAny;
+        if (encodeFn === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if ((TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined) || (SignDoc === undefined)) {
@@ -2224,9 +2224,9 @@ export class BaseExchange {
                 'gasLimit': 1000000,
             };
         }
-        const encodedMessages = messages.map ((msg) => encode (msg));
+        const encodedMessages = messages.map ((msg) => encodeFn (msg));
         const nonCriticalExtensionOptions = [
-            encode ({
+            encodeFn ({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
                 'value': {
                     'selectedAuthenticators': authenticators ?? [],
@@ -2243,7 +2243,7 @@ export class BaseExchange {
             'fee': fee,
             'signerInfos': [
                 {
-                    'publicKey': encode ({
+                    'publicKey': encodeFn ({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                         'value': account.pub_key,
                     }),
@@ -3172,7 +3172,6 @@ export class BaseExchange {
         }
         return defaultValue;
     }
-
 
     storeByKey (dict, key: NullableIndexType, value) {
         /**
@@ -6122,8 +6121,10 @@ export class BaseExchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
+    /* eslint-disable no-unused-vars */
     handleParamString (params: object, paramName: string, defaultValue: string): [string, object];
     handleParamString (params: object, paramName: string, defaultValue?: string): [Str, object];
+    /* eslint-enable no-unused-vars */
     handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString (params, paramName, defaultValue);
         if (value !== undefined) {
@@ -6132,8 +6133,10 @@ export class BaseExchange {
         return [ value, params ];
     }
 
+    /* eslint-disable no-unused-vars */
     handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: string): [string, object];
     handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue?: string): [Str, object];
+    /* eslint-enable no-unused-vars */
     handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, object] {
         const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
         if (value !== undefined) {

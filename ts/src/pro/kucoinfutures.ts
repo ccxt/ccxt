@@ -2,7 +2,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, NullableDict, Strings, TransferEntry } from '../base/types.js';
+import type { Dict, Strings, TransferEntry } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 

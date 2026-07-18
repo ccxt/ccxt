@@ -5188,9 +5188,9 @@ export default class xt extends Exchange {
                 }
                 if (payload.indexOf ('future') > -1) {
                     body['clientMedia'] = id;
-                if (body === undefined) {
-                    throw new NullResponse (this.id + ' sign() returned empty body');
-                }
+                    if (body === undefined) {
+                        throw new NullResponse (this.id + ' sign() returned empty body');
+                    }
                 } else {
                     body['media'] = id;
                 }
