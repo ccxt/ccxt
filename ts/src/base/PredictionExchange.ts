@@ -242,6 +242,32 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
+    normalizeTagKey (tag: string): string {
+        // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
+        // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+        // of the same tag compare equal — venues surface tags in different forms and callers
+        // pass any of them. keeping the word boundary avoids cross-word false positives that
+        // plain concatenation would create ("us open" vs "household")
+        const lower = tag.toLowerCase ();
+        const allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        const chars = this.stringToCharsArray (lower);
+        let s = '';
+        let pendingSep = false;
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf (ch) >= 0) {
+                if (pendingSep && (s !== '')) {
+                    s = s + ' ';
+                }
+                s = s + ch;
+                pendingSep = false;
+            } else {
+                pendingSep = true;
+            }
+        }
+        return s;
+    }
+
     filterEventsByTags (events: any[], tags: string[] = undefined): any[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
@@ -254,7 +280,11 @@ export default class PredictionExchange extends BaseExchange {
         }
         const wanted = [];
         for (let i = 0; i < tags.length; i++) {
-            wanted.push (tags[i].toLowerCase ());
+            const wantedKey = this.normalizeTagKey (tags[i]);
+            if (wantedKey !== '') {
+                // an empty normalized key would substring-match every tag
+                wanted.push (wantedKey);
+            }
         }
         const result = [];
         for (let i = 0; i < events.length; i++) {
@@ -270,9 +300,9 @@ export default class PredictionExchange extends BaseExchange {
                     tagLabel = this.safeString2 (tag, 'slug', 'title');
                 }
                 if (tagLabel !== undefined) {
-                    const tagLower = tagLabel.toLowerCase ();
+                    const tagKey = this.normalizeTagKey (tagLabel);
                     for (let wi = 0; wi < wanted.length; wi++) {
-                        if (tagLower.indexOf (wanted[wi]) >= 0) {
+                        if (tagKey.indexOf (wanted[wi]) >= 0) {
                             matched = true;
                             break;
                         }
