@@ -1,6 +1,5 @@
 import ccxt from '../../../js/ccxt.js';
 
-// AUTO-TRANSPILE //
 
 // fetch polymarket events by tag — human-readable labels ("Fed Rates") or
 // slugs ("fed-rates") both work; multiple tags match ANY of them
