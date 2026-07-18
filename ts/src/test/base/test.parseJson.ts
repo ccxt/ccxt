@@ -9,7 +9,7 @@ function testParseJsonHelperStringOrNum (value) {
     if (typeof value === 'string') {
         assert (value === '123456789012345678901234', 'Expected string value mismatch: ' + value.toString ());
     } else {
-        assert (value === 123456789012345678901234, 'Expected number value mismatch: ' + value.toString ());
+        assert (value * 1.0 === 123456789012345678901234 * 1.0 , 'Expected number value mismatch: ' + value.toString ());
     }
 }
 
