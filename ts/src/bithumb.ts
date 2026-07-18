@@ -1634,11 +1634,14 @@ export default class bithumb extends Exchange {
         let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         if (timeInForce === undefined) {
             timeInForce = 'GTC';
+        } else {
+            params = this.omit (params, 'timeInForce');
         }
         let postOnly: NullableDict = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly || (timeInForce === 'PO')) {
             request['time_in_force'] = 'post_only';
+            params = this.omit (params, 'postOnly');
         } else if (timeInForce === 'FOK') {
             request['time_in_force'] = 'fok';
         } else if (timeInForce === 'IOC') {
@@ -1666,6 +1669,7 @@ export default class bithumb extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
         const requestParams = this.omit (params, [ 'timeInForce', 'clientOrderId' ]);
         return this.extend (request, requestParams);
@@ -2148,17 +2152,23 @@ export default class bithumb extends Exchange {
                 'rate': undefined,
             };
         }
+        let postOnly = undefined;
+        let timeInForce = this.safeStringUpper (order, 'time_in_force');
+        if (timeInForce === 'POST_ONLY') {
+            timeInForce = 'PO';
+            postOnly = true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'triggerPrice': undefined,
@@ -3156,6 +3166,17 @@ export default class bithumb extends Exchange {
         return result;
     }
 
+    containsArrayValue (object: Dict) {
+        const keys = Object.keys (object);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (Array.isArray (object[key])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
@@ -3180,7 +3201,7 @@ export default class bithumb extends Exchange {
                     'timestamp': this.milliseconds (),
                 };
                 let auth = undefined;
-                const usesBracketedArrayEncoding = (endpoint === '/v2/orders/cancel') || (endpoint === '/v1/twap');
+                const usesBracketedArrayEncoding = this.containsArrayValue (query);
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';

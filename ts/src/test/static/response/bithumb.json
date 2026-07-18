@@ -2,7 +2,505 @@
     "exchange": "bithumb",
     "skipKeys": [],
     "methods": {
-        "fetchMarkets": [],
+        "fetchMarkets": [
+            {
+                "description": "generation 1 fetch markets",
+                "method": "fetchMarkets",
+                "input": [
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "BTC": {
+                            "opening_price": "93372000",
+                            "closing_price": "94508000",
+                            "min_price": "92958000",
+                            "max_price": "94943000",
+                            "units_traded": "90.80148301",
+                            "acc_trade_value": "8558440661.86872",
+                            "prev_closing_price": "93380000",
+                            "units_traded_24H": "177.55717423",
+                            "acc_trade_value_24H": "16639937111.00321",
+                            "fluctate_24H": "1676000",
+                            "fluctate_rate_24H": "1.81"
+                        },
+                        "ETH": {
+                            "opening_price": "2692000",
+                            "closing_price": "2724000",
+                            "min_price": "2677000",
+                            "max_price": "2739000",
+                            "units_traded": "2814.410971978691461845",
+                            "acc_trade_value": "7640770093.165327518039595",
+                            "prev_closing_price": "2694000",
+                            "units_traded_24H": "6055.431998228021319786",
+                            "acc_trade_value_24H": "16394480749.996821781535539",
+                            "fluctate_24H": "23000",
+                            "fluctate_rate_24H": "0.85"
+                        },
+                        "date": "1784359743640"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC",
+                        "symbol": "BTC/KRW",
+                        "base": "BTC",
+                        "quote": "KRW",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "KRW",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDateTime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 4,
+                            "price": 4
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 500,
+                                "max": 5000000000
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "opening_price": "93372000",
+                            "closing_price": "94508000",
+                            "min_price": "92958000",
+                            "max_price": "94943000",
+                            "units_traded": "90.80148301",
+                            "acc_trade_value": "8558440661.86872",
+                            "prev_closing_price": "93380000",
+                            "units_traded_24H": "177.55717423",
+                            "acc_trade_value_24H": "16639937111.00321",
+                            "fluctate_24H": "1676000",
+                            "fluctate_rate_24H": "1.81"
+                        }
+                    },
+                    {
+                        "id": "ETH",
+                        "symbol": "ETH/KRW",
+                        "base": "ETH",
+                        "quote": "KRW",
+                        "settle": null,
+                        "baseId": "ETH",
+                        "quoteId": "KRW",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDateTime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 4,
+                            "price": 4
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 500,
+                                "max": 5000000000
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "opening_price": "2692000",
+                            "closing_price": "2724000",
+                            "min_price": "2677000",
+                            "max_price": "2739000",
+                            "units_traded": "2814.410971978691461845",
+                            "acc_trade_value": "7640770093.165327518039595",
+                            "prev_closing_price": "2694000",
+                            "units_traded_24H": "6055.431998228021319786",
+                            "acc_trade_value_24H": "16394480749.996821781535539",
+                            "fluctate_24H": "23000",
+                            "fluctate_rate_24H": "0.85"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 fetch markets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "market": "BTC-USDC",
+                        "korean_name": "유에스디코인",
+                        "english_name": "USD Coin",
+                        "market_warning": "NONE"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USDC",
+                        "symbol": "USDC/BTC",
+                        "base": "USDC",
+                        "quote": "BTC",
+                        "settle": null,
+                        "baseId": "USDC",
+                        "quoteId": "BTC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDateTime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 4,
+                            "price": 4
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {}
+                        },
+                        "created": null,
+                        "info": {
+                            "market": "BTC-USDC",
+                            "korean_name": "유에스디코인",
+                            "english_name": "USD Coin",
+                            "market_warning": "NONE"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "generation 1 fetch balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "total_krw": "24624.057200",
+                        "in_use_krw": "0.00000000",
+                        "available_krw": "24624.05720000",
+                        "total_btc": "0.00035978",
+                        "in_use_btc": "0.00000000",
+                        "available_btc": "0.00035978"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "0000",
+                        "data": {
+                            "total_krw": "24624.057200",
+                            "in_use_krw": "0.00000000",
+                            "available_krw": "24624.05720000",
+                            "total_btc": "0.00035978",
+                            "in_use_btc": "0.00000000",
+                            "available_btc": "0.00035978"
+                        }
+                    },
+                    "BTC": {
+                        "free": 0.00035978,
+                        "used": 0,
+                        "total": 0.00035978
+                    },
+                    "KRW": {
+                        "free": 24624.0572,
+                        "used": 0,
+                        "total": 24624.0572
+                    },
+                    "free": {
+                        "BTC": 0.00035978,
+                        "KRW": 24624.0572
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "KRW": 0
+                    },
+                    "total": {
+                        "BTC": 0.00035978,
+                        "KRW": 24624.0572
+                    }
+                }
+            },
+            {
+                "description": "generation 2 fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "currency": "KRW",
+                        "balance": "24624.0572",
+                        "locked": "0",
+                        "avg_buy_price": "0",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "BTC",
+                        "balance": "0.00035978",
+                        "locked": "0",
+                        "avg_buy_price": "101097585",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "ETC",
+                        "balance": "0.00005215",
+                        "locked": "0",
+                        "avg_buy_price": "11575",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "XRP",
+                        "balance": "0.000049",
+                        "locked": "0",
+                        "avg_buy_price": "207",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "BTG",
+                        "balance": "0.00002485",
+                        "locked": "0",
+                        "avg_buy_price": "282700",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "BCD",
+                        "balance": "0.0002485",
+                        "locked": "0",
+                        "avg_buy_price": "0",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "SGB",
+                        "balance": "0.0000074",
+                        "locked": "0",
+                        "avg_buy_price": "0",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    },
+                    {
+                        "currency": "FF",
+                        "balance": "32",
+                        "locked": "0",
+                        "avg_buy_price": "312",
+                        "avg_buy_price_modified": false,
+                        "unit_currency": "KRW"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "currency": "KRW",
+                            "balance": "24624.0572",
+                            "locked": "0",
+                            "avg_buy_price": "0",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "BTC",
+                            "balance": "0.00035978",
+                            "locked": "0",
+                            "avg_buy_price": "101097585",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "ETC",
+                            "balance": "0.00005215",
+                            "locked": "0",
+                            "avg_buy_price": "11575",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "XRP",
+                            "balance": "0.000049",
+                            "locked": "0",
+                            "avg_buy_price": "207",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "BTG",
+                            "balance": "0.00002485",
+                            "locked": "0",
+                            "avg_buy_price": "282700",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "BCD",
+                            "balance": "0.0002485",
+                            "locked": "0",
+                            "avg_buy_price": "0",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "SGB",
+                            "balance": "0.0000074",
+                            "locked": "0",
+                            "avg_buy_price": "0",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        },
+                        {
+                            "currency": "FF",
+                            "balance": "32",
+                            "locked": "0",
+                            "avg_buy_price": "312",
+                            "avg_buy_price_modified": false,
+                            "unit_currency": "KRW"
+                        }
+                    ],
+                    "KRW": {
+                        "free": 24624.0572,
+                        "used": 0,
+                        "total": 24624.0572
+                    },
+                    "BTC": {
+                        "free": 0.00035978,
+                        "used": 0,
+                        "total": 0.00035978
+                    },
+                    "ETC": {
+                        "free": 0.00005215,
+                        "used": 0,
+                        "total": 0.00005215
+                    },
+                    "XRP": {
+                        "free": 0.000049,
+                        "used": 0,
+                        "total": 0.000049
+                    },
+                    "BTG": {
+                        "free": 0.00002485,
+                        "used": 0,
+                        "total": 0.00002485
+                    },
+                    "BCD": {
+                        "free": 0.0002485,
+                        "used": 0,
+                        "total": 0.0002485
+                    },
+                    "SGB": {
+                        "free": 0.0000074,
+                        "used": 0,
+                        "total": 0.0000074
+                    },
+                    "FF": {
+                        "free": 32,
+                        "used": 0,
+                        "total": 32
+                    },
+                    "free": {
+                        "KRW": 24624.0572,
+                        "BTC": 0.00035978,
+                        "ETC": 0.00005215,
+                        "XRP": 0.000049,
+                        "BTG": 0.00002485,
+                        "BCD": 0.0002485,
+                        "SGB": 0.0000074,
+                        "FF": 32
+                    },
+                    "used": {
+                        "KRW": 0,
+                        "BTC": 0,
+                        "ETC": 0,
+                        "XRP": 0,
+                        "BTG": 0,
+                        "BCD": 0,
+                        "SGB": 0,
+                        "FF": 0
+                    },
+                    "total": {
+                        "KRW": 24624.0572,
+                        "BTC": 0.00035978,
+                        "ETC": 0.00005215,
+                        "XRP": 0.000049,
+                        "BTG": 0.00002485,
+                        "BCD": 0.0002485,
+                        "SGB": 0.0000074,
+                        "FF": 32
+                    }
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "generation 1 fetch order book",
@@ -591,6 +1089,94 @@
                         "markPrice": null
                     }
                 }
+            },
+            {
+                "description": "generation 2 no input fetch tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "market": "KRW-ZTX",
+                        "trade_date": "20260718",
+                        "trade_time": "080834",
+                        "trade_date_kst": "20260718",
+                        "trade_time_kst": "170834",
+                        "trade_timestamp": 1784394514511,
+                        "opening_price": 0.2579,
+                        "high_price": 0.2792,
+                        "low_price": 0.2517,
+                        "trade_price": 0.2545,
+                        "prev_closing_price": 0.2627,
+                        "change": "FALL",
+                        "change_price": 0.0082,
+                        "change_rate": 0.0312,
+                        "signed_change_price": -0.0082,
+                        "signed_change_rate": -0.0312,
+                        "trade_volume": 3523447.77210867,
+                        "acc_trade_price": 405840956.1596924,
+                        "acc_trade_price_24h": 582269329.616164,
+                        "acc_trade_volume": 1551859731.1420083,
+                        "acc_trade_volume_24h": 2224030887.778459,
+                        "highest_52_week_price": 3.14,
+                        "highest_52_week_date": "2025-07-23",
+                        "lowest_52_week_price": 0.2222,
+                        "lowest_52_week_date": "2026-07-18",
+                        "timestamp": 1784394514511
+                    }
+                ],
+                "parsedResponse": {
+                    "ZTX/KRW": {
+                        "symbol": "ZTX/KRW",
+                        "timestamp": 1784394514511,
+                        "datetime": "2026-07-18T17:08:34.511Z",
+                        "high": 0.2792,
+                        "low": 0.2517,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 0.26180811283506117,
+                        "open": 0.2579,
+                        "close": 0.2545,
+                        "last": 0.2545,
+                        "previousClose": 0.2627,
+                        "change": -0.0082,
+                        "percentage": -0.0312,
+                        "average": 0.2562,
+                        "baseVolume": 2224030887.778459,
+                        "quoteVolume": 582269329.616164,
+                        "info": {
+                            "market": "KRW-ZTX",
+                            "trade_date": "20260718",
+                            "trade_time": "080834",
+                            "trade_date_kst": "20260718",
+                            "trade_time_kst": "170834",
+                            "trade_timestamp": 1784394514511,
+                            "opening_price": 0.2579,
+                            "high_price": 0.2792,
+                            "low_price": 0.2517,
+                            "trade_price": 0.2545,
+                            "prev_closing_price": 0.2627,
+                            "change": "FALL",
+                            "change_price": 0.0082,
+                            "change_rate": 0.0312,
+                            "signed_change_price": -0.0082,
+                            "signed_change_rate": -0.0312,
+                            "trade_volume": 3523447.77210867,
+                            "acc_trade_price": 405840956.1596924,
+                            "acc_trade_price_24h": 582269329.616164,
+                            "acc_trade_volume": 1551859731.1420083,
+                            "acc_trade_volume_24h": 2224030887.778459,
+                            "highest_52_week_price": 3.14,
+                            "highest_52_week_date": "2025-07-23",
+                            "lowest_52_week_price": 0.2222,
+                            "lowest_52_week_date": "2026-07-18",
+                            "timestamp": 1784394514511
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
             }
         ],
         "fetchTicker": [
@@ -898,6 +1484,243 @@
                         0.00120343,
                         0.00121122,
                         0.9341
+                    ]
+                ]
+            },
+            {
+                "description": "generation 2 1d fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "SOL/BTC",
+                    "1d",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-07-17T15:00:00",
+                        "candle_date_time_kst": "2026-07-18T00:00:00",
+                        "opening_price": 0.00117491,
+                        "high_price": 0.00117491,
+                        "low_price": 0.00117201,
+                        "trade_price": 0.00117465,
+                        "timestamp": 1784354336409,
+                        "candle_acc_trade_price": 0.0005998022792587,
+                        "candle_acc_trade_volume": 0.51119725,
+                        "prev_closing_price": 0.00117491,
+                        "change_price": -2.6e-7,
+                        "change_rate": -0.0002212935
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-07-16T15:00:00",
+                        "candle_date_time_kst": "2026-07-17T00:00:00",
+                        "opening_price": 0.00118571,
+                        "high_price": 0.00118571,
+                        "low_price": 0.00117491,
+                        "trade_price": 0.00117491,
+                        "timestamp": 1784299964125,
+                        "candle_acc_trade_price": 1.4919570704076126,
+                        "candle_acc_trade_volume": 1259.49455826,
+                        "prev_closing_price": 0.00118571,
+                        "change_price": -0.0000108,
+                        "change_rate": -0.0091084667
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-07-15T15:00:00",
+                        "candle_date_time_kst": "2026-07-16T00:00:00",
+                        "opening_price": 0.00119361,
+                        "high_price": 0.00119361,
+                        "low_price": 0.00118571,
+                        "trade_price": 0.00118571,
+                        "timestamp": 1784211841289,
+                        "candle_acc_trade_price": 0.2422734902344966,
+                        "candle_acc_trade_volume": 203.60180984,
+                        "prev_closing_price": 0.00119361,
+                        "change_price": -0.0000079,
+                        "change_rate": -0.0066185773
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1784127600000,
+                        0.00119361,
+                        0.00119361,
+                        0.00118571,
+                        0.00118571,
+                        203.60180984
+                    ],
+                    [
+                        1784214000000,
+                        0.00118571,
+                        0.00118571,
+                        0.00117491,
+                        0.00117491,
+                        1259.49455826
+                    ],
+                    [
+                        1784300400000,
+                        0.00117491,
+                        0.00117491,
+                        0.00117201,
+                        0.00117465,
+                        0.51119725
+                    ]
+                ]
+            },
+            {
+                "description": "generation 2 1w fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "SOL/BTC",
+                    "1w",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-07-12T15:00:00",
+                        "candle_date_time_kst": "2026-07-13T00:00:00",
+                        "opening_price": 0.00119952,
+                        "high_price": 0.00121444,
+                        "low_price": 0.00117201,
+                        "trade_price": 0.00117465,
+                        "timestamp": 1784354336409,
+                        "candle_acc_trade_price": 5.8869906814103174,
+                        "candle_acc_trade_volume": 4916.706303074173,
+                        "first_day_of_period": "2026-07-13"
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-07-05T15:00:00",
+                        "candle_date_time_kst": "2026-07-06T00:00:00",
+                        "opening_price": 0.00129954,
+                        "high_price": 0.00129954,
+                        "low_price": 0.0011904,
+                        "trade_price": 0.00121148,
+                        "timestamp": 1783862627605,
+                        "candle_acc_trade_price": 1.9705227232946452,
+                        "candle_acc_trade_volume": 1579.21706785,
+                        "first_day_of_period": "2026-07-06"
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-06-28T15:00:00",
+                        "candle_date_time_kst": "2026-06-29T00:00:00",
+                        "opening_price": 0.0011904,
+                        "high_price": 0.00134514,
+                        "low_price": 0.0011904,
+                        "trade_price": 0.00128099,
+                        "timestamp": 1783250569735,
+                        "candle_acc_trade_price": 4.084418258101814,
+                        "candle_acc_trade_volume": 3180.218981939785,
+                        "first_day_of_period": "2026-06-29"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1782658800000,
+                        0.0011904,
+                        0.00134514,
+                        0.0011904,
+                        0.00128099,
+                        3180.218981939785
+                    ],
+                    [
+                        1783263600000,
+                        0.00129954,
+                        0.00129954,
+                        0.0011904,
+                        0.00121148,
+                        1579.21706785
+                    ],
+                    [
+                        1783868400000,
+                        0.00119952,
+                        0.00121444,
+                        0.00117201,
+                        0.00117465,
+                        4916.706303074173
+                    ]
+                ]
+            },
+            {
+                "description": "generation 2 1M fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "SOL/BTC",
+                    "1M",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-06-30T15:00:00",
+                        "candle_date_time_kst": "2026-07-01T00:00:00",
+                        "opening_price": 0.00124843,
+                        "high_price": 0.00134514,
+                        "low_price": 0.00117201,
+                        "trade_price": 0.00117465,
+                        "timestamp": 1784354336409,
+                        "candle_acc_trade_price": 11.04772876024148,
+                        "candle_acc_trade_volume": 8952.935305423958,
+                        "first_day_of_period": "2026-07-01"
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-05-31T15:00:00",
+                        "candle_date_time_kst": "2026-06-01T00:00:00",
+                        "opening_price": 0.0011133,
+                        "high_price": 0.00125843,
+                        "low_price": 0.00101,
+                        "trade_price": 0.00124,
+                        "timestamp": 1782829395802,
+                        "candle_acc_trade_price": 16.125651554270902,
+                        "candle_acc_trade_volume": 14416.703050417442,
+                        "first_day_of_period": "2026-06-01"
+                    },
+                    {
+                        "market": "BTC-SOL",
+                        "candle_date_time_utc": "2026-04-30T15:00:00",
+                        "candle_date_time_kst": "2026-05-01T00:00:00",
+                        "opening_price": 0.001089,
+                        "high_price": 0.00137178,
+                        "low_price": 0.00104515,
+                        "trade_price": 0.00111418,
+                        "timestamp": 1780237778071,
+                        "candle_acc_trade_price": 9.130274931315007,
+                        "candle_acc_trade_volume": 8065.408341887131,
+                        "first_day_of_period": "2026-05-01"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1777561200000,
+                        0.001089,
+                        0.00137178,
+                        0.00104515,
+                        0.00111418,
+                        8065.408341887131
+                    ],
+                    [
+                        1780239600000,
+                        0.0011133,
+                        0.00125843,
+                        0.00101,
+                        0.00124,
+                        14416.703050417442
+                    ],
+                    [
+                        1782831600000,
+                        0.00124843,
+                        0.00134514,
+                        0.00117201,
+                        0.00117465,
+                        8952.935305423958
                     ]
                 ]
             }
@@ -1210,6 +2033,156 @@
                 }
             },
             {
+                "description": "generation 1 limit sell create order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/KRW",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    99000000,
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "order_id": "C0101000003192380110"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "0000",
+                        "order_id": "C0101000003192380110"
+                    },
+                    "id": "C0101000003192380110",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/KRW",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 99000000,
+                    "triggerPrice": null,
+                    "amount": 0.0001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 1 market sell create order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "order_id": "C0101000003192392133"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "0000",
+                        "order_id": "C0101000003192392133"
+                    },
+                    "id": "C0101000003192392133",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/KRW",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 0.0001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 1 market buy create order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/KRW",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "order_id": "C0101000003192394710"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "0000",
+                        "order_id": "C0101000003192394710"
+                    },
+                    "id": "C0101000003192394710",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/KRW",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 0.0001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "generation 2 create order",
                 "method": "createOrder",
                 "input": [
@@ -1249,6 +2222,301 @@
                     "price": 0.001011,
                     "triggerPrice": null,
                     "amount": 0.2,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 client order id create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "limit",
+                    "buy",
+                    3.5,
+                    1500,
+                    {
+                        "clientOrderId": "CID1001"
+                    }
+                ],
+                "httpResponse": {
+                    "client_order_id": "CID1001",
+                    "order_id": "C0106000002195749414",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "limit",
+                    "created_at": "2026-07-18T18:08:32+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_order_id": "CID1001",
+                        "order_id": "C0106000002195749414",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "limit",
+                        "created_at": "2026-07-18T18:08:32+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002195749414",
+                    "clientOrderId": "CID1001",
+                    "timestamp": 1784365712000,
+                    "datetime": "2026-07-18T18:08:32+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 limit sell create order",
+                "method": "createOrder",
+                "input": [
+                    "SOL/BTC",
+                    "limit",
+                    "sell",
+                    0.2,
+                    0.003
+                ],
+                "httpResponse": {
+                    "order_id": "C0587000001386649100",
+                    "market": "BTC-SOL",
+                    "side": "ask",
+                    "order_type": "limit",
+                    "created_at": "2026-07-18T18:50:50+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0587000001386649100",
+                        "market": "BTC-SOL",
+                        "side": "ask",
+                        "order_type": "limit",
+                        "created_at": "2026-07-18T18:50:50+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0587000001386649100",
+                    "clientOrderId": null,
+                    "timestamp": 1784368250000,
+                    "datetime": "2026-07-18T18:50:50+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "SOL/BTC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 0.003,
+                    "triggerPrice": null,
+                    "amount": 0.2,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 IOC create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "limit",
+                    "buy",
+                    3.5,
+                    1500,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002195827644",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "limit",
+                    "time_in_force": "ioc",
+                    "created_at": "2026-07-18T19:32:52+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002195827644",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "limit",
+                        "time_in_force": "ioc",
+                        "created_at": "2026-07-18T19:32:52+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002195827644",
+                    "clientOrderId": null,
+                    "timestamp": 1784370772000,
+                    "datetime": "2026-07-18T19:32:52+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "limit",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 FOK create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "limit",
+                    "buy",
+                    3.5,
+                    1500,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002195829207",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "limit",
+                    "time_in_force": "fok",
+                    "created_at": "2026-07-18T19:34:50+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002195829207",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "limit",
+                        "time_in_force": "fok",
+                        "created_at": "2026-07-18T19:34:50+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002195829207",
+                    "clientOrderId": null,
+                    "timestamp": 1784370890000,
+                    "datetime": "2026-07-18T19:34:50+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 post only create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "limit",
+                    "buy",
+                    3.5,
+                    1500,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002195835413",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "limit",
+                    "time_in_force": "post_only",
+                    "created_at": "2026-07-18T19:43:05+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002195835413",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "limit",
+                        "time_in_force": "post_only",
+                        "created_at": "2026-07-18T19:43:05+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002195835413",
+                    "clientOrderId": null,
+                    "timestamp": 1784371385000,
+                    "datetime": "2026-07-18T19:43:05+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
                     "cost": null,
                     "average": null,
                     "filled": null,
@@ -1506,6 +2774,98 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "generation 2 client order id fetch order",
+                "method": "fetchOrder",
+                "input": [
+                    "C0106000002195749414",
+                    "XRP/KRW",
+                    {
+                        "clientOrderId": "CID1001"
+                    }
+                ],
+                "httpResponse": {
+                    "uuid": "C0106000002195749414",
+                    "side": "bid",
+                    "ord_type": "limit",
+                    "price": "1500",
+                    "state": "wait",
+                    "market": "KRW-XRP",
+                    "created_at": "2026-07-18T18:08:32+09:00",
+                    "volume": "3.5",
+                    "remaining_volume": "3.5",
+                    "reserved_fee": "13.125",
+                    "remaining_fee": "13.125",
+                    "paid_fee": "0",
+                    "locked": "5264.125",
+                    "executed_volume": "0",
+                    "executed_funds": "0",
+                    "trades_count": 0,
+                    "client_order_id": "CID1001",
+                    "stp_type": "cancel_taker",
+                    "trades": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "uuid": "C0106000002195749414",
+                        "side": "bid",
+                        "ord_type": "limit",
+                        "price": "1500",
+                        "state": "wait",
+                        "market": "KRW-XRP",
+                        "created_at": "2026-07-18T18:08:32+09:00",
+                        "volume": "3.5",
+                        "remaining_volume": "3.5",
+                        "reserved_fee": "13.125",
+                        "remaining_fee": "13.125",
+                        "paid_fee": "0",
+                        "locked": "5264.125",
+                        "executed_volume": "0",
+                        "executed_funds": "0",
+                        "trades_count": 0,
+                        "client_order_id": "CID1001",
+                        "stp_type": "cancel_taker",
+                        "trades": [],
+                        "order_id": "C0106000002195749414"
+                    },
+                    "id": "C0106000002195749414",
+                    "clientOrderId": "CID1001",
+                    "timestamp": 1784365712000,
+                    "datetime": "2026-07-18T18:08:32+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 3.5,
+                    "status": "open",
+                    "fee": {
+                        "currency": "KRW",
+                        "cost": 13.125,
+                        "rate": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": "KRW",
+                            "cost": 13.125,
+                            "rate": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchOrders": [
@@ -1678,6 +3038,102 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+                "description": "generation 2 client order ids fetch orders",
+                "method": "fetchOrders",
+                "input": [
+                    "XRP/KRW",
+                    null,
+                    null,
+                    {
+                        "clientOrderIds": [
+                            "CID1001"
+                        ]
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "uuid": "C0106000002195749414",
+                        "side": "bid",
+                        "ord_type": "limit",
+                        "price": "1500",
+                        "state": "wait",
+                        "market": "KRW-XRP",
+                        "created_at": "2026-07-18T18:08:32+09:00",
+                        "volume": "3.5",
+                        "remaining_volume": "3.5",
+                        "reserved_fee": "13.125",
+                        "remaining_fee": "13.125",
+                        "paid_fee": "0",
+                        "locked": "5264.125",
+                        "executed_volume": "0",
+                        "executed_funds": "0",
+                        "trades_count": 0,
+                        "client_order_id": "CID1001",
+                        "stp_type": "cancel_taker"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uuid": "C0106000002195749414",
+                            "side": "bid",
+                            "ord_type": "limit",
+                            "price": "1500",
+                            "state": "wait",
+                            "market": "KRW-XRP",
+                            "created_at": "2026-07-18T18:08:32+09:00",
+                            "volume": "3.5",
+                            "remaining_volume": "3.5",
+                            "reserved_fee": "13.125",
+                            "remaining_fee": "13.125",
+                            "paid_fee": "0",
+                            "locked": "5264.125",
+                            "executed_volume": "0",
+                            "executed_funds": "0",
+                            "trades_count": 0,
+                            "client_order_id": "CID1001",
+                            "stp_type": "cancel_taker"
+                        },
+                        "id": "C0106000002195749414",
+                        "clientOrderId": "CID1001",
+                        "timestamp": 1784365712000,
+                        "datetime": "2026-07-18T18:08:32+09:00",
+                        "lastTradeTimestamp": null,
+                        "symbol": "XRP/KRW",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 1500,
+                        "triggerPrice": null,
+                        "amount": 3.5,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 3.5,
+                        "status": "open",
+                        "fee": {
+                            "currency": "KRW",
+                            "cost": 13.125,
+                            "rate": null
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "KRW",
+                                "cost": 13.125,
+                                "rate": null
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -1740,6 +3196,77 @@
                         "average": null,
                         "filled": 0,
                         "remaining": 0.001,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "generation 1 since fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/KRW",
+                    1784368250000,
+                    null,
+                    {
+                        "generation": 1
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": [
+                        {
+                            "order_currency": "BTC",
+                            "payment_currency": "KRW",
+                            "order_id": "C0101000003192380110",
+                            "order_date": "1784369119255184",
+                            "watch_price": "0",
+                            "units_remaining": "0.0001",
+                            "stp_type": "cancel_taker",
+                            "type": "ask",
+                            "units": "0.0001",
+                            "price": "99000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_currency": "BTC",
+                            "payment_currency": "KRW",
+                            "order_id": "C0101000003192380110",
+                            "order_date": "1784369119255184",
+                            "watch_price": "0",
+                            "units_remaining": "0.0001",
+                            "stp_type": "cancel_taker",
+                            "type": "ask",
+                            "units": "0.0001",
+                            "price": "99000000"
+                        },
+                        "id": "C0101000003192380110",
+                        "clientOrderId": null,
+                        "timestamp": 1784369119255,
+                        "datetime": "2026-07-18T10:05:19.255Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/KRW",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "sell",
+                        "price": 99000000,
+                        "triggerPrice": null,
+                        "amount": 0.0001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.0001,
                         "status": null,
                         "fee": null,
                         "trades": [],
@@ -1888,6 +3415,52 @@
                 }
             },
             {
+                "description": "generation 1 sell side cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "C0101000003192380110",
+                    "BTC/KRW",
+                    {
+                        "generation": 1,
+                        "side": "sell"
+                    }
+                ],
+                "httpResponse": {
+                    "status": "0000"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "0000"
+                    },
+                    "id": "C0101000003192380110",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/KRW",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "generation 2 cancel order",
                 "method": "cancelOrder",
                 "input": [
@@ -1909,6 +3482,55 @@
                     "datetime": "2026-07-15T17:55:49+09:00",
                     "lastTradeTimestamp": null,
                     "symbol": "SOL/BTC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 client order id cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "C0106000002195749414",
+                    "XRP/KRW",
+                    {
+                        "clientOrderId": "CID1001"
+                    }
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002195749414",
+                    "client_order_id": "CID1001",
+                    "created_at": "2026-07-18T18:08:32+09:00"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002195749414",
+                        "client_order_id": "CID1001",
+                        "created_at": "2026-07-18T18:08:32+09:00"
+                    },
+                    "id": "C0106000002195749414",
+                    "clientOrderId": "CID1001",
+                    "timestamp": 1784365712000,
+                    "datetime": "2026-07-18T18:08:32+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
@@ -2116,6 +3738,106 @@
                         "clientOrderId": null,
                         "timestamp": 1784107607000,
                         "datetime": "2026-07-15T18:26:47+09:00",
+                        "lastTradeTimestamp": null,
+                        "symbol": "XRP/KRW",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 client order ids cancel orders",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "C0106000002195777296",
+                        "C0106000002195777879"
+                    ],
+                    "XRP/KRW",
+                    {
+                        "clientOrderIds": [
+                            "CID101",
+                            "CID202"
+                        ]
+                    }
+                ],
+                "httpResponse": {
+                    "success": [
+                        {
+                            "order_id": "C0106000002195777879",
+                            "client_order_id": "CID202",
+                            "created_at": "2026-07-18T18:35:38+09:00"
+                        },
+                        {
+                            "order_id": "C0106000002195777296",
+                            "client_order_id": "CID101",
+                            "created_at": "2026-07-18T18:35:04+09:00"
+                        }
+                    ],
+                    "fail": []
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": "C0106000002195777296",
+                            "client_order_id": "CID101",
+                            "created_at": "2026-07-18T18:35:04+09:00"
+                        },
+                        "id": "C0106000002195777296",
+                        "clientOrderId": "CID101",
+                        "timestamp": 1784367304000,
+                        "datetime": "2026-07-18T18:35:04+09:00",
+                        "lastTradeTimestamp": null,
+                        "symbol": "XRP/KRW",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_id": "C0106000002195777879",
+                            "client_order_id": "CID202",
+                            "created_at": "2026-07-18T18:35:38+09:00"
+                        },
+                        "id": "C0106000002195777879",
+                        "clientOrderId": "CID202",
+                        "timestamp": 1784367338000,
+                        "datetime": "2026-07-18T18:35:38+09:00",
                         "lastTradeTimestamp": null,
                         "symbol": "XRP/KRW",
                         "type": null,
@@ -2709,6 +4431,121 @@
                         }
                     }
                 ]
+            },
+            {
+                "description": "generation 2 no currency with limit fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "type": "withdraw",
+                        "uuid": "110321905",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": "ef606...88a1",
+                        "state": "DONE",
+                        "created_at": "2017-09-22T10:38:06+09:00",
+                        "done_at": "2017-09-22T10:47:07+09:00",
+                        "amount": "0.44822665",
+                        "fee": "0.0005",
+                        "transaction_type": null
+                    },
+                    {
+                        "type": "withdraw",
+                        "uuid": "110321904",
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "txid": null,
+                        "state": "CANCELLED",
+                        "created_at": "2017-09-19T20:28:47+09:00",
+                        "done_at": null,
+                        "amount": "0.44822665",
+                        "fee": "0.0005",
+                        "transaction_type": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "110321904",
+                        "txid": null,
+                        "timestamp": 1505820527000,
+                        "datetime": "2017-09-19T20:28:47+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.44822665,
+                        "type": "withdraw",
+                        "currency": "BTC",
+                        "status": "canceled",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0.0005,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "withdraw",
+                            "uuid": "110321904",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": null,
+                            "state": "CANCELLED",
+                            "created_at": "2017-09-19T20:28:47+09:00",
+                            "done_at": null,
+                            "amount": "0.44822665",
+                            "fee": "0.0005",
+                            "transaction_type": null
+                        }
+                    },
+                    {
+                        "id": "110321905",
+                        "txid": "ef606...88a1",
+                        "timestamp": 1506044286000,
+                        "datetime": "2017-09-22T10:38:06+09:00",
+                        "network": "BTC",
+                        "addressFrom": null,
+                        "address": null,
+                        "addressTo": null,
+                        "amount": 0.44822665,
+                        "type": "withdraw",
+                        "currency": "BTC",
+                        "status": "ok",
+                        "updated": null,
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0.0005,
+                            "rate": null
+                        },
+                        "info": {
+                            "type": "withdraw",
+                            "uuid": "110321905",
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "txid": "ef606...88a1",
+                            "state": "DONE",
+                            "created_at": "2017-09-22T10:38:06+09:00",
+                            "done_at": "2017-09-22T10:47:07+09:00",
+                            "amount": "0.44822665",
+                            "fee": "0.0005",
+                            "transaction_type": null
+                        }
+                    }
+                ]
             }
         ],
         "fetchDeposit": [
@@ -3139,6 +4976,55 @@
                         "address": "195Y...rbJ3",
                         "tag": null
                     }
+                }
+            }
+        ],
+        "createTwapOrder": [
+            {
+                "description": "generation 2 create twap order",
+                "method": "createTwapOrder",
+                "input": [
+                    "XRP/KRW",
+                    "sell",
+                    5000,
+                    43200000,
+                    {
+                        "frequency": "120"
+                    }
+                ],
+                "httpResponse": {
+                    "algo_order_id": "019f7410-2a47-740d-8b60-15758d5e3a6f"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algo_order_id": "019f7410-2a47-740d-8b60-15758d5e3a6f"
+                    },
+                    "id": "019f7410-2a47-740d-8b60-15758d5e3a6f",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
             }
         ]
