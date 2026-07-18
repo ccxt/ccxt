@@ -32,7 +32,7 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
-        run: ./utils/init_actions.sh
+        run: ./build/utils/init_actions.sh
       - name: Check tsc version
         run: tsc --version
       - name: Install tsx

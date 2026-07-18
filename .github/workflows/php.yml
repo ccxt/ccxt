@@ -57,7 +57,7 @@ jobs:
     - name: Composer install
       run: composer install
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-php
     - name: Transpile to PHP

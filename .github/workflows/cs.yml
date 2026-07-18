@@ -45,7 +45,7 @@ jobs:
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-cs
     - name: Transpile to C#
