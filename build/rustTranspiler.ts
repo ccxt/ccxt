@@ -2025,7 +2025,10 @@ class RustTranspilerBuilder {
             'clean_cache', 'clean_unsubscription',
             'watch', 'watch_multiple', 'un_watch',
             'set_markets', 'load_markets', 'load_accounts',
-            'safe_order', 'safe_order2', 'safe_trade',
+            // NB: safe_order/safe_order2/safe_trade are `&self` in the base and
+            // don't mutate self — seeding them here wrongly promoted their callers
+            // (parse_order/parse_trade) to `&mut self`, which then forced the
+            // unsound `&`→`&mut` cast in the DerivedExchange forwarder. Left out.
             'fetch_deposit_address',
             // WS Client / handler infra
             'client', 'get_listen_key', 'spawn', 'delay',
@@ -4610,8 +4613,8 @@ class RustTranspilerBuilder {
      * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
      * and `bind`/`dispatch_virtual` we generate ourselves.
      */
-    collectExchangeMethodSignatures(content: string): Array<{ name: string, isAsync: boolean, paramKinds: string[] }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [];
+    collectExchangeMethodSignatures(content: string): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> {
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> = [];
         // Match `pub [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`
         // Capture the optional return type so we can require `-> Value`.
         const re = /\bpub(\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]*)\)\s*(->\s*[^\{]+?)?\s*\{/g;
@@ -4637,7 +4640,12 @@ class RustTranspilerBuilder {
                 return 'other';
             });
             if (paramKinds.some(k => k === 'other')) continue;
-            out.push({ name, isAsync, paramKinds });
+            // Receiver mutability — the DerivedExchange forwarder only needs the
+            // unsafe `&`→`&mut` cast when the inherent method really takes
+            // `&mut self`; for `&self` methods (parse_ticker/parse_market/sign/
+            // handle_errors, …) it can forward directly and soundly.
+            const isMut = /^\s*&mut\s+self\b/.test(argList);
+            out.push({ name, isAsync, paramKinds, isMut });
         }
         return out;
     }
@@ -4719,7 +4727,7 @@ ${isBase
      * inherent method. Methods this exchange doesn't override fall back
      * to the trait's default impl (returns Value::Null).
      */
-    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null = null): string {
+    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }>, parentCore: string | null = null): string {
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
@@ -4763,14 +4771,19 @@ ${isBase
             }
             out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
             out.push(`        // Forward to the inherent method on ${coreName}.`);
-            // The inherent method may have been mut-promoted; coerce
-            // `&self` → `&mut self` inline so the trait impl still
-            // type-checks. The inherent body mutates owned bookkeeping
-            // fields (`liquidations`, etc.) not the trait-visible state,
-            // so the cast is sound for our single-threaded use.
-            out.push(`        #[allow(invalid_reference_casting)]`);
-            out.push(`        let me = unsafe { &mut *(self as *const ${coreName} as *mut ${coreName}) };`);
-            out.push(`        ${coreName}::${name}(me, ${callArgs.join(', ')})`);
+            if (inh.isMut) {
+                // The inherent method really takes `&mut self` (mut-promoted, e.g.
+                // parse_trade/parse_order call safe_trade/safe_order). The trait is
+                // `&self`, so coerce inline. This is the residual unsound cast the
+                // dispatch redesign still needs to remove; kept only for the few
+                // genuinely-mut virtuals.
+                out.push(`        #[allow(invalid_reference_casting)]`);
+                out.push(`        let me = unsafe { &mut *(self as *const ${coreName} as *mut ${coreName}) };`);
+                out.push(`        ${coreName}::${name}(me, ${callArgs.join(', ')})`);
+            } else {
+                // Inherent method takes `&self` — forward directly, no cast, sound.
+                out.push(`        ${coreName}::${name}(self, ${callArgs.join(', ')})`);
+            }
             out.push(`    }`);
         }
         out.push(`}`);

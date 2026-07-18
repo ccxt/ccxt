@@ -241,99 +241,67 @@ impl BitmartCore {
 impl crate::exchange::DerivedExchange for BitmartCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_ticker(me, ticker, &[market.clone()])
+        BitmartCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_trade(me, trade, &[market.clone()])
+        BitmartCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_order(me, order, &[market.clone()])
+        BitmartCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BitmartCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_position(me, position, &[market.clone()])
+        BitmartCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_funding_rate(me, rate, &[market.clone()])
+        BitmartCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        BitmartCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        BitmartCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_transfer(me, transfer, &[currency.clone()])
+        BitmartCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_open_interest(me, interest, &[market.clone()])
+        BitmartCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_liquidation(me, liquidation, &[market.clone()])
+        BitmartCore::parse_liquidation(self, liquidation, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_transaction(me, transaction, &[currency.clone()])
+        BitmartCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_borrow_interest(me, info, &[market.clone()])
+        BitmartCore::parse_borrow_interest(self, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        BitmartCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BitmartCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmartCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmartCore as *mut BitmartCore) };
-        BitmartCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BitmartCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2347,7 +2315,7 @@ impl BitmartCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades spot ( amount = count * price )
@@ -3068,7 +3036,7 @@ impl BitmartCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, editOrder

@@ -217,93 +217,63 @@ impl PoloniexCore {
 impl crate::exchange::DerivedExchange for PoloniexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_ticker(me, ticker, &[market.clone()])
+        PoloniexCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_trade(me, trade, &[market.clone()])
+        PoloniexCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_order(me, order, &[market.clone()])
+        PoloniexCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_market(me, market)
+        PoloniexCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        PoloniexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_balance(me, response)
+        PoloniexCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_position(me, position, &[market.clone()])
+        PoloniexCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_transfer(me, transfer, &[currency.clone()])
+        PoloniexCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_currency(me, currency)
+        PoloniexCore::parse_currency(self, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_margin_modification(me, data, &[market.clone()])
+        PoloniexCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_transaction(me, transaction, &[currency.clone()])
+        PoloniexCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_leverage(me, leverage, &[market.clone()])
+        PoloniexCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        PoloniexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        PoloniexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PoloniexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PoloniexCore as *mut PoloniexCore) };
-        PoloniexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        PoloniexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1698,7 +1668,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2029,7 +1999,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOpenOrder
@@ -2224,7 +2194,7 @@ impl PoloniexCore {
     Value::Null
 }
 
-    pub fn parse_open_orders(&mut self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
+    pub fn parse_open_orders(&self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1021: bool = true;

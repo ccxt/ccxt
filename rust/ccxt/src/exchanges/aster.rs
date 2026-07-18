@@ -235,117 +235,79 @@ impl AsterCore {
 impl crate::exchange::DerivedExchange for AsterCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_ticker(me, ticker, &[market.clone()])
+        AsterCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_trade(me, trade, &[market.clone()])
+        AsterCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_order(me, order, &[market.clone()])
+        AsterCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_market(me, market)
+        AsterCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        AsterCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_balance(me, response)
+        AsterCore::parse_balance(self, response)
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_funding_rate(me, rate, &[market.clone()])
+        AsterCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_last_price(me, entry, &[market.clone()])
+        AsterCore::parse_last_price(self, entry, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        AsterCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_transfer(me, transfer, &[currency.clone()])
+        AsterCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_currency(me, currency)
+        AsterCore::parse_currency(self, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        AsterCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_margin_modification(me, data, &[market.clone()])
+        AsterCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_transaction(me, transaction, &[currency.clone()])
+        AsterCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_income(me, info, &[market.clone()])
+        AsterCore::parse_income(self, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        AsterCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::parse_leverage(me, leverage, &[market.clone()])
+        AsterCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        AsterCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AsterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const AsterCore as *mut AsterCore) };
-        AsterCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        AsterCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1505,7 +1467,7 @@ impl AsterCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2531,7 +2493,7 @@ impl AsterCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // swap

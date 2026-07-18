@@ -220,33 +220,23 @@ impl HitbtcCore {
 impl crate::exchange::DerivedExchange for HitbtcCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_ticker(me, ticker, &[market.clone()])
+        HitbtcCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_trade(me, trade, &[market.clone()])
+        HitbtcCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_order(me, order, &[market.clone()])
+        HitbtcCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        HitbtcCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_balance(me, response)
+        HitbtcCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
@@ -256,69 +246,47 @@ impl crate::exchange::DerivedExchange for HitbtcCore {
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_funding_rate(me, rate, &[market.clone()])
+        HitbtcCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_transfer(me, transfer, &[currency.clone()])
+        HitbtcCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_currency(me, currency)
+        HitbtcCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_open_interest(me, interest, &[market.clone()])
+        HitbtcCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_margin_modification(me, data, &[market.clone()])
+        HitbtcCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_transaction(me, transaction, &[currency.clone()])
+        HitbtcCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        HitbtcCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_leverage(me, leverage, &[market.clone()])
+        HitbtcCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        HitbtcCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        HitbtcCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HitbtcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const HitbtcCore as *mut HitbtcCore) };
-        HitbtcCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        HitbtcCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1744,7 +1712,7 @@ impl HitbtcCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder (market)
@@ -3026,7 +2994,7 @@ impl HitbtcCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // limit

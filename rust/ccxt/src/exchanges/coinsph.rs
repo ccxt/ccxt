@@ -196,63 +196,43 @@ impl CoinsphCore {
 impl crate::exchange::DerivedExchange for CoinsphCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_ticker(me, ticker, &[market.clone()])
+        CoinsphCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_trade(me, trade, &[market.clone()])
+        CoinsphCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_order(me, order, &[market.clone()])
+        CoinsphCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        CoinsphCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_balance(me, response)
+        CoinsphCore::parse_balance(self, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        CoinsphCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_currency(me, currency)
+        CoinsphCore::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::parse_transaction(me, transaction, &[currency.clone()])
+        CoinsphCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        CoinsphCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinsphCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinsphCore as *mut CoinsphCore) };
-        CoinsphCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        CoinsphCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1669,7 +1649,7 @@ impl CoinsphCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2120,7 +2100,7 @@ impl CoinsphCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder POST /openapi/v1/order

@@ -216,117 +216,79 @@ impl DeltaCore {
 impl crate::exchange::DerivedExchange for DeltaCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_ticker(me, ticker, &[market.clone()])
+        DeltaCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_trade(me, trade, &[market.clone()])
+        DeltaCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_order(me, order, &[market.clone()])
+        DeltaCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        DeltaCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_balance(me, response)
+        DeltaCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_position(me, position, &[market.clone()])
+        DeltaCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_funding_rate(me, rate, &[market.clone()])
+        DeltaCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        DeltaCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        DeltaCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_currency(me, currency)
+        DeltaCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_open_interest(me, interest, &[market.clone()])
+        DeltaCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_margin_modification(me, data, &[market.clone()])
+        DeltaCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_adl_rank(me, info, &[market.clone()])
+        DeltaCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_greeks(me, greeks, &[market.clone()])
+        DeltaCore::parse_greeks(self, greeks, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        DeltaCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::parse_leverage(me, leverage, &[market.clone()])
+        DeltaCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::create_expired_option_market(me, symbol)
+        DeltaCore::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        DeltaCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
-        DeltaCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        DeltaCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1947,7 +1909,7 @@ impl DeltaCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -2415,7 +2377,7 @@ impl DeltaCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders

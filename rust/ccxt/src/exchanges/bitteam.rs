@@ -184,63 +184,43 @@ impl BitteamCore {
 impl crate::exchange::DerivedExchange for BitteamCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_ticker(me, ticker, &[market.clone()])
+        BitteamCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_trade(me, trade, &[market.clone()])
+        BitteamCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_order(me, order, &[market.clone()])
+        BitteamCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_market(me, market)
+        BitteamCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BitteamCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_balance(me, response)
+        BitteamCore::parse_balance(self, response)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_currency(me, currency)
+        BitteamCore::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::parse_transaction(me, transaction, &[currency.clone()])
+        BitteamCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BitteamCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitteamCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitteamCore as *mut BitteamCore) };
-        BitteamCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BitteamCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1745,7 +1725,7 @@ impl BitteamCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders
@@ -2578,7 +2558,7 @@ impl BitteamCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades

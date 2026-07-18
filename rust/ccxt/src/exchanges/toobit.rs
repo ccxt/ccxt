@@ -212,111 +212,75 @@ impl ToobitCore {
 impl crate::exchange::DerivedExchange for ToobitCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_ticker(me, ticker, &[market.clone()])
+        ToobitCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_trade(me, trade, &[market.clone()])
+        ToobitCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_order(me, order, &[market.clone()])
+        ToobitCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_market(me, market)
+        ToobitCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        ToobitCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_balance(me, response)
+        ToobitCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_position(me, position, &[market.clone()])
+        ToobitCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_funding_rate(me, rate, &[market.clone()])
+        ToobitCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        ToobitCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_last_price(me, entry, &[market.clone()])
+        ToobitCore::parse_last_price(self, entry, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        ToobitCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_transfer(me, transfer, &[currency.clone()])
+        ToobitCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_currency(me, currency)
+        ToobitCore::parse_currency(self, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        ToobitCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_transaction(me, transaction, &[currency.clone()])
+        ToobitCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::parse_leverage(me, leverage, &[market.clone()])
+        ToobitCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        ToobitCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
-        ToobitCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        ToobitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1464,7 +1428,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2221,7 +2185,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, cancelOrder

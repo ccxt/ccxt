@@ -211,81 +211,55 @@ impl BitvavoCore {
 impl crate::exchange::DerivedExchange for BitvavoCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_ticker(me, ticker, &[market.clone()])
+        BitvavoCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_trade(me, trade, &[market.clone()])
+        BitvavoCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_order(me, order, &[market.clone()])
+        BitvavoCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BitvavoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_balance(me, response)
+        BitvavoCore::parse_balance(self, response)
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        BitvavoCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_transfer(me, transfer, &[currency.clone()])
+        BitvavoCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_currency(me, currency)
+        BitvavoCore::parse_currency(self, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_account(me, account)
+        BitvavoCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_transaction(me, transaction, &[currency.clone()])
+        BitvavoCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        BitvavoCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BitvavoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
-        BitvavoCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BitvavoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1209,7 +1183,7 @@ impl BitvavoCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -2428,7 +2402,7 @@ impl BitvavoCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // cancelOrder, cancelAllOrders

@@ -315,177 +315,119 @@ impl BinanceCore {
 impl crate::exchange::DerivedExchange for BinanceCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_ticker(me, ticker, &[market.clone()])
+        BinanceCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_trade(me, trade, &[market.clone()])
+        BinanceCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_order(me, order, &[market.clone()])
+        BinanceCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_market(me, market)
+        BinanceCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BinanceCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_funding_rate(me, rate, &[market.clone()])
+        BinanceCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        BinanceCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_last_price(me, entry, &[market.clone()])
+        BinanceCore::parse_last_price(self, entry, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        BinanceCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_transfer(me, transfer, &[currency.clone()])
+        BinanceCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_currency(me, currency)
+        BinanceCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_open_interest(me, interest, &[market.clone()])
+        BinanceCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_liquidation(me, liquidation, &[market.clone()])
+        BinanceCore::parse_liquidation(self, liquidation, &[market.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        BinanceCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_margin_modification(me, data, &[market.clone()])
+        BinanceCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_transaction(me, transaction, &[currency.clone()])
+        BinanceCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_borrow_interest(me, info, &[market.clone()])
+        BinanceCore::parse_borrow_interest(self, info, &[market.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_adl_rank(me, info, &[market.clone()])
+        BinanceCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_income(me, info, &[market.clone()])
+        BinanceCore::parse_income(self, info, &[market.clone()])
     }
     fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_greeks(me, greeks, &[market.clone()])
+        BinanceCore::parse_greeks(self, greeks, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        BinanceCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_conversion(me, conversion, &[from_currency.clone(), to_currency.clone()])
+        BinanceCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
     }
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_borrow_rate(me, info, &[currency.clone()])
+        BinanceCore::parse_borrow_rate(self, info, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_leverage(me, leverage, &[market.clone()])
+        BinanceCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        BinanceCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        BinanceCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::create_expired_option_market(me, symbol)
+        BinanceCore::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BinanceCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BinanceCore as *mut BinanceCore) };
-        BinanceCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BinanceCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -5829,7 +5771,7 @@ impl BinanceCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         if is_true(&Value::Bool(in_op(&trade, &Value::Str("isDustTrade".to_string())))) {
             return self.parse_dust_trade(trade.clone(), &[market.clone()]);
@@ -6692,7 +6634,7 @@ impl BinanceCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot

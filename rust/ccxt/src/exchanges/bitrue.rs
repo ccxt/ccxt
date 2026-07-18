@@ -195,81 +195,55 @@ impl BitrueCore {
 impl crate::exchange::DerivedExchange for BitrueCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_ticker(me, ticker, &[market.clone()])
+        BitrueCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_trade(me, trade, &[market.clone()])
+        BitrueCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_order(me, order, &[market.clone()])
+        BitrueCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_market(me, market)
+        BitrueCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BitrueCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_balance(me, response)
+        BitrueCore::parse_balance(self, response)
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_transfer(me, transfer, &[currency.clone()])
+        BitrueCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_currency(me, currency)
+        BitrueCore::parse_currency(self, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_margin_modification(me, data, &[market.clone()])
+        BitrueCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_transaction(me, transaction, &[currency.clone()])
+        BitrueCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        BitrueCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BitrueCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
-        BitrueCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BitrueCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2147,7 +2121,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2309,7 +2283,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder - spot

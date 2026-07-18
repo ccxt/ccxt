@@ -203,99 +203,67 @@ impl CoinbaseinternationalCore {
 impl crate::exchange::DerivedExchange for CoinbaseinternationalCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_ticker(me, ticker, &[market.clone()])
+        CoinbaseinternationalCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_trade(me, trade, &[market.clone()])
+        CoinbaseinternationalCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_order(me, order, &[market.clone()])
+        CoinbaseinternationalCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_market(me, market)
+        CoinbaseinternationalCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        CoinbaseinternationalCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_balance(me, response)
+        CoinbaseinternationalCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_position(me, position, &[market.clone()])
+        CoinbaseinternationalCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_funding_rate(me, rate, &[market.clone()])
+        CoinbaseinternationalCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_transfer(me, transfer, &[currency.clone()])
+        CoinbaseinternationalCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_currency(me, currency)
+        CoinbaseinternationalCore::parse_currency(self, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        CoinbaseinternationalCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_account(me, account)
+        CoinbaseinternationalCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_transaction(me, transaction, &[currency.clone()])
+        CoinbaseinternationalCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::parse_income(me, info, &[market.clone()])
+        CoinbaseinternationalCore::parse_income(self, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        CoinbaseinternationalCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseinternationalCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinbaseinternationalCore as *mut CoinbaseinternationalCore) };
-        CoinbaseinternationalCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        CoinbaseinternationalCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1746,7 +1714,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -2342,7 +2310,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {

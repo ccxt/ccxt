@@ -179,51 +179,35 @@ impl IndodaxCore {
 impl crate::exchange::DerivedExchange for IndodaxCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_ticker(me, ticker, &[market.clone()])
+        IndodaxCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_trade(me, trade, &[market.clone()])
+        IndodaxCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_order(me, order, &[market.clone()])
+        IndodaxCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        IndodaxCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_balance(me, response)
+        IndodaxCore::parse_balance(self, response)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::parse_transaction(me, transaction, &[currency.clone()])
+        IndodaxCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        IndodaxCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndodaxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndodaxCore as *mut IndodaxCore) };
-        IndodaxCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        IndodaxCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -975,7 +959,7 @@ impl IndodaxCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".to_string()), &[]);
         return self.safe_trade(Value::Map({
@@ -1104,7 +1088,7 @@ impl IndodaxCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

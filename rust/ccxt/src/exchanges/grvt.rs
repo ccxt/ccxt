@@ -214,99 +214,67 @@ impl GrvtCore {
 impl crate::exchange::DerivedExchange for GrvtCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_ticker(me, ticker, &[market.clone()])
+        GrvtCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_trade(me, trade, &[market.clone()])
+        GrvtCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_order(me, order, &[market.clone()])
+        GrvtCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_market(me, market)
+        GrvtCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        GrvtCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_balance(me, response)
+        GrvtCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_position(me, position, &[market.clone()])
+        GrvtCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_transfer(me, transfer, &[currency.clone()])
+        GrvtCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_currency(me, currency)
+        GrvtCore::parse_currency(self, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        GrvtCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_transaction(me, transaction, &[currency.clone()])
+        GrvtCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_income(me, info, &[market.clone()])
+        GrvtCore::parse_income(self, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        GrvtCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::parse_leverage(me, leverage, &[market.clone()])
+        GrvtCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        GrvtCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GrvtCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GrvtCore as *mut GrvtCore) };
-        GrvtCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        GrvtCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1740,7 +1708,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -3913,7 +3881,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder

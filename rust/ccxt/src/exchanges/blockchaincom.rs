@@ -182,39 +182,27 @@ impl BlockchaincomCore {
 impl crate::exchange::DerivedExchange for BlockchaincomCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::parse_ticker(me, ticker, &[market.clone()])
+        BlockchaincomCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::parse_trade(me, trade, &[market.clone()])
+        BlockchaincomCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::parse_order(me, order, &[market.clone()])
+        BlockchaincomCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::parse_transaction(me, transaction, &[currency.clone()])
+        BlockchaincomCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BlockchaincomCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlockchaincomCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BlockchaincomCore as *mut BlockchaincomCore) };
-        BlockchaincomCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BlockchaincomCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -887,7 +875,7 @@ impl BlockchaincomCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1246,7 +1234,7 @@ impl BlockchaincomCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

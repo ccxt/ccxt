@@ -310,135 +310,91 @@ impl KucoinCore {
 impl crate::exchange::DerivedExchange for KucoinCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_ticker(me, ticker, &[market.clone()])
+        KucoinCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_trade(me, trade, &[market.clone()])
+        KucoinCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_order(me, order, &[market.clone()])
+        KucoinCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        KucoinCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_position(me, position, &[market.clone()])
+        KucoinCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_funding_rate(me, rate, &[market.clone()])
+        KucoinCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        KucoinCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        KucoinCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_transfer(me, transfer, &[currency.clone()])
+        KucoinCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_currency(me, currency)
+        KucoinCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_open_interest(me, interest, &[market.clone()])
+        KucoinCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        KucoinCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_margin_modification(me, data, &[market.clone()])
+        KucoinCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_transaction(me, transaction, &[currency.clone()])
+        KucoinCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_borrow_interest(me, info, &[market.clone()])
+        KucoinCore::parse_borrow_interest(self, info, &[market.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_adl_rank(me, info, &[market.clone()])
+        KucoinCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_margin_mode(me, margin_mode, &[market.clone()])
+        KucoinCore::parse_margin_mode(self, margin_mode, &[market.clone()])
     }
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_borrow_rate(me, info, &[currency.clone()])
+        KucoinCore::parse_borrow_rate(self, info, &[currency.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        KucoinCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        KucoinCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        KucoinCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KucoinCore as *mut KucoinCore) };
-        KucoinCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        KucoinCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -7283,7 +7239,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tradeType: Value = self.safe_string_k(order.clone(), "tradeType", &[]);
         let mut utaTradeTypes: Value = Value::List(vec![Value::Str("SPOT".to_string()), Value::Str("CROSS".to_string()), Value::Str("ISOLATED".to_string()), Value::Str("FUTURES".to_string())]); // tradeType specific for uta endpoint
@@ -7305,7 +7261,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_contract_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_contract_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrder, fetchOrdersByStatus
@@ -7446,7 +7402,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_spot_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_spot_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -7633,7 +7589,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_uta_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_uta_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -8326,7 +8282,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidityRole".to_string())))) {
             return self.parse_my_uta_trade(trade.clone(), &[market.clone()]);
@@ -8342,7 +8298,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_spot_or_uta_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_spot_or_uta_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -8491,7 +8447,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_contract_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_contract_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -8633,7 +8589,7 @@ impl KucoinCore {
     Value::Null
 }
 
-    pub fn parse_my_uta_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_my_uta_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

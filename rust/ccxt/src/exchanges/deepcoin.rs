@@ -216,87 +216,59 @@ impl DeepcoinCore {
 impl crate::exchange::DerivedExchange for DeepcoinCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_ticker(me, ticker, &[market.clone()])
+        DeepcoinCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_trade(me, trade, &[market.clone()])
+        DeepcoinCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_order(me, order, &[market.clone()])
+        DeepcoinCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_market(me, market)
+        DeepcoinCore::parse_market(self, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_balance(me, response)
+        DeepcoinCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_position(me, position, &[market.clone()])
+        DeepcoinCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_funding_rate(me, rate, &[market.clone()])
+        DeepcoinCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        DeepcoinCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        DeepcoinCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_transfer(me, transfer, &[currency.clone()])
+        DeepcoinCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        DeepcoinCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::parse_transaction(me, transaction, &[currency.clone()])
+        DeepcoinCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        DeepcoinCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
-        DeepcoinCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        DeepcoinCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1367,7 +1339,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -3234,7 +3206,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // regular order

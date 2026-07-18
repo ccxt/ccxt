@@ -275,135 +275,91 @@ impl GateCore {
 impl crate::exchange::DerivedExchange for GateCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_ticker(me, ticker, &[market.clone()])
+        GateCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_trade(me, trade, &[market.clone()])
+        GateCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_order(me, order, &[market.clone()])
+        GateCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        GateCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_position(me, position, &[market.clone()])
+        GateCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_funding_rate(me, rate, &[market.clone()])
+        GateCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        GateCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        GateCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_transfer(me, transfer, &[currency.clone()])
+        GateCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_currency(me, currency)
+        GateCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_open_interest(me, interest, &[market.clone()])
+        GateCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_liquidation(me, liquidation, &[market.clone()])
+        GateCore::parse_liquidation(self, liquidation, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_margin_modification(me, data, &[market.clone()])
+        GateCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_transaction(me, transaction, &[currency.clone()])
+        GateCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_borrow_interest(me, info, &[market.clone()])
+        GateCore::parse_borrow_interest(self, info, &[market.clone()])
     }
     fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_greeks(me, greeks, &[market.clone()])
+        GateCore::parse_greeks(self, greeks, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_leverage(me, leverage, &[market.clone()])
+        GateCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        GateCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        GateCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::create_expired_option_market(me, symbol)
+        GateCore::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        GateCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GateCore as *mut GateCore) };
-        GateCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        GateCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -4734,7 +4690,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public
@@ -5794,7 +5750,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // SPOT

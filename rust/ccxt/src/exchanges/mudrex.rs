@@ -184,57 +184,39 @@ impl MudrexCore {
 impl crate::exchange::DerivedExchange for MudrexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_ticker(me, ticker, &[market.clone()])
+        MudrexCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_trade(me, trade, &[market.clone()])
+        MudrexCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_order(me, order, &[market.clone()])
+        MudrexCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_market(me, market)
+        MudrexCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        MudrexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_balance(me, response)
+        MudrexCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::parse_position(me, position, &[market.clone()])
+        MudrexCore::parse_position(self, position, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        MudrexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MudrexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MudrexCore as *mut MudrexCore) };
-        MudrexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        MudrexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1308,7 +1290,7 @@ impl MudrexCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut oms: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[oms.clone(), market.clone()]);
@@ -1916,7 +1898,7 @@ impl MudrexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut ms: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[ms.clone(), market.clone()]);

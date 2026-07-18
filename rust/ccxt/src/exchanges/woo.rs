@@ -238,117 +238,79 @@ impl WooCore {
 impl crate::exchange::DerivedExchange for WooCore {
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_trade(me, trade, &[market.clone()])
+        WooCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_order(me, order, &[market.clone()])
+        WooCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_market(me, market)
+        WooCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        WooCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_balance(me, response)
+        WooCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_position(me, position, &[market.clone()])
+        WooCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_funding_rate(me, rate, &[market.clone()])
+        WooCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        WooCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        WooCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_transfer(me, transfer, &[currency.clone()])
+        WooCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_currency(me, currency)
+        WooCore::parse_currency(self, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_account(me, account)
+        WooCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_transaction(me, transaction, &[currency.clone()])
+        WooCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_adl_rank(me, info, &[market.clone()])
+        WooCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_income(me, info, &[market.clone()])
+        WooCore::parse_income(self, info, &[market.clone()])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_conversion(me, conversion, &[from_currency.clone(), to_currency.clone()])
+        WooCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::parse_leverage(me, leverage, &[market.clone()])
+        WooCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        WooCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
-        WooCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        WooCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1246,7 +1208,7 @@ impl WooCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public/market_trades
@@ -2540,7 +2502,7 @@ impl WooCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder

@@ -196,81 +196,55 @@ impl KrakenfuturesCore {
 impl crate::exchange::DerivedExchange for KrakenfuturesCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_ticker(me, ticker, &[market.clone()])
+        KrakenfuturesCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_trade(me, trade, &[market.clone()])
+        KrakenfuturesCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_order(me, order, &[market.clone()])
+        KrakenfuturesCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        KrakenfuturesCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_balance(me, response)
+        KrakenfuturesCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_position(me, position, &[market.clone()])
+        KrakenfuturesCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_funding_rate(me, rate, &[market.clone()])
+        KrakenfuturesCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_transfer(me, transfer, &[currency.clone()])
+        KrakenfuturesCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_account(me, account)
+        KrakenfuturesCore::parse_account(self, account)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_leverage(me, leverage, &[market.clone()])
+        KrakenfuturesCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        KrakenfuturesCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        KrakenfuturesCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenfuturesCore as *mut KrakenfuturesCore) };
-        KrakenfuturesCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        KrakenfuturesCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1307,7 +1281,7 @@ impl KrakenfuturesCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (recent trades)

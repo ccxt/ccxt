@@ -205,69 +205,47 @@ impl DydxCore {
 impl crate::exchange::DerivedExchange for DydxCore {
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_trade(me, trade, &[market.clone()])
+        DydxCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_order(me, order, &[market.clone()])
+        DydxCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_market(me, market)
+        DydxCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        DydxCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_balance(me, response)
+        DydxCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_position(me, position, &[market.clone()])
+        DydxCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        DydxCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_transfer(me, transfer, &[currency.clone()])
+        DydxCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::parse_transaction(me, transaction, &[currency.clone()])
+        DydxCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        DydxCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DydxCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const DydxCore as *mut DydxCore) };
-        DydxCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        DydxCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -988,7 +966,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
@@ -1256,7 +1234,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {

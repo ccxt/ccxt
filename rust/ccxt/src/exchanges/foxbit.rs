@@ -194,69 +194,47 @@ impl FoxbitCore {
 impl crate::exchange::DerivedExchange for FoxbitCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_ticker(me, ticker, &[market.clone()])
+        FoxbitCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_trade(me, trade, &[market.clone()])
+        FoxbitCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_order(me, order, &[market.clone()])
+        FoxbitCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_market(me, market)
+        FoxbitCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        FoxbitCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        FoxbitCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        FoxbitCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_currency(me, currency)
+        FoxbitCore::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::parse_transaction(me, transaction, &[currency.clone()])
+        FoxbitCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        FoxbitCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on FoxbitCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const FoxbitCore as *mut FoxbitCore) };
-        FoxbitCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        FoxbitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2395,7 +2373,7 @@ impl FoxbitCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.parse_date(self.safe_string_k(trade.clone(), "created_at", &[]), &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -2447,7 +2425,7 @@ impl FoxbitCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Value = self.safe_string_k(order.clone(), "market_symbol", &[]);
         if is_equal(&market, &Value::Null) && !is_equal(&symbol, &Value::Null) {

@@ -169,45 +169,31 @@ impl PaymiumCore {
 impl crate::exchange::DerivedExchange for PaymiumCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::parse_ticker(me, ticker, &[market.clone()])
+        PaymiumCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::parse_trade(me, trade, &[market.clone()])
+        PaymiumCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::parse_balance(me, response)
+        PaymiumCore::parse_balance(self, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        PaymiumCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::parse_transfer(me, transfer, &[currency.clone()])
+        PaymiumCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        PaymiumCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        PaymiumCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -545,7 +531,7 @@ impl PaymiumCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("created_at_int".to_string()), &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "uuid", &[]);

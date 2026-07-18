@@ -218,81 +218,55 @@ impl LighterCore {
 impl crate::exchange::DerivedExchange for LighterCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_ticker(me, ticker, &[market.clone()])
+        LighterCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_trade(me, trade, &[market.clone()])
+        LighterCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_order(me, order, &[market.clone()])
+        LighterCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        LighterCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_position(me, position, &[market.clone()])
+        LighterCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_funding_rate(me, rate, &[market.clone()])
+        LighterCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_transfer(me, transfer, &[currency.clone()])
+        LighterCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_currency(me, currency)
+        LighterCore::parse_currency(self, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_margin_modification(me, data, &[market.clone()])
+        LighterCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_account(me, account)
+        LighterCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::parse_transaction(me, transaction, &[currency.clone()])
+        LighterCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        LighterCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
-        LighterCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        LighterCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2955,7 +2929,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -3776,7 +3750,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

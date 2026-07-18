@@ -243,93 +243,63 @@ impl MexcCore {
 impl crate::exchange::DerivedExchange for MexcCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_ticker(me, ticker, &[market.clone()])
+        MexcCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_trade(me, trade, &[market.clone()])
+        MexcCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_order(me, order, &[market.clone()])
+        MexcCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        MexcCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_position(me, position, &[market.clone()])
+        MexcCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_funding_rate(me, rate, &[market.clone()])
+        MexcCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        MexcCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_transfer(me, transfer, &[currency.clone()])
+        MexcCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_currency(me, currency)
+        MexcCore::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_transaction(me, transaction, &[currency.clone()])
+        MexcCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_leverage(me, leverage, &[market.clone()])
+        MexcCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        MexcCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        MexcCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        MexcCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
-        MexcCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        MexcCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2028,7 +1998,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id: Value = Value::Null;
         let mut timestamp: Value = Value::Null;
@@ -3809,7 +3779,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot

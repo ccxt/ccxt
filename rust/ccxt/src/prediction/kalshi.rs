@@ -197,57 +197,39 @@ impl KalshiCore {
 impl crate::exchange::DerivedExchange for KalshiCore {
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_market(me, market)
+        KalshiCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        KalshiCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_balance(me, response)
+        KalshiCore::parse_balance(self, response)
     }
     fn parse_my_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_my_trade(me, trade, &[market.clone()])
+        KalshiCore::parse_my_trade(self, trade, &[market.clone()])
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_prediction_trade(me, trade, &[market.clone()])
+        KalshiCore::parse_prediction_trade(self, trade, &[market.clone()])
     }
     fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_prediction_order(me, order, &[market.clone()])
+        KalshiCore::parse_prediction_order(self, order, &[market.clone()])
     }
     fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::parse_prediction_position(me, position, &[market.clone()])
+        KalshiCore::parse_prediction_position(self, position, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        KalshiCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KalshiCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KalshiCore as *mut KalshiCore) };
-        KalshiCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        KalshiCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 

@@ -197,45 +197,31 @@ impl LimitlessCore {
 impl crate::exchange::DerivedExchange for LimitlessCore {
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::parse_market(me, market)
+        LimitlessCore::parse_market(self, market)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::parse_account(me, account)
+        LimitlessCore::parse_account(self, account)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::parse_prediction_trade(me, trade, &[market.clone()])
+        LimitlessCore::parse_prediction_trade(self, trade, &[market.clone()])
     }
     fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::parse_prediction_order(me, order, &[market.clone()])
+        LimitlessCore::parse_prediction_order(self, order, &[market.clone()])
     }
     fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::parse_prediction_position(me, position, &[market.clone()])
+        LimitlessCore::parse_prediction_position(self, position, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        LimitlessCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const LimitlessCore as *mut LimitlessCore) };
-        LimitlessCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        LimitlessCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 

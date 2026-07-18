@@ -214,87 +214,59 @@ impl ModetradeCore {
 impl crate::exchange::DerivedExchange for ModetradeCore {
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_trade(me, trade, &[market.clone()])
+        ModetradeCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_order(me, order, &[market.clone()])
+        ModetradeCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_market(me, market)
+        ModetradeCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        ModetradeCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_balance(me, response)
+        ModetradeCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_position(me, position, &[market.clone()])
+        ModetradeCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_funding_rate(me, rate, &[market.clone()])
+        ModetradeCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        ModetradeCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_currency(me, currency)
+        ModetradeCore::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_transaction(me, transaction, &[currency.clone()])
+        ModetradeCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_income(me, info, &[market.clone()])
+        ModetradeCore::parse_income(self, info, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::parse_leverage(me, leverage, &[market.clone()])
+        ModetradeCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        ModetradeCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
-        ModetradeCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        ModetradeCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1181,7 +1153,7 @@ impl ModetradeCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public/market_trades
@@ -1912,7 +1884,7 @@ impl ModetradeCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // Possible input functions:

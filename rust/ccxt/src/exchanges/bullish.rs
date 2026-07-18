@@ -213,99 +213,67 @@ impl BullishCore {
 impl crate::exchange::DerivedExchange for BullishCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_ticker(me, ticker, &[market.clone()])
+        BullishCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_trade(me, trade, &[market.clone()])
+        BullishCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_order(me, order, &[market.clone()])
+        BullishCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_market(me, market)
+        BullishCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BullishCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_balance(me, response)
+        BullishCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_position(me, position, &[market.clone()])
+        BullishCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        BullishCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_transfer(me, transfer, &[currency.clone()])
+        BullishCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_currency(me, currency)
+        BullishCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_open_interest(me, interest, &[market.clone()])
+        BullishCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_account(me, account)
+        BullishCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_transaction(me, transaction, &[currency.clone()])
+        BullishCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::parse_borrow_rate(me, info, &[currency.clone()])
+        BullishCore::parse_borrow_rate(self, info, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BullishCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BullishCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BullishCore as *mut BullishCore) };
-        BullishCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BullishCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1501,7 +1469,7 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2433,7 +2401,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders, fetchOrder

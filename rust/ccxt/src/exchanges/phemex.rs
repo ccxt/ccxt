@@ -229,63 +229,43 @@ impl PhemexCore {
 impl crate::exchange::DerivedExchange for PhemexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_ticker(me, ticker, &[market.clone()])
+        PhemexCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_trade(me, trade, &[market.clone()])
+        PhemexCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_order(me, order, &[market.clone()])
+        PhemexCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        PhemexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_position(me, position, &[market.clone()])
+        PhemexCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_funding_rate(me, rate, &[market.clone()])
+        PhemexCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_transfer(me, transfer, &[currency.clone()])
+        PhemexCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_currency(me, currency)
+        PhemexCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_open_interest(me, interest, &[market.clone()])
+        PhemexCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_margin_modification(me, data, &[market.clone()])
+        PhemexCore::parse_margin_modification(self, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
@@ -295,33 +275,23 @@ impl crate::exchange::DerivedExchange for PhemexCore {
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_adl_rank(me, info, &[market.clone()])
+        PhemexCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_conversion(me, conversion, &[from_currency.clone(), to_currency.clone()])
+        PhemexCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::parse_market_leverage_tiers(me, info, &[market.clone()])
+        PhemexCore::parse_market_leverage_tiers(self, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        PhemexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PhemexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PhemexCore as *mut PhemexCore) };
-        PhemexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        PhemexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2305,7 +2275,7 @@ impl PhemexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public) spot & contract
@@ -2990,7 +2960,7 @@ impl PhemexCore {
     Value::Null
 }
 
-    pub fn parse_spot_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_spot_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -3120,7 +3090,7 @@ impl PhemexCore {
     Value::Null
 }
 
-    pub fn parse_swap_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_swap_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -3310,7 +3280,7 @@ impl PhemexCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut isSwap: Value = self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]);
         let mut hasPnl: Value = Value::Bool(is_true(&(Value::Bool(in_op(&order, &Value::Str("closedPnl".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("closedPnlRv".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("totalPnlRv".to_string()))))));

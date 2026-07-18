@@ -195,87 +195,59 @@ impl CexCore {
 impl crate::exchange::DerivedExchange for CexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_ticker(me, ticker, &[market.clone()])
+        CexCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_trade(me, trade, &[market.clone()])
+        CexCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_order(me, order, &[market.clone()])
+        CexCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_market(me, market)
+        CexCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        CexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_balance(me, response)
+        CexCore::parse_balance(self, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+        CexCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        CexCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_transfer(me, transfer, &[currency.clone()])
+        CexCore::parse_transfer(self, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_currency(me, currency)
+        CexCore::parse_currency(self, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_account(me, account)
+        CexCore::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::parse_transaction(me, transaction, &[currency.clone()])
+        CexCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        CexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
-        CexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        CexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1120,7 +1092,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -1779,7 +1751,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //                "orderId": "1313003",

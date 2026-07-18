@@ -218,117 +218,79 @@ impl BitmexCore {
 impl crate::exchange::DerivedExchange for BitmexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_ticker(me, ticker, &[market.clone()])
+        BitmexCore::parse_ticker(self, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_trade(me, trade, &[market.clone()])
+        BitmexCore::parse_trade(self, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_order(me, order, &[market.clone()])
+        BitmexCore::parse_order(self, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_market(me, market)
+        BitmexCore::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
+        BitmexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_balance(me, response)
+        BitmexCore::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_position(me, position, &[market.clone()])
+        BitmexCore::parse_position(self, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_funding_rate(me, rate, &[market.clone()])
+        BitmexCore::parse_funding_rate(self, rate, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_ledger_entry(me, entry, &[currency.clone()])
+        BitmexCore::parse_ledger_entry(self, entry, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_currency(me, currency)
+        BitmexCore::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_open_interest(me, interest, &[market.clone()])
+        BitmexCore::parse_open_interest(self, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_liquidation(me, liquidation, &[market.clone()])
+        BitmexCore::parse_liquidation(self, liquidation, &[market.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_funding_rate_history(me, entry, &[market.clone()])
+        BitmexCore::parse_funding_rate_history(self, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_transaction(me, transaction, &[currency.clone()])
+        BitmexCore::parse_transaction(self, transaction, &[currency.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_adl_rank(me, info, &[market.clone()])
+        BitmexCore::parse_adl_rank(self, info, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_leverage(me, leverage, &[market.clone()])
+        BitmexCore::parse_leverage(self, leverage, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
+        BitmexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        BitmexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
-        BitmexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
+        BitmexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2115,7 +2077,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -2271,7 +2233,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
