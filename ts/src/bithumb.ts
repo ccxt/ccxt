@@ -1637,9 +1637,8 @@ export default class bithumb extends Exchange {
         } else {
             params = this.omit (params, 'timeInForce');
         }
-        let postOnly: NullableDict = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        if (postOnly || (timeInForce === 'PO')) {
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
             request['time_in_force'] = 'post_only';
             params = this.omit (params, 'postOnly');
         } else if (timeInForce === 'FOK') {
