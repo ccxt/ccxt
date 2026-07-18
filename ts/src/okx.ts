@@ -7624,7 +7624,7 @@ export default class okx extends Exchange {
         let notionalMultiplier = contractSize;
         if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
             const ticker = await this.fetchMarkPrice (symbol);
-            const quoteConversionRate = this.safeString (ticker, 'markPrice', '1');
+            const quoteConversionRate = this.numberToString (this.safeNumber (ticker, 'markPrice', 1));
             notionalMultiplier = Precise.stringMul (contractSize, quoteConversionRate);
         }
         const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
