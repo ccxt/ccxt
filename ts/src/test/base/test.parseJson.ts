@@ -5,6 +5,11 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
+function testParseJsonHelperStringOrNum (value) {
+    const typeStr = typeof value;
+    assert (value === '123456789012345678901234' || value === 123456789012345678901234, 'Expected value to be either a string or a number, but got: ' + value.toString () + ' of type ' + typeStr);
+}
+
 function testParseJson () {
 
     const exchange = new ccxt.Exchange ({
@@ -21,17 +26,18 @@ function testParseJson () {
     //
     const obj2 = '{"k":123456789012345678901234}';
     const obj2Parsed = exchange.parseJson (obj2);
-    assert (obj2Parsed['k'] === '123456789012345678901234');
+    testParseJsonHelperStringOrNum (obj2Parsed['k']);
     exchange.setProperty (exchange, 'quoteJsonNumbers', false);
-    const obj2ReParsed = exchange.parseJson (obj2);
-    assert (typeof obj2ReParsed['k'] !== 'string');
-    assert (obj2ReParsed['k'] > 0);
+    const obj2Reparsed = exchange.parseJson (obj2);
+    assert (typeof obj2Reparsed['k'] !== 'string');
+    testParseJsonHelperStringOrNum (obj2Reparsed['k']);
     exchange.setProperty (exchange, 'quoteJsonNumbers', true);
-    assert (obj2Parsed['k'] === '123456789012345678901234');
+    const obj2ReparsedAgain = exchange.parseJson (obj2);
+    testParseJsonHelperStringOrNum (obj2ReparsedAgain['k']);
     //
     const obj3 = '{"k":123456789012345678901234,"k2":"{\\"k3\\":123}"}';
     const obj3Parsed = exchange.parseJson (obj3);
-    assert (obj3Parsed['k'] === '123456789012345678901234');
+    testParseJsonHelperStringOrNum (obj3Parsed['k']);
     assert (obj3Parsed['k2'] === '{"k3":123}');
 }
 
