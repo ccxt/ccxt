@@ -179,6 +179,18 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "fetchEvents scoped by a human-readable tag label slugifies it for gamma tag_slug",
+                "method": "fetchEvents",
+                "url": "https://gamma-api.polymarket.com/events?limit=100&order=volume&ascending=false&tag_slug=fed-rates&active=true&closed=false&offset=0",
+                "input": [
+                    {
+                        "tags": [
+                            "Fed Rates"
+                        ]
+                    }
+                ]
             }
         ],
         "fetchTickers": [

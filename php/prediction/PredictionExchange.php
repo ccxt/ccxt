@@ -247,6 +247,32 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $result;
     }
 
+    public function normalize_tag_key(string $tag) {
+        // reduce a $tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
+        // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+        // of the same $tag compare equal — venues surface tags in different forms and callers
+        // pass any of them. keeping the word boundary avoids cross-word false positives that
+        // plain concatenation would create ("us open" vs "household")
+        $lower = strtolower($tag);
+        $allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $chars = $this->string_to_chars_array($lower);
+        $s = '';
+        $pendingSep = false;
+        for ($i = 0; $i < count($chars); $i++) {
+            $ch = $chars[$i];
+            if (mb_strpos($allowed, $ch) !== false) {
+                if ($pendingSep && ($s !== '')) {
+                    $s = $s . ' ';
+                }
+                $s = $s . $ch;
+                $pendingSep = false;
+            } else {
+                $pendingSep = true;
+            }
+        }
+        return $s;
+    }
+
     public function filter_events_by_tags(array $events, ?array $tags = null) {
         // keep $events carrying one of the requested $tags; tolerant to string $tags and to
         // object $tags (array( slug, title, ... )) since venues differ. no-op when no $tags requested
@@ -259,7 +285,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $wanted = array();
         for ($i = 0; $i < count($tags); $i++) {
-            $wanted[] = strtolower($tags[$i]);
+            $wantedKey = $this->normalize_tag_key($tags[$i]);
+            if ($wantedKey !== '') {
+                // an empty normalized key would substring-match every $tag
+                $wanted[] = $wantedKey;
+            }
         }
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
@@ -275,9 +305,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                     $tagLabel = $this->safe_string_2($tag, 'slug', 'title');
                 }
                 if ($tagLabel !== null) {
-                    $tagLower = strtolower($tagLabel);
+                    $tagKey = $this->normalize_tag_key($tagLabel);
                     for ($wi = 0; $wi < count($wanted); $wi++) {
-                        if (mb_strpos($tagLower, $wanted[$wi]) !== false) {
+                        if (mb_strpos($tagKey, $wanted[$wi]) !== false) {
                             $matched = true;
                             break;
                         }

@@ -321,6 +321,7 @@ func (this *PolymarketCore) Describe() any {
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single search term used to filter the fetched events
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
  * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
  * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
@@ -493,6 +494,39 @@ func (this *PolymarketCore) FetchRawEventsBySearch(queries any, optionalArgs ...
 /**
  * @ignore
  * @method
+ * @name polymarket#tagToSlug
+ * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+ * @param {string} tag the tag label or slug
+ * @returns {string} the gamma tag slug
+ */
+func (this *PolymarketCore) TagToSlug(tag any) any {
+	var lower any = ccxt.ToLower(tag)
+	var allowed any = "abcdefghijklmnopqrstuvwxyz0123456789"
+	var chars any = this.StringToCharsArray(lower)
+	var slug any = ""
+	var pendingSep any = false
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(chars)); i++ {
+		var ch any = ccxt.GetValue(chars, i)
+		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(allowed, ch), 0)) {
+			if ccxt.IsTrue(ccxt.IsTrue(pendingSep) && ccxt.IsTrue((!ccxt.IsEqual(slug, "")))) {
+				slug = ccxt.Add(slug, "-")
+			}
+			slug = ccxt.Add(slug, ch)
+			pendingSep = false
+		} else {
+			pendingSep = true
+		}
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(slug, "")) {
+		// a tag with no alphanumerics at all — pass it through so gamma just returns no match
+		return lower
+	}
+	return slug
+}
+
+/**
+ * @ignore
+ * @method
  * @name polymarket#fetchRawEventsList
  * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
  * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -559,7 +593,9 @@ func (this *PolymarketCore) FetchRawEventsList(optionalArgs ...any) <-chan any {
 			return nil
 		}
 		if ccxt.IsTrue(ccxt.IsGreaterThan(requestedTagsLength, 0)) {
-			ccxt.AddElementToObject(baseRequest, "tag_slug", this.SafeString(requestedTags, 0))
+			// gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+			// so human-readable labels ("Fed Rates") must be slugified first
+			ccxt.AddElementToObject(baseRequest, "tag_slug", this.TagToSlug(this.SafeString(requestedTags, 0)))
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(status, "active")) {
 			ccxt.AddElementToObject(baseRequest, "active", true)
@@ -930,9 +966,9 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 			}
 		}
 
-		retRes86515 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
-		ccxt.PanicOnError(retRes86515)
-		ch <- retRes86515
+		retRes90115 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
+		ccxt.PanicOnError(retRes90115)
+		ch <- retRes90115
 		return nil
 
 	}()
@@ -1004,8 +1040,8 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomeSymbols)); i++ {
 			if !ccxt.IsTrue(this.HasOutcome(ccxt.GetValue(outcomeSymbols, i))) {
 
-				retRes92116 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
-				ccxt.PanicOnError(retRes92116)
+				retRes95716 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
+				ccxt.PanicOnError(retRes95716)
 			}
 		}
 
@@ -1120,8 +1156,8 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		// batch-resolve the uncached outcomes (one gamma request per 50 token ids)
 
-		retRes10038 := (<-this.LoadOutcomes(outcomes))
-		ccxt.PanicOnError(retRes10038)
+		retRes10398 := (<-this.LoadOutcomes(outcomes))
+		ccxt.PanicOnError(retRes10398)
 		var targets any = []any{}
 		for oi := 0; ccxt.IsLessThan(oi, ccxt.GetArrayLength(outcomes)); oi++ {
 			ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, oi))
@@ -1762,8 +1798,8 @@ func (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14988 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes14988)
+		retRes15348 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes15348)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -1910,8 +1946,8 @@ func (this *PolymarketCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes16088 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes16088)
+		retRes16448 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes16448)
 		// the collateral balance is tied to the signature type / funder that holds the USDC
 		var signatureType any = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
 		var rest any = this.Omit(params, []any{"signatureType", "signature_type"})
@@ -1978,8 +2014,8 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 			outcomesLength = ccxt.GetArrayLength(outcomes)
 
-			retRes165712 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes165712)
+			retRes169312 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes169312)
 		}
 		// no bulk warm-up on the unfiltered path: the positions request is self-contained and
 		// labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
@@ -2129,8 +2165,8 @@ func (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17728 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes17728)
+		retRes18088 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18088)
 		var request any = map[string]any{}
 		var outcomeObj any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -2173,8 +2209,8 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17978 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes17978)
+		retRes18338 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes18338)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -2307,11 +2343,11 @@ func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amou
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19098 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19098)
+		retRes19458 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19458)
 
-		retRes19108 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes19108)
+		retRes19468 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes19468)
 		var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
 
 		response := (<-this.ClobPrivatePostOrder(this.SafeDict(built, "body")))
@@ -2345,8 +2381,8 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19308 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes19308)
+		retRes19668 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes19668)
 		// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 		// requested outcomes first (one gamma request for all uncached token ids)
 		var orderOutcomes any = []any{}
@@ -2355,8 +2391,8 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 			ccxt.AppendToArray(&orderOutcomes, this.SafeString(o, "outcome"))
 		}
 
-		retRes19388 := (<-this.LoadOutcomes(orderOutcomes))
-		ccxt.PanicOnError(retRes19388)
+		retRes19748 := (<-this.LoadOutcomes(orderOutcomes))
+		ccxt.PanicOnError(retRes19748)
 		var bodies any = []any{}
 		var outcomes any = []any{}
 		var requests any = []any{}
@@ -2560,9 +2596,9 @@ func (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any, 
 			"cost": cost,
 		})
 
-		retRes212315 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
-		ccxt.PanicOnError(retRes212315)
-		ch <- retRes212315
+		retRes215915 := (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+		ccxt.PanicOnError(retRes215915)
+		ch <- retRes215915
 		return nil
 
 	}()
@@ -2767,8 +2803,8 @@ func (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22638 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes22638)
+		retRes22998 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes22998)
 		// cancelling by id needs no market data, so events do not have to be loaded first
 		var request any = map[string]any{
 			"orderID": id,
@@ -2813,8 +2849,8 @@ func (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22868 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes22868)
+		retRes23228 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23228)
 		// the request body is the bare array of order ids (DELETE /orders), so params are not merged
 
 		response := (<-this.ClobPrivateDeleteOrders(ids))
@@ -2856,8 +2892,8 @@ func (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23088 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes23088)
+		retRes23448 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes23448)
 		var response any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 			// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -2902,6 +2938,7 @@ func (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single keyword search term
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
  * @param {int} [params.limit] max number of events to return
  * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
  * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -3127,12 +3164,14 @@ func (this *PolymarketCore) ParseEvent(rawEvent any) any {
 		active = ccxt.IsTrue(rawActive) && !ccxt.IsTrue(closed)
 	}
 	// surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-	// — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+	// — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+	// prefer the human-readable label ("Fed Rates") over the slug — matching is
+	// normalized (normalizeTagKey), so the display form is free to be the friendly one
 	var rawTags any = this.SafeList(rawEvent, "tags", []any{})
 	var rawTagsLength any = ccxt.GetArrayLength(rawTags)
 	var parsedTags any = []any{}
 	for ti := 0; ccxt.IsLessThan(ti, rawTagsLength); ti++ {
-		var tagLabel any = this.SafeString2(ccxt.GetValue(rawTags, ti), "slug", "label")
+		var tagLabel any = this.SafeString2(ccxt.GetValue(rawTags, ti), "label", "slug")
 		if ccxt.IsTrue(!ccxt.IsEqual(tagLabel, nil)) {
 			ccxt.AppendToArray(&parsedTags, tagLabel)
 		}
@@ -3538,8 +3577,8 @@ func (this *PolymarketCore) LoadApiCredentials() <-chan any {
 			var alreadyDerived any = this.SafeString(this.Options, "l2ApiKey")
 			if ccxt.IsTrue(ccxt.IsEqual(alreadyDerived, nil)) {
 
-				retRes285216 := (<-this.CreateOrDeriveApiKey())
-				ccxt.PanicOnError(retRes285216)
+				retRes289116 := (<-this.CreateOrDeriveApiKey())
+				ccxt.PanicOnError(retRes289116)
 			}
 
 			return nil
@@ -3907,8 +3946,8 @@ func (this *PolymarketCore) WatchOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31488 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes31488)
+		retRes31878 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes31878)
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -3956,8 +3995,8 @@ func (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31748 := (<-this.LoadApiCredentials())
-		ccxt.PanicOnError(retRes31748)
+		retRes32138 := (<-this.LoadApiCredentials())
+		ccxt.PanicOnError(retRes32138)
 		var messageHash any = "myTrades"
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
@@ -4004,9 +4043,9 @@ func (this *PolymarketCore) SubscribeUserChannel(messageHash any, optionalArgs .
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "wsUser")
 		var subscribeHash any = "user"
 
-		retRes319815 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
-		ccxt.PanicOnError(retRes319815)
-		ch <- retRes319815
+		retRes323715 := (<-this.Watch(url, messageHash, this.Extend(subscribeMsg, params), subscribeHash))
+		ccxt.PanicOnError(retRes323715)
+		ch <- retRes323715
 		return nil
 
 	}()

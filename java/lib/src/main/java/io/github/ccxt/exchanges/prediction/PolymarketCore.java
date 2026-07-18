@@ -326,6 +326,7 @@ public class PolymarketCore extends PolymarketApi
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -506,6 +507,45 @@ public class PolymarketCore extends PolymarketApi
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    public Object tagToSlug(Object tag)
+    {
+        Object lower = ((String)tag).toLowerCase();
+        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Object chars = this.stringToCharsArray(lower);
+        Object slug = "";
+        Object pendingSep = false;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
+        {
+            Object ch = Helpers.GetValue(chars, i);
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(slug, "")))))
+                {
+                    slug = Helpers.add(slug, "-");
+                }
+                slug = Helpers.add(slug, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(slug, "")))
+        {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -575,7 +615,9 @@ public class PolymarketCore extends PolymarketApi
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 0)))
             {
-                Helpers.addElementToObject(baseRequest, "tag_slug", this.safeString(requestedTags, 0));
+                // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+                // so human-readable labels ("Fed Rates") must be slugified first
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
             }
             if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {
@@ -2838,6 +2880,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -3062,13 +3105,15 @@ final Object finalOutcomePrice = outcomePrice;
             active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         Object rawTags = this.safeList(rawEvent, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawTagsLength = Helpers.getArrayLength(rawTags);
         Object parsedTags = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
         {
-            Object tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "slug", "label");
+            Object tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "label", "slug");
             if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
             {
                 ((java.util.List<Object>)parsedTags).add(tagLabel);

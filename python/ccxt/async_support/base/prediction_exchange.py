@@ -214,6 +214,28 @@ class PredictionExchange(BaseExchange):
                 result.append(event)
         return result
 
+    def normalize_tag_key(self, tag: str):
+        # reduce a tag to lowercase alphanumeric words joined by single spaces("Fed Rates" /
+        # "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+        # of the same tag compare equal — venues surface tags in different forms and callers
+        # pass any of them. keeping the word boundary avoids cross-word False positives that
+        # plain concatenation would create("us open" vs "household")
+        lower = tag.lower()
+        allowed = 'abcdefghijklmnopqrstuvwxyz0123456789'
+        chars = self.string_to_chars_array(lower)
+        s = ''
+        pendingSep = False
+        for i in range(0, len(chars)):
+            ch = chars[i]
+            if allowed.find(ch) >= 0:
+                if pendingSep and (s != ''):
+                    s = s + ' '
+                s = s + ch
+                pendingSep = False
+            else:
+                pendingSep = True
+        return s
+
     def filter_events_by_tags(self, events: List[Any], tags: List[str] = None):
         # keep events carrying one of the requested tags; tolerant to string tags and to
         # object tags({slug, title, ...}) since venues differ. no-op when no tags requested
@@ -224,7 +246,10 @@ class PredictionExchange(BaseExchange):
             return events
         wanted = []
         for i in range(0, len(tags)):
-            wanted.append(tags[i].lower())
+            wantedKey = self.normalize_tag_key(tags[i])
+            if wantedKey != '':
+                # an empty normalized key would substring-match every tag
+                wanted.append(wantedKey)
         result = []
         for i in range(0, len(events)):
             event = events[i]
@@ -238,9 +263,9 @@ class PredictionExchange(BaseExchange):
                 else:
                     tagLabel = self.safe_string_2(tag, 'slug', 'title')
                 if tagLabel is not None:
-                    tagLower = tagLabel.lower()
+                    tagKey = self.normalize_tag_key(tagLabel)
                     for wi in range(0, len(wanted)):
-                        if tagLower.find(wanted[wi]) >= 0:
+                        if tagKey.find(wanted[wi]) >= 0:
                             matched = True
                             break
                 if matched:

@@ -348,6 +348,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra exchange-specific parameters
              * @param {string} [$params->query] a single search term used to filter the fetched events
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string[]} [$params->tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
              * @param {string} [$params->status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
              * @param {int} [$params->limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
              * @return {array[]} an array of objects representing market data
@@ -480,6 +481,37 @@ class polymarket extends Exchange {
         })();
     }
 
+    public function tag_to_slug(string $tag): string {
+        /**
+         * @ignore
+         * converts a human-readable $tag label into gamma's $slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a $tag already in $slug form passes through unchanged
+         * @param {string} $tag the $tag label or $slug
+         * @return {string} the gamma $tag $slug
+         */
+        $lower = strtolower($tag);
+        $allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $chars = $this->string_to_chars_array($lower);
+        $slug = '';
+        $pendingSep = false;
+        for ($i = 0; $i < count($chars); $i++) {
+            $ch = $chars[$i];
+            if (mb_strpos($allowed, $ch) !== false) {
+                if ($pendingSep && ($slug !== '')) {
+                    $slug = $slug . '-';
+                }
+                $slug = $slug . $ch;
+                $pendingSep = false;
+            } else {
+                $pendingSep = true;
+            }
+        }
+        if ($slug === '') {
+            // a $tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return $lower;
+        }
+        return $slug;
+    }
+
     public function fetch_raw_events_list($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -536,7 +568,9 @@ class polymarket extends Exchange {
                 return $unioned;
             }
             if ($requestedTagsLength > 0) {
-                $baseRequest['tag_slug'] = $this->safe_string($requestedTags, 0);
+                // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+                // so human-readable labels ("Fed Rates") must be slugified first
+                $baseRequest['tag_slug'] = $this->tag_to_slug($this->safe_string($requestedTags, 0));
             }
             if ($status === 'active') {
                 $baseRequest['active'] = true;
@@ -2374,6 +2408,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra exchange-specific parameters
              * @param {string} [$params->query] a single keyword search term
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string[]} [$params->tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
              * @param {int} [$params->limit] max number of events to return
              * @param {string} [$params->sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
              * @param {string} [$params->status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2558,12 +2593,14 @@ class polymarket extends Exchange {
             $active = $rawActive && !$closed;
         }
         // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the $slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         $rawTags = $this->safe_list($rawEvent, 'tags', array());
         $rawTagsLength = count($rawTags);
         $parsedTags = array();
         for ($ti = 0; $ti < $rawTagsLength; $ti++) {
-            $tagLabel = $this->safe_string_2($rawTags[$ti], 'slug', 'label');
+            $tagLabel = $this->safe_string_2($rawTags[$ti], 'label', 'slug');
             if ($tagLabel !== null) {
                 $parsedTags[] = $tagLabel;
             }

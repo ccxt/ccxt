@@ -313,6 +313,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -481,6 +482,45 @@ public partial class polymarket : PredictionExchange
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    public virtual object tagToSlug(object tag)
+    {
+        object lower = ((string)tag).ToLower();
+        object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        object chars = this.stringToCharsArray(lower);
+        object slug = "";
+        object pendingSep = false;
+        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        {
+            object ch = getValue(chars, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
+            {
+                if (isTrue(isTrue(pendingSep) && isTrue((!isEqual(slug, "")))))
+                {
+                    slug = add(slug, "-");
+                }
+                slug = add(slug, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (isTrue(isEqual(slug, "")))
+        {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -546,7 +586,9 @@ public partial class polymarket : PredictionExchange
         }
         if (isTrue(isGreaterThan(requestedTagsLength, 0)))
         {
-            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.safeString(requestedTags, 0);
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.tagToSlug(this.safeString(requestedTags, 0));
         }
         if (isTrue(isEqual(status, "active")))
         {
@@ -2628,6 +2670,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2840,13 +2883,15 @@ public partial class polymarket : PredictionExchange
             active = isTrue(rawActive) && !isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         object rawTags = this.safeList(rawEvent, "tags", new List<object>() {});
         object rawTagsLength = getArrayLength(rawTags);
         object parsedTags = new List<object>() {};
         for (object ti = 0; isLessThan(ti, rawTagsLength); postFixIncrement(ref ti))
         {
-            object tagLabel = this.safeString2(getValue(rawTags, ti), "slug", "label");
+            object tagLabel = this.safeString2(getValue(rawTags, ti), "label", "slug");
             if (isTrue(!isEqual(tagLabel, null)))
             {
                 ((IList<object>)parsedTags).Add(tagLabel);

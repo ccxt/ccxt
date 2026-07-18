@@ -238,6 +238,31 @@ func  (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any,
     }
     return result
 }
+func  (this *PredictionExchange) NormalizeTagKey(tag any) any  {
+    // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
+    // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+    // of the same tag compare equal — venues surface tags in different forms and callers
+    // pass any of them. keeping the word boundary avoids cross-word false positives that
+    // plain concatenation would create ("us open" vs "household")
+    var lower any = ToLower(tag)
+    var allowed any = "abcdefghijklmnopqrstuvwxyz0123456789"
+    var chars any = this.StringToCharsArray(lower)
+    var s any = ""
+    var pendingSep any = false
+    for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
+        var ch any = GetValue(chars, i)
+        if IsTrue(IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0)) {
+            if IsTrue(IsTrue(pendingSep) && IsTrue((!IsEqual(s, "")))) {
+                s = Add(s, " ")
+            }
+            s = Add(s, ch)
+            pendingSep = false
+        } else {
+            pendingSep = true
+        }
+    }
+    return s
+}
 func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...any) any  {
     // keep events carrying one of the requested tags; tolerant to string tags and to
     // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
@@ -252,7 +277,11 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
     }
     var wanted any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(tags)); i++ {
-        AppendToArray(&wanted, ToLower(GetValue(tags, i)))
+        var wantedKey any = this.NormalizeTagKey(GetValue(tags, i))
+        if IsTrue(!IsEqual(wantedKey, "")) {
+            // an empty normalized key would substring-match every tag
+            AppendToArray(&wanted, wantedKey)
+        }
     }
     var result any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
@@ -268,9 +297,9 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
                 tagLabel = this.SafeString2(tag, "slug", "title")
             }
             if IsTrue(!IsEqual(tagLabel, nil)) {
-                var tagLower any = ToLower(tagLabel)
+                var tagKey any = this.NormalizeTagKey(tagLabel)
                 for wi := 0; IsLessThan(wi, GetArrayLength(wanted)); wi++ {
-                    if IsTrue(IsGreaterThanOrEqual(GetIndexOf(tagLower, GetValue(wanted, wi)), 0)) {
+                    if IsTrue(IsGreaterThanOrEqual(GetIndexOf(tagKey, GetValue(wanted, wi)), 0)) {
                         matched = true
                         break
                     }
@@ -396,9 +425,9 @@ func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes36215 :=  (<-this.LoadEventsHelper(reload, params))
-                PanicOnError(retRes36215)
-        ch <- retRes36215
+                retRes39215 :=  (<-this.LoadEventsHelper(reload, params))
+                PanicOnError(retRes39215)
+        ch <- retRes39215
                 return nil
         
             }()
@@ -721,8 +750,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
                 if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue(loadAll)) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
         
-                    retRes67416 := (<-this.LoadOutcomes())
-                    PanicOnError(retRes67416)
+                    retRes70416 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes70416)
                     var stillMissing any = []any{}
                     for i := 0; IsLessThan(i, missingLength); i++ {
                         if !IsTrue(this.HasOutcome(GetValue(missing, i))) {
@@ -734,8 +763,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 }
                 if IsTrue(IsGreaterThan(missingLength, 0)) {
         
-                    retRes68516 := <-this.DerivedExchange.FetchOutcomes(missing)
-                    PanicOnError(retRes68516)
+                    retRes71516 := <-this.DerivedExchange.FetchOutcomes(missing)
+                    PanicOnError(retRes71516)
                 }
         
                 ch <- this.Outcomes
@@ -747,8 +776,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 return nil
             }
         
-            retRes6928 := (<-this.LoadMarkets(reload, params))
-            PanicOnError(retRes6928)
+            retRes7228 := (<-this.LoadMarkets(reload, params))
+            PanicOnError(retRes7228)
             this.PopulateOutcomes()
         
             ch <- this.Outcomes
@@ -772,8 +801,8 @@ func  (this *PredictionExchange) FetchOutcomes(outcomeSymbols any) <- chan any {
                 defer ReturnPanicError(ch)
                     for i := 0; IsLessThan(i, GetArrayLength(outcomeSymbols)); i++ {
         
-                retRes70712 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
-                PanicOnError(retRes70712)
+                retRes73712 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
+                PanicOnError(retRes73712)
             }
         
             ch <- this.Outcomes
@@ -821,8 +850,8 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...
                 var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
                 if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
         
-                    retRes74016 := (<-this.LoadOutcomes())
-                    PanicOnError(retRes74016)
+                    retRes77016 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes77016)
                     if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
                         ch <- this.SafeOutcome(outcomeSymbol)
@@ -831,9 +860,9 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...
                 }
             }
         
-                retRes74615 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
-                PanicOnError(retRes74615)
-                ch <- retRes74615
+                retRes77615 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
+                PanicOnError(retRes77615)
+                ch <- retRes77615
                 return nil
         
             }()
@@ -924,11 +953,11 @@ func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
                             }()
                 		    // try block:
                             
-                            retRes81116 := <-this.callInternal("fetchEvents", map[string]any {
+                            retRes84116 := <-this.callInternal("fetchEvents", map[string]any {
                     "query": searchQuery,
                     "limit": searchLimit,
                 })
-                            PanicOnError(retRes81116)
+                            PanicOnError(retRes84116)
                 		    return nil
                 	    }(this)
                     
@@ -1034,9 +1063,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes87515 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes87515)
-                ch <- retRes87515
+                retRes90515 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes90515)
+                ch <- retRes90515
                 return nil
         
             }()
@@ -1472,9 +1501,9 @@ func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost 
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
         
-                    retRes111719 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes111719)
-                    ch <- retRes111719
+                    retRes114719 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes114719)
+                    ch <- retRes114719
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -1500,9 +1529,9 @@ func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
         
-                    retRes113319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes113319)
-                    ch <- retRes113319
+                    retRes116319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes116319)
+                    ch <- retRes116319
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -2209,9 +2238,9 @@ func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fro
             var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
             PanicOnError(signed)
         
-                retRes171915 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                PanicOnError(retRes171915)
-                ch <- retRes171915
+                retRes174915 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+                PanicOnError(retRes174915)
+                ch <- retRes174915
                 return nil
         
             }()
@@ -2235,8 +2264,8 @@ func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash an
                     return nil
                 }
         
-                retRes172912 := (<-this.Sleep(2000))
-                PanicOnError(retRes172912)
+                retRes175912 := (<-this.Sleep(2000))
+                PanicOnError(retRes175912)
             }
             panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         

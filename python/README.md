@@ -21,7 +21,7 @@ Current feature list:
 - implements public and private APIs, both REST and WebSocket
 - optionally normalizes data for cross-exchange analytics and arbitrage
 - has an out of the box unified API that is extremely easy to integrate
-- ideal for AI agents and vibe coding
+- ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
 ## See Also
