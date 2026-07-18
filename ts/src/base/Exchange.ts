@@ -6658,7 +6658,9 @@ export class BaseExchange {
         return rate;
     }
 
+    /* eslint-disable no-unused-vars */
     requireValue <T>(value: T | undefined, message?: Str): T;
+    /* eslint-enable no-unused-vars */
     requireValue (value: any, message: Str = undefined): any {
         if (value === undefined) {
             const errorMessage = (message !== undefined) ? message : 'value is required';
@@ -6675,8 +6677,10 @@ export class BaseExchange {
         return symbols;
     }
 
+    /* eslint-disable no-unused-vars */
     handleOptionAndParams <T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
     handleOptionAndParams (params: object, methodName: Str, optionName: string, defaultValue?: any): [any, Dict];
+    /* eslint-enable no-unused-vars */
     handleOptionAndParams (params: object, methodName: Str, optionName: string, defaultValue: any = undefined): [any, Dict] {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
@@ -6703,8 +6707,10 @@ export class BaseExchange {
         return [ value, params ];
     }
 
+    /* eslint-disable no-unused-vars */
     handleOptionAndParams2 <T>(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: T): [T, Dict];
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [any, Dict];
+    /* eslint-enable no-unused-vars */
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): [any, Dict] {
         let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
