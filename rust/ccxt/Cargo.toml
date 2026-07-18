@@ -5,6 +5,11 @@ edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust)"
 license = "MIT"
 repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
 
 [lib]
 name = "ccxt"
