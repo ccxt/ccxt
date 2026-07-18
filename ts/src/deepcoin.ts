@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Dictionary, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -571,20 +571,20 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    setMarkets (markets, currencies = undefined) {
-        markets = super.setMarkets (markets, currencies);
-        const symbols = Object.keys (markets);
+    setMarkets (markets, currencies = undefined): Dictionary<Market> {
+        const result = super.setMarkets (markets, currencies);
+        const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = markets[symbol];
-            if (market['swap']) {
-                const additionalId = market['baseId'] + market['quoteId'];
+            const market = result[symbol];
+            if ((market !== undefined) && market['swap']) {
+                const additionalId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
                 }
             }
         }
-        return markets;
+        return result;
     }
 
     /**

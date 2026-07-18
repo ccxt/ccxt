@@ -1478,7 +1478,7 @@ export class BaseExchange {
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
-        return this.setMarkets (markets, currencies);
+        return this.setMarkets (markets, currencies as any);
     }
 
     /**
@@ -3799,7 +3799,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
@@ -3816,7 +3816,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<Dict> {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
 
@@ -3855,7 +3855,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 
@@ -4412,7 +4412,7 @@ export class BaseExchange {
         return this.extend (cleanStructure);
     }
 
-    setMarkets (markets, currencies: Currencies | undefined = undefined): Dictionary<Market> {
+    setMarkets (markets, currencies = undefined): Dictionary<Market> {
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
