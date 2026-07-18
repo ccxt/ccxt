@@ -7617,7 +7617,10 @@ export default class okx extends Exchange {
             request['instId'] = market['id'];
         }
         const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
-        const contractSize = (isFutureOrSwap) ? this.safeString (market, 'contractSize', '1') : '1';
+        let contractSize = '1';
+        if (isFutureOrSwap) {
+            contractSize = this.numberToString (this.safeNumber (market, 'contractSize', 1));
+        }
         let notionalMultiplier = contractSize;
         if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
             const ticker = await this.fetchMarkPrice (symbol);
@@ -7651,10 +7654,11 @@ export default class okx extends Exchange {
         if (isFutureOrSwap) {
             for (let i = 0; i < tiers.length; i++) {
                 const tier = tiers[i];
-                const minNotional = this.safeString (tier, 'minNotional');
-                const maxNotional = this.safeString (tier, 'maxNotional');
-                tier['minNotional'] = (minNotional === undefined) ? undefined : this.parseNumber (Precise.stringMul (minNotional, notionalMultiplier));
-                tier['maxNotional'] = (maxNotional === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxNotional, notionalMultiplier));
+                const tierInfo = this.safeDict (tier, 'info', {});
+                const minSize = this.safeString (tierInfo, 'minSz');
+                const maxSize = this.safeString (tierInfo, 'maxSz');
+                tier['minNotional'] = (minSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (minSize, notionalMultiplier));
+                tier['maxNotional'] = (maxSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxSize, notionalMultiplier));
                 tiers[i] = tier;
             }
         }
