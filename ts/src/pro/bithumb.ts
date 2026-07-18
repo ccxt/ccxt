@@ -298,12 +298,14 @@ export default class bithumb extends bithumbRest {
         }
         const date = this.safeString (ticker, 'date', '') as string;
         const time = this.safeString (ticker, 'time', '') as string;
-        const datetime = date.slice (0, 4) + '-' + date.slice (4, 6) + '-' + date.slice (6, 8) + 'T' + time.slice (0, 2) + ':' + time.slice (2, 4) + ':' + time.slice (4, 6);
+        const kstDatetime = date.slice (0, 4) + '-' + date.slice (4, 6) + '-' + date.slice (6, 8) + 'T' + time.slice (0, 2) + ':' + time.slice (2, 4) + ':' + time.slice (4, 6);
+        // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
+        const timestamp = this.parseToInt (this.parse8601 (kstDatetime)) - 32400000;
         const marketId = this.safeString (ticker, 'symbol');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, '_'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'highPrice'),
             'low': this.safeString (ticker, 'lowPrice'),
             'bid': undefined,
