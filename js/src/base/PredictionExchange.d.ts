@@ -19,6 +19,7 @@ export default class PredictionExchange extends BaseExchange {
     applyEventFetchParams(events: any[], params?: {}, queries?: string[]): any[];
     filterEventsByStatus(events: any[], status?: Str): any[];
     filterEventsBySearchIn(events: any[], queries: string[], searchIn?: Str): any[];
+    normalizeTagKey(tag: string): string;
     filterEventsByTags(events: any[], tags?: string[]): any[];
     fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
     fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;

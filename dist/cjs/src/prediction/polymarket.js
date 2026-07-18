@@ -340,6 +340,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -475,6 +476,39 @@ class polymarket extends polymarket$1["default"] {
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    tagToSlug(tag) {
+        const lower = tag.toLowerCase();
+        const allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        const chars = this.stringToCharsArray(lower);
+        let slug = '';
+        let pendingSep = false;
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf(ch) >= 0) {
+                if (pendingSep && (slug !== '')) {
+                    slug = slug + '-';
+                }
+                slug = slug + ch;
+                pendingSep = false;
+            }
+            else {
+                pendingSep = true;
+            }
+        }
+        if (slug === '') {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -528,7 +562,9 @@ class polymarket extends polymarket$1["default"] {
             return unioned;
         }
         if (requestedTagsLength > 0) {
-            baseRequest['tag_slug'] = this.safeString(requestedTags, 0);
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            baseRequest['tag_slug'] = this.tagToSlug(this.safeString(requestedTags, 0));
         }
         if (status === 'active') {
             baseRequest['active'] = true;
@@ -2298,6 +2334,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2483,12 +2520,14 @@ class polymarket extends polymarket$1["default"] {
             active = rawActive && !closed;
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         const rawTags = this.safeList(rawEvent, 'tags', []);
         const rawTagsLength = rawTags.length;
         const parsedTags = [];
         for (let ti = 0; ti < rawTagsLength; ti++) {
-            const tagLabel = this.safeString2(rawTags[ti], 'slug', 'label');
+            const tagLabel = this.safeString2(rawTags[ti], 'label', 'slug');
             if (tagLabel !== undefined) {
                 parsedTags.push(tagLabel);
             }
