@@ -78,7 +78,7 @@ export default class bybit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -5924,6 +5924,41 @@ export default class bybit extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all available networks
+     * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const request: Dict = {
+                'coin': currency['id'],
+            };
+            const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, params));
+            const responseResult = this.safeDict (response, 'result', {});
+            const chains = this.safeList (responseResult, 'chains', []);
+            // Keep every row because more than one configured address may share a network.
+            const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+                'currency': currency['code'],
+            });
+            result = this.arrayConcat (result, parsed);
+        }
+        return result;
     }
 
     /**

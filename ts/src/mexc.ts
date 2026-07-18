@@ -71,7 +71,7 @@ export default class mexc extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': undefined,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -4829,14 +4829,45 @@ export default class mexc extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const networkId = this.safeString (depositAddress, 'netWork');
+        const networkId = this.safeString2 (depositAddress, 'netWork', 'network');
         return {
             'info': depositAddress,
             'currency': code,
             'network': this.networkIdToCode (networkId, code),
             'address': address,
-            'tag': this.safeString (depositAddress, 'memo'),
+            'tag': this.safeString2 (depositAddress, 'memo', 'tag'),
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name mexc#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all available networks
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const request: Dict = {
+                'coin': currency['id'],
+            };
+            const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+            // Keep every row because MEXC returns each configured address separately.
+            const parsed = this.parseDepositAddresses (response, [ currency['code'] ], false);
+            result = this.arrayConcat (result, parsed);
+        }
+        return result;
     }
 
     /**
