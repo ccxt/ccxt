@@ -1059,7 +1059,11 @@ class coinex extends Exchange {
         //
         $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'swap' : 'spot';
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        $symbol = $market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        $quoteVolume = $market['inverse'] ? null : $this->safe_string($ticker, 'value');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1079,7 +1083,7 @@ class coinex extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => $this->safe_string($ticker, 'value'),
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
