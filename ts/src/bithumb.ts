@@ -3297,8 +3297,8 @@ export default class bithumb extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
-        const populatedQuery = this.safeString (queryKeys, 0);
-        const hasQuery = (populatedQuery !== undefined);
+        const queryKeysLength = queryKeys.length;
+        const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
             if (hasQuery) {
                 url += '?' + this.urlencode (query);
@@ -3318,9 +3318,9 @@ export default class bithumb extends Exchange {
                 let auth = undefined;
                 const usesBracketedArrayEncoding = this.hasBracketedArrayParams (query);
                 if ((method !== 'GET') && (method !== 'DELETE')) {
+                    headers['Content-Type'] = 'application/json';
                     if (hasQuery) {
                         body = this.json (query);
-                        headers['Content-Type'] = 'application/json';
                         if (usesBracketedArrayEncoding) {
                             auth = this.urlencodeWithArrayBrackets (query);
                         } else {
