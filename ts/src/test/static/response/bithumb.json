@@ -1889,7 +1889,7 @@
                 ],
                 "parsedResponse": [
                     {
-                        "id": null,
+                        "id": "17840985635610000",
                         "info": {
                             "market": "BTC-SOL",
                             "trade_date_utc": "2026-07-15",
@@ -1919,7 +1919,7 @@
                         "fees": []
                     },
                     {
-                        "id": null,
+                        "id": "17840985635610000",
                         "info": {
                             "market": "BTC-SOL",
                             "trade_date_utc": "2026-07-15",
@@ -1949,7 +1949,7 @@
                         "fees": []
                     },
                     {
-                        "id": null,
+                        "id": "17840985635610000",
                         "info": {
                             "market": "BTC-SOL",
                             "trade_date_utc": "2026-07-15",
@@ -2517,6 +2517,173 @@
                     "price": 1500,
                     "triggerPrice": null,
                     "amount": 3.5,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 market buy with price argument create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "buy",
+                    3.5,
+                    1500
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002196698786",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "price",
+                    "created_at": "2026-07-19T11:57:26+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002196698786",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "price",
+                        "created_at": "2026-07-19T11:57:26+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002196698786",
+                    "clientOrderId": null,
+                    "timestamp": 1784429846000,
+                    "datetime": "2026-07-19T11:57:26+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1500,
+                    "triggerPrice": null,
+                    "amount": 3.5,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 market sell create order",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "sell",
+                    3.2
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002196702013",
+                    "market": "KRW-XRP",
+                    "side": "ask",
+                    "order_type": "market",
+                    "created_at": "2026-07-19T12:00:52+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002196702013",
+                        "market": "KRW-XRP",
+                        "side": "ask",
+                        "order_type": "market",
+                        "created_at": "2026-07-19T12:00:52+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002196702013",
+                    "clientOrderId": null,
+                    "timestamp": 1784430052000,
+                    "datetime": "2026-07-19T12:00:52+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 3.2,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "generation 2 market buy create order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "buy",
+                    5000,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002196705563",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "price",
+                    "created_at": "2026-07-19T12:04:24+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002196705563",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "price",
+                        "created_at": "2026-07-19T12:04:24+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002196705563",
+                    "clientOrderId": null,
+                    "timestamp": 1784430264000,
+                    "datetime": "2026-07-19T12:04:24+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 5000,
                     "cost": null,
                     "average": null,
                     "filled": null,
@@ -5012,6 +5179,60 @@
                     "price": null,
                     "triggerPrice": null,
                     "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "generation 2 create market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "XRP/KRW",
+                    5000
+                ],
+                "httpResponse": {
+                    "order_id": "C0106000002196708369",
+                    "market": "KRW-XRP",
+                    "side": "bid",
+                    "order_type": "price",
+                    "created_at": "2026-07-19T12:07:04+09:00",
+                    "stp_type": "cancel_taker"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "C0106000002196708369",
+                        "market": "KRW-XRP",
+                        "side": "bid",
+                        "order_type": "price",
+                        "created_at": "2026-07-19T12:07:04+09:00",
+                        "stp_type": "cancel_taker"
+                    },
+                    "id": "C0106000002196708369",
+                    "clientOrderId": null,
+                    "timestamp": 1784430424000,
+                    "datetime": "2026-07-19T12:07:04+09:00",
+                    "lastTradeTimestamp": null,
+                    "symbol": "XRP/KRW",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 5000,
                     "cost": null,
                     "average": null,
                     "filled": null,

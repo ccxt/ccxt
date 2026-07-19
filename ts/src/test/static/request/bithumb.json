@@ -108,12 +108,6 @@
                         "XRP/KRW"
                     ]
                 ]
-            },
-            {
-                "description": "generation 2 no input fetch tickers",
-                "method": "fetchTickers",
-                "url": "https://api.bithumb.com/v1/ticker?markets=KRW-ZTX",
-                "input": []
             }
         ],
         "fetchOHLCV": [
@@ -280,7 +274,7 @@
                 "output": "{\"market\":\"BTC-SOL\",\"volume\":\"0.2\",\"price\":\"0.001011\",\"order_type\":\"limit\",\"side\":\"bid\"}"
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "generation 2 clientOrderId createOrder",
                 "method": "createOrder",
                 "url": "https://api.bithumb.com/v2/orders",
                 "input": [
@@ -355,6 +349,47 @@
                     }
                 ],
                 "output": "{\"market\":\"KRW-XRP\",\"volume\":\"3.5\",\"time_in_force\":\"post_only\",\"price\":\"1500\",\"order_type\":\"limit\",\"side\":\"bid\"}"
+            },
+            {
+                "description": "generation 2 market buy with price argument createOrder",
+                "method": "createOrder",
+                "url": "https://api.bithumb.com/v2/orders",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "buy",
+                    3.5,
+                    1500
+                ],
+                "output": "{\"market\":\"KRW-XRP\",\"side\":\"bid\",\"price\":\"5250\",\"order_type\":\"price\"}"
+            },
+            {
+                "description": "generation 2 market sell createOrder",
+                "method": "createOrder",
+                "url": "https://api.bithumb.com/v2/orders",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "sell",
+                    3.2
+                ],
+                "output": "{\"market\":\"KRW-XRP\",\"side\":\"ask\",\"volume\":\"3.2\",\"order_type\":\"market\"}"
+            },
+            {
+                "description": "generation 2 market buy createOrder with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.bithumb.com/v2/orders",
+                "input": [
+                    "XRP/KRW",
+                    "market",
+                    "buy",
+                    5000,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"market\":\"KRW-XRP\",\"side\":\"bid\",\"price\":\"5000\",\"order_type\":\"price\"}"
             }
         ],
         "fetchOrder": [
@@ -773,6 +808,18 @@
                     }
                 ],
                 "output": "{\"market\":\"KRW-XRP\",\"duration\":\"43200\",\"volume\":\"5000\",\"side\":\"ask\",\"frequency\":\"120\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "generation 2 createMarketBuyOrderWithCost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.bithumb.com/v2/orders",
+                "input": [
+                    "XRP/KRW",
+                    5000
+                ],
+                "output": "{\"market\":\"KRW-XRP\",\"side\":\"bid\",\"price\":\"5000\",\"order_type\":\"price\"}"
             }
         ]
     }

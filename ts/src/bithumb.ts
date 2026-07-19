@@ -39,6 +39,7 @@ export default class bithumb extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': true,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createOrders': true,
@@ -251,8 +252,8 @@ export default class bithumb extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -362,6 +363,7 @@ export default class bithumb extends Exchange {
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
+                'createMarketBuyOrderRequiresPrice': true,
                 'quoteCurrencies': {
                     'KRW': {
                         'limits': {
@@ -1447,7 +1449,7 @@ export default class bithumb extends Exchange {
         } else {
             side = 'sell';
         }
-        const id = this.safeString (trade, 'cont_no');
+        const id = this.safeString2 (trade, 'cont_no', 'sequential_id');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market);
         const priceString = this.safeString2 (trade, 'price', 'trade_price');
@@ -1579,6 +1581,9 @@ export default class bithumb extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrders() requires each order to have a symbol');
+            }
             orderSymbols.push (symbol);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1622,15 +1627,21 @@ export default class bithumb extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
-            'volume': this.amountToPrecision (symbol, amount),
         };
+        let sideRequest = undefined;
+        if (side === 'buy') {
+            sideRequest = 'bid';
+        } else {
+            sideRequest = 'ask';
+        }
+        request['side'] = sideRequest;
         let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         if (timeInForce === undefined) {
             timeInForce = 'GTC';
@@ -1639,6 +1650,7 @@ export default class bithumb extends Exchange {
         }
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (postOnly || (timeInForce === 'PO')) {
             request['time_in_force'] = 'post_only';
             params = this.omit (params, 'postOnly');
         } else if (timeInForce === 'FOK') {
@@ -1648,19 +1660,31 @@ export default class bithumb extends Exchange {
         }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['volume'] = this.amountToPrecision (symbol, amount);
             request['order_type'] = 'limit';
-            let sideRequest = undefined;
-            if (side === 'buy') {
-                sideRequest = 'bid';
-            } else {
-                sideRequest = 'ask';
-            }
-            request['side'] = sideRequest;
         } else {
             let typeRequest = undefined;
             if (side === 'buy') {
                 typeRequest = 'price';
+                // for market buy it requires the amount of quote currency to spend
+                let cost = this.safeString (params, 'cost');
+                params = this.omit (params, 'cost');
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if ((price === undefined) && (cost === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        cost = Precise.stringMul (amountString, priceString);
+                    }
+                } else {
+                    cost = (cost === undefined) ? this.numberToString (amount) : cost;
+                }
+                request['price'] = this.costToPrecision (symbol, cost);
             } else {
+                request['volume'] = this.amountToPrecision (symbol, amount);
                 typeRequest = 'market';
             }
             request['order_type'] = typeRequest;
@@ -1670,8 +1694,7 @@ export default class bithumb extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        const requestParams = this.omit (params, [ 'timeInForce', 'clientOrderId' ]);
-        return this.extend (request, requestParams);
+        return this.extend (request, params);
     }
 
     /**
@@ -1686,11 +1709,13 @@ export default class bithumb extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] supports 'IOC', 'FOK', and 'PO'
      * @param {bool} [params.postOnly] true or false
      * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {string} [params.cost] *generation 2 only* optional cost parameter for market buy orders instead of setting the price, must also set createMarketBuyOrderRequiresPrice to false
+     * @param {bool} [params.createMarketBuyOrderRequiresPrice] *generation 2 only* set to false if passing a cost param or using cost in the amount argument, defaults to true
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1705,7 +1730,7 @@ export default class bithumb extends Exchange {
         let response = undefined;
         if (generation === 2) {
             request = this.createOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.privatePostV2Orders (this.extend (request, params));
+            response = await this.privatePostV2Orders (request);
             //
             //     {
             //         "order_id": "C0101000003152350309",
@@ -1754,6 +1779,30 @@ export default class bithumb extends Exchange {
             'amount': amount,
             'id': id,
         }) as Order;
+    }
+
+    /**
+     * @method
+     * @name bithumb#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'createMarketBuyOrderWithCost', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     /**
@@ -2553,7 +2602,7 @@ export default class bithumb extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary wi
+     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
@@ -2580,10 +2629,7 @@ export default class bithumb extends Exchange {
         const network = this.safeString2 (params, 'network', 'net_type');
         params = this.omit (params, 'network');
         const currency = this.currency (code);
-        const request: Dict = {
-            'address': address,
-            'currency': currency['id'],
-        };
+        const request: Dict = {};
         let response = undefined;
         let destinationRequest = undefined;
         if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
@@ -2611,6 +2657,8 @@ export default class bithumb extends Exchange {
                 if (network === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a network parameter');
                 }
+                request['address'] = address;
+                request['currency'] = currency['id'];
                 request['net_type'] = network;
                 request['amount'] = this.numberToString (amount);
                 if (destinationRequest !== undefined) {
@@ -2638,6 +2686,8 @@ export default class bithumb extends Exchange {
             //     }
             //
         } else {
+            request['address'] = address;
+            request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
                 request['net_type'] = network;
@@ -3143,11 +3193,14 @@ export default class bithumb extends Exchange {
             const key = keys[i];
             const value = query[key];
             if (Array.isArray (value)) {
+                const encodedKey = this.encodeURIComponent (key + '[]');
                 for (let j = 0; j < value.length; j++) {
                     if (result.length > 0) {
                         result += '&';
                     }
-                    result += key + '[]=' + value[j];
+                    const valueString = this.safeString (value, j);
+                    const encodedValue = this.encodeURIComponent (valueString);
+                    result += encodedKey + '=' + encodedValue;
                 }
             } else {
                 if (result.length > 0) {
