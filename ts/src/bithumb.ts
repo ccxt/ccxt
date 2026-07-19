@@ -657,7 +657,7 @@ export default class bithumb extends Exchange {
                 const account = this.account ();
                 const currencyId = this.safeString (entry, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
-                account['total'] = this.safeString (entry, 'balance');
+                account['free'] = this.safeString (entry, 'balance');
                 account['used'] = this.safeString (entry, 'locked');
                 result[code] = account;
             }
@@ -1565,9 +1565,9 @@ export default class bithumb extends Exchange {
      * @param {bool} [params.postOnly] true or false
      * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2546,9 +2546,9 @@ export default class bithumb extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3193,7 +3193,7 @@ export default class bithumb extends Exchange {
             const key = keys[i];
             const value = query[key];
             if (Array.isArray (value)) {
-                const encodedKey = this.encodeURIComponent (key + '[]');
+                const encodedKey = this.encodeURIComponent (key) + '[]';
                 for (let j = 0; j < value.length; j++) {
                     if (result.length > 0) {
                         result += '&';
