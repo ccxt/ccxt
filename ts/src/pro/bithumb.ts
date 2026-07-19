@@ -6,7 +6,7 @@ import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, NullableDict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
 import { Balances } from '../base/types.js';
 //  ---------------------------------------------------------------------------
@@ -101,6 +101,9 @@ export default class bithumb extends bithumbRest {
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
+        if (isGenerationTwo && ((symbols === undefined) || (symbols.length === 0))) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
+        }
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
         const messageHashes: string[] = [];
@@ -458,7 +461,7 @@ export default class bithumb extends bithumbRest {
         }
         const streamType = this.safeString (message, 'stream_type');
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const obLimit = this.safeInteger (options, 'limit', Number.MAX_SAFE_INTEGER);
+        const obLimit = this.safeInteger (options, 'limit', 1000);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
         }

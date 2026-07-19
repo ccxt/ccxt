@@ -3279,12 +3279,17 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    containsArrayValue (object: Dict) {
+    containsFlatArrayValue (object: Dict) {
         const keys = Object.keys (object);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (Array.isArray (object[key])) {
-                return true;
+            const value = object[key];
+            if (Array.isArray (value)) {
+                const first = this.safeValue (value, 0);
+                // Only bracket-encode flat arrays (ids/uuids); nested arrays/objects should keep legacy encoding.
+                if ((first === undefined) || (!this.isDictionary (first) && !Array.isArray (first))) {
+                    return true;
+                }
             }
         }
         return false;
@@ -3314,7 +3319,7 @@ export default class bithumb extends Exchange {
                     'timestamp': this.milliseconds (),
                 };
                 let auth = undefined;
-                const usesBracketedArrayEncoding = this.containsArrayValue (query);
+                const usesBracketedArrayEncoding = this.containsFlatArrayValue (query);
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';
