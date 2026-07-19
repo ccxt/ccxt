@@ -402,7 +402,7 @@ export default class bithumb extends bithumbRest {
             request = this.extend (request, params);
         }
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return this.extend ({}, orderbook.limit ());
+        return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
@@ -750,9 +750,15 @@ export default class bithumb extends bithumbRest {
         const error = this.safeDict (message, 'error');
         if (error !== undefined) {
             try {
-                const errorName = this.safeString (error, 'name');
-                const errorMessage = this.safeString (error, 'message');
-                throw new ExchangeError (this.id + ' websocket error ' + errorName + ' ' + errorMessage);
+                const errorName = this.safeString (error, 'name', 'Error');
+                const errorMessage = this.safeString (error, 'message', '');
+                let addedMessage = undefined;
+                if ((errorMessage.length > 0)) {
+                    addedMessage = (' ' + errorMessage);
+                } else {
+                    addedMessage = '';
+                }
+                throw new ExchangeError (this.id + ' websocket error ' + errorName + addedMessage);
             } catch (e) {
                 client.reject (e);
             }
