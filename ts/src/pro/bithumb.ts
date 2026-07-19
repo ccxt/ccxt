@@ -452,7 +452,7 @@ export default class bithumb extends bithumbRest {
         }
         const streamType = this.safeString (message, 'stream_type');
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const obLimit = this.safeInteger (options, 'limit', 15);
+        const obLimit = this.safeInteger (options, 'limit', Number.MAX_SAFE_INTEGER);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
         }

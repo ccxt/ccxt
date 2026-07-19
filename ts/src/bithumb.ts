@@ -116,6 +116,7 @@ export default class bithumb extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1462,7 +1463,7 @@ export default class bithumb extends Exchange {
             timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
-        let side = this.safeStringLower2 (trade, 'type', 'ask_bid');
+        let side = this.safeStringLower2 (trade, 'ask_bid', 'type');
         if (side === 'bid') {
             side = 'buy';
         } else if (side === 'ask') {
@@ -1801,8 +1802,6 @@ export default class bithumb extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
             'id': id,
         }) as Order;
     }
@@ -2827,6 +2826,42 @@ export default class bithumb extends Exchange {
         };
         const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchWithdrawalWhitelist
+     * @description fetch a list of allowed withdrawal addresses
+     * @see https://apidocs.bithumb.com/reference/%EC%B6%9C%EA%B8%88-%ED%97%88%EC%9A%A9-%EC%A3%BC%EC%86%8C-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object[]} a list response from the exchange
+     */
+    async fetchWithdrawalWhitelist (params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawalWhitelist', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API');
+        }
+        const response = await this.privateGetV1WithdrawsCoinAddresses (params);
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "wallet_state": "working",
+        //             "block_state": "normal",
+        //             "block_height": 852086,
+        //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        //             "block_elapsed_minutes": 2,
+        //             "net_type": "BTC",
+        //             "network_name": "Bitcoin"
+        //         },
+        //     ]
+        //
+        return response;
     }
 
     /**
