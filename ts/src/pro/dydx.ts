@@ -377,10 +377,7 @@ export default class dydx extends dydxRest {
         //     }
         // }
         //
-        const id = this.safeString (message, 'id');
-        if (id === undefined) {
-            return;
-        }
+        const id = this.safeString (message, 'id', '');
         const part = id.split ('/');
         const interval = this.safeString (part, 1);
         const timeframe = this.findTimeframe (interval);

@@ -1498,15 +1498,10 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeString (message, 'id');
-        if (id === undefined) {
-            return;
-        }
+        const id = this.safeString (message, 'id', '');
         if (id in client.subscriptions) {
             const method = this.safeValue (client.subscriptions, id);
-            if (id !== undefined) {
-                delete client.subscriptions[id];
-            }
+            delete client.subscriptions[id];
             if (method !== true) {
                 method.call (this, client, message);
                 return;

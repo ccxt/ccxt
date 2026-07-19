@@ -189,11 +189,10 @@ export default class mexc extends mexcRest {
             ticker = this.parseWsTicker (rawTicker, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
-        } else {
-            if (rawTicker === undefined) {
-                return;
-            }
+        } else if (rawTicker !== undefined) {
             ticker = this.parseTicker (rawTicker, market);
+        } else {
+            return;
         }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
@@ -328,10 +327,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd');
-        if (data === undefined) {
-            return;
-        }
+        const data = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
@@ -437,10 +433,7 @@ export default class mexc extends mexcRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.marketsForSymbols (symbols);
-        if (markets === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchBidsAsks() markets is required');
-        }
+        const markets = this.requireValue (this.marketsForSymbols (symbols), 'watchBidsAsks() markets is required');
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
@@ -597,9 +590,7 @@ export default class mexc extends mexcRest {
             };
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        if (ohlcv === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOHLCV() ohlcv is required');
-        }
+        ohlcv = this.requireValue (ohlcv, 'watchOHLCV() ohlcv is required');
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -694,12 +685,10 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
-        if (stored === undefined) {
+        if ((stored === undefined) && (symbol !== undefined) && (timeframe !== undefined)) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            if (symbol !== undefined && timeframe !== undefined) {
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
@@ -797,9 +786,7 @@ export default class mexc extends mexcRest {
             };
             orderbook = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        if (orderbook === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrderBook() orderbook is required');
-        }
+        orderbook = this.requireValue (orderbook, 'watchOrderBook() orderbook is required');
         return orderbook.limit ();
     }
 
@@ -807,10 +794,7 @@ export default class mexc extends mexcRest {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        const msg = this.safeString (message, 'msg');
-        if (msg === undefined) {
-            return;
-        }
+        const msg = this.safeString (message, 'msg', '');
         const parts = msg.split ('@');
         const marketId = this.safeString (parts, 2);
         const symbol = this.safeSymbol (marketId);
@@ -968,10 +952,7 @@ export default class mexc extends mexcRest {
     handleDelta (orderbook, delta) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
-        if ((deltaNonce === undefined) || (existingNonce === undefined)) {
-            return;
-        }
-        if (deltaNonce < existingNonce) {
+        if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
@@ -1015,9 +996,7 @@ export default class mexc extends mexcRest {
             };
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
-        if (trades === undefined) {
-            throw new ArgumentsRequired (this.id + ' watch() trades is required');
-        }
+        trades = this.requireValue (trades, 'watchTrades() trades is required');
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1134,9 +1113,7 @@ export default class mexc extends mexcRest {
         } else {
             trades = await this.watchSwapPrivate (messageHash, params);
         }
-        if (trades === undefined) {
-            throw new ArgumentsRequired (this.id + ' watch() trades is required');
-        }
+        trades = this.requireValue (trades, 'watchMyTrades() trades is required');
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1187,11 +1164,10 @@ export default class mexc extends mexcRest {
         let trade: Trade;
         if (market['spot']) {
             trade = this.parseWsTrade (data, market);
-        } else {
-            if (data === undefined) {
-                return;
-            }
+        } else if (data !== undefined) {
             trade = this.parseTrade (data, market);
+        } else {
+            return;
         }
         let trades = this.myTrades;
         if (trades === undefined) {
@@ -1321,9 +1297,7 @@ export default class mexc extends mexcRest {
         } else {
             orders = await this.watchSwapPrivate (messageHash, params);
         }
-        if (orders === undefined) {
-            throw new ArgumentsRequired (this.id + ' watch() orders is required');
-        }
+        orders = this.requireValue (orders, 'watchOrders() orders is required');
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1416,11 +1390,10 @@ export default class mexc extends mexcRest {
             if (sendTime !== undefined) {
                 parsed['lastTradeTimestamp'] = sendTime;
             }
-        } else {
-            if (data === undefined) {
-                return;
-            }
+        } else if (data !== undefined) {
             parsed = this.parseOrder (data, market);
+        } else {
+            return;
         }
         let orders = this.orders;
         if (orders === undefined) {
@@ -1659,9 +1632,7 @@ export default class mexc extends mexcRest {
         const account = this.account ();
         account['free'] = this.safeString2 (data, 'balanceAmount', 'availableBalance');
         account['used'] = this.safeString2 (data, 'frozenBalance', 'frozenAmount');
-        if ((type !== undefined) && (code !== undefined)) {
-            this.balance[type][code] = account;
-        }
+        this.storeByKey (this.balance[type], code, account);
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], messageHash);
     }
@@ -1850,10 +1821,7 @@ export default class mexc extends mexcRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.marketsForSymbols (symbols);
-        if (markets === undefined) {
-            throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() markets is required');
-        }
+        const markets = this.requireValue (this.marketsForSymbols (symbols), 'unWatchBidsAsks() markets is required');
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
@@ -2014,9 +1982,6 @@ export default class mexc extends mexcRest {
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
                 let symbol = this.safeString (splitHashes, 2);
-                if (symbol === undefined) {
-                    return;
-                }
                 if (splitHashes.length > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
@@ -2130,10 +2095,7 @@ export default class mexc extends mexcRest {
         //       "windowEnd":"1754737980"
         //    }
         // }
-        const channel = this.safeString (message, 'channel');
-        if (channel === undefined) {
-            return true;
-        }
+        const channel = this.safeString (message, 'channel', '');
         const channelParts = channel.split ('@');
         const channelId = this.safeString (channelParts, 1);
         if (channelId === 'public.kline.v3.api.pb') {
@@ -2177,10 +2139,7 @@ export default class mexc extends mexcRest {
             channel = this.safeString (message, 'channel');
         } else {
             const parts = c.split ('@');
-            channel = this.safeString (parts, 1);
-            if (channel === undefined) {
-                return;
-            }
+            channel = this.safeString (parts, 1, '');
         }
         const methods: Dict = {
             'public.deals.v3.api': this.handleTrades,
