@@ -10968,7 +10968,7 @@ public partial class binance : Exchange
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeString(market, "symbol");
-        object leverageString = this.safeString(position, "leverage");
+        object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         object leverage = ((bool) isTrue((!isEqual(leverageString, null)))) ? parseInt(leverageString) : null;
         object initialMarginString = this.safeString(position, "initialMargin");
         object initialMargin = this.parseNumber(initialMarginString);
@@ -11350,7 +11350,7 @@ public partial class binance : Exchange
         object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         object initialMarginString = null;
         object initialMarginPercentageString = null;
-        object leverageString = this.safeString(position, "leverage");
+        object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (isTrue(!isEqual(leverageString, null)))
         {
             object leverage = parseInt(leverageString);
