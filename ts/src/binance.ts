@@ -5509,8 +5509,8 @@ export default class binance extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        const validOrderTypes = this.safeList (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes || [])) {
+        const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
@@ -6796,8 +6796,8 @@ export default class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         } else {
-            const validOrderTypes = this.safeList (market['info'], 'orderTypes');
-            if (!this.inArray (uppercaseType, validOrderTypes || [])) {
+            const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
+            if (!this.inArray (uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
                     throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
                 } else {
