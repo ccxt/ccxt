@@ -5,16 +5,6 @@
     "methods": {
         "fetchMarkets": [
             {
-                "description": "generation 1 fetchMarkets",
-                "method": "fetchMarkets",
-                "url": "https://api.bithumb.com/public/ticker/ALL_BTC",
-                "input": [
-                    {
-                        "generation": 1
-                    }
-                ]
-            },
-            {
                 "description": "generation 2 fetchMarkets",
                 "method": "fetchMarkets",
                 "url": "https://api.bithumb.com/v1/market/all?isDetails=true",

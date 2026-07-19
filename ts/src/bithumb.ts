@@ -1313,6 +1313,9 @@ export default class bithumb extends Exchange {
                 response = await this.publicGetV1CandlesMonths (this.extend (request, params));
             } else {
                 const timeframeInteger = this.safeInteger (this.timeframes, timeframe);
+                if (timeframeInteger === undefined) {
+                    throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
+                }
                 request['unit'] = timeframeInteger;
                 response = await this.publicGetV1CandlesMinutesUnit (this.extend (request, params));
             }
@@ -1462,8 +1465,10 @@ export default class bithumb extends Exchange {
         let side = this.safeStringLower2 (trade, 'type', 'ask_bid');
         if (side === 'bid') {
             side = 'buy';
-        } else {
+        } else if (side === 'ask') {
             side = 'sell';
+        } else {
+            side = undefined;
         }
         const id = this.safeString2 (trade, 'cont_no', 'sequential_id');
         const marketId = this.safeString (trade, 'market');
@@ -1592,6 +1597,9 @@ export default class bithumb extends Exchange {
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createOrders is only supported for the generation 2 API');
         }
+        if (orders.length === 0) {
+            throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
+        }
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1654,8 +1662,10 @@ export default class bithumb extends Exchange {
         let sideRequest = undefined;
         if (side === 'buy') {
             sideRequest = 'bid';
-        } else {
+        } else if (side === 'sell') {
             sideRequest = 'ask';
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder() invalid side ' + side);
         }
         request['side'] = sideRequest;
         let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
@@ -1698,7 +1708,7 @@ export default class bithumb extends Exchange {
                 } else {
                     cost = (cost === undefined) ? this.numberToString (amount) : cost;
                 }
-                request['price'] = this.costToPrecision (symbol, cost);
+                request['price'] = this.priceToPrecision (symbol, cost);
             } else {
                 request['volume'] = this.amountToPrecision (symbol, amount);
                 typeRequest = 'market';
