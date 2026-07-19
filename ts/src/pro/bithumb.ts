@@ -39,14 +39,9 @@ export default class bithumb extends bithumbRest {
             'streaming': {
                 'keepAlive': 30000,
                 'maxPingPongMisses': 2,
-                'ping': this.ping,
             },
             'exceptions': {},
         });
-    }
-
-    ping (client: Client) {
-        return 'PING';
     }
 
     async pong (client, message) {
