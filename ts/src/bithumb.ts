@@ -3258,10 +3258,14 @@ export default class bithumb extends Exchange {
                 const encodedKey = this.encodeURIComponent (key) + '[]';
                 for (let j = 0; j < value.length; j++) {
                     const item = value[j];
+                    let valueString = this.safeString (value, j);
+                    if (valueString === undefined) {
+                        valueString = this.json (item);
+                    }
                     if (result.length > 0) {
                         result.push ('&');
                     }
-                    result.push (encodedKey + '=' + this.encodeURIComponent (item.toString ()));
+                    result.push (encodedKey + '=' + this.encodeURIComponent (valueString));
                 }
             } else {
                 if (result.length > 0) {

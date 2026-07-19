@@ -456,8 +456,14 @@ export default class bithumb extends bithumbRest {
             const list = this.safeList (content, 'list', []);
             const first = this.safeDict (list, 0, {});
             const legacyMarketId = this.safeString (first, 'symbol');
+            if (legacyMarketId === undefined) {
+                return;
+            }
             const legacySymbol = this.safeSymbol (legacyMarketId, undefined, '_');
             const timestampStr = this.safeString (content, 'datetime') as string;
+            if (timestampStr === undefined) {
+                return;
+            }
             const legacyTimestamp = this.parseToInt (timestampStr.slice (0, 13));
             if (!(legacySymbol in this.orderbooks)) {
                 const ob = this.orderBook ();
@@ -513,6 +519,9 @@ export default class bithumb extends bithumbRest {
             }
         }
         const gen2TimestampStr = this.safeString (message, 'timestamp') as string;
+        if (gen2TimestampStr === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
