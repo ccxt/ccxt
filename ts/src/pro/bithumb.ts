@@ -91,13 +91,7 @@ export default class bithumb extends bithumbRest {
             'tickTypes': [ tickTypes ],
         };
         if (isGenerationTwo) {
-            const marketId = this.safeString (market, 'id');
-            let marketIdRequest = undefined;
-            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
-                marketIdRequest = marketId;
-            } else {
-                marketIdRequest = (market['quote'] + '-' + market['base']);
-            }
+            const marketIdRequest = this.getGen2MarketId (market);
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
@@ -142,14 +136,9 @@ export default class bithumb extends bithumbRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id');
             let streamMarketId = undefined;
             if (isGenerationTwo) {
-                if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
-                    streamMarketId = marketId;
-                } else {
-                    streamMarketId = (market['quote'] + '-' + market['base']);
-                }
+                streamMarketId = this.getGen2MarketId (market);
             } else {
                 streamMarketId = (market['base'] + '_' + market['quote']);
             }
@@ -261,17 +250,12 @@ export default class bithumb extends bithumbRest {
         }
         let symbol = undefined;
         if (isGenerationTwo) {
-            const parts = marketId.split ('-');
-            const quoteId = this.safeString (parts, 0);
-            const baseId = this.safeString (parts, 1);
-            if ((baseId === undefined) || (quoteId === undefined)) {
-                return;
-            }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            symbol = this.safeSymbol (marketId, undefined, '-');
         } else {
             symbol = this.safeSymbol (marketId, undefined, '_');
+        }
+        if (symbol === undefined) {
+            return;
         }
         const ticker = this.parseWsTicker (tickerMessage);
         const messageHash = 'ticker:' + symbol;
@@ -404,13 +388,7 @@ export default class bithumb extends bithumbRest {
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
         if (isGenerationTwo) {
-            const marketId = this.safeString (market, 'id');
-            let marketIdRequest = undefined;
-            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
-                marketIdRequest = marketId;
-            } else {
-                marketIdRequest = (market['quote'] + '-' + market['base']);
-            }
+            const marketIdRequest = this.getGen2MarketId (market);
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
@@ -499,17 +477,7 @@ export default class bithumb extends bithumbRest {
             return;
         }
         const marketId = this.safeString (message, 'code');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const quoteId = this.safeString (parts, 0);
-            const baseId = this.safeString (parts, 1);
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         if (symbol === undefined) {
             return;
         }
@@ -601,13 +569,7 @@ export default class bithumb extends bithumbRest {
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
         if (isGenerationTwo) {
-            const marketId = this.safeString (market, 'id');
-            let marketIdRequest = undefined;
-            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
-                marketIdRequest = marketId;
-            } else {
-                marketIdRequest = (market['quote'] + '-' + market['base']);
-            }
+            const marketIdRequest = this.getGen2MarketId (market);
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
@@ -680,14 +642,7 @@ export default class bithumb extends bithumbRest {
             const isGenerationTwo = (code !== undefined);
             let fallbackSymbol = undefined;
             if (isGenerationTwo) {
-                const parts = marketId.split ('-');
-                const quoteId = this.safeString (parts, 0);
-                const baseId = this.safeString (parts, 1);
-                if ((baseId !== undefined) && (quoteId !== undefined)) {
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    fallbackSymbol = base + '/' + quote;
-                }
+                fallbackSymbol = this.safeSymbol (marketId, undefined, '-');
             } else {
                 fallbackSymbol = this.safeSymbol (marketId, undefined, '_');
             }

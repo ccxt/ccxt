@@ -404,6 +404,16 @@ export default class bithumb extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
+    getGen2MarketId (market: Market): string {
+        const marketId = this.safeString (market, 'id');
+        if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+            return marketId;
+        }
+        const quoteId = this.safeString2 (market, 'quoteId', 'quote');
+        const baseId = this.safeString2 (market, 'baseId', 'base');
+        return quoteId + '-' + baseId;
+    }
+
     /**
      * @method
      * @name bithumb#fetchMarkets
@@ -740,7 +750,7 @@ export default class bithumb extends Exchange {
         let data = undefined;
         let timestamp = undefined;
         if (generation === 2) {
-            request['markets'] = market['id'];
+            request['markets'] = this.getGen2MarketId (market);
             response = await this.publicGetV1Orderbook (this.extend (request, params));
             //
             //     [
@@ -972,11 +982,13 @@ export default class bithumb extends Exchange {
         if (generation === 2) {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate one market per request only when symbols are not provided.
-            let marketIds = [];
-            if (symbols === undefined) {
-                marketIds = this.marketIds (this.symbols);
-            } else {
-                marketIds = this.marketIds (symbols);
+            const marketIds = [];
+            const symbolsForMarketIds = (symbols === undefined) ? this.symbols : symbols;
+            for (let i = 0; i < symbolsForMarketIds.length; i++) {
+                const market = this.market (symbolsForMarketIds[i]);
+                marketIds.push (this.getGen2MarketId (market));
+            }
+            if (symbols !== undefined) {
                 request['markets'] = marketIds.join (',');
             }
             const promises = [];
@@ -1150,23 +1162,7 @@ export default class bithumb extends Exchange {
         let response = undefined;
         let data: Dict = {};
         if (generation === 2) {
-            request['markets'] = market['id'];
-            const marketId = this.safeString (market, 'id');
-            const quote = this.safeString (market, 'quote');
-            const base = this.safeString (market, 'base');
-            let fallbackMarketId = undefined;
-            if ((quote !== undefined) && (base !== undefined)) {
-                fallbackMarketId = (quote + '-' + base);
-            } else {
-                fallbackMarketId = marketId;
-            }
-            let marketIdRequest = undefined;
-            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
-                marketIdRequest = marketId;
-            } else {
-                marketIdRequest = fallbackMarketId;
-            }
-            request['markets'] = marketIdRequest;
+            request['markets'] = this.getGen2MarketId (market);
             response = await this.publicGetV1Ticker (this.extend (request, params));
             //
             //     [
@@ -1302,7 +1298,7 @@ export default class bithumb extends Exchange {
         let response = undefined;
         let data = undefined;
         if (generation === 2) {
-            request['market'] = market['id'];
+            request['market'] = this.getGen2MarketId (market);
             if (limit !== undefined) {
                 request['count'] = limit;
             }
@@ -1534,7 +1530,7 @@ export default class bithumb extends Exchange {
         let response = undefined;
         let data = undefined;
         if (generation === 2) {
-            request['market'] = market['id'];
+            request['market'] = this.getGen2MarketId (market);
             response = await this.publicGetV1TradesTicks (this.extend (request, params));
             //
             //     [
@@ -1659,7 +1655,7 @@ export default class bithumb extends Exchange {
          */
         const market = this.market (symbol);
         const request: Dict = {
-            'market': market['id'],
+            'market': this.getGen2MarketId (market),
         };
         let sideRequest = undefined;
         if (side === 'buy') {
@@ -1859,7 +1855,7 @@ export default class bithumb extends Exchange {
         const durationString = this.numberToString (duration);
         const durationSeconds = Precise.stringDiv (durationString, '1000');
         const request: Dict = {
-            'market': market['id'],
+            'market': this.getGen2MarketId (market),
             'duration': durationSeconds,
         };
         if (amount !== undefined) {
@@ -1915,7 +1911,7 @@ export default class bithumb extends Exchange {
         if (generation === 2) {
             if (twap) {
                 if (market !== undefined) {
-                    request['market'] = market['id'];
+                    request['market'] = this.getGen2MarketId (market);
                 }
                 request['uuids'] = [ id ];
                 response = await this.privateGetV1Twap (this.extend (request, params));
@@ -2368,7 +2364,7 @@ export default class bithumb extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['market'] = market['id'];
+            request['market'] = this.getGen2MarketId (market);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
