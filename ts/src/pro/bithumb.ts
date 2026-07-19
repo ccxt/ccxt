@@ -28,6 +28,8 @@ export default class bithumb extends bithumbRest {
                 'api': {
                     'ws': {
                         'public': 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1', // backwards compatible alias
+                        'privateV2': 'wss://ws-api.bithumb.com/websocket/v2/private', // backwards compatible alias
                         'publicGen2': 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
                         'privateGen2': 'wss://ws-api.bithumb.com/websocket/v2/private', // v2.1.5
                     },
@@ -61,10 +63,12 @@ export default class bithumb extends bithumbRest {
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
+        const tickTypes = this.safeString (params, 'tickTypes', '24H');
+        params = this.omit (params, 'tickTypes');
         let request: Dict | Dict[] = {
             'type': 'ticker',
             'symbols': [ market['base'] + '_' + market['quote'] ],
-            'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
+            'tickTypes': [ tickTypes ],
         };
         if (isGenerationTwo) {
             request = [
@@ -111,10 +115,12 @@ export default class bithumb extends bithumbRest {
             streamMarketIds.push (streamMarketId);
             messageHashes.push ('ticker:' + market['symbol']);
         }
+        const tickTypes = this.safeString (params, 'tickTypes', '24H');
+        params = this.omit (params, 'tickTypes');
         let message: Dict | Dict[] = {
             'type': 'ticker',
             'symbols': streamMarketIds,
-            'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
+            'tickTypes': [ tickTypes ],
         };
         if (isGenerationTwo) {
             message = [
