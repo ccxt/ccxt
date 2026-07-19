@@ -1,3 +1,23 @@
+<a id="v4.5.67"></a>
+# [v4.5.67](https://github.com/ccxt/ccxt/releases/tag/v4.5.67) - 2026-07-19
+
+## What's Changed
+* docs(woo): update [@see](https://github.com/see), update docs by [@sc0Vu](https://github.com/sc0Vu) in [#29230](https://github.com/ccxt/ccxt/pull/29230)
+* feat(paradex): add apis, update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#29221](https://github.com/ccxt/ccxt/pull/29221)
+* chore: push changelog to tg and discord by [@carlosmiei](https://github.com/carlosmiei) in [#29234](https://github.com/ccxt/ccxt/pull/29234)
+* feat(polymarket): add tags support by [@carlosmiei](https://github.com/carlosmiei) in [#29235](https://github.com/ccxt/ccxt/pull/29235)
+* chore: try to speed up c# build by [@carlosmiei](https://github.com/carlosmiei) in [#29236](https://github.com/ccxt/ccxt/pull/29236)
+* fix(binance): parsePosition fix when leverage = 0 by [@carlosmiei](https://github.com/carlosmiei) in [#29245](https://github.com/ccxt/ccxt/pull/29245)
+* fix(coinex): populate quoteVolume from the ticker 'value' field by [@mkzung](https://github.com/mkzung) in [#29246](https://github.com/ccxt/ccxt/pull/29246)
+
+## New Contributors
+* [@mkzung](https://github.com/mkzung) made their first contribution in [#29246](https://github.com/ccxt/ccxt/pull/29246)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.66...v4.5.67
+
+[Changes][v4.5.67]
+
+
 <a id="v4.5.66"></a>
 # [v4.5.66](https://github.com/ccxt/ccxt/releases/tag/v4.5.66) - 2026-07-16
 
@@ -13741,6 +13761,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.67]: https://github.com/ccxt/ccxt/compare/v4.5.66...v4.5.67
 [v4.5.66]: https://github.com/ccxt/ccxt/compare/v4.5.65...v4.5.66
 [v4.5.65]: https://github.com/ccxt/ccxt/compare/v4.5.64...v4.5.65
 [v4.5.64]: https://github.com/ccxt/ccxt/compare/v4.5.63...v4.5.64
