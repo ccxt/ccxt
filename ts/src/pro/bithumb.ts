@@ -36,9 +36,34 @@ export default class bithumb extends bithumbRest {
                 },
             },
             'options': {},
-            'streaming': {},
+            'streaming': {
+                'keepAlive': 30000,
+                'maxPingPongMisses': 2,
+                'ping': this.ping,
+            },
             'exceptions': {},
         });
+    }
+
+    ping (client: Client) {
+        return 'PING';
+    }
+
+    async pong (client, message) {
+        const ping = this.safeInteger (message, 'ping');
+        if (ping !== undefined) {
+            await client.send ({ 'pong': ping });
+        } else {
+            await client.send ('PONG');
+        }
+    }
+
+    handlePing (client: Client, message) {
+        this.spawn (this.pong, client, message);
+    }
+
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
     }
 
     /**
@@ -774,6 +799,9 @@ export default class bithumb extends bithumbRest {
         }
         const errorCode = this.safeString (message, 'status');
         try {
+            if ((errorCode === 'UP') || (errorCode === '0000')) {
+                return true;
+            }
             if (errorCode !== '0000') {
                 const msg = this.safeString (message, 'resmsg');
                 throw new ExchangeError (this.id + ' ' + msg);
@@ -1050,6 +1078,31 @@ export default class bithumb extends bithumbRest {
     }
 
     handleMessage (client: Client, message) {
+        if (typeof message === 'string') {
+            const content = message.toLowerCase ();
+            if (content === 'pong') {
+                this.handlePong (client, message);
+                return;
+            }
+            if (content === 'ping') {
+                this.handlePing (client, message);
+                return;
+            }
+            return;
+        }
+        const status = this.safeString (message, 'status');
+        if (status === 'UP') {
+            this.handlePong (client, message);
+            return;
+        }
+        if (('pong' in message) || ('PINGPONG' in message)) {
+            this.handlePong (client, message);
+            return;
+        }
+        if ('ping' in message) {
+            this.handlePing (client, message);
+            return;
+        }
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
