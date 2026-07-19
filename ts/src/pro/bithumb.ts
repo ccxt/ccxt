@@ -749,19 +749,15 @@ export default class bithumb extends bithumbRest {
         //
         const error = this.safeDict (message, 'error');
         if (error !== undefined) {
-            try {
-                const errorName = this.safeString (error, 'name', 'Error');
-                const errorMessage = this.safeString (error, 'message', '');
-                let addedMessage = undefined;
-                if ((errorMessage.length > 0)) {
-                    addedMessage = (' ' + errorMessage);
-                } else {
-                    addedMessage = '';
-                }
-                throw new ExchangeError (this.id + ' websocket error ' + errorName + addedMessage);
-            } catch (e) {
-                client.reject (e);
+            const errorName = this.safeString (error, 'name', 'Error');
+            const errorMessage = this.safeString (error, 'message', '');
+            let addedMessage = undefined;
+            if ((errorMessage.length > 0)) {
+                addedMessage = (' ' + errorMessage);
+            } else {
+                addedMessage = '';
             }
+            client.reject (new ExchangeError (this.id + ' websocket error ' + errorName + addedMessage));
             return false;
         }
         if (!('status' in message)) {

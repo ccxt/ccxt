@@ -3248,48 +3248,21 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    urlencodeWithArrayBrackets (query: Dict) {
-        const keys = Object.keys (query);
-        let result = '';
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = query[key];
-            if (Array.isArray (value)) {
-                const encodedKey = this.encodeURIComponent (key) + '[]';
-                for (let j = 0; j < value.length; j++) {
-                    if (result.length > 0) {
-                        result += '&';
-                    }
-                    const valueString = this.safeString (value, j);
-                    const encodedValue = this.encodeURIComponent (valueString);
-                    result += encodedKey + '=' + encodedValue;
-                }
-            } else {
-                if (result.length > 0) {
-                    result += '&';
-                }
-                const encodedKey = this.encodeURIComponent (key);
-                let valueString = this.safeString (query, key);
-                if (valueString === undefined) {
-                    valueString = this.json (value);
-                }
-                const encodedValue = this.encodeURIComponent (valueString);
-                result += encodedKey + '=' + encodedValue;
+    normalizeArrayParamIndices (queryString: Str) {
+        if (queryString === undefined) {
+            return queryString;
+        }
+        let result = queryString;
+        const maxIndex = 100;
+        for (let i = 0; i < maxIndex; i++) {
+            const indexString = i.toString ();
+            const oldPart = '%5B' + indexString + '%5D';
+            const newPart = '%5B%5D';
+            while (result.indexOf (oldPart) > -1) {
+                result = result.replace (oldPart, newPart);
             }
         }
         return result;
-    }
-
-    hasBracketedArrayParams (query: Dict) {
-        const keys = [ 'order_ids', 'client_order_ids', 'uuids', 'txids' ];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = this.safeValue (query, key);
-            if (Array.isArray (value)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
@@ -3316,23 +3289,16 @@ export default class bithumb extends Exchange {
                     'timestamp': this.milliseconds (),
                 };
                 let auth = undefined;
-                const usesBracketedArrayEncoding = this.hasBracketedArrayParams (query);
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
                     if (hasQuery) {
-                        body = this.json (query);
-                        if (usesBracketedArrayEncoding) {
-                            auth = this.urlencodeWithArrayBrackets (query);
-                        } else {
-                            auth = this.rawencode (query);
-                        }
+                        auth = this.rawencode (query);
+                        auth = this.normalizeArrayParamIndices (auth);
                     }
                 } else if (hasQuery) {
-                    if (usesBracketedArrayEncoding) {
-                        auth = this.urlencodeWithArrayBrackets (query);
-                    } else {
-                        auth = this.urlencode (query);
-                    }
+                    auth = this.urlencode (query);
+                    auth = this.normalizeArrayParamIndices (auth);
                     url += '?' + auth;
                 }
                 if (hasQuery) {
