@@ -4924,7 +4924,7 @@
                     "side": "buy",
                     "price": null,
                     "triggerPrice": null,
-                    "amount": 5000,
+                    "amount": null,
                     "cost": null,
                     "average": null,
                     "filled": null,
