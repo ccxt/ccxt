@@ -745,7 +745,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, coin) -> Currency:
+    def parse_currency(self, coin) -> CurrencyInterface:
         asset = self.safe_dict(coin, 'asset', {})
         currencyId = self.safe_string(asset, 'ccy')
         chains = self.safe_list(coin, 'chains', [])
@@ -782,7 +782,8 @@ class coinex(Exchange, ImplicitAPI):
                 },
                 'info': chain,
             }
-            networks[networkCode] = network
+            if networkCode is not None:
+                networks[networkCode] = network
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -1716,7 +1717,7 @@ class coinex(Exchange, ImplicitAPI):
             baseDebt = self.safe_string(loan, 'base_ccy')
             baseInterest = self.safe_string(interest, 'base_ccy')
             baseAccount['debt'] = Precise.string_add(baseDebt, baseInterest)
-            result[baseCurrencyCode] = baseAccount
+            self.store_by_key(result, baseCurrencyCode, baseAccount)
         return self.safe_balance(result)
 
     async def fetch_spot_balance(self, params={}):
@@ -1745,7 +1746,7 @@ class coinex(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'frozen')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_swap_balance(self, params={}):
@@ -1777,7 +1778,7 @@ class coinex(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'frozen')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_financial_balance(self, params={}):
@@ -1806,7 +1807,7 @@ class coinex(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'frozen')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -2129,7 +2130,11 @@ class coinex(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
@@ -2970,7 +2975,8 @@ class coinex(Exchange, ImplicitAPI):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            orderSymbols.append(marketId)
+            if marketId is not None:
+                orderSymbols.append(marketId)
             id = self.safe_string(rawOrder, 'id')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
@@ -4391,7 +4397,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "OK"
         #     }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         status = self.safe_string_lower(response, 'message')
         type = 'reduce' if (addOrReduce == 'reduce') else 'add'
         return self.extend(self.parse_margin_modification(data, market), {
@@ -5572,7 +5578,7 @@ class coinex(Exchange, ImplicitAPI):
                 continue
             code = self.safe_currency_code(currencyId)
             if codes is None or self.in_array(code, codes):
-                result[code] = self.parse_deposit_withdraw_fee(item)
+                self.store_by_key(result, code, self.parse_deposit_withdraw_fee(item))
         return result
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
@@ -5630,16 +5636,17 @@ class coinex(Exchange, ImplicitAPI):
                     currencyId = self.safe_string(asset, 'ccy')
                     feeCode = self.safe_currency_code(currencyId, currency)
                     networkCode = self.network_id_to_code(networkId, feeCode)
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': self.safe_number(entry, 'withdrawal_fee'),
-                            'percentage': False,
-                        },
-                        'deposit': {
-                            'fee': None,
-                            'percentage': None,
-                        },
-                    }
+                    if networkCode is not None:
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': self.safe_number(entry, 'withdrawal_fee'),
+                                'percentage': False,
+                            },
+                            'deposit': {
+                                'fee': None,
+                                'percentage': None,
+                            },
+                        }
         return result
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:

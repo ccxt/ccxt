@@ -324,7 +324,7 @@ class btcbox(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        return {
+        return self.safe_market_structure({
             'id': self.safe_string(market, 'symbol'),
             'uppercaseId': None,
             'symbol': symbol,
@@ -373,7 +373,7 @@ class btcbox(Exchange, ImplicitAPI):
             'active': None,
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_balance(self, response) -> Balances:
         result = {'info': response}
@@ -814,7 +814,7 @@ class btcbox(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
+    def request(self, path, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -478,7 +478,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         asset = self.safe_string(currency, 'asset')
         code = self.safe_currency_code(asset)
         id = self.safe_string(currency, 'currency')
@@ -503,26 +503,27 @@ class bitmex(Exchange, ImplicitAPI):
                 depositEnabled = True
             if isWithdrawEnabled:
                 withdrawEnabled = True
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': withdrawalFee,
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if network is not None:
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
         currencyEnabled = self.safe_value(currency, 'enabled')
         currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
         minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
@@ -588,7 +589,7 @@ class bitmex(Exchange, ImplicitAPI):
         if self.safe_value(self.options, 'oldPrecision'):
             return self.parse_number(rawQuantity)
         symbol = self.safe_symbol(symbol)
-        marketExists = self.in_array(symbol, self.symbols)
+        marketExists = ((self.symbols is not None) and self.in_array(symbol, self.symbols))
         if not marketExists:
             return self.parse_number(rawQuantity)
         market = self.market(symbol)
@@ -860,7 +861,9 @@ class bitmex(Exchange, ImplicitAPI):
             isInverse = None
             isQuanto = None
             linear = None
-        return {
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' parseMarket() requires a symbol')
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -911,7 +914,7 @@ class bitmex(Exchange, ImplicitAPI):
             },
             'created': None,  # 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        }
+        })
 
     def parse_balance(self, response) -> Balances:
         #
@@ -971,7 +974,7 @@ class bitmex(Exchange, ImplicitAPI):
             total = self.safe_string(balance, 'marginBalance')
             account['free'] = self.convert_to_real_amount(code, free)
             account['total'] = self.convert_to_real_amount(code, total)
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1911,7 +1914,7 @@ class bitmex(Exchange, ImplicitAPI):
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_bool(market, 'inverse', False)
+            isInverse = self.safe_bool(market, 'inverse', False) is True
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -2282,6 +2285,8 @@ class bitmex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         request = {
             'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
@@ -2700,6 +2705,8 @@ class bitmex(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         market = None
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if symbol in self.currencies:
             code = self.currency(symbol)
             request['symbol'] = code['id']
@@ -2899,10 +2906,11 @@ class bitmex(Exchange, ImplicitAPI):
                 networkCode = self.network_id_to_code(networkId, currencyCode)
                 withdrawalFeeId = self.safe_string(network, 'withdrawalFee')
                 withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeId, precision))
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': withdrawalFee, 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': withdrawalFee, 'percentage': False},
+                    }
                 if networksLength == 1:
                     result['withdraw']['fee'] = withdrawalFee
                     result['withdraw']['percentage'] = False
@@ -3026,7 +3034,7 @@ class bitmex(Exchange, ImplicitAPI):
                 return 20
         return cost
 
-    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         retrieves the public liquidations of a trading pair
 
@@ -3410,7 +3418,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_settlements(response, market, since, limit)
 
-    def parse_settlements(self, settlements, market=None, since=None, limit=None):
+    def parse_settlements(self, settlements, market: Market = None, since: Int = None, limit: Int = None):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
@@ -3418,7 +3426,7 @@ class bitmex(Exchange, ImplicitAPI):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_settlement(self, settlement, market=None):
+    def parse_settlement(self, settlement, market: Market = None):
         #
         #    {
         #        timestamp: '2025-03-28T12:00:00.000Z',
@@ -3525,6 +3533,8 @@ class bitmex(Exchange, ImplicitAPI):
                 'api-key': self.apiKey,
             }
             expires = self.sum(self.seconds(), expires)
+            if expires is None:
+                raise ExchangeError(self.id + ' sign() missing expires')
             stringExpires = str(expires)
             auth += stringExpires
             headers['api-expires'] = stringExpires

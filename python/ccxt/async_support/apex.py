@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.apex import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, FundingRateHistory, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -506,7 +506,7 @@ class apex(Exchange, ImplicitAPI):
         del self.options['_temp_currencies_chains']
         return result
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(currency, 'token')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'displayName')
@@ -521,26 +521,27 @@ class apex(Exchange, ImplicitAPI):
                 if tokenName == currencyId:
                     networkId = self.safe_string(chain, 'chainId')
                     networkCode = self.network_id_to_code(networkId, code)
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': None,
-                        'deposit': not self.safe_bool(chain, 'depositDisable'),
-                        'withdraw': self.safe_bool(token, 'withdrawEnable'),
-                        'fee': self.safe_number(token, 'minFee'),
-                        'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': self.safe_number(token, 'minWithdraw'),
-                                'max': None,
+                    if networkCode is not None:
+                        networks[networkCode] = {
+                            'info': chain,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': None,
+                            'deposit': not self.safe_bool(chain, 'depositDisable'),
+                            'withdraw': self.safe_bool(token, 'withdrawEnable'),
+                            'fee': self.safe_number(token, 'minFee'),
+                            'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
+                            'limits': {
+                                'withdraw': {
+                                    'min': self.safe_number(token, 'minWithdraw'),
+                                    'max': None,
+                                },
+                                'deposit': {
+                                    'min': self.safe_number(chain, 'minDeposit'),
+                                    'max': None,
+                                },
                             },
-                            'deposit': {
-                                'min': self.safe_number(chain, 'minDeposit'),
-                                'max': None,
-                            },
-                        },
-                    }
+                        }
         networkKeys = list(networks.keys())
         networksLength = len(networkKeys)
         emptyChains = networksLength == 0  # non-functional coins
@@ -1045,7 +1046,7 @@ class apex(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1243,21 +1244,23 @@ class apex(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         if market is None and marketId is not None:
-            if marketId in self.markets:
-                market = self.markets[marketId]
-            elif marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+            marketsMap = self.markets
+            marketsById = self.markets_by_id
+            if (marketsMap is not None) and (marketId in marketsMap):
+                market = marketsMap[marketId]
+            elif (marketsById is not None) and (marketId in marketsById):
+                market = marketsById[marketId]
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
-                if newMarketId in self.markets_by_id:
-                    markets = self.markets_by_id[newMarketId]
+                if (marketsById is not None) and (newMarketId in marketsById):
+                    markets = marketsById[newMarketId]
                     numMarkets = len(markets)
                     if numMarkets > 0:
-                        if self.markets_by_id[newMarketId][0]['id2'] == marketId:
-                            market = self.markets_by_id[newMarketId][0]
+                        if marketsById[newMarketId][0]['id2'] == marketId:
+                            market = marketsById[newMarketId][0]
         return super(apex, self).safe_market(marketId, market, delimiter, marketType)
 
-    def generate_random_client_id_omni(self, _accountId: str):
+    def generate_random_client_id_omni(self, _accountId: Str):
         accountId = _accountId or str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
@@ -1307,6 +1310,8 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         orderType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         orderSide = side.upper()
         orderSize = self.amount_to_precision(symbol, amount)
         orderPrice = '0'
@@ -1427,7 +1432,8 @@ class apex(Exchange, ImplicitAPI):
                 currency = assets[i]
         tokenId = self.safe_string(currency, 'tokenId', '')
         decimalsNum = self.safe_number(currency, 'decimals', 0)
-        mathPowResult = (math.pow(10, decimalsNum))
+        decimalsNumber = 0 if (decimalsNum is None) else decimalsNum
+        mathPowResult = (math.pow(10, decimalsNumber))
         amountNumber = self.parse_to_int(amount * mathPowResult)
         timestampSeconds = self.parse_to_int(self.milliseconds() / 1000)
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])

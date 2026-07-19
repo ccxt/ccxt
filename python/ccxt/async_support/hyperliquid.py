@@ -377,7 +377,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
-    def market(self, symbol: str) -> MarketInterface:
+    def market(self, symbol: Str) -> MarketInterface:
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
         if (symbol is not None) and not (symbol in self.markets):
@@ -467,7 +469,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.options['cachedCurrenciesById'] = {}  # used to map hip3 markets
         return self.parse_currencies(tokens)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         # id = i
         id = self.safe_string(rawCurrency, 'index')
         name = self.safe_string(rawCurrency, 'name')
@@ -506,7 +508,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 for j in range(0, len(parts)):
                     nameWithoutU = nameWithoutU + parts[j]
                 baseCode = self.safe_currency_code(nameWithoutU)
-                self.options['spotCurrencyMapping'][code] = baseCode
+                if code is not None:
+                    self.options['spotCurrencyMapping'][code] = baseCode
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -631,9 +634,10 @@ class hyperliquid(Exchange, ImplicitAPI):
                     data['collateralTokenName'] = collateralTokenCode
                     # eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     safeCode = self.safe_currency_code(name)
+                    hip3Code = name if (safeCode is None) else safeCode.replace(':', '-')
                     self.options['hip3TokensByName'][name] = {
                         'quote': collateralTokenCode,
-                        'code': safeCode.replace(':', '-'),
+                        'code': hip3Code,
                     }
                 result.append(data)
             markets = self.array_concat(markets, self.parse_markets(result))
@@ -969,6 +973,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         settleId = 'USDC' if (collateralTokenCode is None) else collateralTokenCode
         baseName = self.safe_string(market, 'name')
         base = self.safe_currency_code(baseName)
+        if base is None:
+            raise ExchangeError(self.id + ' parseMarket() missing base currency')
         base = base.replace(':', '-')  # handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         quote = self.safe_currency_code(quoteId)
         baseId = self.safe_string(market, 'baseId')
@@ -1046,7 +1052,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def update_spot_currency_code(self, code: str) -> str:
+    def update_spot_currency_code(self, code: Str) -> Str:
         if code is None:
             return code
         spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
@@ -1132,7 +1138,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 used = self.safe_string(balance, 'hold')
                 account['total'] = total
                 account['used'] = used
-                spotBalances[code] = account
+                self.store_by_key(spotBalances, code, account)
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
         usdcBalance = {
@@ -1470,7 +1476,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
 
@@ -1529,11 +1535,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def amount_to_precision(self, symbol, amount):
+    def amount_to_precision(self, symbol: Str, amount):
         market = self.market(symbol)
         return self.decimal_to_precision(amount, ROUND, market['precision']['amount'], self.precisionMode, self.paddingMode)
 
-    def price_to_precision(self, symbol: str, price) -> str:
+    def price_to_precision(self, symbol: Str, price) -> Str:
         market = self.market(symbol)
         priceStr = self.number_to_string(price)
         integerPart = priceStr.split('.')[0]
@@ -2085,7 +2091,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                 ordersToBeParsed.append(order)
         return self.parse_orders(ordersToBeParsed)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: str, price: Str = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: str, price: Str = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         type = type.upper()
         side = side.upper()

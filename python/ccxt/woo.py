@@ -799,7 +799,7 @@ class woo(Exchange, ImplicitAPI):
             linear = True
             inverse = False
         active = self.safe_string(market, 'status') == 'TRADING'
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -847,7 +847,7 @@ class woo(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1182,10 +1182,10 @@ class woo(Exchange, ImplicitAPI):
             }
             parsed = self.parse_currency(customCurrency)
             code = self.safe_string(parsed, 'code')
-            result[code] = parsed
+            self.store_by_key(result, code, parsed)
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, '_coin_id')
         code = self.safe_currency_code(currencyId)
         tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
@@ -1198,27 +1198,28 @@ class woo(Exchange, ImplicitAPI):
             networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
             networkCode = self.network_id_to_code(networkId, code)
             specialNetworkId = self.safe_string(tokenEntry, 'token')
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
-                'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
-                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
-                        'max': None,
+            if networkCode is not None:
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': {'network': networkEntry, 'token': tokenEntry},
-            }
+                    'info': {'network': networkEntry, 'token': tokenEntry},
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'name': None,
@@ -2547,7 +2548,7 @@ class woo(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['free'] = self.safe_string(balance, 'availableBalance')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2588,7 +2589,7 @@ class woo(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCode, currency['code'])
-        networkEntry = self.safe_dict(currency['networks'], networkCode)
+        networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
         if networkEntry is None:
             supportedNetworks = list(currency['networks'].keys())
             raise BadRequest(self.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + self.json(supportedNetworks))
@@ -3768,7 +3769,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostClientIsolatedMargin(self.extend(request, params))
 
-    def fetch_position(self, symbol: Str, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
         fetch data on an open position
 
@@ -4219,34 +4220,35 @@ class woo(Exchange, ImplicitAPI):
             entry = data[i]
             id = self.safe_string(entry, 'token')
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': None,
-                'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.safe_number(entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': self.safe_number(entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': self.safe_timestamp(entry, 'createdTime'),
-            }
+                    'created': self.safe_timestamp(entry, 'createdTime'),
+                }
         return result
 
     def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:

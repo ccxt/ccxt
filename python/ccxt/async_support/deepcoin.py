@@ -373,7 +373,7 @@ class deepcoin(Exchange, ImplicitAPI):
             },
         })
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue: Any = None) -> Any:
         instType = self.safe_string(params, 'instType')
         params = self.omit(params, 'instType')
         type = self.safe_string(params, 'type')
@@ -569,15 +569,16 @@ class deepcoin(Exchange, ImplicitAPI):
         })
 
     def set_markets(self, markets, currencies=None):
-        markets = super(deepcoin, self).set_markets(markets, currencies)
-        symbols = list(markets.keys())
+        result = super(deepcoin, self).set_markets(markets, currencies)
+        symbols = list(result.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = markets[symbol]
-            if market['swap']:
-                additionalId = market['baseId'] + market['quoteId']
-                self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
-        return self.markets
+            market = result[symbol]
+            if (market is not None) and market['swap']:
+                additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
+                if self.markets_by_id is not None:
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
+        return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1443,11 +1444,15 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
         """
  @ignore
         helper function to build request
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         triggerPrice = self.safe_string(params, 'triggerPrice')
         # isTriggerOrder = (triggerPrice is not None) or self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice') is not None
@@ -1461,7 +1466,7 @@ class deepcoin(Exchange, ImplicitAPI):
         else:
             return self.create_regular_order_request(symbol, type, side, amount, price, params)
 
-    def create_regular_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_regular_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
         """
  @ignore
         helper function to build request
@@ -1481,6 +1486,10 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         :param str [params.mrgPosition]: *swap only* 'merge' or 'split', the default is 'merge'
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         orderType = type
         orderType, params = self.handle_type_post_only_and_time_in_force(type, params)
@@ -1558,7 +1567,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['posSide'] = posSide
         return self.extend(request, params)
 
-    def create_trigger_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_trigger_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
         """
  @ignore
         helper function to build request
@@ -1571,6 +1580,10 @@ class deepcoin(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin orders
         :param str [params.marginMode]: *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         """
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1627,7 +1640,7 @@ class deepcoin(Exchange, ImplicitAPI):
         request['mrgPosition'] = mrgPosition
         return self.extend(request, params)
 
-    def handle_type_post_only_and_time_in_force(self, type: OrderType, params):
+    def handle_type_post_only_and_time_in_force(self, type: Str, params):
         postOnly = False
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
@@ -1672,7 +1685,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend(params, {'cost': cost})
         return await self.create_order(symbol, 'market', 'sell', 0, None, params)
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order | undefined:
         """
         fetches information on a closed order made by the user
 
@@ -1743,7 +1756,7 @@ class deepcoin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_order(entry, market)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order | undefined:
         """
         fetch an open order by it's id
 

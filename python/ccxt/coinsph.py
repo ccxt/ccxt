@@ -642,7 +642,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
         isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
@@ -652,26 +652,27 @@ class coinsph(Exchange, ImplicitAPI):
             networkItem = networkList[j]
             network = self.safe_string(networkItem, 'network')
             networkCode = self.network_id_to_code(network, code)
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_bool(networkItem, 'depositEnable'),
-                'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
-                'fee': self.safe_number(networkItem, 'withdrawFee'),
-                'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkItem, 'withdrawMin'),
-                        'max': self.safe_number(networkItem, 'withdrawMax'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                    'fee': self.safe_number(networkItem, 'withdrawFee'),
+                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkItem, 'withdrawMin'),
+                            'max': self.safe_number(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
@@ -1350,7 +1351,7 @@ class coinsph(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):

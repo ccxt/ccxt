@@ -66,7 +66,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     is_fetch_ticker_called = method == 'fetchTicker'
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None:
-        if symbol_for_market in exchange.markets:
+        if (exchange.markets is not None) and (symbol_for_market in exchange.markets):
             market = exchange.market(symbol_for_market)
         else:
             is_unrecognized_symbol = True

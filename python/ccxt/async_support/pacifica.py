@@ -679,6 +679,8 @@ class pacifica(Exchange, ImplicitAPI):
         maxLeverage = None
         crossMargin = None
         isolatedMargin = None
+        if id is None:
+            raise ExchangeError(self.id + ' parseMarket() missing id')
         if isSpot:
             idParts = id.split('-')
             quoteId = self.safe_string(idParts, 1, quoteId)
@@ -1233,7 +1235,7 @@ class pacifica(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
 
@@ -1469,7 +1471,11 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'order_id')
         return self.safe_order({'id': orderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> list:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> list:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         create a trade order
@@ -1900,7 +1906,9 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(data, 'order_id')
         return self.safe_order({'id': orderId, 'info': response, 'symbol': symbol})
 
-    def edit_order_request(self, id: str, symbol: str, type: str, side: str, amount: Num, price: Num, market: Market, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: str, side: Str, amount: Num, price: Num, market: Market, params={}):
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount!')
         if price is None:
@@ -2027,7 +2035,7 @@ class pacifica(Exchange, ImplicitAPI):
             info = data[i]
             ticker = self.parse_ticker(info)
             symbol = self.safe_string(ticker, 'symbol')
-            result[symbol] = ticker
+            self.store_by_key(result, symbol, ticker)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -2348,14 +2356,14 @@ class pacifica(Exchange, ImplicitAPI):
             tif = tifRaw.upper()
         return self.safe_string(tifMap, tif, None)
 
-    def map_side(self, sideRaw: str):
+    def map_side(self, sideRaw: Str):
         sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
-    def parse_order_type(self, status: str):
+    def parse_order_type(self, status: Str):
         statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',

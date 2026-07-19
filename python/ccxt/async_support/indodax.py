@@ -449,7 +449,7 @@ class indodax(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(free, currencyId)
             account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1362,21 +1362,30 @@ class indodax(Exchange, ImplicitAPI):
                 network = None
                 if marketId in networks:
                     networkId = self.safe_string(networks, marketId)
+                    if networkId is None:
+                        raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                     if networkId.find(',') >= 0:
                         network = []
+                        if networkId is None:
+                            raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
-                            network.append(self.network_id_to_code(networkIds[j], code).upper())
+                            _netIdTmp = self.network_id_to_code(networkIds[j], code)
+                            if _netIdTmp is not None:
+                                network.append(_netIdTmp.upper())
                     else:
-                        network = self.network_id_to_code(networkId, code).upper()
+                        _netIdTmp = self.network_id_to_code(networkId, code)
+                        if _netIdTmp is not None:
+                            network = _netIdTmp.upper()
                 finalNetwork = network  # java req
-                result[code] = {
-                    'info': {},
-                    'currency': code,
-                    'network': finalNetwork,
-                    'address': address,
-                    'tag': None,
-                }
+                if code is not None:
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': None,
+                    }
         return result
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

@@ -660,7 +660,7 @@ class bitteam(Exchange, ImplicitAPI):
         del self.options['_temp_currencies_statuses']
         return result
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         statusesResponse = self.safe_value(self.options, '_temp_currencies_statuses', {})
         id = self.safe_string(currency, 'symbol')
         numericId = self.safe_integer(currency, 'id')
@@ -692,30 +692,31 @@ class bitteam(Exchange, ImplicitAPI):
             networkId = networkIds[j]
             networkCode = self.network_id_to_code(networkId, code)
             networkFee = self.safe_number(feesByNetworkId, networkId)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': active,
-                'fee': networkFee,
-                'precision': networkPrecision,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': active,
+                    'fee': networkFee,
+                    'precision': networkPrecision,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.parse_number(minWithdraw),
+                            'max': self.parse_number(maxWithdraw),
+                        },
+                        'deposit': {
+                            'min': self.parse_number(minDeposit),
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': self.parse_number(minWithdraw),
-                        'max': self.parse_number(maxWithdraw),
-                    },
-                    'deposit': {
-                        'min': self.parse_number(minDeposit),
-                        'max': None,
-                    },
-                },
-                'info': currency,
-            }
+                    'info': currency,
+                }
         return self.safe_currency_structure({
             'id': id,
             'numericId': numericId,
@@ -2134,11 +2135,12 @@ class bitteam(Exchange, ImplicitAPI):
             used = self.safe_string(currencyBalance, 'used')
             total = self.safe_string(currencyBalance, 'total')
             currencyCode = self.safe_currency_code(rawCurrencyId.lower())
-            balance[currencyCode] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            if currencyCode is not None:
+                balance[currencyCode] = {
+                    'free': free,
+                    'used': used,
+                    'total': total,
+                }
         return self.safe_balance(balance)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

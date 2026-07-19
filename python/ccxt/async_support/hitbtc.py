@@ -974,7 +974,7 @@ class hitbtc(Exchange, ImplicitAPI):
         enhancedArray = self.add_key_in_array_items(response, '_coin_id')
         return self.parse_currencies(enhancedArray)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = currency['_coin_id']
         code = self.safe_currency_code(currencyId)
         entry = currency
@@ -985,22 +985,23 @@ class hitbtc(Exchange, ImplicitAPI):
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
             networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'payout_fee'),
-                'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
-                'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
-                'precision': self.safe_number(rawNetwork, 'precision_payout'),
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'payout_fee'),
+                    'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
+                    'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
+                    'precision': self.safe_number(rawNetwork, 'precision_payout'),
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': entry,
             'code': code,
@@ -1106,7 +1107,7 @@ class hitbtc(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['used'] = self.safe_string(entry, 'reserved')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -2333,7 +2334,7 @@ class hitbtc(Exchange, ImplicitAPI):
             response = await self.privatePostSpotOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, marginMode: Str = None, params={}):
+    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, marginMode: Str = None, params={}):
         isLimit = (type == 'limit')
         reduceOnly = self.safe_value(params, 'reduceOnly')
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2582,7 +2583,7 @@ class hitbtc(Exchange, ImplicitAPI):
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         return {
             'info': marginMode,

@@ -1554,6 +1554,8 @@ class bybit(Exchange, ImplicitAPI):
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
             symbolQuoteAndSettle = self.safe_string(symbolBase, 1)
+            if symbolQuoteAndSettle is None:
+                raise ExchangeError(self.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle')
             splitQuote = symbolQuoteAndSettle.split(':')
             quoteAndSettle = self.safe_string(splitQuote, 0)
             quote = quoteAndSettle
@@ -1631,7 +1633,7 @@ class bybit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
@@ -1645,7 +1647,7 @@ class bybit(Exchange, ImplicitAPI):
             return [type, params]
         return [subType, params]
 
-    def get_amount(self, symbol: str, amount: float):
+    def get_amount(self, symbol: Str, amount: float | None):
         # some markets like options might not have the precision available
         # and we shouldn't crash in those cases
         market = self.market(symbol)
@@ -1655,7 +1657,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.amount_to_precision(symbol, amount)
         return amountString
 
-    def get_price(self, symbol: str, price: str):
+    def get_price(self, symbol: Str, price: Str):
         if price is None:
             return price
         market = self.market(symbol)
@@ -1664,7 +1666,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.price_to_precision(symbol, price)
         return price
 
-    def get_cost(self, symbol: str, cost: str):
+    def get_cost(self, symbol: Str, cost: Str):
         market = self.market(symbol)
         emptyPrecisionPrice = (market['precision']['price'] is None)
         if not emptyPrecisionPrice:
@@ -1802,7 +1804,7 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(rows)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(currency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'name')
@@ -1812,26 +1814,27 @@ class bybit(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string(chain, 'chain')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
-                'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
-                'fee': self.safe_number(chain, 'withdrawFee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'withdrawMin'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
+                    'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdrawMin'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(chain, 'depositMin'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(chain, 'depositMin'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': currency,
             'code': code,
@@ -2291,6 +2294,8 @@ class bybit(Exchange, ImplicitAPI):
             priceFilter = self.safe_dict(market, 'priceFilter', {})
             status = self.safe_string(market, 'status')
             expiry = self.safe_integer(market, 'deliveryTime')
+            if id is None:
+                raise ExchangeError(self.id + ' method() missing id')
             splitId = id.split('-')
             strike = self.safe_string(splitId, 2)
             optionLetter = self.safe_string(splitId, 3)
@@ -2535,7 +2540,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         tickers = self.safe_list(result, 'list', [])
-        rawTicker = self.safe_dict(tickers, 0)
+        rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_ticker(rawTicker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -3490,7 +3495,7 @@ class bybit(Exchange, ImplicitAPI):
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
-                        result[code] = account
+                        self.store_by_key(result, code, account)
                 else:
                     account = self.account()
                     loan = self.safe_string(entry, 'loan')
@@ -3502,7 +3507,7 @@ class bybit(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(entry, 'locked')
                     currencyId = self.safe_string_n(entry, ['tokenId', 'coin', 'currencyCoin'])
                     code = self.safe_currency_code(currencyId)
-                    result[code] = account
+                    self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -4029,7 +4034,11 @@ class bybit(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}, isUTA=True):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}, isUTA=True):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         symbol = market['symbol']
         lowerCaseType = type.lower()
@@ -4359,7 +4368,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data)
 
-    def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4710,6 +4723,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         request = {
             'timeWindow': self.parse_to_int(timeout / 1000),
         }
@@ -5668,7 +5683,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
-        return indexedAddresses[selectedNetworkCode]
+        return self.safe_value(indexedAddresses, selectedNetworkCode)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -7611,7 +7626,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            self.store_by_key(result, symbol, fee)
         return result
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None) -> Any:
@@ -7655,10 +7670,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 networkId = self.safe_string(chain, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+                    }
                 if chainsLength == 1:
                     result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
                     result['withdraw']['percentage'] = False
@@ -8318,7 +8334,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #  [
         #      {
@@ -8334,8 +8350,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         tiers = {}
         marketIds = self.market_ids(symbols)
-        filteredResults = self.filter_by_array(response, marketIdKey, marketIds, False)
-        grouped = self.group_by(filteredResults, marketIdKey)
+        idKey = 'symbol' if (marketIdKey is None) else marketIdKey
+        filteredResults = self.filter_by_array(response, idKey, marketIds, False)
+        grouped = self.group_by(filteredResults, idKey)
         keys = list(grouped.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
@@ -8726,7 +8743,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = self.safe_dict(response, 'result')
         rawPositions = self.safe_list(result, 'list')
-        positions = self.parse_positions(rawPositions, symbols, params)
+        positions = self.parse_positions(rawPositions or [], symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
     def fetch_convert_currencies(self, params={}) -> Currencies:
@@ -8793,34 +8810,35 @@ classic accounts only/ spot not supported*  fetches information on an order made
             disableTo = self.safe_bool(entry, 'disableTo')
             inactive = (disableFrom or disableTo)
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': self.safe_string(entry, 'coinType'),
-                'name': self.safe_string(entry, 'fullName'),
-                'active': not inactive,
-                'deposit': None,
-                'withdraw': self.safe_number(entry, 'balance'),
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(entry, 'singleFromMinLimit'),
-                        'max': self.safe_number(entry, 'singleFromMaxLimit'),
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': self.safe_string(entry, 'coinType'),
+                    'name': self.safe_string(entry, 'fullName'),
+                    'active': not inactive,
+                    'deposit': None,
+                    'withdraw': self.safe_number(entry, 'balance'),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(entry, 'singleFromMinLimit'),
+                            'max': self.safe_number(entry, 'singleFromMaxLimit'),
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-            }
+                    'created': None,
+                }
         return result
 
     def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
@@ -9322,7 +9340,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         return self.parse_margin_mode(result, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
         return {
             'info': marginMode,

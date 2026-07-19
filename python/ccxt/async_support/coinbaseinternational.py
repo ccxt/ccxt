@@ -336,7 +336,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         })
 
-    async def handle_portfolio_and_params(self, methodName: str, params={}):
+    async def handle_portfolio_and_params(self, methodName: str, params={}) -> list:
         portfolio = None
         portfolio, params = self.handle_option_and_params(params, methodName, 'portfolio')
         if (portfolio is not None) and (portfolio != ''):
@@ -354,7 +354,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 return [portfolioId, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with self.options["portfolio"]')
 
-    async def handle_network_id_and_params(self, currencyCode: str, methodName: str, params={}):
+    async def handle_network_id_and_params(self, currencyCode: str, methodName: str, params={}) -> list:
         networkId = None
         networkId, params = self.handle_option_and_params(params, methodName, 'network_arn_id')
         if networkId is None:
@@ -516,8 +516,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
-        maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest = 100
+        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -772,6 +772,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             networkId = None
             networkId, params = await self.handle_network_id_and_params(code, 'createDepositAddress', params)
             request['network_arn_id'] = networkId
+        if method is None:
+            raise ArgumentsRequired(self.id + ' method is required')
         response = await getattr(self, method)(self.extend(request, params))
         #
         # v1PrivatePostTransfersAddress
@@ -926,8 +928,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate = None
         paginate, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
-        maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest = 100
+        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -1367,7 +1369,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             symbol += ':' + quoteId
         isLinear = None if isSpot else (settleId == quoteId)
         isInverse = None if isSpot else (settleId != quoteId)
-        return {
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
+        return self.safe_market_structure({
             'id': marketId,
             'lowercaseId': marketId.lower(),
             'symbol': symbol,
@@ -1419,7 +1423,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
             'info': market,
             'created': None,
-        }
+        })
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -1446,7 +1450,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         #
         #    {
         #       "asset_id":"1",
@@ -1624,7 +1628,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(rawBalance, 'quantity')
             account['used'] = self.safe_string(rawBalance, 'hold')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -1692,6 +1696,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
         clientOrderId = clientOrderIdprefix + '-' + self.uuid()
         clientOrderId = clientOrderId[0:17]
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'client_order_id': clientOrderId,
             'side': side.upper(),
@@ -2014,8 +2020,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         portfolio, params = await self.handle_portfolio_and_params('fetchOpenOrders', params)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
-        maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest = 100
+        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -2092,8 +2098,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         pageKey = 'ccxtPageKey'
-        maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest = 100
+        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         market = None
@@ -2196,6 +2202,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'network_arn_id': networkId,
             'nonce': self.nonce(),
         }
+        if method is None:
+            raise ArgumentsRequired(self.id + ' method is required')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #    {

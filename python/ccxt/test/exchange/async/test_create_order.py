@@ -240,6 +240,8 @@ def tco_get_minimum_amount_for_limit_price(exchange, market, price, predefined_a
 
 async def tco_try_cancel_order(exchange, symbol, order, skipped_properties):
     order_fetched = await test_shared_methods.fetch_order(exchange, symbol, order['id'], skipped_properties)
+    if order_fetched is None:
+        return
     needs_cancel = exchange.in_array(order_fetched['status'], ['open', 'pending', None])
     # if it was not reported as closed/filled, then try to cancel it
     if needs_cancel:

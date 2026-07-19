@@ -471,7 +471,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         if isinstance(response, str):
             raise ExchangeError(response)
-        return self.parse_trades(response, market, since, limit)
+        return self.parse_trades(response or [], market, since, limit)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
@@ -802,7 +802,7 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        return self.parse_trades(response or [], market, since, limit)
 
     def remove_comma_from_value(self, str):
         newString = ''

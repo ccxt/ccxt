@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -580,11 +580,13 @@ class bitfinex(Exchange, ImplicitAPI):
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
         symbol = self.safe_symbol(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
         symbol = self.safe_symbol(symbol)
-        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        market = self.market(symbol)
+        price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -901,22 +903,23 @@ class bitfinex(Exchange, ImplicitAPI):
             networkId = networkIds[j]
             network = self.network_id_to_code(networkId, code)
             dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
-            networks[network] = {
-                'info': networkId,
-                'id': networkId.lower(),
-                'network': networkId,
-                'active': None,
-                'deposit': self.safe_integer(dwStatuses, 1) == 1,
-                'withdraw': self.safe_integer(dwStatuses, 2) == 1,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if network is not None:
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.lower(),
+                    'network': networkId,
+                    'active': None,
+                    'deposit': self.safe_integer(dwStatuses, 1) == 1,
+                    'withdraw': self.safe_integer(dwStatuses, 2) == 1,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -981,7 +984,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account['total'] = self.safe_string(balance, 2)
                 account['free'] = self.safe_string(balance, 4)
-                result[code] = account
+                self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -1651,7 +1654,11 @@ class bitfinex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build an order request
@@ -3090,7 +3097,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
         """
         fetches historical funding rate prices
 

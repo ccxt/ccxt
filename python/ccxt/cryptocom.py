@@ -633,7 +633,7 @@ class cryptocom(Exchange, ImplicitAPI):
         enhancedArray = self.add_key_in_array_items(currencyMap, '_coin_id')
         return self.parse_currencies(enhancedArray)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         id = self.safe_string(currency, '_coin_id')
         code = self.safe_currency_code(id)
         networks = {}
@@ -642,22 +642,23 @@ class cryptocom(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string(chain, 'network_id')
             network = self.network_id_to_code(networkId, code)
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': None,
-                'deposit': self.safe_bool(chain, 'deposit_enabled', False),
-                'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
-                'fee': self.safe_number(chain, 'withdrawal_fee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                        'max': None,
+            if network is not None:
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                    'fee': self.safe_number(chain, 'withdrawal_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': currency,
             'id': id,
@@ -1198,7 +1199,7 @@ class cryptocom(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'quantity')
             account['used'] = self.safe_string(balance, 'reserved_qty')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1314,7 +1315,11 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1512,7 +1517,11 @@ class cryptocom(Exchange, ImplicitAPI):
             return self.parse_orders(ocoOrders)
         return self.parse_orders(result)
 
-    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_advanced_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         # differs slightly from createOrderRequest
         # since the advanced order endpoint requires a different set of parameters
         # namely here we don't support ref_price or spot_margin
@@ -1631,7 +1640,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: str, symbol: str, amount: float, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, amount: Num, price: Num = None, params={}):
         request = {}
         if id is not None:
             request['order_id'] = id
@@ -2006,13 +2015,14 @@ class cryptocom(Exchange, ImplicitAPI):
             self.check_address(address)
             networkId = self.safe_string(value, 'network')
             network = self.network_id_to_code(networkId, responseCode)
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            }
+            if network is not None:
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                }
         return result
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2562,10 +2572,11 @@ class cryptocom(Exchange, ImplicitAPI):
                 networkId = self.safe_string(networkInfo, 'network_id')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(networkInfo, 'withdrawal_fee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(networkInfo, 'withdrawal_fee'), 'percentage': False},
+                    }
                 if networkListLength == 1:
                     result['withdraw']['fee'] = self.safe_number(networkInfo, 'withdrawal_fee')
                     result['withdraw']['percentage'] = False

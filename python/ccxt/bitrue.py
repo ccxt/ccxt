@@ -784,7 +784,7 @@ class bitrue(Exchange, ImplicitAPI):
         coins = self.safe_list(response, 'coins', [])
         return self.parse_currencies(coins)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         name = self.safe_string(rawCurrency, 'coinFulName')
         code = self.safe_currency_code(id)
@@ -794,22 +794,23 @@ class bitrue(Exchange, ImplicitAPI):
             entry = networkDetails[j]
             networkId = self.safe_string(entry, 'chain')
             network = self.network_id_to_code(networkId, code)
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': self.safe_bool(entry, 'enableDeposit'),
-                'withdraw': self.safe_bool(entry, 'enableWithdraw'),
-                'active': None,
-                'fee': self.safe_number(entry, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'minWithdraw'),
-                        'max': self.safe_number(entry, 'maxWithdraw'),
+            if network is not None:
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': self.safe_bool(entry, 'enableDeposit'),
+                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(entry, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(entry, 'minWithdraw'),
+                            'max': self.safe_number(entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'name': name,
@@ -985,7 +986,7 @@ class bitrue(Exchange, ImplicitAPI):
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
         isSpot = (type == 'spot')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1034,7 +1035,7 @@ class bitrue(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_balance(self, response) -> Balances:
         #
@@ -1095,7 +1096,7 @@ class bitrue(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'free', 'accountNormal')
             account['used'] = self.safe_string_2(balance, 'locked', 'accountLock')
-            result[code] = account
+            self.store_by_key(result, code, account)
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
@@ -2848,10 +2849,11 @@ class bitrue(Exchange, ImplicitAPI):
                 networkId = self.safe_string(chainDetail, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
+                    }
                 if chainDetailLength == 1:
                     result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
                     result['withdraw']['percentage'] = False

@@ -628,6 +628,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         uppercaseOrderType = orderType.upper()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
         params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -734,8 +736,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         makerFee = self.safe_number(response, 'makerRate')
         takerFee = self.safe_number(response, 'takerRate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.require_symbols()
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

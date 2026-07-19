@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
+from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1538,7 +1538,7 @@ class coinbase(Exchange, ImplicitAPI):
             newMarkets.append(market)
         return newMarkets
 
-    def parse_spot_market(self, market, feeTier) -> MarketInterface:
+    def parse_spot_market(self, market, feeTier) -> Market:
         #
         #         {
         #             "product_id": "TONE-USD",
@@ -1634,7 +1634,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_contract_market(self, market, feeTier) -> MarketInterface:
+    def parse_contract_market(self, market, feeTier) -> Market:
         # expiring
         #
         #        {
@@ -1933,10 +1933,12 @@ class coinbase(Exchange, ImplicitAPI):
             id = self.safe_string_2(currency, 'id', 'code')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            self.options['networks'][code] = name.lower()
-            self.options['networksById'][code] = name.lower()
+            if code is not None:
+                self.options['networks'][code] = name.lower()
+            if code is not None:
+                self.options['networksById'][code] = name.lower()
             type = 'crypto' if (assetId is not None) else 'fiat'
-            result[code] = self.safe_currency_structure({
+            self.store_by_key(result, code, self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -1958,23 +1960,23 @@ class coinbase(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            })
+            }))
             if assetId is not None:
                 lowerCaseName = name.lower()
-                networks[code] = lowerCaseName
+                self.store_by_key(networks, code, lowerCaseName)
                 networksById[lowerCaseName] = code
         # we have to add other currencies here( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
         for i in range(0, len(ratesIds)):
             currencyId = ratesIds[i]
             code = self.safe_currency_code(currencyId)
-            if not (code in result):
-                result[code] = self.safe_currency_structure({
+            if (code is None) or not (code in result):
+                self.store_by_key(result, code, self.safe_currency_structure({
                     'info': {},
                     'id': currencyId,
                     'code': code,
                     'type': 'crypto',
                     'networks': {},  # todo
-                })
+                }))
         self.options['networks'] = self.extend(networks, self.options['networks'])
         self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
@@ -2337,7 +2339,7 @@ class coinbase(Exchange, ImplicitAPI):
                     else:
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
-                    result[code] = account
+                    self.store_by_key(result, code, account)
             elif self.in_array(type, v3Accounts):
                 available = self.safe_dict(balance, 'available_balance')
                 hold = self.safe_dict(balance, 'hold')
@@ -2357,7 +2359,7 @@ class coinbase(Exchange, ImplicitAPI):
                         account['free'] = Precise.string_add(account['free'], free)
                         account['used'] = Precise.string_add(account['used'], used)
                         account['total'] = Precise.string_add(account['total'], total)
-                    result[code] = account
+                    self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:

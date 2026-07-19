@@ -529,6 +529,8 @@ class deribit(Exchange, ImplicitAPI):
         else:
             settle = base
         splitBase = base
+        if base is None:
+            raise ExchangeError(self.id + ' createExpiredOptionMarket() missing base')
         if base.find('_') > -1:
             splitSymbol = base.split('_')
             splitBase = self.safe_string(splitSymbol, 0)
@@ -585,7 +587,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
@@ -649,7 +651,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -930,8 +932,14 @@ class deribit(Exchange, ImplicitAPI):
                 settle = self.safe_currency_code(settleId)
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 future = not swap and (kind.find('future') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 option = (kind.find('option') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
@@ -962,7 +970,7 @@ class deribit(Exchange, ImplicitAPI):
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
                 if parsedMarketValue:
                     continue
-                parsedMarkets[symbol] = True
+                self.store_by_key(parsedMarkets, symbol, True)
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -1024,7 +1032,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         summaries = []
         if 'summaries' in balance:
-            summaries = self.safe_list(balance, 'summaries')
+            summaries = self.safe_list(balance, 'summaries', [])
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
@@ -1035,7 +1043,7 @@ class deribit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(data, 'available_funds')
             account['used'] = self.safe_string(data, 'maintenance_margin')
             account['total'] = self.safe_string(data, 'equity')
-            result[currencyCode] = account
+            self.store_by_key(result, currencyCode, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1394,7 +1402,7 @@ class deribit(Exchange, ImplicitAPI):
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            self.store_by_key(tickers, symbol, ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1708,8 +1716,9 @@ class deribit(Exchange, ImplicitAPI):
                     'taker': self.safe_number(fee, 'taker_fee'),
                 }
         parsedFees = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.require_symbols()
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = {
                 'info': market,
@@ -3143,6 +3152,8 @@ class deribit(Exchange, ImplicitAPI):
             request['end_timestamp'] = time
         if 'isDeribitPaginationCall' in params:
             params = self.omit(params, 'isDeribitPaginationCall')
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
             maxUntil = self.sum(since, limit * duration)
             request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = await self.publicGetGetFundingRateHistory(self.extend(request, params))

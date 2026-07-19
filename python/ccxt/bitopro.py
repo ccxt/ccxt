@@ -377,7 +377,7 @@ class bitopro(Exchange, ImplicitAPI):
         currencies = self.safe_list(response, 'data', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
@@ -444,6 +444,8 @@ class bitopro(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         active = not self.safe_bool(market, 'maintain')
         id = self.safe_string(market, 'pair')
+        if id is None:
+            raise ExchangeError(self.id + ' parseMarket() missing id')
         uppercaseId = id.upper()
         baseId = self.safe_string(market, 'base')
         quoteId = self.safe_string(market, 'quote')
@@ -468,7 +470,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'max': None,
             },
         }
-        return {
+        return self.safe_market_structure({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -500,7 +502,7 @@ class bitopro(Exchange, ImplicitAPI):
             'active': active,
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -837,8 +839,9 @@ class bitopro(Exchange, ImplicitAPI):
         result = {}
         maker = self.safe_number(first, 'makerFee')
         taker = self.safe_number(first, 'takerFee')
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.require_symbols()
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -972,7 +975,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'free': available,
                 'total': amount,
             }
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1053,6 +1056,8 @@ class bitopro(Exchange, ImplicitAPI):
         id = self.safe_string_2(order, 'id', 'orderId')
         timestamp = self.safe_integer_2(order, 'timestamp', 'createdTimestamp')
         side = self.safe_string(order, 'action')
+        if side is None:
+            raise ExchangeError(self.id + ' parseOrder() returned no side')
         side = side.lower()
         amount = self.safe_string_2(order, 'amount', 'originalAmount')
         price = self.safe_string(order, 'price')
@@ -1222,7 +1227,7 @@ class bitopro(Exchange, ImplicitAPI):
         market = self.market(symbol)
         id = market['uppercaseId']
         request = {}
-        request[id] = ids
+        self.store_by_key(request, id, ids)
         response = self.privatePutOrders(self.extend(request, params))
         #
         #     {

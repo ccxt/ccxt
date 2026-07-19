@@ -380,7 +380,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         precision = self.safe_integer(rawCurrency, 'precision')
         currencyId = self.safe_string(rawCurrency, 'symbol')
         name = self.safe_string(rawCurrency, 'name')
@@ -398,31 +398,32 @@ class foxbit(Exchange, ImplicitAPI):
             networkDepositInfo = self.safe_dict(network, 'deposit_info')
             isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
             isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': self.safe_string(network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': True,
-                'precision': precision,
-                'fee': self.safe_number(networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': True,
+                    'precision': precision,
+                    'fee': self.safe_number(networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(depositInfo, 'min_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(withdrawInfo, 'min_amount'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(depositInfo, 'min_amount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(withdrawInfo, 'min_amount'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -842,7 +843,7 @@ class foxbit(Exchange, ImplicitAPI):
                 'used': used,
                 'total': total,
             }
-            result[currencyCode] = balanceObj
+            self.store_by_key(result, currencyCode, balanceObj)
         return self.safe_balance(result)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -923,6 +924,8 @@ class foxbit(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_bool(params, 'postOnly', False)
         triggerPrice = self.safe_number(params, 'triggerPrice')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'market_symbol': market['id'],
             'side': side.upper(),
@@ -1444,6 +1447,8 @@ class foxbit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
         request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1661,7 +1666,7 @@ class foxbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.parse_date(self.safe_string(trade, 'created_at'))
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'volume', self.safe_string(trade, 'quantity'))
@@ -1700,7 +1705,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         symbol = self.safe_string(order, 'market_symbol')
         if market is None and symbol is not None:
             market = self.market(symbol)
@@ -1871,9 +1876,17 @@ class foxbit(Exchange, ImplicitAPI):
             'cost': self.safe_number(item, 'fee'),
             'currency': currencySymbol,
         }
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         if amount < 0:
             direction = 'out'
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
             realAmount = amount * -1
+        if balance is None:
+            raise ExchangeError(self.id + ' parseLedgerEntry() missing balance')
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         return {
             'id': id,
             'info': item,

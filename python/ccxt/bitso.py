@@ -527,7 +527,7 @@ class bitso(Exchange, ImplicitAPI):
             }
             fee['tiers'] = tiers
             baseCurrency = self.safe_dict(currencies, base)
-            result.append(self.extend({
+            result.append(self.safe_market_structure(self.extend({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -577,7 +577,7 @@ class bitso(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            }, fee))
+            }, fee)))
         return result
 
     def fetch_currencies(self, params={}) -> Currencies:
@@ -617,7 +617,7 @@ class bitso(Exchange, ImplicitAPI):
         metadata = self.safe_list(currencies, 'metadata', [])
         return self.parse_currencies(metadata)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'code')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -665,7 +665,7 @@ class bitso(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'total')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1556,14 +1556,15 @@ class bitso(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             if (codes is not None) and not self.in_array(code, codes):
                 continue
-            result[code] = {
-                'deposit': self.safe_number(depositFee, 'fee'),
-                'withdraw': None,
-                'info': {
-                    'deposit': depositFee,
+            if code is not None:
+                result[code] = {
+                    'deposit': self.safe_number(depositFee, 'fee'),
                     'withdraw': None,
-                },
-            }
+                    'info': {
+                        'deposit': depositFee,
+                        'withdraw': None,
+                    },
+                }
         withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
         currencyIds = list(withdrawalFees.keys())
         for i in range(0, len(currencyIds)):
@@ -1571,14 +1572,15 @@ class bitso(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             if (codes is not None) and not self.in_array(code, codes):
                 continue
-            result[code] = {
-                'deposit': self.safe_value(result[code], 'deposit'),
-                'withdraw': self.safe_number(withdrawalFees, currencyId),
-                'info': {
-                    'deposit': self.safe_value(result[code]['info'], 'deposit'),
+            if code is not None:
+                result[code] = {
+                    'deposit': self.safe_value(self.safe_value(result, code), 'deposit'),
                     'withdraw': self.safe_number(withdrawalFees, currencyId),
-                },
-            }
+                    'info': {
+                        'deposit': self.safe_value(self.safe_value(self.safe_value(result, code), 'info'), 'deposit'),
+                        'withdraw': self.safe_number(withdrawalFees, currencyId),
+                    },
+                }
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
@@ -1640,7 +1642,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey: Str = None):
         #
         #    {
         #        "fees": [
@@ -1688,24 +1690,25 @@ class bitso(Exchange, ImplicitAPI):
             entry = depositResponse[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (code in codes):
-                result[code] = {
-                    'deposit': {
-                        'fee': self.safe_number(entry, 'fee'),
-                        'percentage': not self.safe_value(entry, 'is_fixed'),
-                    },
-                    'withdraw': {
-                        'fee': None,
-                        'percentage': None,
-                    },
-                    'networks': {},
-                    'info': entry,
-                }
+            if (codes is None) or ((code is not None) and (code in codes)):
+                if code is not None:
+                    result[code] = {
+                        'deposit': {
+                            'fee': self.safe_number(entry, 'fee'),
+                            'percentage': not self.safe_value(entry, 'is_fixed'),
+                        },
+                        'withdraw': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                        'networks': {},
+                        'info': entry,
+                    }
         withdrawalKeys = list(withdrawalResponse.keys())
         for i in range(0, len(withdrawalKeys)):
             currencyId = withdrawalKeys[i]
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (code in codes):
+            if (code is not None) and ((codes is None) or (code in codes)):
                 withdrawFee = self.parse_number(withdrawalResponse[currencyId])
                 resultValue = self.safe_value(result, code)
                 if resultValue is None:

@@ -451,7 +451,7 @@ class gemini(Exchange, ImplicitAPI):
         currenciesArray = self.safe_value(data, 'currencies', [])
         return self.parse_currencies(currenciesArray)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 0)
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
@@ -461,26 +461,27 @@ class gemini(Exchange, ImplicitAPI):
         networkCode = None
         if networkId is not None:
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'id': id,
@@ -799,7 +800,7 @@ class gemini(Exchange, ImplicitAPI):
             inverse = False
         type = 'swap' if swap else 'spot'
         isSpot = not swap
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -847,7 +848,7 @@ class gemini(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': response,
-        }
+        })
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1181,7 +1182,7 @@ class gemini(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -1231,8 +1232,9 @@ class gemini(Exchange, ImplicitAPI):
         maker = self.parse_number(makerString)
         taker = self.parse_number(takerString)
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.require_symbols()
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

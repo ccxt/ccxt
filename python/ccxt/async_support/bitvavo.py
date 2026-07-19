@@ -593,7 +593,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         #
         #     [
         #         {
@@ -643,22 +643,23 @@ class bitvavo(Exchange, ImplicitAPI):
         for j in range(0, len(networksArray)):
             networkId = networksArray[j]
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdrawal,
-                'fee': withdrawFee,
-                'precision': self.parse_number(self.parse_precision(precision)),
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdrawal,
+                    'fee': withdrawFee,
+                    'precision': self.parse_number(self.parse_precision(precision)),
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': None,
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'id': id,
@@ -1115,7 +1116,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 1440, max 1440
         return self.extend(request, params)
 
-    async def fetch_ohlcv(self, symbol: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -1161,7 +1162,7 @@ class bitvavo(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'inOrder')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1437,7 +1438,11 @@ class bitvavo(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1503,7 +1508,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 request['selfTradePrevention'] = selfTradePrevention
         return self.extend(request, params)
 
-    async def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
 
@@ -2486,10 +2491,11 @@ class bitvavo(Exchange, ImplicitAPI):
         if networkId == 'Mainnet':
             networkId = currencyCode
         networkCode = self.network_id_to_code(networkId, currencyCode)
-        result['networks'][networkCode] = {
-            'deposit': result['deposit'],
-            'withdraw': result['withdraw'],
-        }
+        if networkCode is not None:
+            result['networks'][networkCode] = {
+                'deposit': result['deposit'],
+                'withdraw': result['withdraw'],
+            }
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):

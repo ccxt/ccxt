@@ -26,6 +26,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -540,7 +541,7 @@ class digifinex(Exchange, ImplicitAPI):
         values = list(groupedById.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         networkEntries = rawCurrency
         firstEntry = self.safe_dict(networkEntries, 0, {})  # it must have at least one entry
         id = self.safe_string(firstEntry, 'currency')
@@ -550,26 +551,27 @@ class digifinex(Exchange, ImplicitAPI):
             networkEntry = networkEntries[j]
             networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_integer(networkEntry, 'deposit_status') == 1,
-                'withdraw': self.safe_integer(networkEntry, 'withdraw_status') == 1,
-                'fee': self.safe_number(networkEntry, 'min_withdraw_fee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'min_withdraw_amount'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_integer(networkEntry, 'deposit_status') == 1,
+                    'withdraw': self.safe_integer(networkEntry, 'withdraw_status') == 1,
+                    'fee': self.safe_number(networkEntry, 'min_withdraw_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkEntry, 'min_withdraw_amount'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(networkEntry, 'min_deposit_amount'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(networkEntry, 'min_deposit_amount'),
-                        'max': None,
-                    },
-                },
-                'info': networkEntry,
-            }
+                    'info': networkEntry,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -772,6 +774,8 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market')
+            if id is None:
+                raise ExchangeError(self.id + ' fetchMarketsV1() missing id')
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -861,7 +865,7 @@ class digifinex(Exchange, ImplicitAPI):
             account['free'] = free
             account['used'] = Precise.string_sub(total, free)
             account['total'] = total
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1087,7 +1091,7 @@ class digifinex(Exchange, ImplicitAPI):
             }, tickers[i])
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            self.store_by_key(result, symbol, ticker)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1166,6 +1170,8 @@ class digifinex(Exchange, ImplicitAPI):
             result = data
         else:
             result = self.extend({'date': date}, firstTicker)
+        if result is None:
+            raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1336,6 +1342,8 @@ class digifinex(Exchange, ImplicitAPI):
                 # side = 'close short'
                 side = 'buy'
         else:
+            if side is None:
+                raise ExchangeError(self.id + ' parseTrade() returned no side')
             parts = side.split('_')
             side = self.safe_string(parts, 0)
             type = self.safe_string(parts, 1)
@@ -1563,6 +1571,8 @@ class digifinex(Exchange, ImplicitAPI):
                         else:
                             request['end_time'] = endByUntil
                     else:
+                        if limit is None:
+                            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a limit argument')
                         request['end_time'] = self.sum(startTime, limit * duration)
             params = self.omit(params, 'until')
             response = self.publicSpotGetKline(self.extend(request, params))
@@ -1650,6 +1660,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "data": "1590873693003714560"
         #     }
         #
+        if response is None:
+            raise NullResponse(self.id + ' createOrder() returned empty response')
         order = self.parse_order(response, market)
         order['symbol'] = market['symbol']
         order['type'] = type
@@ -1744,7 +1756,11 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(individualOrder)
         return self.parse_orders(result, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build request
@@ -2957,6 +2973,8 @@ class digifinex(Exchange, ImplicitAPI):
             #     }
             #
             response = self.privateSpotPostTransfer(self.extend(request, params))
+        if response is None:
+            raise NullResponse(self.id + ' transfer() returned empty response')
         return self.parse_transfer(response, currency)
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -3090,7 +3108,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'list', [])
-        result = []
+        result = None
         for i in range(0, len(data)):
             entry = data[i]
             if self.safe_string(entry, 'currency') == code:
@@ -3165,7 +3183,7 @@ class digifinex(Exchange, ImplicitAPI):
             currency = self.safe_string(item, codeKey)
             code = self.safe_currency_code(currency)
             borrowRate = self.parse_borrow_rate(item)
-            result[code] = borrowRate
+            self.store_by_key(result, code, borrowRate)
         return result
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
@@ -3714,6 +3732,8 @@ class digifinex(Exchange, ImplicitAPI):
         request = {}
         if code is not None:
             currency = self.safe_currency_code(code)
+            if currency is None:
+                raise ExchangeError(self.id + ' fetchTransfers() could not resolve currency')
             request['currency'] = currency['id']
         if since is not None:
             request['start_timestamp'] = since
@@ -3876,7 +3896,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -3940,7 +3960,7 @@ class digifinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey: Str = None):
         #
         #     [
         #         {
@@ -3973,7 +3993,7 @@ class digifinex(Exchange, ImplicitAPI):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (self.in_array(code, codes)):
+            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
                 depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -3992,10 +4012,11 @@ class digifinex(Exchange, ImplicitAPI):
                 }
                 if networkId is not None:
                     networkCode = self.network_id_to_code(networkId, code)
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    }
+                    if networkCode is not None:
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        }
                 else:
                     depositWithdrawFees[code]['withdraw'] = withdrawResult
                     depositWithdrawFees[code]['deposit'] = depositResult

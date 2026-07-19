@@ -15,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import NullResponse
 from ccxt.base.precise import Precise
 
 
@@ -184,35 +185,37 @@ class mudrex(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers: Any = None, body: Any = None):
         apiUrls = self.safe_dict(self.urls, 'api', {})
         base = self.safe_string(apiUrls, api)
         if base is None:
             raise ExchangeError(self.id + ' unknown API namespace: ' + api)
         url = base + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        headers = self.extend({}, headers) if (headers is not None) else {}
+        requestHeaders = {}
+        if headers is not None:
+            requestHeaders = self.extend({}, headers)
         brokerId = self.safe_string(self.options, 'broker')
         if brokerId is not None:
-            headers['Partner-Id'] = brokerId
+            requestHeaders['Partner-Id'] = brokerId
         methodUpper = method.upper()
         if api == 'private':
             self.check_required_credentials()
-            headers['X-Authentication'] = self.secret
+            requestHeaders['X-Authentication'] = self.secret
             if methodUpper == 'POST' or methodUpper == 'PATCH' or methodUpper == 'DELETE':
-                headers['Content-Type'] = 'application/json'
+                requestHeaders['Content-Type'] = 'application/json'
                 # is_symbol is a query-string flag even on write requests
                 isSymbol = self.safe_string(query, 'is_symbol')
                 if isSymbol is not None:
                     query = self.omit(query, 'is_symbol')
                     url += '?' + self.urlencode({'is_symbol': isSymbol})
                 if (methodUpper == 'DELETE') and self.is_empty(query):
-                    return {'url': url, 'method': methodUpper, 'body': None, 'headers': headers}
+                    return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
                 bodyStr = self.json(query)
-                return {'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': headers}
+                return {'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders}
         if query:
             url += '?' + self.urlencode(query)
-        return {'url': url, 'method': methodUpper, 'body': None, 'headers': headers}
+        return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None or not isinstance(response, dict):
@@ -290,6 +293,8 @@ class mudrex(Exchange, ImplicitAPI):
             startTime = self.parse_to_int(since / 1000)
         else:
             startTime = now - duration * requestLimit
+        if startTime is None:
+            raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
         endTime = startTime + duration * requestLimit
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -465,7 +470,7 @@ class mudrex(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
         priceStep = self.safe_string(asset, 'price_step', '0.01')
         qtyStep = self.safe_string(asset, 'quantity_step', '0.001')
-        return {
+        return self.safe_market_structure({
             'id': ms,
             'lowercaseId': None,
             'symbol': symbol,
@@ -512,7 +517,7 @@ class mudrex(Exchange, ImplicitAPI):
             },
             'info': asset,
             'created': None,
-        }
+        })
 
     async def fetch_balance(self, params={}) -> Balances:
         """
@@ -544,6 +549,8 @@ class mudrex(Exchange, ImplicitAPI):
         currency = requested
         if currency is None:
             currency = 'USDT'
+        if response is None:
+            raise NullResponse(self.id + ' fetchBalance() returned empty response')
         response['currency'] = currency
         return self.parse_balance(response)
 

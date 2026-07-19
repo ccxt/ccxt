@@ -526,7 +526,7 @@ class whitebit(Exchange, ImplicitAPI):
         makerFeeRate = self.safe_string(market, 'makerFee')
         maker = Precise.string_div(makerFeeRate, '100')
         isSpot = not swap
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -576,7 +576,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -656,7 +656,7 @@ class whitebit(Exchange, ImplicitAPI):
         enhancedArray = self.add_key_in_array_items(response, '_coin_id')
         return self.parse_currencies(enhancedArray)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
         id = self.safe_string(rawCurrency, '_coin_id')
         code = self.safe_currency_code(id)
@@ -674,25 +674,26 @@ class whitebit(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, code)
             networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
             networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.in_array(networkId, depositsNetworks),
-                'withdraw': self.in_array(networkId, withdrawsNetworks),
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(networkDepositLimits, 'min'),
-                        'max': self.safe_number(networkDepositLimits, 'max'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.in_array(networkId, depositsNetworks),
+                    'withdraw': self.in_array(networkId, withdrawsNetworks),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(networkDepositLimits, 'min'),
+                            'max': self.safe_number(networkDepositLimits, 'max'),
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(networkWithdrawLimits, 'min'),
+                            'max': self.safe_number(networkWithdrawLimits, 'max'),
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(networkWithdrawLimits, 'min'),
-                        'max': self.safe_number(networkWithdrawLimits, 'max'),
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -768,9 +769,9 @@ class whitebit(Exchange, ImplicitAPI):
             data = response[currency]
             code = self.safe_currency_code(currency)
             withdraw = self.safe_value(data, 'withdraw', {})
-            withdrawFees[code] = self.safe_string(withdraw, 'fixed')
+            self.store_by_key(withdrawFees, code, self.safe_string(withdraw, 'fixed'))
             deposit = self.safe_value(data, 'deposit', {})
-            depositFees[code] = self.safe_string(deposit, 'fixed')
+            self.store_by_key(depositFees, code, self.safe_string(deposit, 'fixed'))
         return {
             'withdraw': withdrawFees,
             'deposit': depositFees,
@@ -834,7 +835,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey: Str = None):
         #
         #    {
         #        "1INCH": {
@@ -886,7 +887,7 @@ class whitebit(Exchange, ImplicitAPI):
             currencyId = splitEntry[0]
             feeInfo = response[entry]
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (self.in_array(code, codes)):
+            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
                 depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -908,10 +909,11 @@ class whitebit(Exchange, ImplicitAPI):
                     networkLength = len(networkId)
                     networkId = networkId[1:networkLength - 1]
                     networkCode = self.network_id_to_code(networkId, code)
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    }
+                    if networkCode is not None:
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        }
                 else:
                     depositWithdrawFees[code]['withdraw'] = withdrawResult
                     depositWithdrawFees[code]['deposit'] = depositResult
@@ -952,8 +954,9 @@ class whitebit(Exchange, ImplicitAPI):
         #      }
         #
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.require_symbols()
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(response, market['baseId'], {})
             makerFee = self.safe_string(fee, 'maker_fee')
@@ -1028,10 +1031,13 @@ class whitebit(Exchange, ImplicitAPI):
         #
         result = {}
         # Process all markets from the loaded markets cache
-        marketIds = list(self.markets.keys())
+        markets = self.markets
+        if markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        marketIds = list(markets.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.markets[marketId]
+            market = markets[marketId]
             if not market or not market['symbol']:
                 continue  # Skip invalid markets silently
             symbol = market['symbol']
@@ -2167,11 +2173,15 @@ class whitebit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a symbol argument in params')
         market = self.market(symbol)
         params = self.omit(params, 'symbol')
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         isBiggerThanZero = (timeout > 0)
         request = {
             'market': market['id'],
             # 'timeout': self.number_to_string(timeout / 1000) if (timeout > 0) else null,
         }
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         if isBiggerThanZero:
             request['timeout'] = self.number_to_string(timeout / 1000)
         else:
@@ -2199,11 +2209,11 @@ class whitebit(Exchange, ImplicitAPI):
                 account['free'] = self.safe_string_2(balance, 'available', 'main_balance')
                 account['used'] = self.safe_string(balance, 'freeze')
                 account['total'] = self.safe_string(balance, 'main_balance')
-                result[code] = account
+                self.store_by_key(result, code, account)
             else:
                 account = self.account()
                 account['total'] = balance
-                result[code] = account
+                self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -3472,7 +3482,7 @@ class whitebit(Exchange, ImplicitAPI):
         #    }
         #
         records = self.safe_list(response, 'records')
-        return self.parse_transactions(records, currency, since, limit)
+        return self.parse_transactions(records or [], currency, since, limit)
 
     async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """

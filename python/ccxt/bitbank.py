@@ -318,7 +318,7 @@ class bitbank(Exchange, ImplicitAPI):
         quoteId = self.safe_string(entry, 'quote_asset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -368,7 +368,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': entry,
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -651,7 +651,7 @@ class bitbank(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'free_amount')
             account['used'] = self.safe_string(balance, 'locked_amount')
             account['total'] = self.safe_string(balance, 'onhand_amount')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:

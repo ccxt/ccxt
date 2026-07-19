@@ -1380,7 +1380,8 @@ class testMainClass:
             options['apiKey'] = ''
             options['secret'] = ''
         exchange = init_exchange(exchange_name, options)
-        exchange.currencies = currencies
+        if currencies is not None:
+            exchange.currencies = currencies
         # rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         # outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if prediction_events is not None:
@@ -1746,7 +1747,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1768,7 +1769,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for spot orders.'
         try:
@@ -1776,20 +1777,20 @@ class testMainClass:
                 'uta': True,
             })
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.'
         id = 'ccxtfutures'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for swap orders.'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
                 'uta': True,
             })
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.'
         if not is_sync():
             await close(exchange)
@@ -1807,13 +1808,13 @@ class testMainClass:
             exchange.options['uta'] = False
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
         try:
             exchange.options['uta'] = True
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.'
         if not is_sync():
             await close(exchange)
@@ -1827,7 +1828,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1842,7 +1843,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1914,7 +1915,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
@@ -1945,7 +1946,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1984,7 +1985,7 @@ class testMainClass:
     # async testHyperliquid () {
     #     const exchange = this.initOfflineExchange ('hyperliquid');
     #     const id = '1';
-    #     let request = undefined;
+    #     let request: NullableDict = undefined;
     #     try {
     #         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     #     } catch (e) {
@@ -2105,7 +2106,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
@@ -2119,7 +2120,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -2189,7 +2190,7 @@ class testMainClass:
             await exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -2203,7 +2204,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-BB-API-PLATFORM'] == id, 'toobit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)

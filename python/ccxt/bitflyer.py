@@ -412,7 +412,7 @@ class bitflyer(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'amount')
             account['free'] = self.safe_string(balance, 'available')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -814,7 +814,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user
 

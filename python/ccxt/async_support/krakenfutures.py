@@ -1053,7 +1053,11 @@ class krakenfutures(Exchange, ImplicitAPI):
             'fee': fee,
         })
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         symbol = market['symbol']
         type = self.safe_string(params, 'orderType', type)
@@ -2395,6 +2399,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             currencyId = currencyIds[i]
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
+            if code is None:
+                continue
             splitCode = code.split('_')
             codeLength = len(splitCode)
             if codeLength > 1:
@@ -2410,7 +2416,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 auxiliary = self.safe_value(response, 'auxiliary')
                 account['free'] = self.safe_string(auxiliary, 'af')
                 account['total'] = self.safe_string(auxiliary, 'pv')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -2810,7 +2816,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         if account in accountByType:
             return accountByType[account]
-        elif account in self.markets:
+        elif (self.markets is not None) and (account in self.markets):
             market = self.market(account)
             marketId = market['id']
             splitId = marketId.split('_')
@@ -2892,9 +2898,12 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
+        marketIdUpper = self.market_id(symbol)
+        if marketIdUpper is None:
+            raise ArgumentsRequired(self.id + ' marketId is required')
         request = {
             'maxLeverage': leverage,
-            'symbol': self.market_id(symbol).upper(),
+            'symbol': marketIdUpper.upper(),
         }
         #
         # {result: "success", serverTime: "2023-08-01T09:40:32.345Z"}
@@ -2944,8 +2953,11 @@ class krakenfutures(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketIdUpper = self.market_id(symbol)
+        if marketIdUpper is None:
+            raise ArgumentsRequired(self.id + ' marketId is required')
         request = {
-            'symbol': self.market_id(symbol).upper(),
+            'symbol': marketIdUpper.upper(),
         }
         response = await self.privateGetLeveragepreferences(self.extend(request, params))
         #

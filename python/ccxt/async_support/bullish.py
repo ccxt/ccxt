@@ -532,7 +532,7 @@ class bullish(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(rawCurrency, 'name')
@@ -2398,7 +2398,7 @@ class bullish(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'availableQuantity')
             account['used'] = self.safe_string(balance, 'lockedQuantity')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:

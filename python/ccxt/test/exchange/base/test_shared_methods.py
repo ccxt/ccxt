@@ -162,6 +162,8 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
             # so, we have to compare with millisecond accururacy
             dt_parsed = exchange.parse8601(dt)
             ts_ms = entry['timestamp']
+            if dt_parsed is None:
+                assert False, 'datetime is not parseable: ' + dt + log_text
             diff = abs(dt_parsed - ts_ms)
             if diff >= 500:
                 dt_parsed_string = exchange.iso8601(dt_parsed)
@@ -214,7 +216,7 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
 
 def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
     log_text = log_template(exchange, method, {})
-    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
+    assert (exchange.markets is not None) and (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
@@ -574,7 +576,7 @@ def validate_ticker_exception_for_percentage(ex, exchange, ticker):
         symbol = ticker['symbol']
         if symbol is not None:
             # if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if not (symbol in exchange.markets):
+            if (exchange.markets is None) or not (symbol in exchange.markets):
                 return
             # if OHLCV supported
             if exchange.feature_value(symbol, 'fetchOHLCV') is not None:

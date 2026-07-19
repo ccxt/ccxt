@@ -374,7 +374,7 @@ class delta(Exchange, ImplicitAPI):
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         optionTypeUnified = 'call' if (optionType == 'C') else 'put'
-        return {
+        return self.safe_market_structure({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
@@ -417,11 +417,11 @@ class delta(Exchange, ImplicitAPI):
                 },
             },
             'info': None,
-        }
+        })
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')) or (marketId.startswith('C-')) or (marketId.startswith('P-')))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(delta, self).safe_market(marketId, market, delimiter, marketType)
@@ -570,7 +570,7 @@ class delta(Exchange, ImplicitAPI):
         currencies = self.safe_list(response, 'result', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'symbol')
         numericId = self.safe_integer(rawCurrency, 'id')
         code = self.safe_currency_code(id)
@@ -580,26 +580,27 @@ class delta(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string(chain, 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'name': self.safe_string(chain, 'name'),
-                'info': chain,
-                'active': self.safe_string(chain, 'status') == 'enabled',
-                'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
-                'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
-                'fee': self.safe_number(chain, 'base_withdrawal_fee'),
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(chain, 'min_deposit_amount'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(chain, 'name'),
+                    'info': chain,
+                    'active': self.safe_string(chain, 'status') == 'enabled',
+                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(chain, 'min_deposit_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'numericId': numericId,
@@ -894,7 +895,7 @@ class delta(Exchange, ImplicitAPI):
                 else:
                     type = 'swap'
             state = self.safe_string(market, 'state')
-            result.append({
+            result.append(self.safe_market_structure({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -945,7 +946,7 @@ class delta(Exchange, ImplicitAPI):
                 },
                 'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
-            })
+            }))
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1385,7 +1386,7 @@ class delta(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            self.store_by_key(result, symbol, ticker)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1607,6 +1608,8 @@ class delta(Exchange, ImplicitAPI):
         if since is None:
             end = until if untilIsDefined else self.seconds()
             request['end'] = end
+            if end is None:
+                raise ExchangeError(self.id + ' fetchOHLCV() missing end')
             request['start'] = end - limit * duration
         else:
             start = self.parse_to_int(since / 1000)
@@ -2040,7 +2043,7 @@ class delta(Exchange, ImplicitAPI):
             # "size": self.amount_to_precision(symbol, amount),
         }
         if amount is not None:
-            request['size'] = int(self.amount_to_precision(symbol, amount))
+            request['size'] = int(self.amount_to_precision(symbol, amount) or '0')
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
         response = self.privatePutOrders(self.extend(request, params))
@@ -2061,7 +2064,7 @@ class delta(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_dict(response, 'result')
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -2120,7 +2123,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_dict(response, 'result')
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):

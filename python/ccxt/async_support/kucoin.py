@@ -2290,7 +2290,7 @@ class kucoin(Exchange, ImplicitAPI):
         filteredCurrencies = self.filter_out_by_array(currenciesData, 'currency', brokenCurrencies)  # remove broken entries
         return self.parse_currencies(filteredCurrencies)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         entry = currency
         id = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(id)
@@ -2301,27 +2301,28 @@ class kucoin(Exchange, ImplicitAPI):
             chain = chains[j]
             chainId = self.safe_string(chain, 'chainId')
             networkCode = self.network_id_to_code(chainId, code)
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': self.safe_string(chain, 'chainName'),
-                'code': networkCode,
-                'active': None,
-                'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                'deposit': self.safe_bool(chain, 'isDepositEnabled'),
-                'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                        'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': self.safe_string(chain, 'chainName'),
+                    'code': networkCode,
+                    'active': None,
+                    'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                            'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+                        },
+                        'deposit': {
+                            'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
+                            'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
-                        'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
-                    },
-                },
-            }
+                }
         # kucoin has determined 'fiat' currencies with below logic
         rawPrecision = self.safe_string(entry, 'precision')
         precision = self.parse_number(self.parse_precision(rawPrecision))
@@ -2435,7 +2436,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         withdrawFees = {}
@@ -2466,7 +2469,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
         #    {
@@ -2524,16 +2529,17 @@ class kucoin(Exchange, ImplicitAPI):
                 chain = chains[i]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCodeNew = self.network_id_to_code(chainId, self.safe_string(currency, 'code'))
-                resultNew['networks'][networkCodeNew] = {
-                    'withdraw': {
-                        'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
-                        'percentage': False,
-                    },
-                    'deposit': {
-                        'fee': None,
-                        'percentage': None,
-                    },
-                }
+                if networkCodeNew is not None:
+                    resultNew['networks'][networkCodeNew] = {
+                        'withdraw': {
+                            'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
+                            'percentage': False,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                    }
             return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result = {
@@ -2552,13 +2558,14 @@ class kucoin(Exchange, ImplicitAPI):
         currencyId = self.safe_string(fee, 'currency')
         currency = self.safe_currency(currencyId, currency)
         networkCode = self.network_id_to_code(networkId, currency['code'])
-        result['networks'][networkCode] = {
-            'withdraw': minWithdrawFee,
-            'deposit': {
-                'fee': None,
-                'percentage': None,
-            },
-        }
+        if networkCode is not None:
+            result['networks'][networkCode] = {
+                'withdraw': minWithdrawFee,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
         return result
 
     def is_futures_method(self, methodName, params):
@@ -3507,7 +3514,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
         self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
         response = await self.privateGetDepositAddresses(self.extend(request, params))
@@ -3604,7 +3613,9 @@ class kucoin(Exchange, ImplicitAPI):
             networkCode = None
             networkCode, params = self.handle_network_code_and_params(params)
             if networkCode is not None:
-                request['chain'] = self.network_code_to_id(networkCode, code).lower()
+                _netIdTmp = self.network_code_to_id(networkCode, code)
+                if _netIdTmp is not None:
+                    request['chain'] = _netIdTmp.lower()
             #
             #     {
             #         "code": "200000",
@@ -3937,7 +3948,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -3994,7 +4009,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    def market_order_amount_to_precision(self, symbol: str, amount):
+    def market_order_amount_to_precision(self, symbol: Str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
         if result == '0':
@@ -4065,7 +4080,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -4086,6 +4105,8 @@ class kucoin(Exchange, ImplicitAPI):
         if cost is not None:
             request['valueQty'] = self.cost_to_precision(symbol, cost)
         else:
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' requires an amount argument')
             if amount < 1:
                 raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
             sizeString = self.amount_to_precision(symbol, amount)
@@ -4223,7 +4244,9 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_uta_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_uta_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
@@ -5547,7 +5570,7 @@ class kucoin(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('active', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -6453,7 +6476,7 @@ class kucoin(Exchange, ImplicitAPI):
             trades = data
         else:
             trades = self.safe_list(data, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(trades or [], market, since, limit)
 
     async def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7147,7 +7170,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         amountString = self.currency_to_precision(code, amount, networkCode)
         if amountString is not None:
             request['amount'] = float(amountString)
@@ -7723,8 +7748,8 @@ class kucoin(Exchange, ImplicitAPI):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
+                self.store_by_key(subResult, baseCode, self.parse_balance_helper(base))
+                self.store_by_key(subResult, quoteCode, self.parse_balance_helper(quote))
                 result[symbol] = self.safe_balance(subResult)
         elif cross:
             data = self.safe_dict(response, 'data', {})
@@ -7733,7 +7758,7 @@ class kucoin(Exchange, ImplicitAPI):
                 balance = accounts[i]
                 currencyId = self.safe_string(balance, 'currency')
                 codeInner = self.safe_currency_code(currencyId)
-                result[codeInner] = self.parse_balance_helper(balance)
+                self.store_by_key(result, codeInner, self.parse_balance_helper(balance))
         else:
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
@@ -7746,7 +7771,7 @@ class kucoin(Exchange, ImplicitAPI):
                     account['total'] = self.safe_string(balance, 'balance')
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
-                    result[codeInner2] = account
+                    self.store_by_key(result, codeInner2, account)
         returnType = result
         if not isolated:
             returnType = self.safe_balance(result)
@@ -7802,7 +7827,7 @@ class kucoin(Exchange, ImplicitAPI):
         account = self.account()
         account['free'] = self.safe_string(data, 'availableBalance')
         account['total'] = self.safe_string(data, 'accountEquity')
-        result[currencyCode] = account
+        self.store_by_key(result, currencyCode, account)
         return self.safe_balance(result)
 
     async def fetch_uta_balance(self, params={}) -> Balances:
@@ -7920,7 +7945,7 @@ class kucoin(Exchange, ImplicitAPI):
                     currencyEntry = self.safe_dict(currencies, j, {})
                     currencyId = self.safe_string(currencyEntry, 'currency')
                     currencyCode = self.safe_currency_code(currencyId)
-                    subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
+                    self.store_by_key(subResult, currencyCode, self.parse_balance_helper(currencyEntry))
                 result[symbol] = self.safe_balance(subResult)
         else:
             firstAccount = self.safe_dict(accounts, 0, {})
@@ -7929,7 +7954,7 @@ class kucoin(Exchange, ImplicitAPI):
                 currencyEntry = self.safe_dict(currencies, i, {})
                 currencyId = self.safe_string(currencyEntry, 'currency')
                 currencyCode = self.safe_currency_code(currencyId)
-                result[currencyCode] = self.parse_balance_helper(currencyEntry)
+                self.store_by_key(result, currencyCode, self.parse_balance_helper(currencyEntry))
         returnType = result
         if not isIsolated:
             returnType = self.safe_balance(result)
@@ -8813,7 +8838,7 @@ class kucoin(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_histories(self, codes: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
 
@@ -8934,7 +8959,7 @@ class kucoin(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'currency'))
-            if codes is None or self.in_array(code, codes):
+            if (code is not None) and (codes is None or self.in_array(code, codes)):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)

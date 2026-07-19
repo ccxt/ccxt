@@ -647,7 +647,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         #
         #     {
         #       "id": 1,
@@ -1455,7 +1455,7 @@ class extended(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'availableToWithdraw')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            self.store_by_key(result, code, account)
         return self.safe_balance(result)
 
     def fetch_account(self, params={}) -> Account:
@@ -2472,7 +2472,11 @@ class extended(Exchange, ImplicitAPI):
         }
         return settlement
 
-    def create_extended_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> dict:
+    def create_extended_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
