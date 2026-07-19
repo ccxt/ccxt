@@ -3248,24 +3248,32 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    normalizeArrayParamIndices (queryString: Str) {
-        if (queryString === undefined) {
-            return queryString;
-        }
-        let result = queryString;
-        const maxIndex = 100;
-        for (let i = 0; i < maxIndex; i++) {
-            const indexString = i.toString ();
-            const oldPart = '%5B' + indexString + '%5D';
-            const newPart = '%5B%5D';
-            while (result.indexOf (oldPart) > -1) {
-                result = result.replace (oldPart, newPart);
+    urlencodeWithArrayBrackets (query: Dict) {
+        const keys = Object.keys (query);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = query[key];
+            if (Array.isArray (value)) {
+                const encodedKey = this.encodeURIComponent (key + '[]');
+                for (let j = 0; j < value.length; j++) {
+                    const item = value[j];
+                    if (result.length > 0) {
+                        result.push ('&');
+                    }
+                    result.push (encodedKey + '=' + this.encodeURIComponent (item.toString ()));
+                }
+            } else {
+                if (result.length > 0) {
+                    result.push ('&');
+                }
+                const encodedKey = this.encodeURIComponent (key);
+                const valueString = this.safeString (query, key);
+                const encodedValue = this.encodeURIComponent (valueString);
+                result.push (encodedKey + '=' + encodedValue);
             }
         }
-        while (result.indexOf ('%5B%5D') > -1) {
-            result = result.replace ('%5B%5D', '[]');
-        }
-        return result;
+        return result.join ('');
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
@@ -3294,14 +3302,12 @@ export default class bithumb extends Exchange {
                 let auth = undefined;
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     headers['Content-Type'] = 'application/json';
-                    body = this.json (query);
                     if (hasQuery) {
-                        auth = this.rawencode (query);
-                        auth = this.normalizeArrayParamIndices (auth);
+                        body = this.json (query);
+                        auth = this.urlencodeWithArrayBrackets (query);
                     }
                 } else if (hasQuery) {
-                    auth = this.urlencode (query);
-                    auth = this.normalizeArrayParamIndices (auth);
+                    auth = this.urlencodeWithArrayBrackets (query);
                     url += '?' + auth;
                 }
                 if (hasQuery) {
