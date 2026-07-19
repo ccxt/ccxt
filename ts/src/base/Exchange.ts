@@ -4426,10 +4426,21 @@ export class BaseExchange {
             } else {
                 this.markets_by_id[value['id']] = [ value ] as any;
             }
+            // strip undefined-valued keys from the parsed market before deepExtend,
+            // otherwise an explicit `taker: undefined` (from safeMarketStructure)
+            // would clobber the fee defaults from this.fees['trading'] in the merge
+            const valueDefined: Dict = {};
+            const valueKeys = Object.keys (value);
+            for (let j = 0; j < valueKeys.length; j++) {
+                const valueKey = valueKeys[j];
+                if (value[valueKey] !== undefined) {
+                    valueDefined[valueKey] = value[valueKey];
+                }
+            }
             const market = this.deepExtend (this.safeMarketStructure (), {
                 'precision': this.precision,
                 'limits': this.limits,
-            }, this.fees['trading'], value);
+            }, this.fees['trading'], valueDefined);
             if (market['linear']) {
                 market['subType'] = 'linear';
             } else if (market['inverse']) {

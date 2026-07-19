@@ -364,17 +364,12 @@ export default class toobit extends toobitRest {
         const params = this.safeDict (message, 'params', {});
         const timeframeId = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (timeframeId);
-        if (timeframe === undefined) {
-            return;
-        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol !== undefined) && (timeframe !== undefined) && !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
-            if (symbol !== undefined && timeframe !== undefined) {
-                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
-            }
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const data = this.safeList (message, 'data', []);
