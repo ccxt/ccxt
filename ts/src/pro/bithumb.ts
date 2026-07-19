@@ -71,11 +71,18 @@ export default class bithumb extends bithumbRest {
             'tickTypes': [ tickTypes ],
         };
         if (isGenerationTwo) {
+            const marketId = this.safeString (market, 'id');
+            let marketIdRequest = undefined;
+            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+                marketIdRequest = marketId;
+            } else {
+                marketIdRequest = (market['quote'] + '-' + market['base']);
+            }
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
                     'type': 'ticker',
-                    'codes': [ market['id'] ],
+                    'codes': [ marketIdRequest ],
                 }, params),
             ];
             return await this.watch (url, messageHash, request, messageHash);
@@ -89,10 +96,11 @@ export default class bithumb extends bithumbRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
      * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tickTypes] generation 1 only, the tick type to subscribe to, '24H' by default (30M, 1H, 12H, 24H, MID)
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
@@ -114,7 +122,17 @@ export default class bithumb extends bithumbRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const streamMarketId = isGenerationTwo ? market['id'] : (market['base'] + '_' + market['quote']);
+            const marketId = this.safeString (market, 'id');
+            let streamMarketId = undefined;
+            if (isGenerationTwo) {
+                if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+                    streamMarketId = marketId;
+                } else {
+                    streamMarketId = (market['quote'] + '-' + market['base']);
+                }
+            } else {
+                streamMarketId = (market['base'] + '_' + market['quote']);
+            }
             streamMarketIds.push (streamMarketId);
             messageHashes.push ('ticker:' + market['symbol']);
         }
@@ -363,11 +381,18 @@ export default class bithumb extends bithumbRest {
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
         if (isGenerationTwo) {
+            const marketId = this.safeString (market, 'id');
+            let marketIdRequest = undefined;
+            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+                marketIdRequest = marketId;
+            } else {
+                marketIdRequest = (market['quote'] + '-' + market['base']);
+            }
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
                     'type': 'orderbook',
-                    'codes': [ market['id'] ],
+                    'codes': [ marketIdRequest ],
                 }, params),
             ];
         } else {
@@ -544,11 +569,18 @@ export default class bithumb extends bithumbRest {
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
         if (isGenerationTwo) {
+            const marketId = this.safeString (market, 'id');
+            let marketIdRequest = undefined;
+            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+                marketIdRequest = marketId;
+            } else {
+                marketIdRequest = (market['quote'] + '-' + market['base']);
+            }
             request = [
                 { 'ticket': this.uuid () },
                 this.extend ({
                     'type': 'trade',
-                    'codes': [ market['id'] ],
+                    'codes': [ marketIdRequest ],
                 }, params),
             ];
         } else {
