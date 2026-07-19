@@ -1150,6 +1150,22 @@ export default class bithumb extends Exchange {
         let data: Dict = {};
         if (generation === 2) {
             request['markets'] = market['id'];
+            const marketId = this.safeString (market, 'id');
+            const quote = this.safeString (market, 'quote');
+            const base = this.safeString (market, 'base');
+            let fallbackMarketId = undefined;
+            if ((quote !== undefined) && (base !== undefined)) {
+                fallbackMarketId = (quote + '-' + base);
+            } else {
+                fallbackMarketId = marketId;
+            }
+            let marketIdRequest = undefined;
+            if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
+                marketIdRequest = marketId;
+            } else {
+                marketIdRequest = fallbackMarketId;
+            }
+            request['markets'] = marketIdRequest;
             response = await this.publicGetV1Ticker (this.extend (request, params));
             //
             //     [
