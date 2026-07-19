@@ -3262,6 +3262,9 @@ export default class bithumb extends Exchange {
                 result = result.replace (oldPart, newPart);
             }
         }
+        while (result.indexOf ('%5B%5D') > -1) {
+            result = result.replace ('%5B%5D', '[]');
+        }
         return result;
     }
 
