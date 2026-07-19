@@ -3250,7 +3250,7 @@ export default class bithumb extends Exchange {
 
     urlencodeWithArrayBrackets (query: Dict) {
         const keys = Object.keys (query);
-        const result = [];
+        let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = query[key];
@@ -3263,21 +3263,21 @@ export default class bithumb extends Exchange {
                         valueString = this.json (item);
                     }
                     if (result.length > 0) {
-                        result.push ('&');
+                        result += '&';
                     }
-                    result.push (encodedKey + '=' + this.encodeURIComponent (valueString));
+                    result += encodedKey + '=' + this.encodeURIComponent (valueString);
                 }
             } else {
                 if (result.length > 0) {
-                    result.push ('&');
+                    result += '&';
                 }
                 const encodedKey = this.encodeURIComponent (key);
                 const valueString = this.safeString (query, key);
                 const encodedValue = this.encodeURIComponent (valueString);
-                result.push (encodedKey + '=' + encodedValue);
+                result += encodedKey + '=' + encodedValue;
             }
         }
-        return result.join ('');
+        return result;
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
