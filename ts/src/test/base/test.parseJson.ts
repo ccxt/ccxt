@@ -7,14 +7,15 @@ function testParseJsonHelperStringOrNum (exchange, value) {
         assert (value === '123456789012345678901234', 'Expected string mismatch: ' + value.toString ());
     } else {
         // todo: fix
-        // assert (value > 123456789012345678901234 - 0.01 && value < 123456789012345678901234 + 0.01, 'Expected number mismatch: ' + value.toString ());
-        try {
-            assert (value > 0, 'Expected number mismatch: ' + value.toString ());
-        } catch (err) {
-            // only skip c# (todo: fix)
-            const errorMessage = exchange.exceptionMessage (err);
-            assert (errorMessage.indexOf ('System.Exception') >= 0, 'Exception: ' + errorMessage);
-        }
+        const exactValue = 123456789012345678901234;
+        assert (value > exactValue - 0.01 && value < exactValue + 0.01, 'Expected number mismatch: ' + value.toString ());
+        // try {
+        //     assert (value > 0, 'Expected number mismatch: ' + value.toString ());
+        // } catch (err) {
+        //     // only skip c# (todo: fix)
+        //     const errorMessage = exchange.exceptionMessage (err);
+        //     assert (errorMessage.indexOf ('System.Exception') >= 0, 'Exception: ' + errorMessage);
+        // }
     }
 }
 
