@@ -11376,7 +11376,7 @@ public class BinanceCore extends BinanceApi
         Object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Object symbol = this.safeString(market, "symbol");
-        Object leverageString = this.safeString(position, "leverage");
+        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         Object leverage = ((Helpers.isTrue((!Helpers.isEqual(leverageString, null))))) ? Helpers.parseInt(leverageString) : null;
         Object initialMarginString = this.safeString(position, "initialMargin");
         Object initialMargin = this.parseNumber(initialMarginString);
@@ -11768,7 +11768,7 @@ public class BinanceCore extends BinanceApi
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         Object initialMarginString = null;
         Object initialMarginPercentageString = null;
-        Object leverageString = this.safeString(position, "leverage");
+        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
         {
             Object leverage = Helpers.parseInt(leverageString);
