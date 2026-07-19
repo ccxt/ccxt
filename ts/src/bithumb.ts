@@ -1598,7 +1598,8 @@ export default class bithumb extends Exchange {
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createOrders is only supported for the generation 2 API');
         }
-        if (orders.length === 0) {
+        const ordersCount = orders.length;
+        if (ordersCount === 0) {
             throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests: List = [];

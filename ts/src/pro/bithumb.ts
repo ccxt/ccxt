@@ -402,7 +402,7 @@ export default class bithumb extends bithumbRest {
             request = this.extend (request, params);
         }
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit ();
+        return this.extend ({}, orderbook.limit ());
     }
 
     handleOrderBook (client: Client, message) {
