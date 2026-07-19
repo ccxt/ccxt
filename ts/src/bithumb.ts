@@ -3255,7 +3255,7 @@ export default class bithumb extends Exchange {
             const key = keys[i];
             const value = query[key];
             if (Array.isArray (value)) {
-                const encodedKey = this.encodeURIComponent (key + '[]');
+                const encodedKey = this.encodeURIComponent (key) + '[]';
                 for (let j = 0; j < value.length; j++) {
                     const item = value[j];
                     if (result.length > 0) {
