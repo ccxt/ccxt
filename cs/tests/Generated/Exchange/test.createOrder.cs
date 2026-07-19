@@ -273,6 +273,10 @@ public partial class testMainClass : BaseTest
     async static public Task<object> tcoTryCancelOrder(BaseExchange exchange, object symbol, object order, object skippedProperties)
     {
         object orderFetched = await testSharedMethods.fetchOrder(exchange, symbol, getValue(order, "id"), skippedProperties);
+        if (isTrue(isEqual(orderFetched, null)))
+        {
+            return true;
+        }
         object needsCancel = exchange.inArray(getValue(orderFetched, "status"), new List<object>() {"open", "pending", null});
         // if it was not reported as closed/filled, then try to cancel it
         if (isTrue(needsCancel))
