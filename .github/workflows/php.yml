@@ -57,7 +57,7 @@ jobs:
     - name: Composer install
       run: composer install
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-php
     - name: Transpile to PHP
@@ -161,7 +161,7 @@ jobs:
           name: php-files
           path: php/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:

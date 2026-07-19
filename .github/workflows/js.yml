@@ -58,7 +58,7 @@ jobs:
     - name: Debug files changes
       run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
@@ -190,7 +190,7 @@ jobs:
           name: js-files
           path: js/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

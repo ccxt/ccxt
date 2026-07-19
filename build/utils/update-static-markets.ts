@@ -1,7 +1,7 @@
 //
 // Usage to update specific symbols, currencies, everything (existing keys with new datas):
 //
-//   tsx ./utils/update-static-markets.ts binance BTC/USDT ETH/USDT
+//   tsx ./build/utils/update-static-markets.ts binance BTC/USDT ETH/USDT
 //                                        binance USDC LTC
 //                                        binance --all
 //
