@@ -1034,7 +1034,11 @@ public partial class coinex : Exchange
         //
         object marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "swap" : "spot";
         object marketId = this.safeString(ticker, "market");
-        object symbol = this.safeSymbol(marketId, market, null, marketType);
+        market = this.safeMarket(marketId, market, null, marketType);
+        object symbol = getValue(market, "symbol");
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        object quoteVolume = ((bool) isTrue(getValue(market, "inverse"))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -1054,7 +1058,7 @@ public partial class coinex : Exchange
             { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
-            { "quoteVolume", this.safeString(ticker, "value") },
+            { "quoteVolume", quoteVolume },
             { "markPrice", this.safeString(ticker, "mark_price") },
             { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
