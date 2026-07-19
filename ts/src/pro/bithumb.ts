@@ -123,17 +123,18 @@ export default class bithumb extends bithumbRest {
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
-        if (isGenerationTwo && ((symbols === undefined) || (symbols.length === 0))) {
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (isGenerationTwo && ((symbols === undefined) || (symbolsLength === 0))) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
         }
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             let streamMarketId = undefined;
