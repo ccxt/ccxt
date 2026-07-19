@@ -1071,7 +1071,11 @@ public class CoinexCore extends CoinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "mark_price"))))) ? "swap" : "spot";
         Object marketId = this.safeString(ticker, "market");
-        Object symbol = this.safeSymbol(marketId, market, null, marketType);
+        market = this.safeMarket(marketId, market, null, marketType);
+        Object symbol = Helpers.GetValue(market, "symbol");
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        Object quoteVolume = ((Helpers.isTrue(Helpers.GetValue(market, "inverse")))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1091,7 +1095,7 @@ public class CoinexCore extends CoinexApi
             put( "percentage", null );
             put( "average", null );
             put( "baseVolume", CoinexCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", CoinexCore.this.safeString(ticker, "value") );
+            put( "quoteVolume", quoteVolume );
             put( "markPrice", CoinexCore.this.safeString(ticker, "mark_price") );
             put( "indexPrice", CoinexCore.this.safeString(ticker, "index_price") );
             put( "info", ticker );
