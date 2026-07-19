@@ -183,7 +183,7 @@ jobs:
           name: go-files
           path: go/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - name: Build tests
         run: go build -C go ./tests/main.go
       - name: Install npm dependencies
