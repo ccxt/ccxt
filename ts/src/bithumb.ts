@@ -3283,9 +3283,29 @@ export default class bithumb extends Exchange {
         const keys = [ 'order_ids', 'client_order_ids', 'uuids', 'txids' ];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = this.safeValue (query, key);
+            if (!(key in query)) {
+                continue;
+            }
+            const value = query[key];
             if (Array.isArray (value)) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    hasNestedObjects (query: Dict) {
+        const keys = Object.keys (query);
+        for (let i = 0; i < keys.length; i++) {
+            const value = query[keys[i]];
+            if (!Array.isArray (value)) {
+                continue;
+            }
+            for (let j = 0; j < value.length; j++) {
+                const nested = value[j];
+                if ((nested !== undefined) && (nested !== null) && (typeof nested === 'object')) {
+                    return true;
+                }
             }
         }
         return false;
@@ -3294,7 +3314,7 @@ export default class bithumb extends Exchange {
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
-        const query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extend (this.extractParams (path), [ 'generation' ]));
         const queryKeys = Object.keys (query);
         const populatedQuery = this.safeString (queryKeys, 0);
         const hasQuery = (populatedQuery !== undefined);
@@ -3322,6 +3342,8 @@ export default class bithumb extends Exchange {
                     if (hasQuery) {
                         if (usesBracketedArrayEncoding) {
                             auth = this.urlencodeWithArrayBrackets (query);
+                        } else if (this.hasNestedObjects (query)) {
+                            auth = body;
                         } else {
                             auth = this.rawencode (query);
                         }
