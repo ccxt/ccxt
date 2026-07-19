@@ -1095,7 +1095,7 @@ func (this *CoinexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "volume"),
-		"quoteVolume":   nil,
+		"quoteVolume":   this.SafeString(ticker, "value"),
 		"markPrice":     this.SafeString(ticker, "mark_price"),
 		"indexPrice":    this.SafeString(ticker, "index_price"),
 		"info":          ticker,
