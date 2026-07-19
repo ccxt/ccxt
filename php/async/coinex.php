@@ -1079,7 +1079,7 @@ class coinex extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_string($ticker, 'value'),
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,

@@ -1054,7 +1054,7 @@ public partial class coinex : Exchange
             { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
-            { "quoteVolume", null },
+            { "quoteVolume", this.safeString(ticker, "value") },
             { "markPrice", this.safeString(ticker, "mark_price") },
             { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },

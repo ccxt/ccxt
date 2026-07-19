@@ -1069,7 +1069,7 @@ class coinex(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_string(ticker, 'value'),
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,

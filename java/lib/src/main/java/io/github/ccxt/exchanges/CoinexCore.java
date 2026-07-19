@@ -1091,7 +1091,7 @@ public class CoinexCore extends CoinexApi
             put( "percentage", null );
             put( "average", null );
             put( "baseVolume", CoinexCore.this.safeString(ticker, "volume") );
-            put( "quoteVolume", null );
+            put( "quoteVolume", CoinexCore.this.safeString(ticker, "value") );
             put( "markPrice", CoinexCore.this.safeString(ticker, "mark_price") );
             put( "indexPrice", CoinexCore.this.safeString(ticker, "index_price") );
             put( "info", ticker );
