@@ -10424,7 +10424,7 @@ export default class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
-        const leverageString = this.safeString (position, 'leverage');
+        const leverageString = this.omitZero (this.safeString (position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
         const initialMargin = this.parseNumber (initialMarginString);
@@ -10769,7 +10769,7 @@ export default class binance extends Exchange {
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         let initialMarginString: Str = undefined;
         let initialMarginPercentageString: Str = undefined;
-        const leverageString = this.safeString (position, 'leverage');
+        const leverageString = this.omitZero (this.safeString (position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString !== undefined) {
             const leverage = parseInt (leverageString);
             const rational = this.isRoundNumber (1000 % leverage);
