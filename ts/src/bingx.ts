@@ -7003,7 +7003,8 @@ export default class bingx extends Exchange {
                 parsedParams = this.parseParams (params);
                 encodeRequest = this.rawencode (parsedParams, true);
             }
-            const signature = this.hmac (this.encode (encodeRequest || ''), this.encode (this.secret), sha256);
+            const encodeRequestSafe = (encodeRequest === undefined) ? '' : encodeRequest;
+            const signature = this.hmac (this.encode (encodeRequestSafe), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),
