@@ -56,3 +56,7 @@ target/
 go/main
 go/tests/main
 go/cli/cli
+
+# Local per-machine Claude Code agent settings (should never be committed)
+.claude/settings.local.json
+**/.claude/settings.local.json
