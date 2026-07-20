@@ -3900,7 +3900,7 @@ class coinbase extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000));
             }
             return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
         })();
