@@ -413,28 +413,28 @@ export default class hibachi extends Exchange {
         const code = this.safeCurrencyCode ('USDT');
         if (code !== undefined) {
             result[code] = this.safeCurrencyStructure ({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': this.parseNumber ('0.000001'),
-            'active': true,
-            'fee': undefined,
-            'networks': networks,
-            'deposit': true,
-            'withdraw': true,
-            'limits': {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': this.parseNumber ('0.000001'),
+                'active': true,
+                'fee': undefined,
+                'networks': networks,
+                'deposit': true,
+                'withdraw': true,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': {},
-        });
+                'info': {},
+            });
         }
         return result;
     }

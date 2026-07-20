@@ -1369,7 +1369,7 @@ class testMainClass {
             result[targetExchange] = ioFileRead (path);
             return result;
         }
-        const files = ioDirRead (folder) as string[];
+        const files = ioDirRead (folder);
         for (let i = 0; i < files.length; i++) {
             const file: string = files[i];
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction

@@ -2001,28 +2001,28 @@ export default class coinbase extends Exchange {
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
             if (code !== undefined) {
                 result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'networks': {}, // todo
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (currency, 'min_size'),
-                        'max': undefined,
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'type': type,
+                    'name': name,
+                    'active': true,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {}, // todo
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber (currency, 'min_size'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
             }
             if (assetId !== undefined) {
                 const lowerCaseName = (name as string).toLowerCase ();
@@ -2039,12 +2039,12 @@ export default class coinbase extends Exchange {
             if ((code === undefined) || !(code in result)) {
                 if (code !== undefined) {
                     result[code] = this.safeCurrencyStructure ({
-                    'info': {},
-                    'id': currencyId,
-                    'code': code,
-                    'type': 'crypto',
-                    'networks': {}, // todo
-                });
+                        'info': {},
+                        'id': currencyId,
+                        'code': code,
+                        'type': 'crypto',
+                        'networks': {}, // todo
+                    });
                 }
             }
         }

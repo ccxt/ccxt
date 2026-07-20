@@ -950,32 +950,32 @@ export default class xt extends Exchange {
             }
             if (code !== undefined) {
                 result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString (entry, 'fullName'),
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
-                'deposit': this.safeString (entry, 'depositStatus') === '1',
-                'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString (entry, 'fullName'),
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
+                    'deposit': this.safeString (entry, 'depositStatus') === '1',
+                    'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
+                    'networks': networks,
+                    'type': type,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
             }
         }
         return result;
