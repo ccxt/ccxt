@@ -24,7 +24,10 @@
             "leverage": {},
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 0.0002,
+                "max": 100
+            }
         },
         "info": {}
     },
@@ -53,7 +56,10 @@
             "leverage": {},
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 0.0002,
+                "max": 100
+            }
         },
         "info": {}
     },
