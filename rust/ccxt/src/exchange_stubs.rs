@@ -816,7 +816,15 @@ impl Exchange {
         // up with those flags missing.
         self.describe()
     }
-    pub fn super_set_sandbox_mode(&mut self, _enabled: Value) { /* stub */
+    /// `super.setSandboxMode(enabled)` from a derived exchange. Forwards to the
+    /// base `Exchange::set_sandbox_mode` (transpiled into exchange_generated.rs),
+    /// which swaps `urls['api']` ↔ `urls['test']` via an `apiBackup` and toggles
+    /// `isSandboxModeEnabled`. This is `impl Exchange`, so `self` is the base and
+    /// the call resolves to the base method — not the derived override — so there
+    /// is no recursion (review #9: it was previously a no-op, so the ~12 venues
+    /// that call it via their override never actually switched to sandbox URLs).
+    pub fn super_set_sandbox_mode(&mut self, enabled: Value) {
+        self.set_sandbox_mode(enabled);
     }
     pub fn super_safe_market(
         &self,

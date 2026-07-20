@@ -1849,6 +1849,26 @@ mod rate_limit_config_tests {
 }
 
 #[cfg(all(test, feature = "transpiled-base"))]
+mod sandbox_mode_tests {
+    use crate::Value;
+
+    // super_set_sandbox_mode was a no-op, so venues that override setSandboxMode
+    // (binance, okx, gate, …) never actually switched to their sandbox URL
+    // (review #9). After delegating to the base, set_sandbox_mode(true) must
+    // swap urls['api'] -> urls['test'] and toggle isSandboxModeEnabled.
+    #[test]
+    fn binance_sandbox_swaps_api_url() {
+        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".to_string()));
+        assert!(!matches!(test_url, Value::Null), "binance describe() has no test url");
+        b.set_sandbox_mode(Value::Bool(true));
+        assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
+        let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".to_string()));
+        assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
+    }
+}
+
+#[cfg(all(test, feature = "transpiled-base"))]
 mod cow_alias_tests {
     use super::Exchange;
     use crate::Value;
