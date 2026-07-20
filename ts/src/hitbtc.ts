@@ -1108,7 +1108,9 @@ export default class hitbtc extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'reserved');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

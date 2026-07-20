@@ -1945,7 +1945,9 @@ export default class aster extends Exchange {
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'balance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

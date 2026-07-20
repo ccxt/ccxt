@@ -258,7 +258,9 @@ export default class hollaex extends hollaexRest {
             const symbol = trade['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            this.storeByKey (marketIds, marketId, true);
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
+            }
         }
         // non-symbol specific
         client.resolve (this.myTrades, channel);
@@ -383,7 +385,9 @@ export default class hollaex extends hollaexRest {
             const symbol = order['symbol'];
             const market = this.market (symbol);
             const marketId = market['id'];
-            this.storeByKey (marketIds, marketId, true);
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
+            }
         }
         // non-symbol specific
         client.resolve (this.orders, channel);
@@ -444,7 +448,9 @@ export default class hollaex extends hollaexRest {
             const second = this.safeString (parts, 1);
             const freeOrTotal = (second === 'available') ? 'free' : 'total';
             account[freeOrTotal] = this.safeString (data, key);
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);

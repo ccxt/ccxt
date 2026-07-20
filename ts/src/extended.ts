@@ -1508,7 +1508,9 @@ export default class extended extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'availableToWithdraw');
             account['total'] = this.safeString (balance, 'balance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

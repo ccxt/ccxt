@@ -856,7 +856,9 @@ export default class foxbit extends Exchange {
                 'used': used,
                 'total': total,
             };
-            this.storeByKey (result, currencyCode, balanceObj);
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance (result);
     }

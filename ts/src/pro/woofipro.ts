@@ -354,7 +354,9 @@ export default class woofipro extends woofiproRest {
         const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            this.storeByKey (this.tickers, ticker['symbol'], ticker);
+            if (ticker['symbol'] !== undefined) {
+                this.tickers[ticker['symbol']] = ticker;
+            }
             result.push (ticker);
         }
         client.resolve (result, topic);
@@ -1278,7 +1280,9 @@ export default class woofipro extends woofiproRest {
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub (total, used);
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');

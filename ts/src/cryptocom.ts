@@ -1223,7 +1223,9 @@ export default class cryptocom extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'quantity');
             account['used'] = this.safeString (balance, 'reserved_qty');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

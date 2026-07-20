@@ -767,9 +767,13 @@ export default class whitebit extends Exchange {
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
             const withdraw = this.safeValue (data, 'withdraw', {});
-            this.storeByKey (withdrawFees, code, this.safeString (withdraw, 'fixed'));
+            if (code !== undefined) {
+                withdrawFees[code] = this.safeString (withdraw, 'fixed');
+            }
             const deposit = this.safeValue (data, 'deposit', {});
-            this.storeByKey (depositFees, code, this.safeString (deposit, 'fixed'));
+            if (code !== undefined) {
+                depositFees[code] = this.safeString (deposit, 'fixed');
+            }
         }
         return {
             'withdraw': withdrawFees,
@@ -2338,11 +2342,15 @@ export default class whitebit extends Exchange {
                 account['free'] = this.safeString2 (balance, 'available', 'main_balance');
                 account['used'] = this.safeString (balance, 'freeze');
                 account['total'] = this.safeString (balance, 'main_balance');
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             } else {
                 const account = this.account ();
                 account['total'] = balance;
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);

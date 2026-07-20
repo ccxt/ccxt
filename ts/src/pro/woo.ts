@@ -270,7 +270,9 @@ export default class woo extends wooRest {
                 delete this.orderbooks[symbol];
             }
         }
-        this.storeByKey (this.orderbooks, symbol, this.orderBook ({}, limit));
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -301,7 +303,9 @@ export default class woo extends wooRest {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
             }
-            this.storeByKey (this.orderbooks, symbol, orderbook);
+            if (symbol !== undefined) {
+                this.orderbooks[symbol] = orderbook;
+            }
             client.resolve (orderbook, messageHash);
         } catch (e) {
             if (messageHash !== undefined) {
@@ -611,8 +615,12 @@ export default class woo extends wooRest {
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
-            this.storeByKey (this.bidsasks, symbol, parsedTicker);
-            this.storeByKey (result, symbol, parsedTicker);
+            if (symbol !== undefined) {
+                this.bidsasks[symbol] = parsedTicker;
+            }
+            if (symbol !== undefined) {
+                result[symbol] = parsedTicker;
+            }
         }
         client.resolve (result, topic);
     }
@@ -1482,7 +1490,9 @@ export default class woo extends wooRest {
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub (total, used);
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
@@ -1527,7 +1537,9 @@ export default class woo extends wooRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.storeByKey (this.fundingRates, symbol, fundingRate);
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = this.safeString (message, 'topic');
         client.resolve (fundingRate, messageHash);
     }

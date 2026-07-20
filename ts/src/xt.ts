@@ -948,7 +948,8 @@ export default class xt extends Exchange {
             } else {
                 type = 'other';
             }
-            this.storeByKey (result, code, this.safeCurrencyStructure ({
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure ({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
@@ -974,7 +975,8 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
+            }
         }
         return result;
     }
@@ -1792,7 +1794,9 @@ export default class xt extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
             const symbol = ticker['symbol'];
-            this.storeByKey (result, symbol, ticker);
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2410,7 +2414,9 @@ export default class xt extends Exchange {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

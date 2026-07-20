@@ -1118,7 +1118,9 @@ export default class hyperliquid extends hyperliquidRest {
                 this.balance[accountType][code] = account;
             }
         } else {
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
 

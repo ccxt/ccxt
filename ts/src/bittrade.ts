@@ -1241,7 +1241,9 @@ export default class bittrade extends Exchange {
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString (balance, 'balance');
             }
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

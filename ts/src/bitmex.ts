@@ -990,7 +990,9 @@ export default class bitmex extends Exchange {
             const total = this.safeString (balance, 'marginBalance');
             account['free'] = this.convertToRealAmount (code, free);
             account['total'] = this.convertToRealAmount (code, total);
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

@@ -1043,7 +1043,9 @@ export default class weex extends weexRest {
         }
         const ticker = this.parseWsBidAsk (message, market);
         const symbol = ticker['symbol'];
-        this.storeByKey (this.bidsasks, symbol, ticker);
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = ticker;
+        }
         const messageHash = 'bidask::' + symbol;
         client.resolve (ticker, messageHash);
     }
@@ -1190,7 +1192,9 @@ export default class weex extends weexRest {
             const trade = this.safeDict (data, i, {});
             const parsed = this.parseWsMyTrade (trade);
             const symbol = parsed['symbol'];
-            this.storeByKey (symbols, symbol, true);
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append (parsed);
         }
         let messageHash = 'myTrades';
@@ -1397,7 +1401,9 @@ export default class weex extends weexRest {
             const parsed = this.parseWsOrder (rawOrder);
             orders.append (parsed);
             const symbol = parsed['symbol'];
-            this.storeByKey (symbols, symbol, true);
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
         }
         let messageHash = 'orders';
         const symbolKeys = Object.keys (symbols);

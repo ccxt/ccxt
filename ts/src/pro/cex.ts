@@ -115,7 +115,9 @@ export default class cex extends cexRest {
             account['free'] = this.safeString (freeBalance, currencyId);
             account['used'] = this.safeString (usedBalance, currencyId);
             const code = this.safeCurrencyCode (currencyId);
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance (result);
         const messageHash = this.safeString (message, 'oid');

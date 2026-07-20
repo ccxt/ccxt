@@ -2846,7 +2846,9 @@ export default class okx extends Exchange {
             } else {
                 account['free'] = availEq;
             }
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -2865,7 +2867,9 @@ export default class okx extends Exchange {
             account['total'] = this.safeString (balance, 'bal');
             account['free'] = this.safeString (balance, 'availBal');
             account['used'] = this.safeString (balance, 'frozenBal');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

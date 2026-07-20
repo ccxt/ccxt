@@ -2422,7 +2422,9 @@ export default class bitget extends bitgetRest {
                     account['free'] = this.safeString (entry, 'available');
                     account['used'] = this.safeString (entry, 'locked');
                     account['total'] = this.safeString (entry, 'balance');
-                    this.storeByKey (this.balance, code, account);
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
                 }
             } else {
                 const currencyId = this.safeString2 (rawBalance, 'coin', 'marginCoin');
@@ -2440,7 +2442,9 @@ export default class bitget extends bitgetRest {
                 account['free'] = this.safeString (rawBalance, freeQuery);
                 account['total'] = this.safeString (rawBalance, 'equity');
                 account['used'] = this.safeString (rawBalance, 'frozen');
-                this.storeByKey (this.balance, code, account);
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         this.balance = this.safeBalance (this.balance);

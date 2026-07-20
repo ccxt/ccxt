@@ -416,7 +416,9 @@ export default class okx extends okxRest {
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
-            this.storeByKey (result, symbol, fundingRate);
+            if (symbol !== undefined) {
+                result[symbol] = fundingRate;
+            }
             return result;
         }
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
@@ -447,7 +449,9 @@ export default class okx extends okxRest {
             const rawfr = data[i];
             const fundingRate = this.parseFundingRate (rawfr);
             const symbol = fundingRate['symbol'];
-            this.storeByKey (this.fundingRates, symbol, fundingRate);
+            if (symbol !== undefined) {
+                this.fundingRates[symbol] = fundingRate;
+            }
             client.resolve (fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
         }
     }
@@ -705,7 +709,9 @@ export default class okx extends okxRest {
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker);
         const symbol = parsedTicker['symbol'];
-        this.storeByKey (this.bidsasks, symbol, parsedTicker);
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = parsedTicker;
+        }
         const messageHash = 'bidask::' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
@@ -2160,7 +2166,9 @@ export default class okx extends okxRest {
             const trade = this.orderToTrade (rawTrade);
             myTrades.append (trade);
             const symbol = trade['symbol'];
-            this.storeByKey (symbols, symbol, true);
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
         }
         const messageHash = channel + '::myTrades';
         client.resolve (this.myTrades, messageHash);

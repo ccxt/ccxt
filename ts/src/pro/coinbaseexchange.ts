@@ -436,7 +436,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
-                this.storeByKey (this.trades, symbol, tradesArray);
+                if (symbol !== undefined) {
+                    this.trades[symbol] = tradesArray;
+                }
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
@@ -808,7 +810,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (marketId !== undefined) {
             const ticker = this.parseTicker (message);
             const symbol = ticker['symbol'];
-            this.storeByKey (this.tickers, symbol, ticker);
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = 'ticker:' + symbol;
             const idMessageHash = 'ticker:' + marketId;
             client.resolve (ticker, messageHash);

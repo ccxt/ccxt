@@ -487,7 +487,9 @@ export default class coinone extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'avail');
             account['total'] = this.safeString (balance, 'balance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1249,7 +1251,9 @@ export default class coinone extends Exchange {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [ address, value ];
             }
-            this.storeByKey (result, code, depositAddress);
+            if (code !== undefined) {
+                result[code] = depositAddress;
+            }
         }
         return result as DepositAddress[];
     }

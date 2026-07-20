@@ -407,7 +407,9 @@ export default class coinex extends coinexRest {
                 this.balance[accountType][code] = account;
             }
         } else {
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
 

@@ -766,7 +766,9 @@ export default class pacifica extends pacificaRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            this.storeByKey (symbols, symbol, true);
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -1201,7 +1203,9 @@ export default class pacifica extends pacificaRest {
             const order = this.parseOrder (rawOrder);
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
-            this.storeByKey (marketSymbols, symbol, true);
+            if (symbol !== undefined) {
+                marketSymbols[symbol] = true;
+            }
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {

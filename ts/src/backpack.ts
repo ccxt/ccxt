@@ -1428,7 +1428,9 @@ export default class backpack extends Exchange {
             const used = Precise.stringAdd (locked, staked);
             account['free'] = this.safeString (balance, 'available');
             account['used'] = used;
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

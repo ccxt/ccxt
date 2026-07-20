@@ -990,7 +990,9 @@ export default class bitfinex extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 account['total'] = this.safeString (balance, 2);
                 account['free'] = this.safeString (balance, 4);
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);

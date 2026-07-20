@@ -347,7 +347,9 @@ export default class mexc extends mexcRest {
                 ticker = this.parseTicker (entry);
             }
             const symbol = ticker['symbol'];
-            this.storeByKey (this.tickers, symbol, ticker);
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             result.push (ticker);
             const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
@@ -1632,7 +1634,9 @@ export default class mexc extends mexcRest {
         const account = this.account ();
         account['free'] = this.safeString2 (data, 'balanceAmount', 'availableBalance');
         account['used'] = this.safeString2 (data, 'frozenBalance', 'frozenAmount');
-        this.storeByKey (this.balance[type], code, account);
+        if (code !== undefined) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], messageHash);
     }
@@ -1702,7 +1706,9 @@ export default class mexc extends mexcRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.storeByKey (this.fundingRates, symbol, fundingRate);
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }

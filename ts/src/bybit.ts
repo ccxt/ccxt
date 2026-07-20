@@ -3621,7 +3621,9 @@ export default class bybit extends Exchange {
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString (coinEntry, 'coin');
                         const code = this.safeCurrencyCode (currencyId);
-                        this.storeByKey (result, code, account);
+                        if (code !== undefined) {
+                            result[code] = account;
+                        }
                     }
                 } else {
                     const account = this.account ();
@@ -3635,7 +3637,9 @@ export default class bybit extends Exchange {
                     account['used'] = this.safeString (entry, 'locked');
                     const currencyId = this.safeStringN (entry, [ 'tokenId', 'coin', 'currencyCoin' ]);
                     const code = this.safeCurrencyCode (currencyId);
-                    this.storeByKey (result, code, account);
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -8101,7 +8105,9 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            this.storeByKey (result, symbol, fee);
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }

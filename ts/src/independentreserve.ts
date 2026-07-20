@@ -408,7 +408,9 @@ export default class independentreserve extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'AvailableBalance');
             account['total'] = this.safeString (balance, 'TotalBalance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

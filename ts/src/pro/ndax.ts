@@ -105,7 +105,9 @@ export default class ndax extends ndaxRest {
         const ticker = this.parseTicker (payload);
         const symbol = ticker['symbol'];
         const market = this.market (symbol);
-        this.storeByKey (this.tickers, symbol, ticker);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
         client.resolve (ticker, messageHash);
@@ -184,8 +186,12 @@ export default class ndax extends ndaxRest {
                 tradesArray = new ArrayCache (limit);
             }
             tradesArray.append (trade);
-            this.storeByKey (this.trades, symbol, tradesArray);
-            this.storeByKey (updates, symbol, true);
+            if (symbol !== undefined) {
+                this.trades[symbol] = tradesArray;
+            }
+            if (symbol !== undefined) {
+                updates[symbol] = true;
+            }
         }
         const symbols = Object.keys (updates);
         for (let i = 0; i < symbols.length; i++) {
@@ -272,7 +278,9 @@ export default class ndax extends ndaxRest {
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            this.storeByKey (updates, marketId, {});
+            if (marketId !== undefined) {
+                updates[marketId] = {};
+            }
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
@@ -510,7 +518,9 @@ export default class ndax extends ndaxRest {
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
         const orderbook = this.orderBook (snapshot, limit);
-        this.storeByKey (this.orderbooks, symbol, orderbook);
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = orderbook;
+        }
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);
     }

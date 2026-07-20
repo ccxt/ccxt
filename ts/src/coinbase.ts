@@ -1999,7 +1999,8 @@ export default class coinbase extends Exchange {
                 this.options['networksById'][code] = (name as string).toLowerCase ();
             }
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
-            this.storeByKey (result, code, this.safeCurrencyStructure ({
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -2021,10 +2022,13 @@ export default class coinbase extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
+            }
             if (assetId !== undefined) {
                 const lowerCaseName = (name as string).toLowerCase ();
-                this.storeByKey (networks, code, lowerCaseName);
+                if (code !== undefined) {
+                    networks[code] = lowerCaseName;
+                }
                 networksById[lowerCaseName] = code;
             }
         }
@@ -2033,13 +2037,15 @@ export default class coinbase extends Exchange {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode (currencyId);
             if ((code === undefined) || !(code in result)) {
-                this.storeByKey (result, code, this.safeCurrencyStructure ({
+                if (code !== undefined) {
+                    result[code] = this.safeCurrencyStructure ({
                     'info': {},
                     'id': currencyId,
                     'code': code,
                     'type': 'crypto',
                     'networks': {}, // todo
-                }));
+                });
+                }
             }
         }
         this.options['networks'] = this.extend (networks, this.options['networks']);
@@ -2426,7 +2432,9 @@ export default class coinbase extends Exchange {
                         account['free'] = Precise.stringAdd (account['free'], total);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    this.storeByKey (result, code, account);
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             } else if (this.inArray (type, v3Accounts)) {
                 const available = this.safeDict (balance, 'available_balance');
@@ -2448,7 +2456,9 @@ export default class coinbase extends Exchange {
                         account['used'] = Precise.stringAdd (account['used'], used);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    this.storeByKey (result, code, account);
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }

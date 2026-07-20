@@ -1749,7 +1749,9 @@ export default class coinex extends Exchange {
             const baseDebt = this.safeString (loan, 'base_ccy');
             const baseInterest = this.safeString (interest, 'base_ccy');
             baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
-            this.storeByKey (result, baseCurrencyCode, baseAccount);
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1781,7 +1783,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1816,7 +1820,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1848,7 +1854,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -5865,7 +5873,9 @@ export default class coinex extends Exchange {
             }
             const code = this.safeCurrencyCode (currencyId);
             if (codes === undefined || this.inArray (code, codes)) {
-                this.storeByKey (result, code, this.parseDepositWithdrawFee (item));
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee (item);
+                }
             }
         }
         return result;

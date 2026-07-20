@@ -4650,7 +4650,9 @@ export default class bitget extends Exchange {
             account['used'] = this.safeString (entry, 'locked');
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -4729,7 +4731,9 @@ export default class bitget extends Exchange {
                     account['used'] = Precise.stringAdd (frozen, locked);
                 }
             }
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

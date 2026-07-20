@@ -447,7 +447,9 @@ export default class indodax extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (free, currencyId);
             account['used'] = this.safeString (used, currencyId);
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

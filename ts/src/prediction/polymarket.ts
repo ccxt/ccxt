@@ -3133,7 +3133,9 @@ export default class polymarket extends Exchange {
         }
         if (!(outcome in this.orderbooks)) {
             const seededBook = this.orderBook ({});
-            this.storeByKey (this.orderbooks, outcome, seededBook);
+            if (outcome !== undefined) {
+                this.orderbooks[outcome] = seededBook;
+            }
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);

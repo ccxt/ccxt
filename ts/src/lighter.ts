@@ -1845,7 +1845,9 @@ export default class lighter extends Exchange {
                     const balance = this.safeDict (result, code, this.account ());
                     balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
                     balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
-                    this.storeByKey (result, code, balance);
+                    if (code !== undefined) {
+                        result[code] = balance;
+                    }
                 }
             } else {
                 const perpBalance = this.safeDict (result, 'USDC', this.account ());

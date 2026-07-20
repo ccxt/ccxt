@@ -2607,7 +2607,9 @@ export default class bydfi extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString2 (balance, 'total', 'balance');
             account['free'] = this.safeString2 (balance, 'available', 'availableBalance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

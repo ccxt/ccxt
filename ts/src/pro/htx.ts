@@ -240,7 +240,9 @@ export default class htx extends htxRest {
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
-        this.storeByKey (this.tickers, symbol, ticker);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         client.resolve (ticker, ch);
         return message;
     }
@@ -580,7 +582,9 @@ export default class htx extends htxRest {
                         }
                         const delayTime = this.sum (1000, lastTimestamp - snapshotTimestamp);
                         subscription['numAttempts'] = numAttempts;
-                        this.storeByKey (client.subscriptions, messageHash, subscription);
+                        if (messageHash !== undefined) {
+                            client.subscriptions[messageHash] = subscription;
+                        }
                         this.delay (delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
@@ -594,7 +598,9 @@ export default class htx extends htxRest {
                     this.handleOrderBookMessage (client, messages[i]);
                 }
                 orderbook.cache = [];
-                this.storeByKey (this.orderbooks, symbol, orderbook);
+                if (symbol !== undefined) {
+                    this.orderbooks[symbol] = orderbook;
+                }
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
@@ -842,7 +848,9 @@ export default class htx extends htxRest {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const limit = this.safeInteger (subscription, 'limit');
-        this.storeByKey (this.orderbooks, symbol, this.orderBook ({}, limit));
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
         if (market['spot']) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         }
@@ -2031,7 +2039,9 @@ export default class htx extends htxRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'available');
             account['total'] = this.safeString (data, 'balance');
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance (this.balance);
             client.resolve (this.balance, channel);
         } else {
@@ -2103,7 +2113,9 @@ export default class htx extends htxRest {
                 const unifiedAccount = this.account ();
                 unifiedAccount['free'] = this.safeString (first, 'withdraw_available');
                 unifiedAccount['used'] = marginFrozen;
-                this.storeByKey (this.balance, code, unifiedAccount);
+                if (code !== undefined) {
+                    this.balance[code] = unifiedAccount;
+                }
                 this.balance = this.safeBalance (this.balance);
                 client.resolve (this.balance, 'accounts_unify');
             } else if (subType === 'linear') {
@@ -2143,7 +2155,9 @@ export default class htx extends htxRest {
                         account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
                         const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
                         const code = this.safeCurrencyCode (currencyId);
-                        this.storeByKey (this.balance, code, account);
+                        if (code !== undefined) {
+                            this.balance[code] = account;
+                        }
                         this.balance = this.safeBalance (this.balance);
                     }
                 }
@@ -2156,7 +2170,9 @@ export default class htx extends htxRest {
                     const account = this.account ();
                     account['free'] = this.safeString (balance, 'margin_available');
                     account['used'] = this.safeString (balance, 'margin_frozen');
-                    this.storeByKey (this.balance, code, account);
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
                     this.balance = this.safeBalance (this.balance);
                 }
             }

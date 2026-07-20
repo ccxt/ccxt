@@ -174,7 +174,9 @@ export default class gemini extends geminiRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             stored = new ArrayCache (tradesLimit);
-            this.storeByKey (this.trades, symbol, stored);
+            if (symbol !== undefined) {
+                this.trades[symbol] = stored;
+            }
         }
         stored.append (trade);
         const messageHash = 'trades:' + symbol;

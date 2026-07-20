@@ -1194,7 +1194,9 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency (customCurrency);
             const code = this.safeString (parsed, 'code');
-            this.storeByKey (result, code, parsed);
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -2671,7 +2673,9 @@ export default class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['free'] = this.safeString (balance, 'availableBalance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

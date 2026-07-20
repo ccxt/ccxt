@@ -594,7 +594,9 @@ export default class upbit extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'balance');
             account['used'] = this.safeString (balance, 'locked');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1085,7 +1087,10 @@ export default class upbit extends Exchange {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            this.storeByKey (response, this.safeString (fetchMarketResponse[i], 'symbol'), element);
+            const feeSymbol = this.safeString (fetchMarketResponse[i], 'symbol');
+            if (feeSymbol !== undefined) {
+                response[feeSymbol] = element;
+            }
         }
         return response;
     }

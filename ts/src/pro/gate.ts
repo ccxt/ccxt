@@ -516,7 +516,9 @@ export default class gate extends gateRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        this.storeByKey (this.orderbooks, symbol, this.orderBook ({}, limit));
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
     }
 
     handleNewSpotOrderBook (client: Client, message) {
@@ -884,9 +886,13 @@ export default class gate extends gateRest {
             const parsedItem = this.parseTicker (rawTicker, market);
             const symbol = parsedItem['symbol'];
             if (isTicker) {
-                this.storeByKey (this.tickers, symbol, parsedItem);
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = parsedItem;
+                }
             } else {
-                this.storeByKey (this.bidsasks, symbol, parsedItem);
+                if (symbol !== undefined) {
+                    this.bidsasks[symbol] = parsedItem;
+                }
             }
             const messageHash = objectName + ':' + symbol;
             client.resolve (parsedItem, messageHash);
@@ -1018,7 +1024,9 @@ export default class gate extends gateRest {
             if (cachedTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 cachedTrades = new ArrayCache (limit);
-                this.storeByKey (this.trades, symbol, cachedTrades);
+                if (symbol !== undefined) {
+                    this.trades[symbol] = cachedTrades;
+                }
             }
             cachedTrades.append (trade);
             const hash = 'trades:' + symbol;
@@ -1210,7 +1218,9 @@ export default class gate extends gateRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            this.storeByKey (marketIds, symbol, true);
+            if (symbol !== undefined) {
+                marketIds[symbol] = true;
+            }
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1334,7 +1344,9 @@ export default class gate extends gateRest {
             account['used'] = this.safeString (rawBalance, 'freeze');
             account['free'] = this.safeString (rawBalance, 'available');
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
@@ -1654,7 +1666,9 @@ export default class gate extends gateRest {
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
-            this.storeByKey (marketIds, market['id'], true);
+            if (market['id'] !== undefined) {
+                marketIds[market['id']] = true;
+            }
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {

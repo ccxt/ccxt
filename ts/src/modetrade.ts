@@ -2332,7 +2332,9 @@ export default class modetrade extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['used'] = this.safeString (balance, 'frozen');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

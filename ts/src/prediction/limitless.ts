@@ -1166,13 +1166,17 @@ export default class limitless extends Exchange {
                 throw new ExchangeError (this.id + ' fetchTickers() missing slug');
             }
             if (!(slug in outcomesBySlug)) {
-                this.storeByKey (outcomesBySlug, slug, []);
+                if (slug !== undefined) {
+                    outcomesBySlug[slug] = [];
+                }
                 slugs.push (slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             const grouped = this.safeValue (outcomesBySlug, slug);
             grouped.push (outcomeObj);
-            this.storeByKey (outcomesBySlug, slug, grouped);
+            if (slug !== undefined) {
+                outcomesBySlug[slug] = grouped;
+            }
         }
         const promises: any[] = [];
         for (let i = 0; i < slugs.length; i++) {

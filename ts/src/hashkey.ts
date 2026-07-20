@@ -1857,7 +1857,9 @@ export default class hashkey extends Exchange {
             account['total'] = this.safeString (balanceEntry, 'total');
             account['free'] = this.safeString (balanceEntry, 'free');
             account['used'] = this.safeString (balanceEntry, 'locked');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1883,7 +1885,9 @@ export default class hashkey extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        this.storeByKey (result, code, account);
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance (result);
     }
 

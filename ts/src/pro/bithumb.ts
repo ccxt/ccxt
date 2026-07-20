@@ -456,7 +456,9 @@ export default class bithumb extends bithumbRest {
             const account = this.account ();
             account['free'] = this.safeString (asset, 'balance');
             account['used'] = this.safeString (asset, 'locked');
-            this.storeByKey (this.balance, code, account);
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance['info'] = message;
         const timestamp = this.safeInteger (message, 'timestamp');

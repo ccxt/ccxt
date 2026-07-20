@@ -220,7 +220,9 @@ export default class binance extends binanceRest {
             const normalizedIndex = streamIndex % (streamLimit as number);
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
-            this.storeByKey (this.options['streamBySubscriptionsHash'], subscriptionHash, stream);
+            if (subscriptionHash !== undefined) {
+                this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            }
             const subscriptionsByStreams = this.safeValue (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
                 this.options['numSubscriptionsByStream'] = this.createSafeDictionary ();
@@ -968,7 +970,9 @@ export default class binance extends binanceRest {
                     }
                 }
             }
-            this.storeByKey (this.orderbooks, symbol, orderbook);
+            if (symbol !== undefined) {
+                this.orderbooks[symbol] = orderbook;
+            }
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
@@ -2448,11 +2452,17 @@ export default class binance extends binanceRest {
             }
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
-            this.storeByKey (newTickers, symbol, parsedTicker);
+            if (symbol !== undefined) {
+                newTickers[symbol] = parsedTicker;
+            }
             if (isBidAsk) {
-                this.storeByKey (this.bidsasks, symbol, parsedTicker);
+                if (symbol !== undefined) {
+                    this.bidsasks[symbol] = parsedTicker;
+                }
             } else {
-                this.storeByKey (this.tickers, symbol, parsedTicker);
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = parsedTicker;
+                }
             }
             const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
             resolvedMessageHashes.push (messageHash);

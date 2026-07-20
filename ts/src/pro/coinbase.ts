@@ -473,7 +473,9 @@ export default class coinbase extends coinbaseRest {
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
-                this.storeByKey (this.tickers, symbol, result);
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = result;
+                }
                 newTickers.push (result);
                 const messageHash = channel + '::' + symbol;
                 client.resolve (result, messageHash);

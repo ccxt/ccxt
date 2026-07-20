@@ -672,7 +672,9 @@ export default class poloniex extends poloniexRest {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache (tradesLimit);
-                    this.storeByKey (this.trades, symbol, tradesArray);
+                    if (symbol !== undefined) {
+                        this.trades[symbol] = tradesArray;
+                    }
                 }
                 tradesArray.append (trade);
                 client.resolve (tradesArray, messageHash);
@@ -1037,8 +1039,12 @@ export default class poloniex extends poloniexRest {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
-                this.storeByKey (this.tickers, symbol, ticker);
-                this.storeByKey (newTickers, symbol, ticker);
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = ticker;
+                }
+                if (symbol !== undefined) {
+                    newTickers[symbol] = ticker;
+                }
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');
@@ -1208,7 +1214,9 @@ export default class poloniex extends poloniexRest {
             const newAccount = this.account ();
             newAccount['free'] = this.safeString (balance, 'available');
             newAccount['used'] = this.safeString (balance, 'hold');
-            this.storeByKey (result, code, newAccount);
+            if (code !== undefined) {
+                result[code] = newAccount;
+            }
         }
         return this.safeBalance (result);
     }

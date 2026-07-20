@@ -1080,7 +1080,9 @@ export default class exmo extends Exchange {
                 account['used'] = this.safeString (item, 'used');
                 account['free'] = this.safeString (item, 'free');
                 account['total'] = this.safeString (item, 'balance');
-                this.storeByKey (result, currency, account);
+                if (currency !== undefined) {
+                    result[currency] = account;
+                }
             }
         } else {
             const free = this.safeValue (response, 'balances', {});
@@ -1096,7 +1098,9 @@ export default class exmo extends Exchange {
                 if (currencyId in used) {
                     account['used'] = this.safeString (used, currencyId);
                 }
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);

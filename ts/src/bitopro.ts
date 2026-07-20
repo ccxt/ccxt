@@ -1008,7 +1008,9 @@ export default class bitopro extends Exchange {
                 'free': available,
                 'total': amount,
             };
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1284,7 +1286,9 @@ export default class bitopro extends Exchange {
         const market = this.market (symbol);
         const id = market['uppercaseId'];
         const request: Dict = {};
-        this.storeByKey (request, id, ids);
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders (this.extend (request, params));
         //
         //     {

@@ -862,7 +862,9 @@ export default class digifinex extends Exchange {
             account['free'] = free;
             account['used'] = Precise.stringSub (total, free);
             account['total'] = total;
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1101,7 +1103,9 @@ export default class digifinex extends Exchange {
             }, tickers[i]);
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
-            this.storeByKey (result, symbol, ticker);
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -3373,7 +3377,9 @@ export default class digifinex extends Exchange {
             const currency = this.safeString (item, codeKey);
             const code = this.safeCurrencyCode (currency);
             const borrowRate = this.parseBorrowRate (item);
-            this.storeByKey (result, code, borrowRate);
+            if (code !== undefined) {
+                result[code] = borrowRate;
+            }
         }
         return result as any;
     }

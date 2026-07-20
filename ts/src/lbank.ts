@@ -1335,7 +1335,9 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['used'] = this.safeString (used, currencyId);
                 account['free'] = this.safeString (free, currencyId);
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance (result);
         }
@@ -1349,7 +1351,9 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'free');
                 account['used'] = this.safeString (item, 'locked');
-                this.storeByKey (result, codeInner, account);
+                if (codeInner !== undefined) {
+                    result[codeInner] = account;
+                }
             }
             return this.safeBalance (result);
         }
@@ -1363,7 +1367,9 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'usableAmt');
                 account['used'] = this.safeString (item, 'freezeAmt');
-                this.storeByKey (result, codeInner, account);
+                if (codeInner !== undefined) {
+                    result[codeInner] = account;
+                }
             }
             return this.safeBalance (result);
         }
@@ -2745,7 +2751,9 @@ export default class lbank extends Exchange {
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList = this.safeValue (entry, 'networkList', []);
-            this.storeByKey (withdrawFees, code, {});
+            if (code !== undefined) {
+                withdrawFees[code] = {};
+            }
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
@@ -2815,7 +2823,9 @@ export default class lbank extends Exchange {
                 }
                 const fee = this.safeString (item, 'fee');
                 if (this.safeValue (withdrawFees, codeInner) === undefined) {
-                    this.storeByKey (withdrawFees, codeInner, {});
+                    if (codeInner !== undefined) {
+                        withdrawFees[codeInner] = {};
+                    }
                 }
                 if ((codeInner !== undefined) && (network !== undefined)) {
                     withdrawFees[codeInner][network] = this.parseNumber (fee);

@@ -3467,7 +3467,9 @@ export default class htx extends Exchange {
             if (code !== undefined && title !== undefined) {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             }
-            this.storeByKey (this.options['networkNamesByChainIds'], uniqueChainId, title);
+            if (uniqueChainId !== undefined) {
+                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            }
             const networkCode = this.networkIdToCode (uniqueChainId, code);
             if (networkCode !== undefined) {
                 networks[networkCode] = {
@@ -3773,7 +3775,9 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available_margin');
                 account['total'] = this.safeString (balance, 'equity');
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance (result);
         } else if (spot || margin) {
@@ -3787,7 +3791,9 @@ export default class htx extends Exchange {
                         const balance = balances[j];
                         const currencyId = this.safeString (balance, 'currency');
                         const code = this.safeCurrencyCode (currencyId);
-                        this.storeByKey (subResult, code, this.parseMarginBalanceHelper (balance, code, subResult));
+                        if (code !== undefined) {
+                            subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
+                        }
                     }
                     result[symbol] = this.safeBalance (subResult);
                 }
@@ -3797,7 +3803,9 @@ export default class htx extends Exchange {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
-                    this.storeByKey (result, code, this.parseMarginBalanceHelper (balance, code, result));
+                    if (code !== undefined) {
+                        result[code] = this.parseMarginBalanceHelper (balance, code, result);
+                    }
                 }
                 result = this.safeBalance (result);
             }
@@ -3809,7 +3817,9 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'margin_available');
                 account['used'] = this.safeString (balance, 'margin_frozen');
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             result = this.safeBalance (result);
         }

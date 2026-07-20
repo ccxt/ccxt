@@ -985,7 +985,9 @@ export default class deribit extends Exchange {
                 if (parsedMarketValue) {
                     continue;
                 }
-                this.storeByKey (parsedMarkets, symbol, true);
+                if (symbol !== undefined) {
+                    parsedMarkets[symbol] = true;
+                }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
                 result.push ({
@@ -1062,7 +1064,9 @@ export default class deribit extends Exchange {
             account['free'] = this.safeString (data, 'available_funds');
             account['used'] = this.safeString (data, 'maintenance_margin');
             account['total'] = this.safeString (data, 'equity');
-            this.storeByKey (result, currencyCode, account);
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1443,7 +1447,9 @@ export default class deribit extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
             const symbol = ticker['symbol'];
-            this.storeByKey (tickers, symbol, ticker);
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }

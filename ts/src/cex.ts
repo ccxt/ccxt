@@ -882,7 +882,9 @@ export default class cex extends Exchange {
                 market = this.safeMarket (key);
             }
             const parsed = this.parseTradingFee (response[key], market);
-            this.storeByKey (result, parsed['symbol'], parsed);
+            if (parsed['symbol'] !== undefined) {
+                result[parsed['symbol']] = parsed;
+            }
         }
         const symbols = this.requireSymbols ();
         for (let i = 0; i < symbols.length; i++) {
@@ -1012,7 +1014,9 @@ export default class cex extends Exchange {
                 'used': this.safeString (balance, 'balanceOnHold'),
                 'total': this.safeString (balance, 'balance'),
             };
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

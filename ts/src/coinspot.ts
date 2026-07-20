@@ -312,7 +312,9 @@ export default class coinspot extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
-                    this.storeByKey (result, code, account);
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         } else {
@@ -322,7 +324,9 @@ export default class coinspot extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balances, currencyId);
-                this.storeByKey (result, code, account);
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);

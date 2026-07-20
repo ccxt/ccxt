@@ -3144,7 +3144,9 @@ export default class myriad extends Exchange {
             const balances = this.safeDict (this.options, 'positionBalances', {});
             const prior = this.safeString (balances, posId, '0');
             const updated = Precise.stringAdd (prior, deltaShares);
-            this.storeByKey (balances, posId, updated);
+            if (posId !== undefined) {
+                balances[posId] = updated;
+            }
             this.options['positionBalances'] = balances;
             contracts = this.parseNumber (updated);
         }

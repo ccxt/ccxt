@@ -1100,7 +1100,9 @@ export default class bitrue extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString2 (balance, 'free', 'accountNormal');
             account['used'] = this.safeString2 (balance, 'locked', 'accountLock');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);

@@ -7565,7 +7565,9 @@ export class BaseExchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
-            this.storeByKey (fundingRates, parsed['symbol'], parsed);
+            if (parsed['symbol'] !== undefined) {
+                fundingRates[parsed['symbol']] = parsed;
+            }
         }
         return this.filterByArray (fundingRates, 'symbol', symbols);
     }
@@ -7739,7 +7741,9 @@ export class BaseExchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseOpenInterest (entry);
-            this.storeByKey (result, parsed['symbol'], parsed);
+            if (parsed['symbol'] !== undefined) {
+                result[parsed['symbol']] = parsed;
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }

@@ -1016,7 +1016,9 @@ export default class hollaex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (response, currencyId + '_available');
             account['total'] = this.safeString (response, currencyId + '_balance');
-            this.storeByKey (result, code, account);
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

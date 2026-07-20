@@ -1388,7 +1388,9 @@ export default class bitstamp extends Exchange {
             account['free'] = this.safeString (currencyBalance, 'available');
             account['used'] = this.safeString (currencyBalance, 'reserved');
             account['total'] = this.safeString (currencyBalance, 'total');
-            this.storeByKey (result, currencyCode, account);
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1475,7 +1477,9 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            this.storeByKey (result, symbol, fee);
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }

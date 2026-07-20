@@ -8258,8 +8258,12 @@ export default class kucoin extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult: Dict = {};
-                this.storeByKey (subResult, baseCode, this.parseBalanceHelper (base));
-                this.storeByKey (subResult, quoteCode, this.parseBalanceHelper (quote));
+                if (baseCode !== undefined) {
+                    subResult[baseCode] = this.parseBalanceHelper (base);
+                }
+                if (quoteCode !== undefined) {
+                    subResult[quoteCode] = this.parseBalanceHelper (quote);
+                }
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (cross) {
@@ -8269,7 +8273,9 @@ export default class kucoin extends Exchange {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');
                 const codeInner = this.safeCurrencyCode (currencyId);
-                this.storeByKey (result, codeInner, this.parseBalanceHelper (balance));
+                if (codeInner !== undefined) {
+                    result[codeInner] = this.parseBalanceHelper (balance);
+                }
             }
         } else {
             const data = this.safeList (response, 'data', []);
@@ -8283,7 +8289,9 @@ export default class kucoin extends Exchange {
                     account['total'] = this.safeString (balance, 'balance');
                     account['free'] = this.safeString (balance, 'available');
                     account['used'] = this.safeString (balance, 'holds');
-                    this.storeByKey (result, codeInner2, account);
+                    if (codeInner2 !== undefined) {
+                        result[codeInner2] = account;
+                    }
                 }
             }
         }
@@ -8346,7 +8354,9 @@ export default class kucoin extends Exchange {
         const account = this.account ();
         account['free'] = this.safeString (data, 'availableBalance');
         account['total'] = this.safeString (data, 'accountEquity');
-        this.storeByKey (result, currencyCode, account);
+        if (currencyCode !== undefined) {
+            result[currencyCode] = account;
+        }
         return this.safeBalance (result);
     }
 
@@ -8468,7 +8478,9 @@ export default class kucoin extends Exchange {
                     const currencyEntry = this.safeDict (currencies, j, {});
                     const currencyId = this.safeString (currencyEntry, 'currency');
                     const currencyCode = this.safeCurrencyCode (currencyId);
-                    this.storeByKey (subResult, currencyCode, this.parseBalanceHelper (currencyEntry));
+                    if (currencyCode !== undefined) {
+                        subResult[currencyCode] = this.parseBalanceHelper (currencyEntry);
+                    }
                 }
                 result[symbol] = this.safeBalance (subResult);
             }
@@ -8479,7 +8491,9 @@ export default class kucoin extends Exchange {
                 const currencyEntry = this.safeDict (currencies, i, {});
                 const currencyId = this.safeString (currencyEntry, 'currency');
                 const currencyCode = this.safeCurrencyCode (currencyId);
-                this.storeByKey (result, currencyCode, this.parseBalanceHelper (currencyEntry));
+                if (currencyCode !== undefined) {
+                    result[currencyCode] = this.parseBalanceHelper (currencyEntry);
+                }
             }
         }
         let returnType = result;

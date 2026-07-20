@@ -1055,7 +1055,9 @@ export default class onetrading extends onetradingRest {
         const account = this.account ();
         account['free'] = this.safeString (balance, 'new_available');
         account['used'] = this.safeString (balance, 'new_locked');
-        this.storeByKey (this.balance, code, account);
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
     }
 
@@ -1104,7 +1106,9 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            this.storeByKey (subscription, marketId, {});
+            if (marketId !== undefined) {
+                subscription[marketId] = {};
+            }
         }
         if ((marketId !== undefined) && (timeframe !== undefined)) {
             subscription[marketId][timeframe] = true;
