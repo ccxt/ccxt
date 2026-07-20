@@ -484,7 +484,7 @@ class PredictionExchange(BaseExchange):
             label = upper
         return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + label
 
-    def set_markets(self, markets, currencies: Currencies | None = None):
+    def set_markets(self, markets, currencies=None):
         # prediction market rows carry only the unified `market` handle — `symbol` is
         # deprecated there. the base indexer keys self.markets/self.symbols by 'symbol',
         # so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free

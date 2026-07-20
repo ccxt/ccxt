@@ -588,7 +588,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . $label;
     }
 
-    public function set_markets($markets, ?array $currencies = null) {
+    public function set_markets($markets, $currencies = null) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys $this->markets/$this->symbols by 'symbol',
         // so alias the handle onto a shallow $copy per $row; the caller's rows stay symbol-free

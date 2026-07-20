@@ -1216,7 +1216,7 @@ class polymarket extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the CLOB order book for a single $outcome token
