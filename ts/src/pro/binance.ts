@@ -321,7 +321,10 @@ export default class binance extends binanceRest {
             }
             streamHash += '::' + symbols.join (',');
         }
-        const firstMarket = this.getMarketFromSymbols (symbols);
+        let firstMarket: Market = undefined;
+        if (!this.isEmpty (symbols)) {
+            firstMarket = this.getMarketFromSymbols (symbols);
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
