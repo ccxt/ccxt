@@ -482,6 +482,18 @@ class whitebit(ccxt.async_support.whitebit):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
+        rawSide = self.safe_integer(trade, 8)
+        side = None
+        if rawSide == 1:
+            side = 'sell'
+        elif rawSide == 2:
+            side = 'buy'
+        role = self.safe_integer(trade, 9)
+        takerOrMaker = None
+        if role == 1:
+            takerOrMaker = 'maker'
+        elif role == 2:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -490,8 +502,8 @@ class whitebit(ccxt.async_support.whitebit):
             'symbol': market['symbol'],
             'order': orderId,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
