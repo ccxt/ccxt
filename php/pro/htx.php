@@ -1224,6 +1224,7 @@ class htx extends \ccxt\async\htx {
                     'id' => $orderId,
                     'trades' => $trades,
                     'status' => $status,
+                    'lastTradeTimestamp' => $this->safe_integer($data, 'tradeTime'),
                     'symbol' => $market['symbol'],
                     'filled' => $this->parse_number($filled),
                     'remaining' => $this->parse_number($remaining),
