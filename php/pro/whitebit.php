@@ -532,6 +532,20 @@ class whitebit extends \ccxt\async\whitebit {
                 'currency' => $market['quote'],
             );
         }
+        $rawSide = $this->safe_integer($trade, 8);
+        $side = null;
+        if ($rawSide === 1) {
+            $side = 'sell';
+        } elseif ($rawSide === 2) {
+            $side = 'buy';
+        }
+        $role = $this->safe_integer($trade, 9);
+        $takerOrMaker = null;
+        if ($role === 1) {
+            $takerOrMaker = 'maker';
+        } elseif ($role === 2) {
+            $takerOrMaker = 'taker';
+        }
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
@@ -540,8 +554,8 @@ class whitebit extends \ccxt\async\whitebit {
             'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
