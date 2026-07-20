@@ -6937,8 +6937,10 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const amountPrecisionRaw = this.currencyToPrecision (code, amount, networkCode);
-        const amountPrecision = (amountPrecisionRaw === undefined) ? '0' : amountPrecisionRaw;
+        let amountPrecision = this.currencyToPrecision (code, amount, networkCode);
+        if (amountPrecision === undefined) {
+            amountPrecision = '0';
+        }
         amount = parseFloat (amountPrecision);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
@@ -6957,10 +6959,20 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat ((amountSubtractedString === undefined) ? '0' : amountSubtractedString);
-            request['fee'] = parseFloat ((feeString === undefined) ? '0' : feeString);
-            const amountAfterFeeRaw = this.currencyToPrecision (code, amountSubtracted, networkCode);
-            const amountAfterFee = (amountAfterFeeRaw === undefined) ? '0' : amountAfterFeeRaw;
+            let amountSubtractedParsed = amountSubtractedString;
+            if (amountSubtractedParsed === undefined) {
+                amountSubtractedParsed = '0';
+            }
+            const amountSubtracted = parseFloat (amountSubtractedParsed);
+            let feeParsed = feeString;
+            if (feeParsed === undefined) {
+                feeParsed = '0';
+            }
+            request['fee'] = parseFloat (feeParsed);
+            let amountAfterFee = this.currencyToPrecision (code, amountSubtracted, networkCode);
+            if (amountAfterFee === undefined) {
+                amountAfterFee = '0';
+            }
             amount = parseFloat (amountAfterFee);
         }
         request['amount'] = amount;
@@ -7055,8 +7067,10 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const transferAmountRaw = this.currencyToPrecision (code, amount);
-        const transferAmount = (transferAmountRaw === undefined) ? '0' : transferAmountRaw;
+        let transferAmount = this.currencyToPrecision (code, amount);
+        if (transferAmount === undefined) {
+            transferAmount = '0';
+        }
         const request: Dict = {
             'currency': currency['id'],
             'amount': parseFloat (transferAmount),

@@ -2103,8 +2103,10 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            const sizeStringRaw = this.amountToPrecision (symbol, amount);
-            const sizeString = (sizeStringRaw === undefined) ? '0' : sizeStringRaw;
+            let sizeString = this.amountToPrecision (symbol, amount);
+            if (sizeString === undefined) {
+                sizeString = '0';
+            }
             request['size'] = parseInt (sizeString);
         }
         if (price !== undefined) {

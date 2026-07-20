@@ -1135,8 +1135,10 @@ export default class btcmarkets extends Exchange {
         }
         const rate = market[takerOrMaker];
         const rateCost = Precise.stringMul (this.numberToString (rate), cost);
-        const feeCostRaw = this.feeToPrecision (symbol, rateCost);
-        const feeCost = (feeCostRaw === undefined) ? '0' : feeCostRaw;
+        let feeCost = this.feeToPrecision (symbol, rateCost);
+        if (feeCost === undefined) {
+            feeCost = '0';
+        }
         return {
             'type': takerOrMaker,
             'currency': currency,

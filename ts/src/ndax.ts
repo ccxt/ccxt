@@ -1627,8 +1627,10 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            const limitPriceRaw = this.priceToPrecision (symbol, price);
-            const limitPriceString = (limitPriceRaw === undefined) ? '0' : limitPriceRaw;
+            let limitPriceString = this.priceToPrecision (symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
             request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {
@@ -1696,8 +1698,10 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            const limitPriceRaw = this.priceToPrecision (symbol, price);
-            const limitPriceString = (limitPriceRaw === undefined) ? '0' : limitPriceRaw;
+            let limitPriceString = this.priceToPrecision (symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
             request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {

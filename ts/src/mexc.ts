@@ -2557,8 +2557,10 @@ export default class mexc extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
-        const volRaw = this.amountToPrecision (symbol, amount);
-        const volString = (volRaw === undefined) ? '0' : volRaw;
+        let volString = this.amountToPrecision (symbol, amount);
+        if (volString === undefined) {
+            volString = '0';
+        }
         const request: Dict = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
@@ -2586,8 +2588,10 @@ export default class mexc extends Exchange {
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
-            const priceRaw = this.priceToPrecision (symbol, price);
-            const priceString = (priceRaw === undefined) ? '0' : priceRaw;
+            let priceString = this.priceToPrecision (symbol, price);
+            if (priceString === undefined) {
+                priceString = '0';
+            }
             request['price'] = parseFloat (priceString);
         }
         if (openType === 1) {

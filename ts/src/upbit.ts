@@ -797,9 +797,9 @@ export default class upbit extends Exchange {
         symbols = this.marketSymbols (symbols);
         const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
         const promises: List = [];
-        let idsForQuery = ids;
-        if (idsForQuery === undefined) {
-            idsForQuery = [];
+        let idsForQuery: string[] = [];
+        if (ids !== undefined) {
+            idsForQuery = ids;
         }
         const queries = this.idsQueryStrings (idsForQuery, 6400); // seems upbit server limitations
         for (let i = 0; i < queries.length; i++) {
