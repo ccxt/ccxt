@@ -3816,6 +3816,11 @@ export default class binance extends Exchange {
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                const updateTime = this.safeInteger (balance, 'updateTime');
+                if (updateTime === 0) {
+                    continue;
+                }
                 const currencyId = this.safeString (balance, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
