@@ -1714,6 +1714,45 @@ fn eip712_hash_struct(type_name: &str, data: &Value, types: &Eip712Types) -> Vec
     hash_raw(&enc, "keccak")
 }
 
+/// Encodes an integer into a 32-byte EIP-712 / ABI word for a `uintN`/`intN`
+/// type, validating the declared bit width. Fails closed (panics) on a negative
+/// value in an unsigned type, or any value that overflows the declared width,
+/// instead of silently truncating to 32 bytes or routing a negative through the
+/// unsigned branch (review #15). Valid, in-range values encode exactly as
+/// before (big-endian right-aligned for uint; two's-complement sign-extended
+/// for int), so signing of well-formed payloads is unchanged.
+pub(crate) fn eip712_int_word(ty: &str, n: &num_bigint::BigInt) -> [u8; 32] {
+    use num_bigint::{BigInt, Sign};
+    let signed = ty.starts_with("int");
+    let digits = ty.trim_start_matches(if signed { "int" } else { "uint" });
+    let mut width: usize = if digits.is_empty() { 256 } else { digits.parse().unwrap_or(256) };
+    if !((8..=256).contains(&width) && width % 8 == 0) { width = 256; }
+    let mut out = [0u8; 32];
+    if !signed {
+        if n.sign() == Sign::Minus {
+            panic!("eip712/abi: negative value {n} supplied for unsigned type {ty}");
+        }
+        let max = (BigInt::from(1) << width) - 1;
+        if n > &max {
+            panic!("eip712/abi: value {n} overflows {ty} (max {max})");
+        }
+        let (_, be) = n.to_bytes_be();
+        let take = be.len().min(32);
+        out[32 - take..].copy_from_slice(&be[be.len() - take..]);
+    } else {
+        let min = -(BigInt::from(1) << (width - 1));
+        let max = (BigInt::from(1) << (width - 1)) - 1;
+        if n < &min || n > &max {
+            panic!("eip712/abi: value {n} out of range for {ty} ([{min}, {max}])");
+        }
+        if n.sign() == Sign::Minus { out = [0xff; 32]; }
+        let be = n.to_signed_bytes_be();
+        let take = be.len().min(32);
+        out[32 - take..].copy_from_slice(&be[be.len() - take..]);
+    }
+    out
+}
+
 fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
     let mut out = [0u8; 32];
     if ty == "string" || ty == "bytes" {
@@ -1747,16 +1786,7 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
             }
             _ => BigInt::from(0),
         };
-        if ty.starts_with("uint") {
-            let (_, be) = n.to_bytes_be();
-            let take = be.len().min(32);
-            out[32 - take..].copy_from_slice(&be[be.len() - take..]);
-        } else {
-            let be = n.to_signed_bytes_be();
-            if n.sign() == Sign::Minus { out = [0xff; 32]; }
-            let take = be.len().min(32);
-            out[32 - take..].copy_from_slice(&be[be.len() - take..]);
-        }
+        out = eip712_int_word(ty, &n);
     }
     out
 }
@@ -1788,6 +1818,57 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+#[cfg(test)]
+mod eip712_int_tests {
+    use super::eip712_int_word;
+    use num_bigint::BigInt;
+
+    #[test]
+    fn uint8_max_ok_and_int8_bounds_ok() {
+        assert_eq!(eip712_int_word("uint8", &BigInt::from(255))[31], 255);
+        let _ = eip712_int_word("int8", &BigInt::from(127));
+        let _ = eip712_int_word("int8", &BigInt::from(-128));
+    }
+
+    #[test]
+    fn i64_u64_boundaries_ok() {
+        let _ = eip712_int_word("int64", &BigInt::from(i64::MAX));
+        let _ = eip712_int_word("int64", &BigInt::from(i64::MIN));
+        let _ = eip712_int_word("uint64", &BigInt::from(u64::MAX));
+    }
+
+    // u64::MAX + 1 (2^64) must fit a uint256 exactly: 0x01 followed by 8 zero
+    // bytes, right-aligned → byte index 23.
+    #[test]
+    fn u64_plus_one_preserved_in_uint256() {
+        let n = BigInt::from(u64::MAX) + 1;
+        assert_eq!(eip712_int_word("uint256", &n)[23], 1);
+    }
+
+    #[test]
+    fn negative_int_is_twos_complement() {
+        assert_eq!(eip712_int_word("int256", &BigInt::from(-1)), [0xff; 32]);
+    }
+
+    #[test]
+    #[should_panic(expected = "overflows")]
+    fn uint8_overflow_rejected() { let _ = eip712_int_word("uint8", &BigInt::from(256)); }
+
+    #[test]
+    #[should_panic(expected = "negative")]
+    fn uint_negative_rejected() { let _ = eip712_int_word("uint256", &BigInt::from(-1)); }
+
+    #[test]
+    #[should_panic(expected = "out of range")]
+    fn int8_overflow_rejected() { let _ = eip712_int_word("int8", &BigInt::from(128)); }
+
+    #[test]
+    #[should_panic(expected = "overflows")]
+    fn uint64_plus_one_rejected() {
+        let _ = eip712_int_word("uint64", &(BigInt::from(u64::MAX) + 1));
+    }
 }
 
 #[cfg(test)]
