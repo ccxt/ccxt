@@ -4051,7 +4051,7 @@ class BaseExchange {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
         // using a $number which is not valid in ts
         // numberToString is typed under strictNullChecks; cast to string
-        // (erased at transpile-time, so output matches every target language) rather than
+        // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         $stringifiedNumber = $this->number_to_string($number);
         $convertedNumber = floatval($stringifiedNumber);

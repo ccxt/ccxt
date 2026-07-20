@@ -3882,7 +3882,7 @@ export class BaseExchange {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         // numberToString is typed as nullable under strictNullChecks; cast to string
-        // (erased at transpile-time, so output matches every target language) rather than
+        // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         const stringifiedNumber = this.numberToString (number) as string;
         const convertedNumber = parseFloat (stringifiedNumber) as any;
