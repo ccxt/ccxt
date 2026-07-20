@@ -27,12 +27,11 @@ async fn main() {
     let mut binance = Binance::new(None);
 
     // 1. load_markets — required to resolve a unified symbol to the
-    //    exchange-specific id used downstream. `load_markets` itself
-    //    isn't in the typed surface (it's not a `fetch*`/`create*` etc.
-    //    user-facing method by our codegen filter), so we reach through
-    //    Deref to the underlying core's untyped impl.
+    //    exchange-specific id used downstream. It isn't in the `*_typed`
+    //    surface, so the wrapper exposes it as an explicit convenience
+    //    method (routed through the audited pin projection).
     println!("→ load_markets() …");
-    let markets_v = binance.core.load_markets(&[Value::Bool(false), Value::Null]).await;
+    let markets_v = binance.load_markets(false).await;
     let market_count = match &markets_v {
         Value::Dict(d) => d.len(),
         _ => 0,

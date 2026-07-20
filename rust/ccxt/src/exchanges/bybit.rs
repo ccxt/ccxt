@@ -18,14 +18,18 @@ impl BybitCore {
         s
     }
 
-    /// One-shot setup: binds the derived-exchange dispatcher, populates
-    /// describe() data onto the inner Exchange, and builds the implicit
-    /// API table. Idempotent — calling more than once is safe.
+    /// One-shot setup: populates describe() data onto the inner Exchange and
+    /// builds the implicit API table. Idempotent — calling more than once is
+    /// safe.
+    ///
+    /// Deliberately does NOT install the derived-dispatch pointers: new()
+    /// runs init() while self is still a movable local, so binding here
+    /// would capture a soon-invalid address (review P0 #1). An un-bound Core
+    /// is safe-but-inert — derived_ptr defaults to DEFAULT_DERIVED and
+    /// derived_core_ptr is null, so virtual calls fall back to the base.
+    /// Binding happens later at a pinned/boxed address via bind(), which the
+    /// sanctioned constructors call once the Core is heap-stable.
     pub fn init(&mut self) {
-        // Bind the trait-object for virtual dispatch (parse_ticker, …).
-        let ptr: *const (dyn crate::exchange::DerivedExchange + 'static) =
-            self as &Self as *const dyn crate::exchange::DerivedExchange;
-        self.exchange.bind_derived(ptr);
         // Populate describe()-derived fields.
         let described = BybitCore::describe(self);
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));

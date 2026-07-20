@@ -74,18 +74,35 @@ pub struct Internals {
     /// trait object). Used by virtual methods called from Exchange.ts so
     /// they dispatch to the derived override. The trait object is the
     /// Rust analogue of Go's `IDerivedExchange` interface.
+    ///
+    /// INVARIANT: valid only while the owning `Core` is at a stable address.
+    /// The `PhantomPinned` below makes every `Core` `!Unpin`, and the sound
+    /// constructors hand out a `Pin<Box<Core>>` and call `bind()` *after* the
+    /// Core is heap-pinned, so this pointer can never dangle from a move. Not
+    /// part of the safe public surface — hidden from docs; construct via the
+    /// typed wrapper or `bind()` on a pinned Core, never by hand.
+    #[doc(hidden)]
     pub derived_ptr: *const (dyn DerivedExchange + 'static),
     /// Raw pointer to the derived `Core`'s `call_dynamic` method, type-
     /// erased as `*const ()`. Lets base Exchange.ts methods dispatch
     /// async-by-name to the derived exchange (the trait can't carry
     /// async methods easily — fn pointer side-steps the object-safety
     /// constraint). Set by each Core's `bind()` via `bind_call_async`.
+    /// Same pinned-address invariant as `derived_ptr`.
+    #[doc(hidden)]
     pub call_async_fn:        Option<DynCallFn>,
+    #[doc(hidden)]
     pub derived_core_ptr:     *mut (),
     /// Method names currently being dispatched to the derived
     /// exchange. Lets `dispatch_to_derived` block recursion on a single
     /// method while allowing sibling dispatches.
     pub dispatch_stack:       Vec<String>,
+    /// Makes `Internals` (hence `Exchange` and every `Core`) `!Unpin`, so the
+    /// self-referential `derived_ptr`/`derived_core_ptr` can be kept sound: a
+    /// bound Core lives behind a `Pin<Box<_>>` and cannot be moved out to
+    /// invalidate those pointers (review P0 #1 — encode the invariant in the
+    /// type system instead of a prose comment).
+    pub(crate) _pin: std::marker::PhantomPinned,
 }
 
 /// Function pointer signature for an exchange's `call_dynamic`. Takes
@@ -154,8 +171,15 @@ impl DerivedExchange for DefaultDerived {}
 /// Static singleton used by `Exchange::derived()` when no derived is bound.
 static DEFAULT_DERIVED: DefaultDerived = DefaultDerived;
 
-// SAFETY: raw pointer is used only while the owning derived struct is
-// alive; Exchange never outlives it because Exchange is a field inside.
+// SAFETY: `derived_ptr`/`derived_core_ptr` point back at the owning `Core`,
+// which contains this `Exchange` (hence these `Internals`) by value. The Core
+// is `!Unpin` (see `_pin`) and the sound constructors keep it behind a
+// `Pin<Box<Core>>`, so the allocation address is stable for the Core's whole
+// life: moving the `Pin<Box>` (incl. across threads for `Send`) moves only the
+// box handle, never the heap allocation the pointers reference. Access to the
+// pointed-to state is always exclusive (`&mut self` on the Core), so `Sync` is
+// likewise sound. The pointers are never dereferenced after the Core is
+// dropped because the Core owns them.
 unsafe impl Send for Internals {}
 unsafe impl Sync for Internals {}
 
@@ -179,6 +203,7 @@ impl Default for Internals {
             call_async_fn:       None,
             derived_core_ptr:    std::ptr::null_mut(),
             dispatch_stack:      Vec::new(),
+            _pin:                std::marker::PhantomPinned,
         }
     }
 }
@@ -1139,8 +1164,13 @@ impl Exchange {
 impl Exchange {
     /// Installs the derived-exchange trait pointer. Called by each
     /// derived exchange's `bind()` once the parent struct is at a stable
-    /// address (typically inside a `Box`). The pointer must outlive every
-    /// `derived()` call that follows.
+    /// address (typically inside a `Pin<Box<_>>`). The pointer must outlive
+    /// every `derived()` call that follows.
+    ///
+    /// Internal plumbing — NOT a safe public entry point. Passing a pointer to
+    /// a Core that is later moved would dangle it; the sanctioned constructors
+    /// only call this on a pinned Core. Hidden from the public API.
+    #[doc(hidden)]
     pub fn bind_derived(&mut self, ptr: *const (dyn DerivedExchange + 'static)) {
         self.internals.derived_ptr = ptr;
     }
@@ -1151,6 +1181,7 @@ impl Exchange {
     /// `Exchange::cancel_order_with_client_order_id` calls
     /// `self.cancel_order(...)` — this hook routes that to BinanceCore's
     /// `cancel_order` instead of Exchange's stub).
+    #[doc(hidden)]
     pub fn bind_call_async(&mut self, core_ptr: *mut (), call_fn: DynCallFn) {
         self.internals.derived_core_ptr = core_ptr;
         self.internals.call_async_fn    = Some(call_fn);
