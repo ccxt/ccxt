@@ -681,6 +681,40 @@ impl BorrowRate {
     }
 }
 
+/// Unified borrow-interest record (margin interest accrued on a borrow).
+/// Distinct from `BorrowRate` — it carries accrued interest and the borrowed
+/// amount, not a periodic rate (review #7: `fetchBorrowInterest` was wrongly
+/// mapped to `BorrowRate`).
+#[derive(Debug, Clone, Default)]
+pub struct BorrowInterest {
+    pub symbol:          Option<String>,
+    pub currency:        Option<String>,
+    pub interest:        Option<f64>,
+    pub interest_rate:   Option<f64>,
+    pub amount_borrowed: Option<f64>,
+    pub margin_mode:     Option<String>,
+    pub timestamp:       Option<i64>,
+    pub datetime:        Option<String>,
+    pub raw:             Value,
+}
+
+impl BorrowInterest {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer};
+        let mut r = BorrowInterest::default();
+        r.symbol          = safe_string(&v, "symbol", None);
+        r.currency        = safe_string(&v, "currency", None);
+        r.interest        = safe_number(&v, "interest", None);
+        r.interest_rate   = safe_number(&v, "interestRate", None);
+        r.amount_borrowed = safe_number(&v, "amountBorrowed", None);
+        r.margin_mode     = safe_string(&v, "marginMode", None);
+        r.timestamp       = safe_integer(&v, "timestamp", None);
+        r.datetime        = safe_string(&v, "datetime", None);
+        r.raw = v;
+        r
+    }
+}
+
 /// Unified deposit address.
 #[derive(Debug, Clone, Default)]
 pub struct DepositAddress {

@@ -71,7 +71,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['CrossBorrowRate', 'BorrowRate'],
     ['IsolatedBorrowRate', 'BorrowRate'],
     ['BorrowRate', 'BorrowRate'],
-    ['BorrowInterest', 'BorrowRate'],
+    ['BorrowInterest', 'BorrowInterest'],
     ['Status', 'Status'],
 ]);
 

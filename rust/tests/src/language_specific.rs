@@ -61,7 +61,7 @@ pub fn test_types_rest() -> Result<(), String> {
     returns::<Vec<Transaction>>(b.fetch_deposits_withdrawals(None, None, None, n.clone()));
     returns::<Vec<Transfer>>(b.fetch_transfers(None, None, None, n.clone()));
     returns::<Vec<LedgerEntry>>(b.fetch_ledger(None, None, None, n.clone()));
-    returns::<Vec<BorrowRate>>(b.fetch_borrow_interest(None, None, None, None, n.clone()));
+    returns::<Vec<BorrowInterest>>(b.fetch_borrow_interest(None, None, None, None, n.clone()));
     returns::<Vec<DepositAddress>>(b.fetch_deposit_addresses(None, n.clone()));
     returns::<Vec<LeverageTier>>(b.fetch_market_leverage_tiers("BTC/USDT:USDT", n.clone()));
     returns::<Vec<Liquidation>>(b.fetch_my_liquidations(None, None, None, n.clone()));

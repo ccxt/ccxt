@@ -175,9 +175,9 @@ impl Woofipro {
     }
 
     /// Typed wrapper around `fetchBorrowInterest`.
-    pub async fn fetch_borrow_interest(&mut self, code: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: Value) -> crate::Result<Vec<BorrowRate>> {
+    pub async fn fetch_borrow_interest(&mut self, code: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: Value) -> crate::Result<Vec<BorrowInterest>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_borrow_interest(&[code.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params])).await?;
-        Ok(vec_from_value(&v, BorrowRate::from_value))
+        Ok(vec_from_value(&v, BorrowInterest::from_value))
     }
 
     /// Typed wrapper around `fetchLedger`.
