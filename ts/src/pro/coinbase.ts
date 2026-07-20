@@ -76,7 +76,15 @@ export default class coinbase extends coinbaseRest {
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
-            productIds = marketIds || [];
+            if (marketIds === undefined) {
+
+                productIds = [];
+
+            } else {
+
+                productIds = marketIds;
+
+            }
             messageHash = messageHash + '::' + (symbol as string[]).join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
@@ -124,7 +132,15 @@ export default class coinbase extends coinbaseRest {
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
-            productIds = marketIds || [];
+            if (marketIds === undefined) {
+
+                productIds = [];
+
+            } else {
+
+                productIds = marketIds;
+
+            }
             watchMessageHash = watchMessageHash + '::' + symbols.join (',');
             unWatchMessageHash = unWatchMessageHash + '::' + symbols.join (',');
         } else if (symbol !== undefined) {

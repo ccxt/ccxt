@@ -1204,7 +1204,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

@@ -803,8 +803,14 @@ class BaseExchange {
     }
 
     public static function to_array($object) {
+        if (($object === null) || is_bool($object) || is_int($object) || is_float($object) || is_string($object)) {
+            return array();
+        }
         if ($object instanceof \JsonSerializable) {
             $object = $object->jsonSerialize();
+        }
+        if (!is_array($object) && !is_object($object)) {
+            return array();
         }
         return array_values($object);
     }

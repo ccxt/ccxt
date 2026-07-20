@@ -24,7 +24,18 @@ const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
 const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 
-const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
+const toArray = (object: any) => {
+    if ((object === undefined) || (object === null)) {
+        return [];
+    }
+    if (isArray (object)) {
+        return object;
+    }
+    if (!isDict (object)) {
+        return [];
+    }
+    return Object.values (object);
+};
 
 const isEmpty = (object: any[] | Dictionary<any> | null | undefined) => {
     if (object === null || object === undefined) {

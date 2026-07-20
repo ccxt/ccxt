@@ -122,7 +122,7 @@ public partial class BaseExchange
     public IList<object> toArray(object a)
     {
         if (a == null)
-            return null;
+            return new List<object>();
 
         // if (a.GetType() == typeof(List<object>))
         // {
@@ -156,14 +156,19 @@ public partial class BaseExchange
             return outList2;
         }
 
-        var b = (dict)a;
-        var outList = new List<object>();
-        var keys = new List<string>(((dict)a).Keys);
-        foreach (string key in keys)
+        if (a is dict)
         {
-            outList.Add(b[key]);
+            var b = (dict)a;
+            var outList = new List<object>();
+            var keys = new List<string>(((dict)a).Keys);
+            foreach (string key in keys)
+            {
+                outList.Add(b[key]);
+            }
+            return outList;
         }
-        return outList;
+        // Non-collection scalars (bool after bad || [] transpile, etc.)
+        return new List<object>();
     }
 
     public object arrayConcat(object aa, object bb)

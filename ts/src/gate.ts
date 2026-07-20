@@ -6517,7 +6517,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response || [], symbols);
+        return this.parsePositions (response, symbols);
     }
 
     /**

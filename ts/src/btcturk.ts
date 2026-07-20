@@ -661,7 +661,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data || [], market, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1052,7 +1052,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data || [], market, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     nonce () {

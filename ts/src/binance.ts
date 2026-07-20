@@ -5391,7 +5391,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**
@@ -8513,7 +8513,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**
@@ -8779,7 +8779,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (response || [], currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     /**
@@ -8917,7 +8917,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (response || [], currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type: Str = undefined) {
@@ -13751,7 +13751,7 @@ export default class binance extends Exchange {
         //     ]
         //
         const liquidations = this.safeList (response, 'rows', response);
-        return this.parseLiquidations (liquidations || [], market, since, limit);
+        return this.parseLiquidations (liquidations, market, since, limit);
     }
 
     parseLiquidation (liquidation, market: Market = undefined) {
@@ -15007,7 +15007,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseADLRanks (response || [], symbols);
+        return this.parseADLRanks (response, symbols);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {

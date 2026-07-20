@@ -3235,7 +3235,7 @@ export default class xt extends Exchange {
         if (resultDict !== undefined) {
             orders = this.safeList (resultDict, 'items', []);
         } else {
-            orders = this.safeList (response, 'result') || [];
+            orders = this.safeList (response, 'result', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }

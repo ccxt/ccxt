@@ -1215,7 +1215,7 @@ export default class backpack extends Exchange {
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
         }
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**

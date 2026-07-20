@@ -1450,7 +1450,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades || [], market, since, limit, params);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

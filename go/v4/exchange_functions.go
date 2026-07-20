@@ -233,7 +233,7 @@ func (this *BaseExchange) Contains(slice []any, elem string) bool {
 
 func (this *BaseExchange) ToArray(a any) []any {
 	if a == nil {
-		return nil
+		return []any{}
 	}
 
 	// Check if `a` is a slice of `[]any`
@@ -262,8 +262,8 @@ func (this *BaseExchange) ToArray(a any) []any {
 		return outList
 	}
 
-	// Unsupported type
-	return nil
+	// Unsupported type (bool/number/string after bad || [] transpile, etc.)
+	return []any{}
 }
 
 // arrayConcat concatenates two slices. Elements are copied through reflection so any slice type

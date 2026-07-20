@@ -483,7 +483,7 @@ export default class bit2c extends Exchange {
         if (typeof response === 'string') {
             throw new ExchangeError (response);
         }
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**
@@ -839,7 +839,7 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response || [], market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     removeCommaFromValue (str) {

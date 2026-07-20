@@ -5987,7 +5987,7 @@ export class BaseExchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: Strings = undefined, params = {}): Position[] {
+    parsePositions (positions: any = undefined, symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result: Position[] = [];
@@ -6005,7 +6005,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseADLRanks (ranks: any[], symbols: Strings = undefined, params = {}): ADL[] {
+    parseADLRanks (ranks: any = undefined, symbols: Strings = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
         ranks = this.toArray (ranks);
         const result: ADL[] = [];
@@ -6044,15 +6044,15 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: any = undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (false, trades, market, since, limit, params);
     }
 
-    parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades: any = undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         return this.parseTradesHelper (true, trades, market, since, limit, params);
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: any = undefined, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         transactions = this.toArray (transactions);
         let result: Transaction[] = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -8516,7 +8516,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
-    parseLiquidations (liquidations: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+    parseLiquidations (liquidations: any = undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
         /**
          * @ignore
          * @method

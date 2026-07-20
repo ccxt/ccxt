@@ -2614,7 +2614,7 @@ export default class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        return this.parseTransactions (rows || [], currency, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit, params);
     }
 
     async getWithdrawNonce (params = {}) {

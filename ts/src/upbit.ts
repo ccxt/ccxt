@@ -797,11 +797,7 @@ export default class upbit extends Exchange {
         symbols = this.marketSymbols (symbols);
         const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
         const promises: List = [];
-        let idsForQuery: string[] = [];
-        if (ids !== undefined) {
-            idsForQuery = ids;
-        }
-        const queries = this.idsQueryStrings (idsForQuery, 6400); // seems upbit server limitations
+        const queries = this.idsQueryStrings (ids, 6400); // seems upbit server limitations
         for (let i = 0; i < queries.length; i++) {
             const idsQuery = queries[i];
             promises.push (this.publicGetTicker ({ 'markets': idsQuery }));
@@ -839,7 +835,10 @@ export default class upbit extends Exchange {
         return this.parseTickers (concated, symbols);
     }
 
-    idsQueryStrings (ids: string[], maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+        if (ids === undefined) {
+            return [];
+        }
         let idsString = '';
         const queries: List = [];
         for (let i = 0; i < ids.length; i++) {
