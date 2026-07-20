@@ -61,6 +61,10 @@ export default class woo extends wooRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
+                'watchOrderBook': {
+                    'snapshotDelay': 10,
+                    'snapshotMaxRetries': 20,
+                },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
@@ -170,13 +174,13 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchOrderBook
-     * @see https://docs.woox.io/#orderbookupdate
-     * @see https://docs.woox.io/#orderbook
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/ORDERBOOK10
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Orderbook_update
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
+     * @param {string} [params.method] either (default) 'orderbook' for a 10 level snapshot or 'orderbookupdate' for a delta feed, default is 'orderbook'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -186,38 +190,58 @@ export default class woo extends wooRest {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + method;
-        const urlUid = (this.uid) ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
-        const requestId = this.requestId (url);
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-            'id': requestId,
-        };
+        let topic: Str = undefined;
         const subscription: Dict = {
-            'id': requestId.toString (),
             'name': method,
             'symbol': market['symbol'],
             'limit': limit,
             'params': params,
         };
         if (method === 'orderbookupdate') {
+            let depth = 500;
+            if ((limit !== undefined) && (limit <= 50)) {
+                depth = 50;
+            } else if ((limit !== undefined) && (limit <= 200)) {
+                depth = 200;
+            }
+            topic = method + '@' + market['id'] + '@' + depth.toString ();
+            subscription['depth'] = depth;
             subscription['method'] = this.handleOrderBookSubscription;
+            subscription['snapshotLoaded'] = false;
+            subscription['snapshotLoading'] = false;
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            subscription['snapshotRetryCacheLength'] = snapshotDelay;
+            subscription['snapshotRetries'] = 0;
+            const url = this.urls['api']['ws']['publicV3'];
+            const client = this.client (url);
+            if (!(topic in client.subscriptions)) {
+                if (market['symbol'] in this.orderbooks) {
+                    delete this.orderbooks[market['symbol']];
+                }
+                const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+                const orderbookLimit = (limit === undefined) ? defaultLimit : limit;
+                this.orderbooks[market['symbol']] = this.orderBook ({}, orderbookLimit);
+            }
+        } else if (method === 'orderbook') {
+            topic = 'orderbook10@' + market['id'];
+        } else {
+            throw new ExchangeError (this.id + ' watchOrderBook() does not support method ' + method);
         }
-        const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
+        const orderbook = await this.subscribePublicV3 (topic, topic, params, subscription);
         return orderbook.limit ();
     }
 
     /**
      * @method
      * @name woo#unWatchOrderBook
-     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.woox.io/#orderbookupdate
-     * @see https://docs.woox.io/#orderbook
+     * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/ORDERBOOK10
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Orderbook_update
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @param {string} [params.method] either (default) 'orderbook' for a 10 level snapshot or 'orderbookupdate' for a delta feed
+     * @param {int} [params.limit] order book depth, used only when no active subscription can be found
+     * @returns {bool} true on successful unsubscribe
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
@@ -226,59 +250,118 @@ export default class woo extends wooRest {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
+        const url = this.urls['api']['ws']['publicV3'];
+        const client = this.client (url);
+        const subscriptionHashes = Object.keys (client.subscriptions);
+        let subHash: Str = undefined;
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash, {});
+            const subscriptionSymbol = this.safeString (subscription, 'symbol');
+            const subscriptionName = this.safeString (subscription, 'name');
+            if ((subscriptionSymbol === market['symbol']) && (subscriptionName === method)) {
+                subHash = subscriptionHash;
+                break;
+            }
+        }
+        if (subHash === undefined) {
+            if (method === 'orderbookupdate') {
+                const limit = this.safeInteger (params, 'limit');
+                params = this.omit (params, 'limit');
+                let depth = 500;
+                if ((limit !== undefined) && (limit <= 50)) {
+                    depth = 50;
+                } else if ((limit !== undefined) && (limit <= 200)) {
+                    depth = 200;
+                }
+                subHash = method + '@' + market['id'] + '@' + depth.toString ();
+            } else if (method === 'orderbook') {
+                subHash = 'orderbook10@' + market['id'];
+            } else {
+                throw new ExchangeError (this.id + ' unWatchOrderBook() does not support method ' + method);
+            }
+        }
         const topic = 'orderbook';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublicV3 (subHash, market['symbol'], topic, params);
     }
 
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@orderbookupdate",
+        //         "topic": "orderbookupdate@PERP_BTC_USDT@50",
         //         "ts": 1722500373999,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
+        //             "s": "PERP_BTC_USDT",
         //             "prevTs": 1722500373799,
         //             "bids": [
         //                 [
-        //                     0.30891,
-        //                     2469.98
+        //                     "0.30891",
+        //                     "2469.98"
         //                 ]
         //             ],
         //             "asks": [
         //                 [
-        //                     0.31075,
-        //                     2379.63
+        //                     "0.31075",
+        //                     "2379.63"
         //                 ]
-        //             ]
+        //             ],
+        //             "ts": 1722500373989
+        //         }
+        //     }
+        //
+        //     {
+        //         "topic": "orderbook10@PERP_SOL_USDT",
+        //         "ts": 1762308368653,
+        //         "data": {
+        //             "ts": 1762308368647,
+        //             "bids": [
+        //                 [ "154.36", "731.000" ]
+        //             ],
+        //             "asks": [
+        //                 [ "154.44", "230.000" ]
+        //             ],
+        //             "s": "PERP_SOL_USDT"
         //         }
         //     }
         //
         const data = this.safeDict (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
-        const method = this.safeString (topic.split ('@'), 1);
+        const method = this.safeString (topic.split ('@'), 0);
         if (method === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
                 return;
             }
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.safeInteger (orderbook, 'timestamp');
-            if (timestamp === undefined) {
+            const subscription = this.safeDict (client.subscriptions, topic, {});
+            const snapshotLoaded = this.safeBool (subscription, 'snapshotLoaded', false);
+            if (!snapshotLoaded) {
                 orderbook.cache.push (message);
+                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+                const cacheLength = orderbook.cache.length;
+                const retryCacheLength = this.safeInteger (subscription, 'snapshotRetryCacheLength', snapshotDelay);
+                const snapshotLoading = this.safeBool (subscription, 'snapshotLoading', false);
+                if (!snapshotLoading && (cacheLength >= retryCacheLength)) {
+                    subscription['snapshotLoading'] = true;
+                    this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                }
             } else {
                 try {
-                    const ts = this.safeInteger (message, 'ts');
+                    const timestamp = this.safeInteger (orderbook, 'timestamp');
+                    const ts = this.safeInteger (data, 'ts');
                     if (ts > timestamp) {
                         this.handleOrderBookMessage (client, message, orderbook);
                         client.resolve (orderbook, topic);
                     }
                 } catch (e) {
-                    delete this.orderbooks[symbol];
-                    delete client.subscriptions[topic];
-                    client.reject (e, topic);
+                    subscription['snapshotLoaded'] = false;
+                    subscription['snapshotLoading'] = false;
+                    subscription['snapshotRetries'] = 0;
+                    orderbook.cache.push (message);
+                    const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+                    subscription['snapshotRetryCacheLength'] = this.sum (orderbook.cache.length, snapshotDelay);
                 }
             }
         } else {
@@ -289,7 +372,7 @@ export default class woo extends wooRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.safeInteger (message, 'ts');
+            const timestamp = this.safeInteger (data, 'ts');
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
             client.resolve (orderbook, topic);
@@ -300,50 +383,88 @@ export default class woo extends wooRest {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        subscription['snapshotLoaded'] = false;
+        subscription['snapshotLoading'] = false;
+        const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+        subscription['snapshotRetryCacheLength'] = snapshotDelay;
+        subscription['snapshotRetries'] = 0;
     }
 
-    async fetchOrderBookSnapshot (client, message, subscription) {
+    async fetchOrderBookSnapshot (client, message, subscription): Promise<any> {
         const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (message, 'topic');
+        const messageHash = this.safeString (subscription, 'topic');
+        const depth = this.safeInteger (subscription, 'depth', 500);
+        let params = this.safeDict (subscription, 'params', {});
+        params = this.omit (params, 'maxLevel');
+        const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+        const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 20);
+        let snapshotError = undefined;
         try {
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
-            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, depth, params);
+            if (!(symbol in this.orderbooks)) {
                 // if the orderbook is dropped before the snapshot is received
-                return;
+                return undefined;
             }
             const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
             const messages = orderbook.cache;
+            let synchronized = true;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
-                const ts = this.safeInteger (messageItem, 'ts');
-                if (ts < orderbook['timestamp']) {
+                const data = this.safeDict (messageItem, 'data');
+                const previousTimestamp = this.safeInteger (data, 'prevTs');
+                if (previousTimestamp < orderbook['timestamp']) {
                     continue;
+                } else if (previousTimestamp > orderbook['timestamp']) {
+                    synchronized = false;
+                    snapshotError = new ExchangeError (this.id + ' order book state is behind the cache');
+                    break;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
             }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
+            if (synchronized) {
+                orderbook.cache = [];
+                subscription['snapshotLoaded'] = true;
+                subscription['snapshotLoading'] = false;
+                subscription['snapshotRetryCacheLength'] = snapshotDelay;
+                subscription['snapshotRetries'] = 0;
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+                return undefined;
+            }
         } catch (e) {
-            delete client.subscriptions[messageHash];
-            client.reject (e, messageHash);
+            snapshotError = e;
         }
+        if (!(symbol in this.orderbooks)) {
+            return undefined;
+        }
+        const retries = this.sum (this.safeInteger (subscription, 'snapshotRetries', 0), 1);
+        subscription['snapshotLoading'] = false;
+        subscription['snapshotRetries'] = retries;
+        if (retries >= maxRetries) {
+            delete this.orderbooks[symbol];
+            delete client.subscriptions[messageHash];
+            client.reject (snapshotError, messageHash);
+        } else {
+            const orderbook = this.orderbooks[symbol];
+            subscription['snapshotRetryCacheLength'] = this.sum (orderbook.cache.length, snapshotDelay);
+        }
+        return undefined;
     }
 
     handleOrderBookMessage (client: Client, message, orderbook) {
         const data = this.safeDict (message, 'data');
+        const previousTimestamp = this.safeInteger (data, 'prevTs');
+        if (previousTimestamp !== orderbook['timestamp']) {
+            throw new ExchangeError (this.id + ' order book update has an invalid sequence');
+        }
         this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
-        const timestamp = this.safeInteger (message, 'ts');
+        const timestamp = this.safeInteger (data, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
@@ -1624,6 +1745,7 @@ export default class woo extends wooRest {
             'subscribe': this.handleSubscribe,
             'unsubscribe': this.handleUnSubscription,
             'un_subscribe': this.handleUnSubscription,
+            'orderbook10': this.handleOrderBook,
             'orderbook': this.handleOrderBook,
             'orderbookupdate': this.handleOrderBook,
             'ticker': this.handleTicker,
