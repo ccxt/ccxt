@@ -6,12 +6,8 @@
 
 set -eu
 
-# Resolve the directory this script lives in, from $0 (POSIX — no BASH_SOURCE).
-# CDPATH= guards against a user CDPATH hijacking cd; pwd -P resolves symlinks.
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
-# The repo root is one level above build/. If that doesn't look like a git
-# root (e.g. the script was copied elsewhere), fall back to asking git.
 if [ -e "$script_dir/../.git" ]; then
     root=$(CDPATH= cd -- "$script_dir/.." && pwd -P)
 else
@@ -23,26 +19,40 @@ fi
 
 cd -- "$root"
 
-git checkout HEAD -- package.json
-git checkout HEAD -- package-lock.json
-git checkout HEAD -- yarn.lock
-git checkout HEAD -- README.md
-git checkout HEAD -- js
-git checkout HEAD -- cs/ccxt/api
-git checkout HEAD -- cs/ccxt/exchanges
-git checkout HEAD -- cs/tests/Generated
-git checkout HEAD -- cs/ccxt/wrappers/
-git checkout HEAD -- cs/ccxt/base/Exchange.Wrappers.cs
-git checkout HEAD -- cs/ccxt/base/Exchange.BaseMethods.cs
-git checkout HEAD -- cs/ccxt/base/Exchange.MetaData.cs
-git checkout HEAD -- ts/ccxt.ts
-git checkout HEAD -- ts/src/abstract
-git checkout HEAD -- python
-git checkout HEAD -- php
-git checkout HEAD -- dist
-git checkout HEAD -- examples
-git checkout HEAD -- go/v4/exchange_metadata.go
-git checkout HEAD -- go/v4/pro/exchange_metadata.go
-git checkout HEAD -- wiki/Exchange-Markets.md
-git checkout HEAD -- wiki/Manual.md
-git checkout HEAD -- go/v4 ':(exclude)exchange'
+# restore <path> — checkout path from HEAD, skipping paths that no longer
+# exist in HEAD instead of aborting the whole cleanup
+restore() {
+    if git cat-file -e "HEAD:$1" 2>/dev/null; then
+        git checkout HEAD -- "$1"
+    else
+        echo "warning: skipping '$1' (not present in HEAD)" >&2
+    fi
+}
+
+restore package.json
+restore package-lock.json
+restore yarn.lock
+restore README.md
+restore js
+restore cs/ccxt/api
+restore cs/ccxt/exchanges
+restore cs/tests/Generated
+restore cs/ccxt/wrappers
+restore cs/ccxt/base/Exchange.Wrappers.cs
+restore cs/ccxt/base/Exchange.BaseMethods.cs
+restore cs/ccxt/base/Exchange.MetaData.cs
+restore ts/ccxt.ts
+restore ts/src/abstract
+restore python
+restore php
+restore dist
+restore examples
+restore go/v4/exchange_metadata.go
+restore go/v4/pro/exchange_metadata.go
+restore wiki/Exchange-Markets.md
+restore wiki/Manual.md
+
+# pathspec magic can't go through cat-file; guard on the directory instead
+if git cat-file -e "HEAD:go/v4" 2>/dev/null; then
+    git checkout HEAD -- go/v4 ':(exclude)exchange'
+fi
