@@ -9293,7 +9293,11 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const rawPositions = this.safeList (result, 'list');
-        const positions = this.parsePositions (rawPositions, symbols, params);
+        let rawPositionsList: any[] = [];
+        if (rawPositions !== undefined) {
+            rawPositionsList = rawPositions;
+        }
+        const positions = this.parsePositions (rawPositionsList, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 

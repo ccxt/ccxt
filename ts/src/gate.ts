@@ -6517,7 +6517,11 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions (responseList, symbols);
     }
 
     /**
@@ -8646,7 +8650,11 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        return this.parsePositions (response, symbols, params);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parsePositions (responseList, symbols, params);
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

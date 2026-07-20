@@ -665,7 +665,11 @@ export default class alpaca extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades (symbolTrades, market, since, limit);
+        let symbolTradesList: any[] = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades (symbolTradesList, market, since, limit);
     }
 
     /**

@@ -6873,7 +6873,11 @@ export default class kucoin extends Exchange {
         } else {
             trades = this.safeList (data, 'items', []);
         }
-        return this.parseTrades (trades, market, since, limit);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     /**
@@ -6954,7 +6958,11 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     /**
@@ -7043,7 +7051,11 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = this.safeList (data, 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     /**
@@ -7146,7 +7158,11 @@ export default class kucoin extends Exchange {
             //
             trades = this.safeList (response, 'data', []);
         }
-        return this.parseTrades (trades, market, since, limit);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

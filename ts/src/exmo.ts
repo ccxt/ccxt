@@ -1913,7 +1913,11 @@ export default class exmo extends Exchange {
             //
         }
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit);
     }
 
     /**

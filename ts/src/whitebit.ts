@@ -3319,7 +3319,11 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeList (response, 'records', []);
-        return this.parseTransactions (records, currency, since, limit);
+        let recordsList: any[] = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions (recordsList, currency, since, limit);
     }
 
     /**
@@ -3707,7 +3711,11 @@ export default class whitebit extends Exchange {
         //    }
         //
         const records = this.safeList (response, 'records');
-        return this.parseTransactions (records, currency, since, limit);
+        let recordsList: any[] = [];
+        if (records !== undefined) {
+            recordsList = records;
+        }
+        return this.parseTransactions (recordsList, currency, since, limit);
     }
 
     /**

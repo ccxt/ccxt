@@ -618,7 +618,11 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades', []);
-        return this.parseTrades (trades, market);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market);
     }
 
     /**
@@ -1450,7 +1454,11 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit, params);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit, params);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

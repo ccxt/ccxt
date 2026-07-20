@@ -5391,7 +5391,11 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     /**
@@ -8513,7 +8517,11 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     /**
@@ -8779,7 +8787,11 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (response, currency, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTransactions (responseList, currency, since, limit);
     }
 
     /**
@@ -8917,7 +8929,11 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (response, currency, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTransactions (responseList, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type: Str = undefined) {
@@ -13751,7 +13767,11 @@ export default class binance extends Exchange {
         //     ]
         //
         const liquidations = this.safeList (response, 'rows', response);
-        return this.parseLiquidations (liquidations, market, since, limit);
+        let liquidationsList: any[] = [];
+        if (liquidations !== undefined) {
+            liquidationsList = liquidations;
+        }
+        return this.parseLiquidations (liquidationsList, market, since, limit);
     }
 
     parseLiquidation (liquidation, market: Market = undefined) {
@@ -15007,7 +15027,11 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseADLRanks (response, symbols);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseADLRanks (responseList, symbols);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
