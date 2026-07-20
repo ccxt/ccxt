@@ -38,14 +38,14 @@ function testParseJson () {
     const parsed2 = exchange.parseJson (string2);
     const keys2 = Object.keys (parsed2);
     assert (keys2.length === 2);
-    assert (parsed2['k'] === '123.1');
+    assert (parsed2['k'] === 123.1);
     assert (parsed2['k2'] === '{"k3":456}');
     exchange.setProperty (exchange, 'quoteJsonNumbers', false);
     const parsed2NonQuoted = exchange.parseJson (string2);
     assert (parsed2NonQuoted['k'] === 123.1);
     assert (parsed2NonQuoted['k2'] === '{"k3":456}');
     const parsed2Quoted = exchange.parseJson (string2);
-    assert (parsed2Quoted['k'] === '123.1');
+    assert (parsed2Quoted['k'] === 123.1);
     assert (parsed2Quoted['k2'] === '{"k3":456}');
 
     
