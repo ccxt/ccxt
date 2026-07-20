@@ -1075,8 +1075,7 @@ class bitmex(Exchange, ImplicitAPI):
             # https://github.com/ccxt/ccxt/issues/4927
             # the exchange sometimes returns null price in the orderbook
             if price is not None:
-                resultSide = result[side]
-                resultSide.append([price, amount])
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
