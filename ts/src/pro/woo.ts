@@ -526,6 +526,7 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchTicker
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TICKER
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -535,21 +536,15 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const name = 'ticker';
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = market['id'] + '@' + name;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPublic (topic, message);
+        const topic = 'ticker@' + market['id'];
+        return await this.subscribePublicV3 (topic, topic, params);
     }
 
     /**
      * @method
      * @name woo#unWatchTicker
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TICKER
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -559,12 +554,10 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
+        const subHash = 'ticker@' + market['id'];
         const topic = 'ticker';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublicV3 (subHash, market['symbol'], topic, params);
     }
 
     parseWsTicker (ticker, market: Market = undefined) {
@@ -608,17 +601,21 @@ export default class woo extends wooRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@ticker",
-        //         "ts": 1657120017000,
+        //         "topic": "ticker@SPOT_WOO_USDT",
+        //         "ts": 1614152270000,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
-        //             "open": 19441.5,
-        //             "close": 20147.07,
-        //             "high": 20761.87,
-        //             "low": 19320.54,
-        //             "volume": 2481.103,
-        //             "amount": 50037935.0286,
-        //             "count": 3689
+        //             "s": "SPOT_WOO_USDT",
+        //             "o": "0.16112",
+        //             "c": "0.32206",
+        //             "h": "0.33000",
+        //             "l": "0.14251",
+        //             "v": "89040821.98",
+        //             "a": "22493062.21",
+        //             "q": "89040821.98",
+        //             "u": "22493062.21",
+        //             "cnt": 15442,
+        //             "ts": 1614152260000,
+        //             "tts": 1614152250000
         //         }
         //     }
         //
