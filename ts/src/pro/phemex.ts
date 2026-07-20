@@ -1006,7 +1006,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message, type: Str = undefined) {
         // spot update
         // {
         //        "closed":[
@@ -1203,13 +1203,13 @@ export default class phemex extends phemexRest {
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        let type: Str = undefined;
         const stored = this.orders;
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
+            // fallback only when caller did not pass channel type (orders vs orders_p vs spot shape)
             if (type === undefined) {
                 const isUsdt = market['settle'] === 'USDT';
                 type = isUsdt ? 'perpetual' : market['type'];
@@ -1221,9 +1221,11 @@ export default class phemex extends phemexRest {
             const currentMessageHash = 'orders' + ':' + keys[i];
             client.resolve (this.orders, currentMessageHash);
         }
-        // resolve generic subscription (spot or swap)
-        const messageHash = 'orders:' + type;
-        client.resolve (this.orders, messageHash);
+        // resolve generic subscription (spot / swap / perpetual) using channel-derived type
+        if (type !== undefined) {
+            const messageHash = 'orders:' + type;
+            client.resolve (this.orders, messageHash);
+        }
     }
 
     parseWSSwapOrder (order, market = undefined) {
@@ -1519,8 +1521,21 @@ export default class phemex extends phemexRest {
             return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
-            this.handleOrders (client, orders);
+            // derive market type from the channel key/shape (same idea as accounts vs accounts_p),
+            // so empty snapshots still have a type and do not rely on parsed order markets
+            let type: Str = undefined;
+            if ('orders_p' in message) {
+                type = 'perpetual';
+            } else {
+                const ordersPayload = this.safeValue (message, 'orders');
+                if ((ordersPayload !== undefined) && !Array.isArray (ordersPayload) && (('closed' in ordersPayload) || ('fills' in ordersPayload) || ('open' in ordersPayload))) {
+                    type = 'spot';
+                } else {
+                    type = 'swap';
+                }
+            }
+            const orders = this.safeValue2 (message, 'orders', 'orders_p', []);
+            this.handleOrders (client, orders, type);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
             let type = ('accounts' in message) ? 'swap' : 'spot';
