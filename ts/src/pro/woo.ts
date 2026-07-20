@@ -768,6 +768,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchBidsAsks
      * @see https://docs.woox.io/#bbos
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/BBO
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -777,7 +778,30 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const symbolsDefined = (symbols !== undefined);
         symbols = this.marketSymbols (symbols);
+        if (symbolsDefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 0) {
+                throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty symbols array');
+            }
+            if (symbolsLength > 20) {
+                throw new BadRequest (this.id + ' watchBidsAsks() accepts 20 symbols at most per V3 subscription request');
+            }
+            const topics: string[] = [];
+            for (let i = 0; i < symbolsLength; i++) {
+                const market = this.market (symbols[i]);
+                topics.push ('bbo@' + market['id']);
+            }
+            const newBidsAsks = await this.subscribePublicMultipleV3 (topics, topics, params, {
+                'symbols': symbols,
+                'topic': 'bidsasks',
+            });
+            if (this.newUpdates) {
+                return newBidsAsks;
+            }
+            return this.filterByArray (this.bidsasks, 'symbol', symbols);
+        }
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -796,8 +820,9 @@ export default class woo extends wooRest {
      * @method
      * @name woo#unWatchBidsAsks
      * @see https://docs.woox.io/#bbos
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/BBO
      * @description unWatches best bid & ask for symbols
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for (not used by woo)
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -805,8 +830,22 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols !== undefined) {
-            throw new NotSupported (this.id + ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once');
+        const symbolsDefined = (symbols !== undefined);
+        symbols = this.marketSymbols (symbols);
+        if (symbolsDefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 0) {
+                throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty symbols array');
+            }
+            if (symbolsLength > 20) {
+                throw new BadRequest (this.id + ' unWatchBidsAsks() accepts 20 symbols at most per V3 unsubscription request');
+            }
+            const subHashes: string[] = [];
+            for (let i = 0; i < symbolsLength; i++) {
+                const market = this.market (symbols[i]);
+                subHashes.push ('bbo@' + market['id']);
+            }
+            return await this.unwatchPublicMultipleV3 (subHashes, symbols, 'bidsasks', params);
         }
         const subHash = 'bbos';
         const topic = 'bidsasks';
@@ -830,12 +869,17 @@ export default class woo extends wooRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
-        const data = this.safeList (message, 'data', []);
+        let data = this.safeList (message, 'data');
+        if (data === undefined) {
+            data = [ this.safeDict (message, 'data', {}) ];
+        }
         const timestamp = this.safeInteger (message, 'ts');
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i);
-            ticker['ts'] = timestamp;
+            if (!('ts' in ticker)) {
+                ticker['ts'] = timestamp;
+            }
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
             this.bidsasks[symbol] = parsedTicker;
@@ -845,7 +889,7 @@ export default class woo extends wooRest {
     }
 
     parseWsBidAsk (ticker, market: Market = undefined) {
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
@@ -853,10 +897,10 @@ export default class woo extends wooRest {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'ask': this.safeString (ticker, 'ask'),
-            'askVolume': this.safeString (ticker, 'askSize'),
-            'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString2 (ticker, 'ask', 'ap'),
+            'askVolume': this.safeString2 (ticker, 'askSize', 'aq'),
+            'bid': this.safeString2 (ticker, 'bid', 'bp'),
+            'bidVolume': this.safeString2 (ticker, 'bidSize', 'bq'),
             'info': ticker,
         }, market);
     }
@@ -1838,6 +1882,7 @@ export default class woo extends wooRest {
             'trade': this.handleTrade,
             'balance': this.handleBalance,
             'position': this.handlePositions,
+            'bbo': this.handleBidAsk,
             'bbos': this.handleBidAsk,
             'estfundingrate': this.handleFundingRate,
         };
