@@ -193,32 +193,28 @@ impl OrderBook {
         ob.datetime  = safe_string(&v, "datetime",  None);
         ob.nonce     = safe_integer(&v, "nonce",    None);
         // `bids`/`asks` are arrays of `[price, amount]` pairs. Walk the
-        // outer `Value::Arr` and pull the first two numeric entries of
-        // each inner row; rows shorter than 2 fall back to NaN, which
-        // makes downstream filtering trivial.
+        // outer `Value::Arr` and pull the first two numeric entries of each
+        // inner row. A row that isn't a 2+ element array of parseable numbers
+        // is DROPPED rather than emitted as `[NaN, NaN]` — a NaN level is not a
+        // valid book entry and would corrupt best-bid/ask and depth math
+        // downstream (review #7).
         let extract_side = |key: &str| -> Vec<[f64; 2]> {
             let side = get_value(&v, &Value::Str(key.to_string()));
             match side {
-                Value::Arr(rows) => rows.iter().map(|row| {
-                    let price = match row {
-                        Value::Arr(r) => match r.first() {
+                Value::Arr(rows) => rows.iter().filter_map(|row| {
+                    let num = |cell: Option<&Value>| -> f64 {
+                        match cell {
                             Some(Value::Float(f)) => *f,
                             Some(Value::Int(n))   => *n as f64,
                             Some(Value::Str(s))   => s.parse().unwrap_or(f64::NAN),
                             _ => f64::NAN,
-                        },
-                        _ => f64::NAN,
+                        }
                     };
-                    let amt = match row {
-                        Value::Arr(r) => match r.get(1) {
-                            Some(Value::Float(f)) => *f,
-                            Some(Value::Int(n))   => *n as f64,
-                            Some(Value::Str(s))   => s.parse().unwrap_or(f64::NAN),
-                            _ => f64::NAN,
-                        },
-                        _ => f64::NAN,
+                    let (price, amt) = match row {
+                        Value::Arr(r) => (num(r.first()), num(r.get(1))),
+                        _ => (f64::NAN, f64::NAN),
                     };
-                    [price, amt]
+                    if price.is_nan() || amt.is_nan() { None } else { Some([price, amt]) }
                 }).collect(),
                 _ => Vec::new(),
             }
@@ -776,7 +772,7 @@ pub fn vec_from_value<T>(v: &Value, decode: fn(Value) -> T) -> Vec<T> {
 
 #[cfg(test)]
 mod from_value_tests {
-    use super::{Market, Order};
+    use super::{Market, Order, OrderBook};
     use crate::Value;
     use crate::value::HashMap;
 
@@ -784,6 +780,25 @@ mod from_value_tests {
         let mut m = HashMap::new();
         for (k, v) in pairs { m.insert(k.to_string(), v.clone()); }
         Value::Map(m)
+    }
+
+    // Malformed order-book rows (non-array, too short, unparseable) must be
+    // dropped, not emitted as [NaN, NaN] (review #7).
+    #[test]
+    fn order_book_drops_malformed_rows() {
+        let row = |a: Value, b: Value| Value::Array(vec![a, b]);
+        let bids = Value::Array(vec![
+            row(Value::Str("100.5".into()), Value::Str("2".into())), // ok
+            Value::Array(vec![Value::Str("bad".into()), Value::Int(1)]), // NaN price → drop
+            Value::Array(vec![Value::Int(99)]),                          // missing amount → drop
+            Value::Str("notarow".into()),                               // not an array → drop
+            row(Value::Int(99), Value::Float(3.0)),                     // ok
+        ]);
+        let ob = OrderBook::from_value(dict(&[("bids", bids)]));
+        assert_eq!(ob.bids.len(), 2, "malformed rows were not dropped: {:?}", ob.bids);
+        assert_eq!(ob.bids[0], [100.5, 2.0]);
+        assert_eq!(ob.bids[1], [99.0, 3.0]);
+        assert!(ob.bids.iter().all(|r| !r[0].is_nan() && !r[1].is_nan()));
     }
 
     #[test]
