@@ -175,6 +175,7 @@ export default class binance extends Exchange {
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 flatMarkets.push (eventMarkets[mi]);
             }
+            return [];
         }
         this.setEvents (parsedEvents);
         return flatMarkets;
@@ -185,12 +186,16 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchRawTopics
      * @description pages the market/list endpoint and returns up to `maxTopics` raw market topics
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#list-prediction-markets
      * @param {int} maxTopics stop collecting once this many topics are gathered
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest = {}): Promise<any[]> {
-        const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        if (pageLimit > 100) {
+            pageLimit = 100;
+        }
         const collected: any[] = [];
         let offset = 0;
         while (true) {
@@ -320,10 +325,11 @@ export default class binance extends Exchange {
      * @param {int} [params.limit] the maximum number of events to return
      * @param {string} [params.sort] 'volume' | 'liquidity' | 'newest' (client-side)
      * @param {string} [params.status] 'active' | 'closed' | 'all' (client-side)
+     * @param {string} [params.sortBy] sort events by server side ('RECOMMENDED' | 'VOLUME' | 'PARTICIPANTS' | 'CREATED_TIME' | 'END_DATE'), works when no queries and eventId provided
+     * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
         const tags = this.safeList (params, 'tags', []);
@@ -343,7 +349,7 @@ export default class binance extends Exchange {
             fetchCap = userLimit;
         }
         const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ]);
-        const eventId = this.safeString2 (params, 'eventId', 'slug');
+        const eventId = this.safeString (params, 'eventId');
         const l1Category = this.safeString (params, 'l1Category');
         const l2Category = this.safeString (params, 'l2Category');
         if (!this.markets) {
@@ -362,6 +368,11 @@ export default class binance extends Exchange {
             }
             if (l2Category !== undefined) {
                 listingRequest['l2Category'] = l2Category;
+            }
+            const sortBy = this.safeStringUpper2 (params, 'sort', 'sortBy');
+            if (sortBy !== undefined) {
+                listingRequest['sortBy'] = sortBy;
+                params = this.omit (params, [ 'sort', 'sortBy' ]);
             }
             const listed = await this.fetchRawTopics (fetchCap, this.extend (listingRequest, rest));
             rawTopics = await this.completeRawTopics (listed);
