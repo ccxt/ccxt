@@ -16,13 +16,8 @@ function equals (a, b) {
     return true;
 }
 
-function testSafeMethods () {
-
-    const exchange = new ccxt.Exchange ({
-        'id': 'regirock',
-    });
-
-    const inputDict = {
+function helperDefaultInputDict () {
+    return {
         'i': 1,
         'f': 0.123,
         'bool': true,
@@ -40,92 +35,13 @@ function testSafeMethods () {
         'floatString': '0.123',
         'longInt': 123456789012345,
     };
+}
 
+function testSafeString (exchange) {
+
+    const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
 
-    const compareDict = {
-        'a': 1,
-    };
-
-    const compareList = [ 1, 2, 3 ];
-
-    const factor = 10;
-
-    // safeValue
-    assert (exchange.safeValue (inputDict, 'i') === 1);
-    assert (exchange.safeValue (inputDict, 'f') === 0.123);
-    assert (exchange.safeValue (inputDict, 'bool') === true);
-    assert (equals (exchange.safeValue (inputDict, 'list'), compareList));
-    let dictObject = exchange.safeValue (inputDict, 'dict');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeValue (inputDict, 'str') === 'heLlo');
-    assert (exchange.safeValue (inputDict, 'strNumber') === '3');
-    assert (exchange.safeValue (inputList, 0) === 'Hi');
-
-    // safeValue2
-    assert (exchange.safeValue2 (inputDict, 'a', 'i') === 1);
-    assert (exchange.safeValue2 (inputDict, 'a', 'f') === 0.123);
-    assert (exchange.safeValue2 (inputDict, 'a', 'bool') === true);
-    assert (equals (exchange.safeValue2 (inputDict, 'a', 'list'), compareList));
-    dictObject = exchange.safeValue2 (inputDict, 'a', 'dict');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeValue2 (inputDict, 'a', 'str') === 'heLlo');
-    assert (exchange.safeValue2 (inputDict, 'a', 'strNumber') === '3');
-    assert (exchange.safeValue2 (inputList, 2, 0) === 'Hi');
-
-    // safeValueN
-    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'i' ]) === 1);
-    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
-    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'bool' ]) === true);
-    assert (equals (exchange.safeValueN (inputDict, [ 'a', 'b', 'list' ]), compareList));
-    dictObject = exchange.safeValueN (inputDict, [ 'a', 'b', 'dict' ]);
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'str' ]) === 'heLlo');
-    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
-    assert (exchange.safeValueN (inputList, [ 3, 2, 0 ]) === 'Hi');
-
-    // safeDict
-    dictObject = exchange.safeDict (inputDict, 'dict');
-    assert (equals (dictObject, compareDict));
-    let listObject = exchange.safeDict (inputDict, 'list');
-    assert (listObject === undefined);
-    assert (exchange.safeDict (inputList, 1) === undefined);
-
-    // safeDict2
-    dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
-    assert (equals (dictObject, compareDict));
-    listObject = exchange.safeDict2 (inputDict, 'a', 'list');
-    assert (listObject === undefined);
-    // @ts-expect-error
-    assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
-
-    // safeDictN
-    dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
-    assert (equals (dictObject, compareDict));
-    listObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]);
-    assert (listObject === undefined);
-    assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
-
-    // safeList
-    listObject = exchange.safeList (inputDict, 'list');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeList (inputDict, 'dict') === undefined);
-    assert (exchange.safeList (inputList, 1) === undefined);
-    const arrayOfDicts = exchange.safeList (inputDict, 'listOfDicts');
-    assert (equals ((arrayOfDicts as any[])[0], { 'a': 1 }));
-
-    // safeList2
-    listObject = exchange.safeList2 (inputDict, 'a', 'list');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
-    // @ts-expect-error
-    assert (exchange.safeList2 (inputList, 2, 1) === undefined);
-
-    // safeListN
-    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
-    assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
     // safeString
     assert (exchange.safeString (inputDict, 'i') === '1');
     assert (exchange.safeString (inputDict, 'f') === '0.123');
@@ -155,7 +71,7 @@ function testSafeMethods () {
     assert (exchange.safeStringLower (inputDict, 'strNumber') === '3');
     assert (exchange.safeStringLower (inputList, 0) === 'hi');
 
-    // safeStringLower2
+    // safeStringLower2testSafeString
     assert (exchange.safeStringLower2 (inputDict, 'a', 'i') === '1');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'str') === 'hello');
@@ -189,8 +105,119 @@ function testSafeMethods () {
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'str' ]) === 'HELLO');
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
     assert (exchange.safeStringUpperN (inputList, [ 3, 2, 0 ]) === 'HI');
+}
 
+function testSafeValue (exchange) {
+
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+    
+    const compareDict = {
+        'a': 1,
+    };
+
+    const compareList = [ 1, 2, 3 ];
+
+    
+    // safeValue
+    assert (exchange.safeValue (inputDict, 'i') === 1);
+    assert (exchange.safeValue (inputDict, 'f') === 0.123);
+    assert (exchange.safeValue (inputDict, 'bool') === true);
+    assert (equals (exchange.safeValue (inputDict, 'list'), compareList));
+    let dictObject = exchange.safeValue (inputDict, 'dict');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeValue (inputDict, 'str') === 'heLlo');
+    assert (exchange.safeValue (inputDict, 'strNumber') === '3');
+    assert (exchange.safeValue (inputList, 0) === 'Hi');
+
+    // safeValue2
+    assert (exchange.safeValue2 (inputDict, 'a', 'i') === 1);
+    assert (exchange.safeValue2 (inputDict, 'a', 'f') === 0.123);
+    assert (exchange.safeValue2 (inputDict, 'a', 'bool') === true);
+    assert (equals (exchange.safeValue2 (inputDict, 'a', 'list'), compareList));
+    dictObject = exchange.safeValue2 (inputDict, 'a', 'dict');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeValue2 (inputDict, 'a', 'str') === 'heLlo');
+    assert (exchange.safeValue2 (inputDict, 'a', 'strNumber') === '3');
+    assert (exchange.safeValue2 (inputList, 2, 0) === 'Hi');
+
+    // safeValueN
+    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'i' ]) === 1);
+    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
+    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'bool' ]) === true);
+    assert (equals (exchange.safeValueN (inputDict, [ 'a', 'b', 'list' ]), compareList));
+    dictObject = exchange.safeValueN (inputDict, [ 'a', 'b', 'dict' ]);
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'str' ]) === 'heLlo');
+    assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
+    assert (exchange.safeValueN (inputList, [ 3, 2, 0 ]) === 'Hi');
+}
+
+function testSafeDict (exchange) {
+
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+    const compareDict = {
+        'a': 1,
+    };
+
+    // safeDict
+    let dictObject = exchange.safeDict (inputDict, 'dict');
+    assert (equals (dictObject, compareDict));
+    let listObject = exchange.safeDict (inputDict, 'list');
+    assert (listObject === undefined);
+    assert (exchange.safeDict (inputList, 1) === undefined);
+
+    // safeDict2
+    dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
+    assert (equals (dictObject, compareDict));
+    listObject = exchange.safeDict2 (inputDict, 'a', 'list');
+    assert (listObject === undefined);
+    assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
+
+    // safeDictN
+    dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
+    assert (equals (dictObject, compareDict));
+    listObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]);
+    assert (listObject === undefined);
+    assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
+}
+
+
+function testSafeList (exchange) {
+
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+
+    const compareDict = {
+        'a': 1,
+    };
+    
+    // safeList
+    let listObject = exchange.safeList (inputDict, 'list');
+    assert (exchange.safeList (inputDict, 'dict') === undefined);
+    assert (exchange.safeList (inputList, 1) === undefined);
+    const arrayOfDicts = exchange.safeList (inputDict, 'listOfDicts');
+    assert (equals ((arrayOfDicts as any[])[0], { 'a': 1 }));
+
+    // safeList2
+    listObject = exchange.safeList2 (inputDict, 'a', 'list');
+    assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
+    assert (exchange.safeList2 (inputList, 2, 1) === undefined);
+
+    // safeListN
+    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
+    assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
+    assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
+}
+
+function testSafeInteger (exchange) {
+    
     // safeInteger
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+    const factor = 10;
+
     assert (exchange.safeInteger (inputDict, 'i') === 1);
     assert (exchange.safeInteger (inputDict, 'f') === 0);
     assert (exchange.safeInteger (inputDict, 'strNumber') === 3);
@@ -233,7 +260,13 @@ function testSafeMethods () {
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'f' ], factor) === 1); // NB the result is 1
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'strNumber' ], factor) === 30);
     assert (exchange.safeIntegerProductN (inputList, [ 3, 2, 1 ], factor) === 20);
+}
 
+function testSafeTimestamp (exchange) {
+
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+    
     // safeTimestamp
     assert (exchange.safeTimestamp (inputDict, 'i') === 1000);
     assert (exchange.safeTimestamp (inputDict, 'f') === 123);
@@ -251,6 +284,11 @@ function testSafeMethods () {
     assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'f' ]) === 123);
     assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3000);
     assert (exchange.safeTimestampN (inputList, [ 3, 2, 1 ]) === 2000);
+}
+
+function testSafeFloat (exchange) {
+    
+    const inputDict = helperDefaultInputDict ();
 
     // safeFloat
     // @ts-expect-error
@@ -278,7 +316,12 @@ function testSafeMethods () {
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'strNumber' ]) === parseFloat (3));
     // @ts-expect-error
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
+}
 
+function testSafeNumber (exchange) {
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+    
     // safeNumber
     assert (exchange.safeNumber (inputDict, 'i') === exchange.parseNumber (1));
     assert (exchange.safeNumber (inputDict, 'f') === exchange.parseNumber (0.123));
@@ -301,6 +344,22 @@ function testSafeMethods () {
     assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'strNumber' ]) === exchange.parseNumber (3));
     assert (exchange.safeNumberN (inputList, [ 3, 2, 1 ]) === exchange.parseNumber (2));
 
+    // safeNumberOmitZero
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroNumeric') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'undefined') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'emptyString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatNumeric') !== undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+}
+
+function testSafeBool (exchange) {
+    
+    const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
+
     // safeBool
     assert (exchange.safeBool (inputDict, 'bool') === true);
     assert (exchange.safeBool (inputList, 1) === undefined);
@@ -312,16 +371,10 @@ function testSafeMethods () {
     // safeBoolN
     assert (exchange.safeBoolN (inputDict, [ 'a', 'b', 'bool' ]) === true);
     assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
+}
 
-    // safeNumberOmitZero
-    assert (exchange.safeNumberOmitZero (inputDict, 'zeroNumeric') === undefined);
-    assert (exchange.safeNumberOmitZero (inputDict, 'zeroString') === undefined);
-    assert (exchange.safeNumberOmitZero (inputDict, 'undefined') === undefined);
-    assert (exchange.safeNumberOmitZero (inputDict, 'emptyString') === undefined);
-    assert (exchange.safeNumberOmitZero (inputDict, 'floatNumeric') !== undefined);
-    assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
-    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
-    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+function testCacheSafeCalls (exchange) {
+
     // init array cache tests
     // Test cache types - ArrayCache
     const arrayCache = new ArrayCache (100);
@@ -400,6 +453,24 @@ function testSafeMethods () {
     const retrievedArrayCacheBySymbolBySideHashmap = retrievedArrayCacheBySymbolBySide.hashmap;
     assert (retrievedArrayCacheBySymbolBySideHashmap !== undefined);
     assert (exchange.safeValue (cacheBySideMap, 'NONEXISTENT') === undefined);
+}
+
+function testSafeMethods () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
+
+    testSafeString (exchange);
+    testSafeValue (exchange);
+    testSafeDict (exchange);
+    testSafeList (exchange);
+    testSafeInteger (exchange);
+    testSafeTimestamp (exchange);
+    testSafeFloat (exchange);
+    testSafeNumber (exchange);
+    testSafeBool (exchange);
+    testCacheSafeCalls (exchange);
 }
 
 export default testSafeMethods;
