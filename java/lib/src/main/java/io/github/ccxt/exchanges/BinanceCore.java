@@ -3886,6 +3886,12 @@ public class BinanceCore extends BinanceApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                Object updateTime = this.safeInteger(balance, "updateTime");
+                if (Helpers.isTrue(Helpers.isEqual(updateTime, 0)))
+                {
+                    continue;
+                }
                 Object currencyId = this.safeString(balance, "asset");
                 Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
