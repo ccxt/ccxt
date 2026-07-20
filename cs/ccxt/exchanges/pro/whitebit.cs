@@ -553,6 +553,24 @@ public partial class whitebit : ccxt.whitebit
                 { "currency", getValue(market, "quote") },
             };
         }
+        object rawSide = this.safeInteger(trade, 8);
+        object side = null;
+        if (isTrue(isEqual(rawSide, 1)))
+        {
+            side = "sell";
+        } else if (isTrue(isEqual(rawSide, 2)))
+        {
+            side = "buy";
+        }
+        object role = this.safeInteger(trade, 9);
+        object takerOrMaker = null;
+        if (isTrue(isEqual(role, 1)))
+        {
+            takerOrMaker = "maker";
+        } else if (isTrue(isEqual(role, 2)))
+        {
+            takerOrMaker = "taker";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -561,8 +579,8 @@ public partial class whitebit : ccxt.whitebit
             { "symbol", getValue(market, "symbol") },
             { "order", orderId },
             { "type", null },
-            { "side", null },
-            { "takerOrMaker", null },
+            { "side", side },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", null },
