@@ -304,7 +304,9 @@ class binance(ccxt.async_support.binance):
                 subscriptionHashes.append(market['lowercaseId'] + '@forceOrder')
                 messageHashes.append('liquidations::' + symbols[i])
             streamHash += '::' + ','.join(symbols)
-        firstMarket = self.get_market_from_symbols(symbols)
+        firstMarket = None
+        if not self.is_empty(symbols):
+            firstMarket = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if type == 'spot':
