@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 import ccxt.async_support as ccxt  # noqa: F402
 
-
 def test_base64_to_binary():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',

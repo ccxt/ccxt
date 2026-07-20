@@ -619,8 +619,6 @@ class bydfi(Exchange, ImplicitAPI):
         limits = [5, 10, 20, 50, 100, 500, 1000]
         result = 1000
         for i in range(0, len(limits)):
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
             if limit <= limits[i]:
                 result = limits[i]
                 break
@@ -844,8 +842,6 @@ class bydfi(Exchange, ImplicitAPI):
             startTime = now - timeDelta
             until = now
         elif until is None:
-            if startTime is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since or until argument')
             until = startTime + timeDelta
             if until > now:
                 until = now
@@ -1197,14 +1193,8 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1399,7 +1389,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def create_edit_order_request(self, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+    def create_edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         request = {}
         if (id is None) and (clientOrderId is None):
@@ -2469,7 +2459,7 @@ class bydfi(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string_2(balance, 'total', 'balance')
             account['free'] = self.safe_string_2(balance, 'available', 'availableBalance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

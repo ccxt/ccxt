@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -591,7 +591,7 @@ class kraken(ccxt.async_support.kraken):
         interval = self.safe_integer(first, 'interval')
         timeframe = self.find_timeframe(interval)
         messageHash = self.get_message_hash('ohlcv', None, symbol)
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -785,7 +785,7 @@ class kraken(ccxt.async_support.kraken):
             if symbols is not None:
                 for i in range(0, len(symbols)):
                     symbol = symbols[i]
-                    market = self.market(symbol)
+                    market = self.markets[symbol]
                     info = self.safe_value(market, 'info', {})
                     wsName = self.safe_string(info, 'wsname')
                     marketsByWsName[wsName] = market
@@ -1043,7 +1043,7 @@ class kraken(ccxt.async_support.kraken):
         result = await self.watch(url, messageHash, subscribe, subscriptionHash)
         if self.newUpdates:
             limit = result.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit, True)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1060,7 +1060,7 @@ class kraken(ccxt.async_support.kraken):
         params['snap_trades'] = True
         return await self.watch_private('myTrades', symbol, since, limit, params)
 
-    def handle_my_trades(self, client: Client, message, subscription: dict | None = None):
+    def handle_my_trades(self, client: Client, message, subscription=None):
         #
         #     {
         #         "channel": "executions",
@@ -1113,7 +1113,7 @@ class kraken(ccxt.async_support.kraken):
                 messageHash = name + ':' + keys[i]
                 client.resolve(self.myTrades, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market=None):
         #
         #     {
         #         "order_id": "O6NTZC-K6FRH-ATWBCK",
@@ -1182,7 +1182,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return self.watch_private('orders', symbol, since, limit, self.extend(params, {'snap_orders': True}))
 
-    def handle_orders(self, client: Client, message, subscription: dict | None = None):
+    def handle_orders(self, client: Client, message, subscription=None):
         #
         #     {
         #         "channel": "executions",
@@ -1245,7 +1245,7 @@ class kraken(ccxt.async_support.kraken):
                 messageHash = name + ':' + keys[i]
                 client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order, market=None):
         #
         # watchOrders
         #
@@ -1316,7 +1316,7 @@ class kraken(ccxt.async_support.kraken):
             'trades': None,
         })
 
-    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs: Any = None, params={}):
+    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
         await self.load_markets()
         # symbols are required
         symbols = self.market_symbols(symbols, None, False, True, False)

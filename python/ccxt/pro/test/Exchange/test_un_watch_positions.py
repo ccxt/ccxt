@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def create_order_after_delay(exchange):
     await exchange.sleep(3000)
     await exchange.create_order('BTC/USDT:USDT', 'market', 'buy', 0.001)

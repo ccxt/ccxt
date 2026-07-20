@@ -518,7 +518,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'ProductId')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
         ProductType = self.safe_string(rawCurrency, 'ProductType')
@@ -623,7 +623,7 @@ class ndax(Exchange, ImplicitAPI):
         sessionStatus = self.safe_string(market, 'SessionStatus')
         isDisable = self.safe_value(market, 'IsDisable')
         sessionRunning = (sessionStatus == 'Running')
-        return self.safe_market_structure({
+        return {
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -671,7 +671,7 @@ class ndax(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        })
+        }
 
     def parse_order_book(self, orderbook, symbol, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
@@ -700,8 +700,7 @@ class ndax(Exchange, ImplicitAPI):
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
-            resultSide = result[side]
-            resultSide.append(bidask)
+            result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         result['timestamp'] = timestamp
@@ -1223,12 +1222,12 @@ class ndax(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
-            if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+            if (currencyId is not None) and (currencyId in self.currencies_by_id):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'Amount')
                 account['used'] = self.safe_string(balance, 'Hold')
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1565,11 +1564,11 @@ class ndax(Exchange, ImplicitAPI):
             'Quantity': None if (amountString is None) else float(amountString),
             'OrderType': orderType,  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3,  # 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            # 'LimitPrice': float(self.price_to_precision(symbol, price) or '0'),
+            # 'LimitPrice': float(self.price_to_precision(symbol, price)),
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price) or '0')
+            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         if triggerPrice is not None:
@@ -1627,11 +1626,11 @@ class ndax(Exchange, ImplicitAPI):
             'Quantity': None if (amountString is None) else float(amountString),
             'OrderType': self.safe_integer(self.options['orderTypes'], self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3,  # 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            # 'LimitPrice': float(self.price_to_precision(symbol, price) or '0'),
+            # 'LimitPrice': float(self.price_to_precision(symbol, price)),
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price) or '0')
+            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         response = self.privatePostCancelReplaceOrder(self.extend(request, params))

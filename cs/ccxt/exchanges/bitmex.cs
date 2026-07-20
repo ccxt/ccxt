@@ -1117,8 +1117,7 @@ public partial class bitmex : Exchange
             // the exchange sometimes returns null price in the orderbook
             if (isTrue(!isEqual(price, null)))
             {
-                object resultSide = getValue(result, side);
-                ((IList<object>)resultSide).Add(new List<object>() {price, amount});
+                ((IList<object>)getValue(result, side)).Add(new List<object>() {price, amount});
             }
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);

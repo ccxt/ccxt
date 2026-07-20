@@ -325,7 +325,7 @@ class btcturk extends Exchange {
             }
         }
         $status = $this->safe_string($entry, 'status');
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -373,7 +373,7 @@ class btcturk extends Exchange {
             ),
             'created' => null,
             'info' => $entry,
-        ));
+        );
     }
 
     public function parse_balance($response): array {
@@ -391,7 +391,7 @@ class btcturk extends Exchange {
             $account['total'] = $this->safe_string($entry, 'balance');
             $account['free'] = $this->safe_string($entry, 'free');
             $account['used'] = $this->safe_string($entry, 'locked');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -653,7 +653,7 @@ class btcturk extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data || array(), $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -759,7 +759,7 @@ class btcturk extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcvs($ohlcvs, mixed $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         $results = array();
         $timestamp = $this->safe_list($ohlcvs, 't', array());
         $high = $this->safe_list($ohlcvs, 'h', array());
@@ -815,7 +815,7 @@ class btcturk extends Exchange {
             $request['newClientOrderId'] = $this->uuid();
         }
         $response = $this->privatePostOrder($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -1044,7 +1044,7 @@ class btcturk extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data || array(), $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function nonce() {

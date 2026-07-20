@@ -4375,7 +4375,7 @@ public class CoinbaseCore extends CoinbaseApi
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000)).join();
             }
             return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters)).join();
         });

@@ -635,7 +635,7 @@ class kraken extends \ccxt\async\kraken {
         $interval = $this->safe_integer($first, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $messageHash = $this->get_message_hash('ohlcv', null, $symbol);
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -860,7 +860,7 @@ class kraken extends \ccxt\async\kraken {
                 if ($symbols !== null) {
                     for ($i = 0; $i < count($symbols); $i++) {
                         $symbol = $symbols[$i];
-                        $market = $this->market($symbol);
+                        $market = $this->markets[$symbol];
                         $info = $this->safe_value($market, 'info', array());
                         $wsName = $this->safe_string($info, 'wsname');
                         $marketsByWsName[$wsName] = $market;
@@ -1155,7 +1155,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $result->getLimit($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
         })();
     }
 
@@ -1177,7 +1177,7 @@ class kraken extends \ccxt\async\kraken {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         //     {
         //         "channel" => "executions",
@@ -1235,7 +1235,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         //     {
         //         "order_id" => "O6NTZC-K6FRH-ATWBCK",
@@ -1308,7 +1308,7 @@ class kraken extends \ccxt\async\kraken {
         return $this->watch_private('orders', $symbol, $since, $limit, $this->extend($params, array( 'snap_orders' => true )));
     }
 
-    public function handle_orders(Client $client, $message, ?array $subscription = null) {
+    public function handle_orders(Client $client, $message, $subscription = null) {
         //
         //     {
         //         "channel" => "executions",
@@ -1380,7 +1380,7 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order($order, $market = null) {
         //
         // watchOrders
         //
@@ -1452,7 +1452,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
+    public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
             Async\await($this->load_markets());
             // $symbols are required

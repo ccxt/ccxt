@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
     # prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
     # books where bid==ask and a stale `last` far from the median are normal — skip the
@@ -67,7 +66,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     is_fetch_ticker_called = method == 'fetchTicker'
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None:
-        if (exchange.markets is not None) and (symbol_for_market in exchange.markets):
+        if symbol_for_market in exchange.markets:
             market = exchange.market(symbol_for_market)
         else:
             is_unrecognized_symbol = True

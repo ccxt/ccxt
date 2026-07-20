@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1537,7 +1537,7 @@ class coinbase(Exchange, ImplicitAPI):
             newMarkets.append(market)
         return newMarkets
 
-    def parse_spot_market(self, market, feeTier) -> Market:
+    def parse_spot_market(self, market, feeTier) -> MarketInterface:
         #
         #         {
         #             "product_id": "TONE-USD",
@@ -1633,7 +1633,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_contract_market(self, market, feeTier) -> Market:
+    def parse_contract_market(self, market, feeTier) -> MarketInterface:
         # expiring
         #
         #        {
@@ -1932,12 +1932,10 @@ class coinbase(Exchange, ImplicitAPI):
             id = self.safe_string_2(currency, 'id', 'code')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            if code is not None:
-                self.options['networks'][code] = name.lower()
-            if code is not None:
-                self.options['networksById'][code] = name.lower()
+            self.options['networks'][code] = name.lower()
+            self.options['networksById'][code] = name.lower()
             type = 'crypto' if (assetId is not None) else 'fiat'
-            self.store_by_key(result, code, self.safe_currency_structure({
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -1959,23 +1957,23 @@ class coinbase(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }))
+            })
             if assetId is not None:
                 lowerCaseName = name.lower()
-                self.store_by_key(networks, code, lowerCaseName)
+                networks[code] = lowerCaseName
                 networksById[lowerCaseName] = code
         # we have to add other currencies here( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
         for i in range(0, len(ratesIds)):
             currencyId = ratesIds[i]
             code = self.safe_currency_code(currencyId)
-            if (code is None) or not (code in result):
-                self.store_by_key(result, code, self.safe_currency_structure({
+            if not (code in result):
+                result[code] = self.safe_currency_structure({
                     'info': {},
                     'id': currencyId,
                     'code': code,
                     'type': 'crypto',
                     'networks': {},  # todo
-                }))
+                })
         self.options['networks'] = self.extend(networks, self.options['networks'])
         self.options['networksById'] = self.extend(networksById, self.options['networksById'])
         return result
@@ -2338,7 +2336,7 @@ class coinbase(Exchange, ImplicitAPI):
                     else:
                         account['free'] = Precise.string_add(account['free'], total)
                         account['total'] = Precise.string_add(account['total'], total)
-                    self.store_by_key(result, code, account)
+                    result[code] = account
             elif self.in_array(type, v3Accounts):
                 available = self.safe_dict(balance, 'available_balance')
                 hold = self.safe_dict(balance, 'hold')
@@ -2358,7 +2356,7 @@ class coinbase(Exchange, ImplicitAPI):
                         account['free'] = Precise.string_add(account['free'], free)
                         account['used'] = Precise.string_add(account['used'], used)
                         account['total'] = Precise.string_add(account['total'], total)
-                    self.store_by_key(result, code, account)
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -3635,7 +3633,7 @@ class coinbase(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+            return self.fetch_paginated_call_cursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 1000)
         return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

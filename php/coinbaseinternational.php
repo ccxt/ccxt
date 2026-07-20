@@ -324,7 +324,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function handle_portfolio_and_params(string $methodName, $params = array()): array {
+    public function handle_portfolio_and_params(string $methodName, $params = array()) {
         $portfolio = null;
         list($portfolio, $params) = $this->handle_option_and_params($params, $methodName, 'portfolio');
         if (($portfolio !== null) && ($portfolio !== '')) {
@@ -347,7 +347,7 @@ class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $portfolio parameter or set the default $portfolio with $this->options["portfolio"]');
     }
 
-    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array()): array {
+    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array()) {
         $networkId = null;
         list($networkId, $params) = $this->handle_option_and_params($params, $methodName, 'network_arn_id');
         if ($networkId === null) {
@@ -524,8 +524,8 @@ class coinbaseinternational extends Exchange {
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-        $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        $maxEntriesPerRequest = null;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -802,9 +802,6 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
-        }
         $response = $this->$method($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
@@ -971,8 +968,8 @@ class coinbaseinternational extends Exchange {
         }
         $paginate = null;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
-        $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        $maxEntriesPerRequest = null;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -1434,10 +1431,7 @@ class coinbaseinternational extends Exchange {
         }
         $isLinear = $isSpot ? null : ($settleId === $quoteId);
         $isInverse = $isSpot ? null : ($settleId !== $quoteId);
-        if ($marketId === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
-        }
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $marketId,
             'lowercaseId' => strtolower($marketId),
             'symbol' => $symbol,
@@ -1489,7 +1483,7 @@ class coinbaseinternational extends Exchange {
             ),
             'info' => $market,
             'created' => null,
-        ));
+        );
     }
 
     public function fetch_currencies($params = array()): array {
@@ -1518,7 +1512,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $currency): CurrencyInterface {
+    public function parse_currency(array $currency): array {
         //
         //    {
         //       "asset_id":"1",
@@ -1705,7 +1699,7 @@ class coinbaseinternational extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($rawBalance, 'quantity');
             $account['used'] = $this->safe_string($rawBalance, 'hold');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1778,9 +1772,6 @@ class coinbaseinternational extends Exchange {
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
         $request = array(
             'client_order_id' => $clientOrderId,
             'side' => strtoupper($side),
@@ -2134,8 +2125,8 @@ class coinbaseinternational extends Exchange {
         list($portfolio, $params) = $this->handle_portfolio_and_params('fetchOpenOrders', $params);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
-        $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        $maxEntriesPerRequest = null;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOpenOrders', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -2219,8 +2210,8 @@ class coinbaseinternational extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         $pageKey = 'ccxtPageKey';
-        $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        $maxEntriesPerRequest = null;
+        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
@@ -2331,9 +2322,6 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
-        }
         $response = $this->$method($this->extend($request, $params));
         //
         //    {

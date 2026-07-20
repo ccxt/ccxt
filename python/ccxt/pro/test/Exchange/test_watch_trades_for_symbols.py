@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_trade  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchTradesForSymbols'
     now = exchange.milliseconds()

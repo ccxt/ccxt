@@ -386,7 +386,7 @@ class lighter extends \ccxt\async\lighter {
             if ($symbols !== null) {
                 $symbolsLength = count($symbols);
             }
-            if (($symbols === null) || ($symbolsLength === 0)) {
+            if ($symbolsLength === 0) {
                 $messageHashes[] = $this->get_message_hash('ticker');
             } else {
                 for ($i = 0; $i < count($symbols); $i++) {
@@ -899,9 +899,6 @@ class lighter extends \ccxt\async\lighter {
         $price = $this->safe_string($liquidation, 'price');
         $baseValue = Precise::string_mul($contracts, $contractSize);
         $quoteValue = Precise::string_mul($baseValue, $price);
-        if ($market === null) {
-            return null;
-        }
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $market['symbol'],
@@ -1103,7 +1100,7 @@ class lighter extends \ccxt\async\lighter {
                 $account = $this->account();
                 $account['used'] = $this->safe_string($asset, 'locked_balance');
                 $account['total'] = $this->safe_string($asset, 'balance');
-                $this->store_by_key($balance, $code, $account);
+                $balance[$code] = $account;
             }
         } else {
             $stats = $this->safe_dict($message, 'stats', array());

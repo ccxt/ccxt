@@ -2395,11 +2395,9 @@ class bybit extends \ccxt\async\bybit {
             if ($this->safe_value($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
-            if (($accountType !== null) && ($code !== null)) {
-                $this->balance[$accountType][$code] = $account;
-            }
+            $this->balance[$accountType][$code] = $account;
         } else {
-            $this->store_by_key($this->balance, $code, $account);
+            $this->balance[$code] = $account;
         }
     }
 

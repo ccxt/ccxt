@@ -617,9 +617,6 @@ class lbank extends \ccxt\async\lbank {
             $myOrders = new ArrayCacheBySymbolById($limit);
         }
         $order = $this->parse_ws_order($message);
-        if ($myOrders === null) {
-            return;
-        }
         $myOrders->append($order);
         $this->orders = $myOrders;
         $client->resolve($myOrders, 'orders');
@@ -627,7 +624,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($myOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order($order, $market = null) {
         //
         //     {
         //         "orderUpdate":array(
@@ -776,7 +773,7 @@ class lbank extends \ccxt\async\lbank {
         $account['free'] = $this->safe_string($data, 'free');
         $account['used'] = $this->safe_string($data, 'freeze');
         $account['total'] = $this->safe_string($data, 'asset');
-        $this->store_by_key($this->balance, $code, $account);
+        $this->balance[$code] = $account;
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
     }

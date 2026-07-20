@@ -773,7 +773,7 @@ class grvt(Exchange, ImplicitAPI):
         responseResult = self.safe_list(response, 'result', [])
         return self.parse_currencies(responseResult)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         #
         #            {
         #                "id": "4",
@@ -1343,7 +1343,7 @@ class grvt(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
             account['free'] = availableBalance  # todo: revise after API team clarification
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2392,7 +2392,7 @@ class grvt(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: List[Str] = None, params={}) -> MarginModes:
         """
         fetches margin mode of the user
 
@@ -2421,7 +2421,7 @@ class grvt(Exchange, ImplicitAPI):
         results = self.safe_list(response, 'results', [])
         return self.parse_leverages(results, symbols)
 
-    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         #
         # fetchMarginModes
         #
@@ -3017,13 +3017,11 @@ class grvt(Exchange, ImplicitAPI):
     def fee_amount_multiplier(self):
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
-    def create_signed_request(self, request: Any, structureType: str, currencyObj: dict | None = None, signerAddress: Str = None) -> dict:
+    def create_signed_request(self, request: Any, structureType: str, currencyObj=None, signerAddress: Str = None) -> dict:
         messageData = None
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
             amountInt = request['num_tokens'] * amountMultiplier
-            if currencyObj is None:
-                raise ExchangeError(self.id + ' createSignedRequest() missing currencyObj')
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3036,8 +3034,6 @@ class grvt(Exchange, ImplicitAPI):
             }
         elif structureType == 'EIP712_WITHDRAWAL_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
-            if currencyObj is None:
-                raise ExchangeError(self.id + ' createSignedRequest() missing currencyObj')
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],

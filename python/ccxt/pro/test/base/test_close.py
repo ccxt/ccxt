@@ -8,7 +8,6 @@ sys.path.append(root)
 from asyncio import sleep, gather
 import ccxt.pro
 
-
 async def watch_ticker_loop(exchange):
     try:
         while True:
@@ -77,7 +76,6 @@ async def test_ws_close():
     # --------------------------------------------
     await test_no_memory_leak()
 
-
 async def test_cancelled_task_no_invalid_state(exchange):
     """
     Connects to a real exchange, starts two watch_ticker tasks, cancels one,
@@ -126,7 +124,6 @@ async def test_cancelled_task_no_invalid_state(exchange):
     # Cleanup
     task_btc.cancel()
     await exchange.close()
-
 
 async def test_unwatch_tickers_after_cancellation(exchange):
     """
@@ -185,7 +182,6 @@ async def test_unwatch_tickers_after_cancellation(exchange):
     task_btc.cancel()
     await exchange.close()
     print("PASSED - un_watch_tickers() after cancellation test completed successfully")
-
 
 async def test_no_memory_leak():
     """
@@ -284,6 +280,5 @@ async def test_no_memory_leak():
         )
 
     print(f"PASSED - No memory leak detected (max growth: {max_growth} < {max_acceptable_growth})")
-
 
 asyncio.run(test_ws_close())

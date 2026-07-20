@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def test_last_price(exchange, skipped_properties, method, entry, symbol):
     format = {
         'info': {},

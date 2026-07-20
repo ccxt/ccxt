@@ -447,7 +447,7 @@ class lbank extends Exchange {
         return $this->parse_currencies($values);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency[0], 'assetCode'); // first member is guaranteed
         $code = $this->safe_currency_code($id);
         $networksRaw = $rawCurrency;
@@ -459,28 +459,26 @@ class lbank extends Exchange {
                 $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
             }
             $networkCode = $this->network_id_to_code($networkId, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'minTransfer'),
-                            'max' => null,
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min'),
+                        'max' => null,
                     ),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
-                    'fee' => $this->safe_number($networkEntry, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
-                    'info' => $networkEntry,
-                );
-            }
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'minTransfer'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
+                'fee' => $this->safe_number($networkEntry, 'fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
+                'info' => $networkEntry,
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -1321,7 +1319,7 @@ class lbank extends Exchange {
                 $account = $this->account();
                 $account['used'] = $this->safe_string($used, $currencyId);
                 $account['free'] = $this->safe_string($free, $currencyId);
-                $this->store_by_key($result, $code, $account);
+                $result[$code] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -1335,7 +1333,7 @@ class lbank extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['used'] = $this->safe_string($item, 'locked');
-                $this->store_by_key($result, $codeInner, $account);
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -1349,7 +1347,7 @@ class lbank extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'usableAmt');
                 $account['used'] = $this->safe_string($item, 'freezeAmt');
-                $this->store_by_key($result, $codeInner, $account);
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -1521,11 +1519,7 @@ class lbank extends Exchange {
         //        "code" => 0
         //    }
         //
-        $balanceResult = $this->parse_balance($response || array());
-        if ($balanceResult === null) {
-            throw new NullResponse($this->id . ' fetchBalance() returned empty response');
-        }
-        return $balanceResult;
+        return $this->parse_balance($response);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -2725,17 +2719,13 @@ class lbank extends Exchange {
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $networkList = $this->safe_value($entry, 'networkList', array());
-            $this->store_by_key($withdrawFees, $code, array());
+            $withdrawFees[$code] = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkEntry = $networkList[$j];
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if ($fee !== null) {
                     $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
-                    if ($networkCode !== null) {
-                        if (($code !== null) && ($networkCode !== null)) {
-                            $withdrawFees[$code][$networkCode] = $fee;
-                        }
-                    }
+                    $withdrawFees[$code][$networkCode] = $fee;
                 }
             }
         }
@@ -2794,12 +2784,10 @@ class lbank extends Exchange {
                     $network = $codeInner;
                 }
                 $fee = $this->safe_string($item, 'fee');
-                if ($this->safe_value($withdrawFees, $codeInner) === null) {
-                    $this->store_by_key($withdrawFees, $codeInner, array());
+                if ($withdrawFees[$codeInner] === null) {
+                    $withdrawFees[$codeInner] = array();
                 }
-                if (($codeInner !== null) && ($network !== null)) {
-                    $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
-                }
+                $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
             }
         }
         return array(
@@ -2938,7 +2926,7 @@ class lbank extends Exchange {
             if ($canWithdraw === true) {
                 $currencyId = $this->safe_string($fee, 'assetCode');
                 $code = $this->safe_currency_code($currencyId);
-                if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
+                if ($codes === null || $this->in_array($code, $codes)) {
                     $withdrawFee = $this->safe_number($fee, 'fee');
                     if ($withdrawFee !== null) {
                         $resultValue = $this->safe_value($result, $code);
@@ -3015,18 +3003,16 @@ class lbank extends Exchange {
                         'percentage' => null,
                     );
                 }
-                if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
-                        'withdraw' => array(
-                            'fee' => $withdrawFee,
-                            'percentage' => null,
-                        ),
-                        'deposit' => array(
-                            'fee' => null,
-                            'percentage' => null,
-                        ),
-                    );
-                }
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
             }
         }
         return $result;
@@ -3112,7 +3098,7 @@ class lbank extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            throw new NullResponse($this->id . ' parseBalance() returned empty response');
+            return null;
         }
         $success = $this->safe_value($response, 'result');
         if ($success === 'false' || !$success) {

@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_trading_fee  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_fetch_trading_fees(exchange, skipped_properties):
     method = 'fetchTradingFees'
     fees = await exchange.fetch_trading_fees()

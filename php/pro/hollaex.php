@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
-use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -106,9 +105,6 @@ class hollaex extends \ccxt\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if ($symbol === null) {
-            return;
-        }
         $data = $this->safe_value($message, 'data');
         $timestamp = $this->safe_string($data, 'timestamp');
         $timestampMs = $this->parse8601($timestamp);
@@ -119,9 +115,6 @@ class hollaex extends \ccxt\async\hollaex {
             $this->orderbooks[$symbol] = $orderbook;
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            if ($orderbook === null) {
-                return;
-            }
             $orderbook->reset($snapshot);
         }
         $messageHash = $channel . ':' . $marketId;
@@ -222,7 +215,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -266,7 +259,7 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $trade['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
-            $this->store_by_key($marketIds, $marketId, true);
+            $marketIds[$marketId] = true;
         }
         // non-$symbol specific
         $client->resolve($this->myTrades, $channel);
@@ -309,7 +302,7 @@ class hollaex extends \ccxt\async\hollaex {
         })();
     }
 
-    public function handle_order(Client $client, $message, ?array $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     {
         //         "topic" => "order",
@@ -393,7 +386,7 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $order['symbol'];
             $market = $this->market($symbol);
             $marketId = $market['id'];
-            $this->store_by_key($marketIds, $marketId, true);
+            $marketIds[$marketId] = true;
         }
         // non-$symbol specific
         $client->resolve($this->orders, $channel);
@@ -449,14 +442,11 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            if (($code !== null) && (is_array($this->balance) && array_key_exists($code, $this->balance))) {
-                $account = $this->balance[$code];
-            }
+            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);
-            $this->store_by_key($this->balance, $code, $account);
+            $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $messageHash);
@@ -481,9 +471,6 @@ class hollaex extends \ccxt\async\hollaex {
             if ($expires === null) {
                 $timeout = intval(($this->timeout / (string) 1000));
                 $expires = $this->sum($this->seconds(), $timeout);
-                if ($expires === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
-                }
                 $expires = (string) $expires;
                 // we need to memoize these values to avoid generating a new $url on each method execution
                 // that would trigger a new connection on each received $message

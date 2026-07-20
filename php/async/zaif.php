@@ -269,14 +269,11 @@ class zaif extends Exchange {
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'currency_pair');
         $name = $this->safe_string($market, 'name');
-        if ($name === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing name');
-        }
         list($baseId, $quoteId) = explode('/', $name);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -324,7 +321,7 @@ class zaif extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        ));
+        );
     }
 
     public function parse_balance($response): array {
@@ -349,7 +346,7 @@ class zaif extends Exchange {
                     $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -619,7 +616,7 @@ class zaif extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_dict($response, 'return', array());
+            $data = $this->safe_dict($response, 'return');
             return $this->parse_order($data);
         })();
     }
@@ -796,7 +793,7 @@ class zaif extends Exchange {
             //         }
             //     }
             //
-            $returnData = $this->safe_dict($result, 'return', array());
+            $returnData = $this->safe_dict($result, 'return');
             return $this->parse_transaction($returnData, $currency);
         })();
     }

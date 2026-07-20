@@ -10,7 +10,6 @@ use ccxt\async\abstract\luno as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
-use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -445,7 +444,7 @@ class luno extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency[0], 'native_currency'); // first item is guaranteed
         $code = $this->safe_currency_code($id);
         $networks = array();
@@ -453,28 +452,26 @@ class luno extends Exchange {
             $networkEntry = $rawCurrency[$i];
             $networkId = $this->safe_string($networkEntry, 'name');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $networkEntry,
-                );
-            }
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -616,7 +613,7 @@ class luno extends Exchange {
                 $result[] = array(
                     'id' => $accountId,
                     'type' => null,
-                    'code' => $code,
+                    'currency' => $code,
                     'info' => $account,
                 );
             }
@@ -640,10 +637,10 @@ class luno extends Exchange {
             $balance = $this->safe_string($wallet, 'balance');
             $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
             $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
-            if (($code !== null) && (is_array($result) && array_key_exists($code, $result))) {
+            if (is_array($result) && array_key_exists($code, $result)) {
                 $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
                 $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
-            } elseif ($code !== null) {
+            } else {
                 $account = $this->account();
                 $account['used'] = $reservedUnconfirmed;
                 $account['total'] = $balanceUnconfirmed;
@@ -1307,9 +1304,6 @@ class luno extends Exchange {
                 'pair' => $market['id'],
             );
             $response = null;
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
             if ($type === 'market') {
                 $request['type'] = strtoupper($side);
                 // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
@@ -1324,9 +1318,6 @@ class luno extends Exchange {
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
                 $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
                 $response = Async\await($this->privatePostPostorder($this->extend($request, $params)));
-            }
-            if ($response === null) {
-                throw new NullResponse($this->id . ' createOrder() returned empty response');
             }
             return $this->safe_order(array(
                 'info' => $response,
@@ -1365,7 +1356,7 @@ class luno extends Exchange {
         })();
     }
 
-    public function fetch_ledger_by_entries(?string $code = null, mixed $entry = null, ?int $limit = null, $params = array()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = null, $limit = null, $params = array()) {
         return Async\async(function () use ($code, $entry, $limit, $params) {
             // by default without $entry number or $limit number, return most recent $entry
             if ($entry === null) {

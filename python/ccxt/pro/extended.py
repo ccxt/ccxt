@@ -513,7 +513,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate, market: Market = None, message: Any = None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate, market: Market = None, message=None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')

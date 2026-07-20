@@ -313,7 +313,7 @@ class btcbox extends Exchange {
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $this->safe_string($market, 'symbol'),
             'uppercaseId' => null,
             'symbol' => $symbol,
@@ -362,7 +362,7 @@ class btcbox extends Exchange {
             'active' => null,
             'created' => null,
             'info' => $market,
-        ));
+        );
     }
 
     public function parse_balance($response): array {
@@ -851,7 +851,7 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json

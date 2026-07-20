@@ -174,7 +174,7 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $api);
         if ($base === null) {
@@ -182,20 +182,17 @@ class mudrex extends Exchange {
         }
         $url = $base . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $requestHeaders = array();
-        if ($headers !== null) {
-            $requestHeaders = $this->extend(array(), $headers);
-        }
+        $headers = ($headers !== null) ? $this->extend(array(), $headers) : array();
         $brokerId = $this->safe_string($this->options, 'broker');
         if ($brokerId !== null) {
-            $requestHeaders['Partner-Id'] = $brokerId;
+            $headers['Partner-Id'] = $brokerId;
         }
         $methodUpper = strtoupper($method);
         if ($api === 'private') {
             $this->check_required_credentials();
-            $requestHeaders['X-Authentication'] = $this->secret;
+            $headers['X-Authentication'] = $this->secret;
             if ($methodUpper === 'POST' || $methodUpper === 'PATCH' || $methodUpper === 'DELETE') {
-                $requestHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
                 // is_symbol is a $query-string flag even on write requests
                 $isSymbol = $this->safe_string($query, 'is_symbol');
                 if ($isSymbol !== null) {
@@ -203,16 +200,16 @@ class mudrex extends Exchange {
                     $url .= '?' . $this->urlencode(array( 'is_symbol' => $isSymbol ));
                 }
                 if (($methodUpper === 'DELETE') && $this->is_empty($query)) {
-                    return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
+                    return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $headers );
                 }
                 $bodyStr = $this->json($query);
-                return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $requestHeaders );
+                return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $headers );
             }
         }
         if ($query) {
             $url .= '?' . $this->urlencode($query);
         }
-        return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $headers );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
@@ -301,9 +298,6 @@ class mudrex extends Exchange {
             $startTime = $this->parse_to_int($since / 1000);
         } else {
             $startTime = $now - $duration * $requestLimit;
-        }
-        if ($startTime === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV() missing startTime');
         }
         $endTime = $startTime . $duration * $requestLimit;
         $until = $this->safe_integer($params, 'until');
@@ -503,7 +497,7 @@ class mudrex extends Exchange {
         }
         $priceStep = $this->safe_string($asset, 'price_step', '0.01');
         $qtyStep = $this->safe_string($asset, 'quantity_step', '0.001');
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $ms,
             'lowercaseId' => null,
             'symbol' => $symbol,
@@ -550,7 +544,7 @@ class mudrex extends Exchange {
             ),
             'info' => $asset,
             'created' => null,
-        ));
+        );
     }
 
     public function fetch_balance($params = array()): array {
@@ -587,9 +581,6 @@ class mudrex extends Exchange {
         $currency = $requested;
         if ($currency === null) {
             $currency = 'USDT';
-        }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' fetchBalance() returned empty response');
         }
         $response['currency'] = $currency;
         return $this->parse_balance($response);

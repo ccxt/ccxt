@@ -688,9 +688,6 @@ class pacifica extends Exchange {
         $maxLeverage = null;
         $crossMargin = null;
         $isolatedMargin = null;
-        if ($id === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing id');
-        }
         if ($isSpot) {
             $idParts = explode('-', $id);
             $quoteId = $this->safe_string($idParts, 1, $quoteId);
@@ -1296,7 +1293,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1555,13 +1552,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * create a trade order
@@ -2045,10 +2036,7 @@ class pacifica extends Exchange {
         })();
     }
 
-    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()) {
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price, array $market, $params = array()) {
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount!');
         }
@@ -2190,7 +2178,7 @@ class pacifica extends Exchange {
                 $info = $data[$i];
                 $ticker = $this->parse_ticker($info);
                 $symbol = $this->safe_string($ticker, 'symbol');
-                $this->store_by_key($result, $symbol, $ticker);
+                $result[$symbol] = $ticker;
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         })();
@@ -2551,7 +2539,7 @@ class pacifica extends Exchange {
         return $this->safe_string($tifMap, $tif, null);
     }
 
-    public function map_side(?string $sideRaw) {
+    public function map_side(string $sideRaw) {
         $sideMap = array(
             'sell' => 'ask',
             'buy' => 'bid',
@@ -2559,7 +2547,7 @@ class pacifica extends Exchange {
         return $this->safe_string($sideMap, $sideRaw, $sideRaw);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(string $status) {
         $statuses = array(
             'stop_limit' => 'limit',
             'stop_market' => 'market',

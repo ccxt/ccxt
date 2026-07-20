@@ -509,7 +509,7 @@ class derive(Exchange, ImplicitAPI):
         currencies = self.safe_list(tokenResponse, 'result', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -2398,7 +2398,7 @@ class derive(Exchange, ImplicitAPI):
                 else:
                     amount = self.safe_string(balance, 'amount')
                     account['total'] = Precise.string_add(account['total'], amount)
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2540,7 +2540,7 @@ class derive(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_derive_subaccount_id(self, methodName: str, params: dict) -> list:
+    def handle_derive_subaccount_id(self, methodName: str, params: dict):
         derivesubAccountId = None
         derivesubAccountId, params = self.handle_option_and_params(params, methodName, 'subaccount_id')
         if (derivesubAccountId is not None) and (derivesubAccountId != ''):

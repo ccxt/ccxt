@@ -536,7 +536,7 @@ class bitso extends Exchange {
                 );
                 $fee['tiers'] = $tiers;
                 $baseCurrency = $this->safe_dict($currencies, $base);
-                $result[] = $this->safe_market_structure($this->extend(array(
+                $result[] = $this->extend(array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
                     'base' => $base,
@@ -586,7 +586,7 @@ class bitso extends Exchange {
                     ),
                     'created' => null,
                     'info' => $market,
-                ), $fee));
+                ), $fee);
             }
             return $result;
         })();
@@ -632,7 +632,7 @@ class bitso extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, 'code');
         $code = $this->safe_currency_code($currencyId);
         return $this->safe_currency_structure(array(
@@ -681,7 +681,7 @@ class bitso extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'total');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1672,16 +1672,14 @@ class bitso extends Exchange {
                 if (($codes !== null) && !$this->in_array($code, $codes)) {
                     continue;
                 }
-                if ($code !== null) {
-                    $result[$code] = array(
-                        'deposit' => $this->safe_number($depositFee, 'fee'),
+                $result[$code] = array(
+                    'deposit' => $this->safe_number($depositFee, 'fee'),
+                    'withdraw' => null,
+                    'info' => array(
+                        'deposit' => $depositFee,
                         'withdraw' => null,
-                        'info' => array(
-                            'deposit' => $depositFee,
-                            'withdraw' => null,
-                        ),
-                    );
-                }
+                    ),
+                );
             }
             $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
             $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
@@ -1691,16 +1689,14 @@ class bitso extends Exchange {
                 if (($codes !== null) && !$this->in_array($code, $codes)) {
                     continue;
                 }
-                if ($code !== null) {
-                    $result[$code] = array(
-                        'deposit' => $this->safe_value($this->safe_value($result, $code), 'deposit'),
+                $result[$code] = array(
+                    'deposit' => $this->safe_value($result[$code], 'deposit'),
+                    'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
+                    'info' => array(
+                        'deposit' => $this->safe_value($result[$code]['info'], 'deposit'),
                         'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
-                        'info' => array(
-                            'deposit' => $this->safe_value($this->safe_value($this->safe_value($result, $code), 'info'), 'deposit'),
-                            'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
-                        ),
-                    );
-                }
+                    ),
+                );
             }
             return $result;
         })();
@@ -1769,7 +1765,7 @@ class bitso extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //    {
         //        "fees" => array(
@@ -1817,28 +1813,26 @@ class bitso extends Exchange {
             $entry = $depositResponse[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            if (($codes === null) || (($code !== null) && (is_array($codes) && array_key_exists($code, $codes)))) {
-                if ($code !== null) {
-                    $result[$code] = array(
-                        'deposit' => array(
-                            'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => !$this->safe_value($entry, 'is_fixed'),
-                        ),
-                        'withdraw' => array(
-                            'fee' => null,
-                            'percentage' => null,
-                        ),
-                        'networks' => array(),
-                        'info' => $entry,
-                    );
-                }
+            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
+                $result[$code] = array(
+                    'deposit' => array(
+                        'fee' => $this->safe_number($entry, 'fee'),
+                        'percentage' => !$this->safe_value($entry, 'is_fixed'),
+                    ),
+                    'withdraw' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                    'networks' => array(),
+                    'info' => $entry,
+                );
             }
         }
         $withdrawalKeys = is_array($withdrawalResponse) ? array_keys($withdrawalResponse) : array();
         for ($i = 0; $i < count($withdrawalKeys); $i++) {
             $currencyId = $withdrawalKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (($code !== null) && (($codes === null) || (is_array($codes) && array_key_exists($code, $codes)))) {
+            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
                 $resultValue = $this->safe_value($result, $code);
                 if ($resultValue === null) {

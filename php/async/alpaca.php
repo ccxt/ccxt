@@ -442,21 +442,9 @@ class alpaca extends Exchange {
             //     }
             //
             $timestamp = $this->safe_string($response, 'timestamp');
-            if ($timestamp === null) {
-                throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-            }
             $localTime = mb_substr($timestamp, 0, 23 - 0);
-            if ($timestamp === null) {
-                throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-            }
             $jetlagStrStart = strlen($timestamp) - 6;
-            if ($timestamp === null) {
-                throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-            }
             $jetlagStrEnd = strlen($timestamp) - 3;
-            if ($timestamp === null) {
-                throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
-            }
             $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
             $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
             return $iso;
@@ -526,9 +514,6 @@ class alpaca extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($asset, 'symbol');
-        if ($marketId === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
-        }
         $parts = explode('/', $marketId);
         $assetClass = $this->safe_string($asset, 'class');
         $baseId = $this->safe_string($parts, 0);
@@ -546,7 +531,7 @@ class alpaca extends Exchange {
         $minAmount = $this->safe_number($asset, 'min_order_size');
         $amount = $this->safe_number($asset, 'min_trade_increment');
         $price = $this->safe_number($asset, 'price_increment');
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -594,7 +579,7 @@ class alpaca extends Exchange {
             ),
             'created' => null,
             'info' => $asset,
-        ));
+        );
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -673,7 +658,7 @@ class alpaca extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
             }
-            return $this->parse_trades($symbolTrades || array(), $market, $since, $limit);
+            return $this->parse_trades($symbolTrades, $market, $since, $limit);
         })();
     }
 
@@ -1994,7 +1979,7 @@ class alpaca extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         $account['free'] = $this->safe_string($response, 'cash');
         $account['total'] = $this->safe_string($response, 'equity');
-        $this->store_by_key($result, $code, $account);
+        $result[$code] = $account;
         return $this->safe_balance($result);
     }
 

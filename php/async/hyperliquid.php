@@ -376,10 +376,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function market(?string $symbol): array {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' market() requires a $symbol argument');
-        }
+    public function market(string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
@@ -484,7 +481,7 @@ class hyperliquid extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         // $id = i;
         $id = $this->safe_string($rawCurrency, 'index');
         $name = $this->safe_string($rawCurrency, 'name');
@@ -524,9 +521,7 @@ class hyperliquid extends Exchange {
                     $nameWithoutU = $nameWithoutU . $parts[$j];
                 }
                 $baseCode = $this->safe_currency_code($nameWithoutU);
-                if ($code !== null) {
-                    $this->options['spotCurrencyMapping'][$code] = $baseCode;
-                }
+                $this->options['spotCurrencyMapping'][$code] = $baseCode;
             }
         }
         return $result;
@@ -668,10 +663,9 @@ class hyperliquid extends Exchange {
                         $data['collateralTokenName'] = $collateralTokenCode;
                         // eg => 'flx:crcl' => array('quote' => 'USDC', 'code' => 'FLX-CRCL')
                         $safeCode = $this->safe_currency_code($name);
-                        $hip3Code = ($safeCode === null) ? $name : str_replace(':', '-', $safeCode);
                         $this->options['hip3TokensByName'][$name] = array(
                             'quote' => $collateralTokenCode,
-                            'code' => $hip3Code,
+                            'code' => str_replace(':', '-', $safeCode),
                         );
                     }
                     $result[] = $data;
@@ -1026,9 +1020,6 @@ class hyperliquid extends Exchange {
         $settleId = ($collateralTokenCode === null) ? 'USDC' : $collateralTokenCode;
         $baseName = $this->safe_string($market, 'name');
         $base = $this->safe_currency_code($baseName);
-        if ($base === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing $base currency');
-        }
         $base = str_replace(':', '-', $base); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         $quote = $this->safe_currency_code($quoteId);
         $baseId = $this->safe_string($market, 'baseId');
@@ -1111,7 +1102,7 @@ class hyperliquid extends Exchange {
         ));
     }
 
-    public function update_spot_currency_code(?string $code): ?string {
+    public function update_spot_currency_code(string $code): string {
         if ($code === null) {
             return $code;
         }
@@ -1200,7 +1191,7 @@ class hyperliquid extends Exchange {
                     $used = $this->safe_string($balance, 'hold');
                     $account['total'] = $total;
                     $account['used'] = $used;
-                    $this->store_by_key($spotBalances, $code, $account);
+                    $spotBalances[$code] = $account;
                 }
                 return $this->safe_balance($spotBalances);
             }
@@ -1570,7 +1561,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1636,12 +1627,12 @@ class hyperliquid extends Exchange {
         })();
     }
 
-    public function amount_to_precision(?string $symbol, $amount) {
+    public function amount_to_precision($symbol, $amount) {
         $market = $this->market($symbol);
         return $this->decimal_to_precision($amount, ROUND, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
-    public function price_to_precision(?string $symbol, $price): ?string {
+    public function price_to_precision(string $symbol, $price): string {
         $market = $this->market($symbol);
         $priceStr = $this->number_to_string($price);
         $integerPart = explode('.', $priceStr)[0];
@@ -2260,13 +2251,7 @@ class hyperliquid extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, string $amount, ?string $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, string $amount, ?string $price = null, $params = array()) {
         $market = $this->market($symbol);
         $type = strtoupper($type);
         $side = strtoupper($side);

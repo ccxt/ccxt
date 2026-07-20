@@ -15,10 +15,8 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402
 
-
 def equals(a, b):
     return a == b
-
 
 def test_safe_methods():
     exchange = ccxt.Exchange({

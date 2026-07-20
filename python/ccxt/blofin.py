@@ -16,7 +16,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1204,11 +1203,7 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privateGetAccountBalance(self.extend(request, params))
         return self.parse_balance_by_type(response)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1459,7 +1454,7 @@ class blofin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_tpsl_order_request(self, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+    def create_tpsl_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         hedged = self.safe_bool(params, 'hedged', False)
         positionSide = 'net'
@@ -2070,7 +2065,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         position = self.safe_dict(data, 0)
         if position is None:
-            raise NullResponse(self.id + ' fetchPosition() returned empty position')
+            return None
         return self.parse_position(position, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2245,8 +2240,7 @@ class blofin(Exchange, ImplicitAPI):
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
-            initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
-            initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
+            initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liquidationPrice')

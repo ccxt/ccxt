@@ -61,21 +61,21 @@ class phemex extends \ccxt\async\phemex {
         return (string) $precise;
     }
 
-    public function from_ep($ep, ?array $market = null) {
+    public function from_ep($ep, $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, ?array $market = null) {
+    public function from_ev($ev, $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, ?array $market = null) {
+    public function from_er($er, $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
@@ -90,7 +90,7 @@ class phemex extends \ccxt\async\phemex {
         return $requestId;
     }
 
-    public function parse_swap_ticker($ticker, ?array $market = null) {
+    public function parse_swap_ticker($ticker, $market = null) {
         //
         //     {
         //         "close" => 442800,
@@ -108,9 +108,8 @@ class phemex extends \ccxt\async\phemex {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $lastString = $this->from_ep($this->safe_string($ticker, 'close'), $market);
         $last = $this->parse_number($lastString);
@@ -152,7 +151,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function parse_perpetual_ticker($ticker, ?array $market = null) {
+    public function parse_perpetual_ticker($ticker, $market = null) {
         //
         //    array(
         //        "STXUSDT",
@@ -170,9 +169,8 @@ class phemex extends \ccxt\async\phemex {
         //    )
         //
         $marketId = $this->safe_string($ticker, 0);
-        $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $lastString = $this->from_ep($this->safe_string($ticker, 4), $market);
         $last = $this->parse_number($lastString);
         $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 6), $market));
@@ -405,7 +403,7 @@ class phemex extends \ccxt\async\phemex {
             }
             $account['used'] = $used;
             $account['total'] = $total;
-            $this->store_by_key($this->balance, $code, $account);
+            $this->balance[$code] = $account;
             $this->balance = $this->safe_balance($this->balance);
         }
         $messageHash = $type . ':balance';
@@ -501,7 +499,7 @@ class phemex extends \ccxt\async\phemex {
             $messageHash = 'kline:' . $timeframe . ':' . $symbol;
             $ohlcvs = $this->parse_ohlcvs($candles, $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -730,12 +728,12 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function custom_handle_delta($bookside, $delta, ?array $market = null) {
+    public function custom_handle_delta($bookside, $delta, $market = null) {
         $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray($bidAsk);
     }
 
-    public function custom_handle_deltas($bookside, $deltas, ?array $market = null) {
+    public function custom_handle_deltas($bookside, $deltas, $market = null) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->custom_handle_delta($bookside, $deltas[$i], $market);
         }
@@ -972,7 +970,7 @@ class phemex extends \ccxt\async\phemex {
             if ($type === null) {
                 $type = ($market['settle'] === 'USDT') ? 'perpetual' : $market['type'];
             }
-            $this->store_by_key($marketIds, $symbol, true);
+            $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1243,7 +1241,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_swap_order($order, ?array $market = null) {
+    public function parse_ws_swap_order($order, $market = null) {
         //
         // swap
         //    {
@@ -1372,9 +1370,8 @@ class phemex extends \ccxt\async\phemex {
             $clientOrderId = null;
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parseOrderType($this->safe_string($order, 'ordType'));
@@ -1513,9 +1510,9 @@ class phemex extends \ccxt\async\phemex {
         //       }
         //     )
         // }
-        $id = $this->safe_string($message, 'id', '');
+        $id = $this->safe_string($message, 'id');
         if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
-            $method = $this->safe_value($client->subscriptions, $id);
+            $method = $client->subscriptions[$id];
             unset($client->subscriptions[$id]);
             if ($method !== true) {
                 $method($client, $message);

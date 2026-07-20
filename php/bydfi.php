@@ -612,9 +612,6 @@ class bydfi extends Exchange {
         $limits = array( 5, 10, 20, 50, 100, 500, 1000 );
         $result = 1000;
         for ($i = 0; $i < count($limits); $i++) {
-            if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a $limit argument');
-            }
             if ($limit <= $limits[$i]) {
                 $result = $limits[$i];
                 break;
@@ -855,9 +852,6 @@ class bydfi extends Exchange {
             $startTime = $now - $timeDelta;
             $until = $now;
         } elseif ($until === null) {
-            if ($startTime === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
-            }
             $until = $startTime . $timeDelta;
             if ($until > $now) {
                 $until = $now;
@@ -1231,17 +1225,8 @@ class bydfi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
-        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1461,7 +1446,7 @@ class bydfi extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -2598,7 +2583,7 @@ class bydfi extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string_2($balance, 'total', 'balance');
             $account['free'] = $this->safe_string_2($balance, 'available', 'availableBalance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }

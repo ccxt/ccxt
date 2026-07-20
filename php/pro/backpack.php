@@ -130,7 +130,7 @@ class backpack extends \ccxt\async\backpack {
                 $splitHashes = explode(':', $messageHash);
                 $symbol = $this->safe_string($splitHashes, 2);
                 $timeframe = $this->safe_string($splitHashes, 3);
-                if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
                     if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
                         unset($this->ohlcvs[$symbol][$timeframe]);
                     }
@@ -148,16 +148,14 @@ class backpack extends \ccxt\async\backpack {
             } elseif (mb_strpos($messageHash, 'orders') !== false) {
                 if ($messageHash === 'unsubscribe:orders') {
                     $cache = $this->orders;
-                    if ($cache !== null) {
-                        $keys = is_array($cache) ? array_keys($cache) : array();
-                        for ($j = 0; $j < count($keys); $j++) {
-                            $symbol = $keys[$j];
-                            unset($cache[$symbol]);
-                        }
+                    $keys = is_array($cache) ? array_keys($cache) : array();
+                    for ($j = 0; $j < count($keys); $j++) {
+                        $symbol = $keys[$j];
+                        unset($this->orders[$symbol]);
                     }
                 } else {
                     $symbol = str_replace('unsubscribe:orders:', '', $messageHash);
-                    if (($this->orders !== null) && (is_array($this->orders) && array_key_exists($symbol, $this->orders))) {
+                    if (is_array($this->orders) && array_key_exists($symbol, $this->orders)) {
                         unset($this->orders[$symbol]);
                     }
                 }
@@ -312,7 +310,7 @@ class backpack extends \ccxt\async\backpack {
         //         v => '5542.3911'
         //     }
         //
-        $microseconds = $this->safe_integer($ticker, 'E', 0);
+        $microseconds = $this->safe_integer($ticker, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
@@ -438,7 +436,7 @@ class backpack extends \ccxt\async\backpack {
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
-        $microseconds = $this->safe_integer($ticker, 'E', 0);
+        $microseconds = $this->safe_integer($ticker, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $ask = $this->safe_string($ticker, 'a');
         $askVolume = $this->safe_string($ticker, 'A');
@@ -586,9 +584,9 @@ class backpack extends \ccxt\async\backpack {
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
-        $stream = $this->safe_string($message, 'stream', '');
+        $stream = $this->safe_string($message, 'stream');
         $parts = explode('.', $stream);
-        $timeframe = $this->safe_string($parts, 1, '');
+        $timeframe = $this->safe_string($parts, 1);
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -604,7 +602,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $symbol, $timeframe, $ohlcv ), $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         E => '1754519557526056',
@@ -765,7 +763,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($cache, 'trades');
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         E => '1754601477746429',
@@ -780,7 +778,7 @@ class backpack extends \ccxt\async\backpack {
         //         t => 10782547
         //     }
         //
-        $microseconds = $this->safe_integer($trade, 'E', 0);
+        $microseconds = $this->safe_integer($trade, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $id = $this->safe_string($trade, 't');
         $marketId = $this->safe_string($trade, 's');
@@ -946,7 +944,7 @@ class backpack extends \ccxt\async\backpack {
             }
             $storedOrderBook->cache[] = $data;
             return;
-        } elseif (($deltaNonce !== null) && ($nonce > $deltaNonce)) {
+        } elseif ($nonce > $deltaNonce) {
             return;
         }
         $this->handle_delta($storedOrderBook, $data);
@@ -979,12 +977,6 @@ class backpack extends \ccxt\async\backpack {
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
-        if ($nonce === null) {
-            return count($cache);
-        }
-        if ($firstDeltaStart === null) {
-            return -1;
-        }
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
@@ -992,9 +984,6 @@ class backpack extends \ccxt\async\backpack {
             $delta = $cache[$i];
             $deltaStart = $this->safe_integer($delta, 'U');
             $deltaEnd = $this->safe_integer($delta, 'u');
-            if (($deltaStart === null) || ($deltaEnd === null)) {
-                return count($cache);
-            }
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }
@@ -1109,7 +1098,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     array(
         //         E => '1754939110175879',
@@ -1138,7 +1127,7 @@ class backpack extends \ccxt\async\backpack {
         //
         $id = $this->safe_string($order, 'i');
         $clientOrderId = $this->safe_string($order, 'c');
-        $microseconds = $this->safe_integer($order, 'E', 0);
+        $microseconds = $this->safe_integer($order, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $status = $this->parse_ws_order_status($this->safe_string($order, 'X'), $market);
         $marketId = $this->safe_string($order, 's');
@@ -1185,7 +1174,7 @@ class backpack extends \ccxt\async\backpack {
         ), $market);
     }
 
-    public function parse_ws_order_status(?string $status, ?array $market = null) {
+    public function parse_ws_order_status($status, $market = null) {
         $statuses = array(
             'New' => 'open',
             'Filled' => 'closed',
@@ -1305,7 +1294,7 @@ class backpack extends \ccxt\async\backpack {
         }
         $cache = $this->positions;
         $parsedPosition = $this->parse_ws_position($data);
-        $microseconds = $this->safe_integer($data, 'E', 0);
+        $microseconds = $this->safe_integer($data, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $parsedPosition['timestamp'] = $timestamp;
         $parsedPosition['datetime'] = $this->iso8601($timestamp);
@@ -1315,7 +1304,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $parsedPosition ), $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position($position, $market = null) {
         //
         //     {
         //         B => '4236.36',
@@ -1338,9 +1327,8 @@ class backpack extends \ccxt\async\backpack {
         //
         $id = $this->safe_string($position, 'i');
         $marketId = $this->safe_string($position, 's');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $market = $marketResolved;
-        $symbol = $marketResolved['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $notional = $this->safe_string($position, 'n');
         $liquidationPrice = $this->safe_string($position, 'l');
         $entryPrice = $this->safe_string($position, 'b');
@@ -1351,15 +1339,14 @@ class backpack extends \ccxt\async\backpack {
         $netQuantity = $this->safe_number($position, 'q');
         $hedged = false;
         $side = 'long';
-        if ($netQuantity !== null) {
-            if ($netQuantity < 0) {
-                $side = 'short';
-            }
-        } else {
+        if ($netQuantity < 0) {
+            $side = 'short';
+        }
+        if ($netQuantity === null) {
             $hedged = null;
             $side = null;
         }
-        $microseconds = $this->safe_integer($position, 'E', 0);
+        $microseconds = $this->safe_integer($position, 'E');
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $maintenanceMarginPercentage = $this->safe_number($position, 'm');
         $initialMarginPercentage = $this->safe_number($position, 'f');

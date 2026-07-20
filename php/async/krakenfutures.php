@@ -1092,13 +1092,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $type = $this->safe_string($params, 'orderType', $type);
@@ -2566,9 +2560,6 @@ class krakenfutures extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            if ($code === null) {
-                continue;
-            }
             $splitCode = explode('_', $code);
             $codeLength = count($splitCode);
             if ($codeLength > 1) {
@@ -2586,7 +2577,7 @@ class krakenfutures extends Exchange {
                 $account['free'] = $this->safe_string($auxiliary, 'af');
                 $account['total'] = $this->safe_string($auxiliary, 'pv');
             }
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -3022,7 +3013,7 @@ class krakenfutures extends Exchange {
         );
         if (is_array($accountByType) && array_key_exists($account, $accountByType)) {
             return $accountByType[$account];
-        } elseif (($this->markets !== null) && (is_array($this->markets) && array_key_exists($account, $this->markets))) {
+        } elseif (is_array($this->markets) && array_key_exists($account, $this->markets)) {
             $market = $this->market($account);
             $marketId = $market['id'];
             $splitId = explode('_', $marketId);
@@ -3119,13 +3110,9 @@ class krakenfutures extends Exchange {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
-            $marketIdUpper = $this->market_id($symbol);
-            if ($marketIdUpper === null) {
-                throw new ArgumentsRequired($this->id . ' marketId is required');
-            }
             $request = array(
                 'maxLeverage' => $leverage,
-                'symbol' => strtoupper($marketIdUpper),
+                'symbol' => strtoupper($this->market_id($symbol)),
             );
             //
             // array( result => "success", serverTime => "2023-08-01T09:40:32.345Z" )
@@ -3184,12 +3171,8 @@ class krakenfutures extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
-            $marketIdUpper = $this->market_id($symbol);
-            if ($marketIdUpper === null) {
-                throw new ArgumentsRequired($this->id . ' marketId is required');
-            }
             $request = array(
-                'symbol' => strtoupper($marketIdUpper),
+                'symbol' => strtoupper($this->market_id($symbol)),
             );
             $response = Async\await($this->privateGetLeveragepreferences($this->extend($request, $params)));
             //

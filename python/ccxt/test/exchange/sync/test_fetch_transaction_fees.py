@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
+
 def test_fetch_transaction_fees(exchange, skipped_properties):
     # const method = 'fetchTransactionFees';
     # const fees = await exchange.fetchTransactionFees ();

@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base import test_trade  # noqa E402
 
-
 async def test_fetch_my_trades(exchange, skipped_properties, symbol):
     method = 'fetchMyTrades'
     trades = await exchange.fetch_my_trades(symbol)

@@ -1200,7 +1200,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_trades(response or [], market, since, limit)
+        return self.parse_trades(response, market, since, limit)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1486,7 +1486,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance_custom(self, response, type: Str = None, marginMode: Str = None):
+    def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1502,7 +1502,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'free')
             account['used'] = self.safe_string(balance, 'locked')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_order_status(self, status: Str):
@@ -2263,7 +2263,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         withdrawals = self.safe_list(data, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status, type=None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',

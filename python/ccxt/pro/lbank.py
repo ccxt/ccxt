@@ -569,15 +569,13 @@ class lbank(ccxt.async_support.lbank):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             myOrders = ArrayCacheBySymbolById(limit)
         order = self.parse_ws_order(message)
-        if myOrders is None:
-            return
         myOrders.append(order)
         self.orders = myOrders
         client.resolve(myOrders, 'orders')
         messageHash = 'orders:' + symbol
         client.resolve(myOrders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order, market=None):
         #
         #     {
         #         "orderUpdate":{
@@ -718,7 +716,7 @@ class lbank(ccxt.async_support.lbank):
         account['free'] = self.safe_string(data, 'free')
         account['used'] = self.safe_string(data, 'freeze')
         account['total'] = self.safe_string(data, 'asset')
-        self.store_by_key(self.balance, code, account)
+        self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 

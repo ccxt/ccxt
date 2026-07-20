@@ -519,7 +519,7 @@ class digifinex extends Exchange {
         return $this->parse_currencies($values);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $networkEntries = $rawCurrency;
         $firstEntry = $this->safe_dict($networkEntries, 0, array()); // it must have at least one entry
         $id = $this->safe_string($firstEntry, 'currency');
@@ -529,28 +529,26 @@ class digifinex extends Exchange {
             $networkEntry = $networkEntries[$j];
             $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
-                    'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
-                    'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
-                            'max' => null,
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
+                'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
+                        'max' => null,
                     ),
-                    'info' => $networkEntry,
-                );
-            }
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $networkEntry,
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -762,9 +760,6 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market');
-            if ($id === null) {
-                throw new ExchangeError($this->id . ' fetchMarketsV1() missing id');
-            }
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -856,7 +851,7 @@ class digifinex extends Exchange {
             $account['free'] = $free;
             $account['used'] = Precise::string_sub($total, $free);
             $account['total'] = $total;
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1095,7 +1090,7 @@ class digifinex extends Exchange {
             ), $tickers[$i]);
             $ticker = $this->parse_ticker($rawTicker);
             $symbol = $ticker['symbol'];
-            $this->store_by_key($result, $symbol, $ticker);
+            $result[$symbol] = $ticker;
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
@@ -1178,9 +1173,6 @@ class digifinex extends Exchange {
             $result = $data;
         } else {
             $result = $this->extend(array( 'date' => $date ), $firstTicker);
-        }
-        if ($result === null) {
-            throw new NullResponse($this->id . ' fetchTicker() returned empty response');
         }
         return $this->parse_ticker($result, $market);
     }
@@ -1359,9 +1351,6 @@ class digifinex extends Exchange {
                 $side = 'buy';
             }
         } else {
-            if ($side === null) {
-                throw new ExchangeError($this->id . ' parseTrade() returned no side');
-            }
             $parts = explode('_', $side);
             $side = $this->safe_string($parts, 0);
             $type = $this->safe_string($parts, 1);
@@ -1607,9 +1596,6 @@ class digifinex extends Exchange {
                             $request['end_time'] = $endByUntil;
                         }
                     } else {
-                        if ($limit === null) {
-                            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $limit argument');
-                        }
                         $request['end_time'] = $this->sum($startTime, $limit * $duration);
                     }
                 }
@@ -1706,9 +1692,6 @@ class digifinex extends Exchange {
         //         "data" => "1590873693003714560"
         //     }
         //
-        if ($response === null) {
-            throw new NullResponse($this->id . ' createOrder() returned empty response');
-        }
         $order = $this->parse_order($response, $market);
         $order['symbol'] = $market['symbol'];
         $order['type'] = $type;
@@ -1815,13 +1798,7 @@ class digifinex extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -3137,9 +3114,6 @@ class digifinex extends Exchange {
             //
             $response = $this->privateSpotPostTransfer($this->extend($request, $params));
         }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' transfer() returned empty response');
-        }
         return $this->parse_transfer($response, $currency);
     }
 
@@ -3282,7 +3256,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'list', array());
-        $result = null;
+        $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             if ($this->safe_string($entry, 'currency') === $code) {
@@ -3363,7 +3337,7 @@ class digifinex extends Exchange {
             $currency = $this->safe_string($item, $codeKey);
             $code = $this->safe_currency_code($currency);
             $borrowRate = $this->parse_borrow_rate($item);
-            $this->store_by_key($result, $code, $borrowRate);
+            $result[$code] = $borrowRate;
         }
         return $result;
     }
@@ -3957,9 +3931,6 @@ class digifinex extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->safe_currency_code($code);
-            if ($currency === null) {
-                throw new ExchangeError($this->id . ' fetchTransfers() could not resolve currency');
-            }
             $request['currency'] = $currency['id'];
         }
         if ($since !== null) {
@@ -4133,7 +4104,7 @@ class digifinex extends Exchange {
         return $tiers;
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params($methodName, $params = array(), $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4203,7 +4174,7 @@ class digifinex extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
         //
         //     array(
         //         array(
@@ -4236,7 +4207,7 @@ class digifinex extends Exchange {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
+            if (($codes === null) || ($this->in_array($code, $codes))) {
                 $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
@@ -4256,12 +4227,10 @@ class digifinex extends Exchange {
                 );
                 if ($networkId !== null) {
                     $networkCode = $this->network_id_to_code($networkId, $code);
-                    if ($networkCode !== null) {
-                        $depositWithdrawFees[$code]['networks'][$networkCode] = array(
-                            'withdraw' => $withdrawResult,
-                            'deposit' => $depositResult,
-                        );
-                    }
+                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    );
                 } else {
                     $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
                     $depositWithdrawFees[$code]['deposit'] = $depositResult;

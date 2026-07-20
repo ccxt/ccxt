@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Any, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -126,7 +126,7 @@ class dydx(ccxt.async_support.dydx):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market=None):
         #
         # {
         #     "id": "02b6148d0000000200000003",
@@ -357,7 +357,7 @@ class dydx(ccxt.async_support.dydx):
         #     }
         # }
         #
-        id = self.safe_string(message, 'id', '')
+        id = self.safe_string(message, 'id')
         part = id.split('/')
         interval = self.safe_string(part, 1)
         timeframe = self.find_timeframe(interval)

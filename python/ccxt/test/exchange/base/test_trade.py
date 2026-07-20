@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def test_trade(exchange, skipped_properties, method, entry, symbol, now):
     # prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     # PredictionTrade type carries a single `fee` but omits the `fees` list entirely

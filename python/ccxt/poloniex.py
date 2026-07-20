@@ -823,7 +823,7 @@ class poloniex(Exchange, ImplicitAPI):
         active = state == 'NORMAL'
         symbolTradeLimit = self.safe_value(market, 'symbolTradeLimit')
         # these are known defaults
-        return self.safe_market_structure({
+        return {
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -867,7 +867,7 @@ class poloniex(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'tradableStartTime'),
             'info': market,
-        })
+        }
 
     def parse_swap_market(self, market: dict) -> Market:
         #
@@ -925,7 +925,7 @@ class poloniex(Exchange, ImplicitAPI):
         if alias is not None:
             type = 'future'
         marketType = 'future' if (type == 'future') else 'swap'
-        return self.safe_market_structure({
+        return {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -975,7 +975,7 @@ class poloniex(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'oDate'),
             'info': market,
-        })
+        }
 
     def fetch_time(self, params={}) -> Int:
         """
@@ -1188,7 +1188,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, currency: dict) -> CurrencyInterface:
+    def parse_currency(self, currency: dict) -> Currency:
         entry = currency
         id = self.safe_string(entry, 'coin')
         code = self.safe_currency_code(id)
@@ -1199,28 +1199,27 @@ class poloniex(Exchange, ImplicitAPI):
             chain = chains[j]
             chainId = self.safe_string(chain, 'blockchain')
             networkCode = self.network_id_to_code(chainId, code)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': chainId,
-                    'name': None,
-                    'code': networkCode,
-                    'active': None,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'deposit': self.safe_bool(chain, 'depositEnable'),
-                    'withdraw': self.safe_bool(chain, 'withdrawalEnable'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'withdrawMin'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': None,
+                'code': networkCode,
+                'active': None,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'deposit': self.safe_bool(chain, 'depositEnable'),
+                'withdraw': self.safe_bool(chain, 'withdrawalEnable'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'decimals'))),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(chain, 'withdrawMin'),
+                        'max': None,
                     },
-                }
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
         return self.safe_currency_structure({
             'id': id,
             'name': self.safe_string(entry, 'name'),
@@ -2345,7 +2344,7 @@ class poloniex(Exchange, ImplicitAPI):
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'avail')
                 account['used'] = self.safe_string(balance, 'im')
-                self.store_by_key(result, code, account)
+                result[code] = account
             return self.safe_balance(result)
         # for spot
         for i in range(0, len(response)):
@@ -2358,7 +2357,7 @@ class poloniex(Exchange, ImplicitAPI):
                 newAccount = self.account()
                 newAccount['free'] = self.safe_string(balance, 'available')
                 newAccount['used'] = self.safe_string(balance, 'hold')
-                self.store_by_key(result, code, newAccount)
+                result[code] = newAccount
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -2457,9 +2456,8 @@ class poloniex(Exchange, ImplicitAPI):
         #     }
         #
         result = {}
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -2599,7 +2597,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires a network parameter for ' + code + '.')
         exchangeNetworkId = None
         networkCode = self.network_id_to_code(networkCode, code)
-        networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
+        networkEntry = self.safe_dict(currency['networks'], networkCode)
         if networkEntry is not None:
             exchangeNetworkId = networkEntry['id']
         else:
@@ -2887,7 +2885,7 @@ class poloniex(Exchange, ImplicitAPI):
             data[currencyId] = entry[currencyId]
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey: Str = None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #         {
         #             "1CR": {
@@ -2916,7 +2914,7 @@ class poloniex(Exchange, ImplicitAPI):
             currencyId = responseKeys[i]
             code = self.safe_currency_code(currencyId)
             feeInfo = response[currencyId]
-            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
+            if (codes is None) or (self.in_array(code, codes)):
                 currency = self.currency(code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, currency)
                 childChains = self.safe_value(feeInfo, 'childChains')
@@ -2929,17 +2927,16 @@ class poloniex(Exchange, ImplicitAPI):
                         networkInfo = self.safe_value(response, networkId)
                         networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
-                        if networkCode is not None:
-                            networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': False if (withdrawFee is not None) else None,
-                                },
-                                'deposit': {
-                                    'fee': None,
-                                    'percentage': None,
-                                },
-                            }
+                        networkObject[networkCode] = {
+                            'withdraw': {
+                                'fee': withdrawFee,
+                                'percentage': False if (withdrawFee is not None) else None,
+                            },
+                            'deposit': {
+                                'fee': None,
+                                'percentage': None,
+                            },
+                        }
                         depositWithdrawFees[code]['networks'] = self.extend(depositWithdrawFees[code]['networks'], networkObject)
         return depositWithdrawFees
 
@@ -2960,11 +2957,10 @@ class poloniex(Exchange, ImplicitAPI):
         depositWithdrawFee['withdraw'] = withdrawResult
         depositWithdrawFee['deposit'] = depositResult
         networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-        if networkCode is not None:
-            depositWithdrawFee['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': depositResult,
-            }
+        depositWithdrawFee['networks'][networkCode] = {
+            'withdraw': withdrawResult,
+            'deposit': depositResult,
+        }
         return depositWithdrawFee
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

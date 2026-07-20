@@ -883,7 +883,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
@@ -904,18 +904,17 @@ class bingx(Exchange, ImplicitAPI):
                 },
             }
             precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': network,
-                    'network': networkCode,
-                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                    'active': None,
-                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
-                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
-                    'precision': precision,
-                    'limits': limits,
-                }
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': network,
+                'network': networkCode,
+                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                'active': None,
+                'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
+                'precision': precision,
+                'limits': limits,
+            }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'code': code,
@@ -2516,7 +2515,7 @@ class bingx(Exchange, ImplicitAPI):
                 account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
                 account['used'] = self.safe_string(balance, 'usedMargin')
                 account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
-                self.store_by_key(result, code, account)
+                result[code] = account
         else:
             for i in range(0, len(spotBalances)):
                 balance = spotBalances[i]
@@ -2525,7 +2524,7 @@ class bingx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
@@ -2924,11 +2923,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return await self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
  @ignore
         helper function to build request
@@ -3265,7 +3260,7 @@ class bingx(Exchange, ImplicitAPI):
         takeProfit = self.safe_string(result, 'takeProfit')
         if (takeProfit is not None) and (takeProfit.find('{') == 0):
             result['takeProfit'] = self.parse_json(takeProfit)
-        return self.parse_order(result or {}, market)
+        return self.parse_order(result, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -5303,7 +5298,7 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string(transaction, 'network')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        if (code is not None) and (network is not None) and (code != network) and code.find(network) >= 0:
+        if (code is not None) and (code != network) and code.find(network) >= 0:
             if network is not None:
                 code = code.replace(network, '')
         rawType = self.safe_string(transaction, 'transferType')
@@ -5335,7 +5330,7 @@ class bingx(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: str):
         statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -6082,7 +6077,7 @@ class bingx(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def close_all_positions(self, params={}) -> List[Position]:
@@ -6337,7 +6332,7 @@ class bingx(Exchange, ImplicitAPI):
             #        }
             #    }
             #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
@@ -6387,7 +6382,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
         marginType = 'cross' if (marginType == 'crossed') else marginType
@@ -6624,7 +6619,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 parsedParams = self.parse_params(params)
                 encodeRequest = self.rawencode(parsedParams, True)
-            signature = self.hmac(self.encode(encodeRequest or ''), self.encode(self.secret), hashlib.sha256)
+            signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),

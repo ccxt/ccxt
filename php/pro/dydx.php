@@ -139,7 +139,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         // {
         //     "id" => "02b6148d0000000200000003",
@@ -392,7 +392,7 @@ class dydx extends \ccxt\async\dydx {
         //     }
         // }
         //
-        $id = $this->safe_string($message, 'id', '');
+        $id = $this->safe_string($message, 'id');
         $part = explode('/', $id);
         $interval = $this->safe_string($part, 1);
         $timeframe = $this->find_timeframe($interval);

@@ -118,11 +118,8 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function get_url(?string $channel, $access = 'public') {
+    public function get_url(string $channel, $access = 'public') {
         // for context => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-$url
-        if ($channel === null) {
-            throw new ArgumentsRequired($this->id . ' getUrl() requires a $channel argument');
-        }
         $isSandbox = $this->options['sandboxMode'];
         $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
         $isBusiness = ($access === 'business');
@@ -148,22 +145,13 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url($channel, $access);
             $messageHashes = array();
             $args = array();
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
-            }
             for ($i = 0; $i < count($symbols); $i++) {
-                if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
-                }
                 $marketId = $this->market_id($symbols[$i]);
                 $arg = array(
                     'channel' => $channel,
                     'instId' => $marketId,
                 );
                 $args[] = $this->extend($arg, $params);
-                if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
-                }
                 $messageHashes[] = $channel . '::' . $symbols[$i];
             }
             $request = array(
@@ -431,7 +419,7 @@ class okx extends \ccxt\async\okx {
             if ($this->newUpdates) {
                 $symbol = $this->safe_string($fundingRate, 'symbol');
                 $result = array();
-                $this->store_by_key($result, $symbol, $fundingRate);
+                $result[$symbol] = $fundingRate;
                 return $result;
             }
             return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
@@ -463,7 +451,7 @@ class okx extends \ccxt\async\okx {
             $rawfr = $data[$i];
             $fundingRate = $this->parse_funding_rate($rawfr);
             $symbol = $fundingRate['symbol'];
-            $this->store_by_key($this->fundingRates, $symbol, $fundingRate);
+            $this->fundingRates[$symbol] = $fundingRate;
             $client->resolve($fundingRate, 'funding-rate' . ':' . $fundingRate['symbol']);
         }
     }
@@ -733,7 +721,7 @@ class okx extends \ccxt\async\okx {
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
         $symbol = $parsedTicker['symbol'];
-        $this->store_by_key($this->bidsasks, $symbol, $parsedTicker);
+        $this->bidsasks[$symbol] = $parsedTicker;
         $messageHash = 'bidask::' . $symbol;
         $client->resolve($parsedTicker, $messageHash);
     }
@@ -790,9 +778,6 @@ class okx extends \ccxt\async\okx {
                 $type = 'SWAP';
             } elseif ($type === 'future') {
                 $type = 'futures';
-            }
-            if ($type === null) {
-                throw new ArgumentsRequired($this->id . ' watchLiquidationsForSymbols() $type is required');
             }
             $uppercaseType = strtoupper($type);
             $request = array(
@@ -1201,9 +1186,6 @@ class okx extends \ccxt\async\okx {
         //
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
-        if ($channel === null) {
-            return;
-        }
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
@@ -1214,13 +1196,11 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $parsed = $this->parse_ohlcv($data[$i], $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                if ($symbol !== null && $timeframe !== null) {
-                    $this->ohlcvs[$symbol][$timeframe] = $stored;
-                }
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append($parsed);
             $messageHash = $channel . ':' . $market['id'];
@@ -1418,7 +1398,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, ?array $market = null) {
+    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, $market = null) {
         //
         //     {
         //         "asks" => array(
@@ -1761,7 +1741,7 @@ class okx extends \ccxt\async\okx {
         $client->resolve($this->balance, $channel);
     }
 
-    public function order_to_trade($order, ?array $market = null) {
+    public function order_to_trade($order, $market = null) {
         $info = $this->safe_value($order, 'info', array());
         $timestamp = $this->safe_integer($info, 'fillTime');
         $feeMarketId = $this->safe_string($info, 'fillFeeCcy');
@@ -1823,9 +1803,6 @@ class okx extends \ccxt\async\okx {
             if ($type === 'future') {
                 $type = 'futures';
             }
-            if ($type === null) {
-                throw new ArgumentsRequired($this->id . ' watchMyTrades() $type is required');
-            }
             $uppercaseType = strtoupper($type);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('watchMyTrades', $params);
@@ -1884,7 +1861,7 @@ class okx extends \ccxt\async\okx {
                 $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, $this->extend($request, $params)));
             }
             if ($this->newUpdates) {
-                return ($newPositions === null) ? array() : $newPositions;
+                return $newPositions;
             }
             return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
         })();
@@ -2021,9 +1998,6 @@ class okx extends \ccxt\async\okx {
             }
             if ($type === 'future') {
                 $type = 'futures';
-            }
-            if ($type === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders() $type is required');
             }
             $uppercaseType = strtoupper($type);
             $marginMode = null;
@@ -2212,7 +2186,7 @@ class okx extends \ccxt\async\okx {
             $trade = $this->order_to_trade($rawTrade);
             $myTrades->append($trade);
             $symbol = $trade['symbol'];
-            $this->store_by_key($symbols, $symbol, true);
+            $symbols[$symbol] = true;
         }
         $messageHash = $channel . '::myTrades';
         $client->resolve($this->myTrades, $messageHash);
@@ -2650,9 +2624,6 @@ class okx extends \ccxt\async\okx {
         } else {
             $arg = $this->safe_value($message, 'arg', array());
             $channel = $this->safe_string($arg, 'channel');
-            if ($channel === null) {
-                return;
-            }
             $methods = array(
                 'bbo-tbt' => array($this, 'handle_order_book'), // newly added $channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth $channel, verification not required
                 'books' => array($this, 'handle_order_book'), // all API users can subscribe, public depth $channel, verification not required
@@ -2707,13 +2678,10 @@ class okx extends \ccxt\async\okx {
     public function handle_unsubscription_ohlcv(Client $client, string $symbol, string $channel) {
         $tf = str_replace('candle', '', $channel);
         $timeframe = $this->find_timeframe($tf);
-        if ($timeframe === null) {
-            return;
-        }
         $subMessageHash = 'multi:' . $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }
     }

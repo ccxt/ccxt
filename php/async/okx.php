@@ -13,7 +13,6 @@ use ccxt\BadRequest;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
-use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -1294,9 +1293,11 @@ class okx extends Exchange {
                 ),
                 'fetchCanceledOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection' => 'forward',
                 ),
                 'fetchClosedOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection' => 'forward',
                 ),
                 'withdraw' => array(
                     // a funding password credential is required by the exchange for the
@@ -1546,7 +1547,7 @@ class okx extends Exchange {
             // on the missing expiry.
             $isOption = ($partsLength > 3) && (str_ends_with($marketId, '-C') || str_ends_with($marketId, '-P'));
         }
-        if ($isOption && ($marketId !== null) && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)))) {
+        if ($isOption && ($marketId !== null) && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -2068,7 +2069,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): CurrencyInterface {
+    public function parse_currency(array $currency): array {
         $chains = $currency;
         // currencies are grouped by $chain entries, so there is at least one entry
         $firstChain = $this->safe_dict($chains, 0, array());
@@ -2089,24 +2090,22 @@ class okx extends Exchange {
             $parts = $this->array_slice($idParts, 1);
             $chainPart = implode('-', $parts);
             $networkCode = $this->network_id_to_code($chainPart, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'canDep'),
-                    'withdraw' => $this->safe_bool($chain, 'canWd'),
-                    'fee' => $this->safe_number($chain, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWd'),
-                            'max' => $this->safe_number($chain, 'maxWd'),
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'canDep'),
+                'withdraw' => $this->safe_bool($chain, 'canWd'),
+                'fee' => $this->safe_number($chain, 'fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'minWd'),
+                        'max' => $this->safe_number($chain, 'maxWd'),
                     ),
-                    'info' => $chain,
-                );
-            }
+                ),
+                'info' => $chain,
+            );
         }
         return $this->safe_currency_structure(array(
             'info' => $chains,
@@ -2882,7 +2881,7 @@ class okx extends Exchange {
             } else {
                 $account['free'] = $availEq;
             }
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
@@ -2901,7 +2900,7 @@ class okx extends Exchange {
             $account['total'] = $this->safe_string($balance, 'bal');
             $account['free'] = $this->safe_string($balance, 'availBal');
             $account['used'] = $this->safe_string($balance, 'frozenBal');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -3169,13 +3168,7 @@ class okx extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
         $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
@@ -5562,7 +5555,7 @@ class okx extends Exchange {
                 return $result;
             }
             $codeNetwork = $this->network_id_to_code($code, $code);
-            if (($codeNetwork !== null) && (is_array($response) && array_key_exists($codeNetwork, $response))) {
+            if (is_array($response) && array_key_exists($codeNetwork, $response)) {
                 return $response[$codeNetwork];
             }
             // if the $network is not specified, return the $first address
@@ -5612,8 +5605,7 @@ class okx extends Exchange {
             if ($fee === null) {
                 $currencies = Async\await($this->fetch_currencies());
                 $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
-                $networkCodeResolved = $this->network_id_to_code($network, $currency['code']);
-                $targetNetwork = ($networkCodeResolved === null) ? array() : $this->safe_dict($currency['networks'], $networkCodeResolved, array());
+                $targetNetwork = $this->safe_dict($currency['networks'], $this->network_id_to_code($network, $currency['code']), array());
                 $fee = $this->safe_string($targetNetwork, 'fee');
                 if ($fee === null) {
                     throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');
@@ -6117,7 +6109,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade $position
@@ -6192,7 +6184,7 @@ class okx extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $position = $this->safe_dict($data, 0);
             if ($position === null) {
-                throw new NullResponse($this->id . ' fetchPosition() could not find a $position for ' . $symbol);
+                return null;
             }
             return $this->parse_position($position, $market);
         })();
@@ -6439,8 +6431,7 @@ class okx extends Exchange {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
             if ($market['linear']) {
-                $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
-                $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
+                $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
             } else {
                 $initialMarginString = Precise::string_div(Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $entryPriceString), $leverageString);
             }
@@ -7457,7 +7448,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $code = $this->safe_currency_code($this->safe_string($item, 'ccy'));
-            if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
+            if ($codes === null || $this->in_array($code, $codes)) {
                 if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
                     $borrowRateHistories[$code] = array();
                 }
@@ -7474,7 +7465,7 @@ class okx extends Exchange {
         return $borrowRateHistories;
     }
 
-    public function fetch_borrow_rate_histories(?array $codes = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($codes, $since, $limit, $params) {
             /**
              * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
@@ -8162,7 +8153,7 @@ class okx extends Exchange {
             // handle unified $currency code or $symbol
             $currencyId = null;
             $market = null;
-            if ((($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol, $this->markets))) || (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)))) {
+            if ((is_array($this->markets) && array_key_exists($symbol, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id))) {
                 $market = $this->market($symbol);
                 $currencyId = $market['baseId'];
             } else {
@@ -8369,7 +8360,7 @@ class okx extends Exchange {
             $feeInfo = $response[$i];
             $currencyId = $this->safe_string($feeInfo, 'ccy');
             $code = $this->safe_currency_code($currencyId);
-            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
+            if (($codes === null) || ($this->in_array($code, $codes))) {
                 $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
@@ -8393,12 +8384,10 @@ class okx extends Exchange {
                     'percentage' => null,
                 );
                 $networkCode = $this->network_id_to_code($networkId, $code);
-                if ($networkCode !== null) {
-                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
-                        'withdraw' => $withdrawResult,
-                        'deposit' => $depositResult,
-                    );
-                }
+                $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                    'withdraw' => $withdrawResult,
+                    'deposit' => $depositResult,
+                );
             }
         }
         $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
@@ -9304,36 +9293,34 @@ class okx extends Exchange {
                 $entry = $data[$i];
                 $id = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($id);
-                if ($code !== null) {
-                    $result[$code] = array(
-                        'info' => $entry,
-                        'id' => $id,
-                        'code' => $code,
-                        'networks' => null,
-                        'type' => null,
-                        'name' => null,
-                        'active' => null,
-                        'deposit' => null,
-                        'withdraw' => null,
-                        'fee' => null,
-                        'precision' => null,
-                        'limits' => array(
-                            'amount' => array(
-                                'min' => $this->safe_number($entry, 'min'),
-                                'max' => $this->safe_number($entry, 'max'),
-                            ),
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'min'),
+                            'max' => $this->safe_number($entry, 'max'),
                         ),
-                        'created' => null,
-                    );
-                }
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                );
             }
             return $result;
         })();

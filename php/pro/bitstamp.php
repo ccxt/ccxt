@@ -104,9 +104,6 @@ class bitstamp extends \ccxt\async\bitstamp {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
-        if ($channel === null) {
-            return;
-        }
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
         $symbol = $this->safe_symbol($marketId);
@@ -114,9 +111,6 @@ class bitstamp extends \ccxt\async\bitstamp {
         $nonce = $this->safe_value($storedOrderBook, 'nonce');
         $delta = $this->safe_value($message, 'data');
         $deltaNonce = $this->safe_integer($delta, 'microtimestamp');
-        if ($deltaNonce === null) {
-            return;
-        }
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
@@ -159,11 +153,8 @@ class bitstamp extends \ccxt\async\bitstamp {
         // we will consider it a fail
         $firstElement = $deltas[0];
         $firstElementNonce = $this->safe_integer($firstElement, 'microtimestamp');
-        if ($firstElementNonce === null) {
-            return -1;
-        }
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        if (($nonce === null) || ($nonce < $firstElementNonce)) {
+        if ($nonce < $firstElementNonce) {
             return -1;
         }
         for ($i = 0; $i < count($deltas); $i++) {
@@ -209,7 +200,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         })();
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "buy_order_id" => 1211625836466176,
@@ -224,14 +215,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         //         "price" => 6294.77
         //     }
         //
-        $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
+        $microtimestamp = $this->safe_integer($trade, 'microtimestamp');
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        if ($market === null) {
-            $market = $this->safe_market(null, $market);
-        }
         $symbol = $market['symbol'];
         $sideRaw = $this->safe_integer($trade, 'type');
         $side = ($sideRaw === 0) ? 'buy' : 'sell';
@@ -274,9 +262,6 @@ class bitstamp extends \ccxt\async\bitstamp {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $channel = $this->safe_string($message, 'channel');
-        if ($channel === null) {
-            return;
-        }
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
@@ -442,9 +427,6 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function handle_order_book_subscription(Client $client, $message) {
         $channel = $this->safe_string($message, 'channel');
-        if ($channel === null) {
-            return;
-        }
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
         $symbol = $this->safe_symbol($marketId);
@@ -465,9 +447,6 @@ class bitstamp extends \ccxt\async\bitstamp {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
-        if ($channel === null) {
-            return;
-        }
         if (mb_strpos($channel, 'order_book') > -1) {
             $this->handle_order_book_subscription($client, $message);
         }
@@ -512,9 +491,6 @@ class bitstamp extends \ccxt\async\bitstamp {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
-        if ($channel === null) {
-            return;
-        }
         $methods = array(
             'live_trades' => array($this, 'handle_trade'),
             'diff_order_book' => array($this, 'handle_order_book'),

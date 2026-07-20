@@ -7,7 +7,6 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-
 async def test_throttler_performance_helper(exchange, num_requests):
     start_time = exchange.milliseconds()
     tasks = []
@@ -20,7 +19,6 @@ async def test_throttler_performance_helper(exchange, num_requests):
     end_time = exchange.milliseconds()
     total_time = (end_time - start_time)
     return total_time
-
 
 async def throttle_call(exchange, index, start_time):
     try:
@@ -36,7 +34,6 @@ async def throttle_call(exchange, index, start_time):
     except Exception as e:
         print(f"Throttle call {index + 1} failed: {e}")
         raise e
-
 
 async def test_throttler():
     exchange1 = ccxt.binance({
@@ -84,7 +81,6 @@ async def test_throttler():
     print('│ Leaky Bucket                              │ ' + leaky_bucket_time_string.rjust(11) + '  │ ~950            │')
     print('│ Leaky Bucket (rollingWindowSize === 0)    │ ' + rolling_window_0_time_string.rjust(11) + '  │ ~950            │')
     print('└───────────────────────────────────────────┴──────────────┴─────────────────┘')
-
 
 def test_throttler_performance():
     try:

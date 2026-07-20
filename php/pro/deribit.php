@@ -165,7 +165,7 @@ class deribit extends \ccxt\async\deribit {
         $currencyId = $this->safe_string($data, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $balance = $this->parse_balance($data);
-        $this->store_by_key($this->balance, $currencyCode, $balance);
+        $this->balance[$currencyCode] = $balance;
         $messageHash = 'balance';
         $client->resolve($this->balance, $messageHash);
     }
@@ -944,7 +944,7 @@ class deribit extends \ccxt\async\deribit {
         );
     }
 
-    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, mixed $symbolsArray = null, $params = array()) {
+    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -955,13 +955,7 @@ class deribit extends \ccxt\async\deribit {
             $isOHLCV = ($channelName === 'chart.trades');
             $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
             $this->market_symbols($symbols, null, false);
-            if ($symbolsArray === null) {
-                throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
-            }
             for ($i = 0; $i < count($symbolsArray); $i++) {
-                if ($symbolsArray === null) {
-                    throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() $symbolsArray is required');
-                }
                 $current = $symbolsArray[$i];
                 $market = null;
                 if ($isOHLCV) {

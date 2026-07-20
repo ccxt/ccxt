@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -335,7 +335,7 @@ class coinone(Exchange, ImplicitAPI):
         currencies = self.safe_list(response, 'currencies', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
@@ -487,7 +487,7 @@ class coinone(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'avail')
             account['total'] = self.safe_string(balance, 'balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1190,7 +1190,7 @@ class coinone(Exchange, ImplicitAPI):
             if (secondPart == 'tag' or secondPart == 'memo'):
                 depositAddress['tag'] = value
                 depositAddress['info'] = [address, value]
-            self.store_by_key(result, code, depositAddress)
+            result[code] = depositAddress
         return result
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

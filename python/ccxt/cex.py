@@ -369,7 +369,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.deep_extend(currenciesIndexed, dataNetworks)
         return self.parse_currencies(self.to_array(data))
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
@@ -383,28 +383,27 @@ class cex(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': None,
-                    'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
-                    'precision': currencyPrecision,
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(rawNetwork, 'minDeposit'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(rawNetwork, 'minWithdrawal'),
-                            'max': None,
-                        },
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'active': None,
+                'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
+                'precision': currencyPrecision,
+                'limits': {
+                    'deposit': {
+                        'min': self.safe_number(rawNetwork, 'minDeposit'),
+                        'max': None,
                     },
-                    'info': rawNetwork,
-                }
+                    'withdraw': {
+                        'min': self.safe_number(rawNetwork, 'minWithdrawal'),
+                        'max': None,
+                    },
+                },
+                'info': rawNetwork,
+            }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -856,10 +855,9 @@ class cex(Exchange, ImplicitAPI):
             if useKeyAsId:
                 market = self.safe_market(key)
             parsed = self.parse_trading_fee(response[key], market)
-            self.store_by_key(result, parsed['symbol'], parsed)
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+            result[parsed['symbol']] = parsed
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             if not (symbol in result):
                 market = self.market(symbol)
                 result[symbol] = self.parse_trading_fee(response, market)
@@ -976,7 +974,7 @@ class cex(Exchange, ImplicitAPI):
                 'used': self.safe_string(balance, 'balanceOnHold'),
                 'total': self.safe_string(balance, 'balance'),
             }
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1238,8 +1236,6 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'clientOrderId': self.uuid(),
             'currency1': market['baseId'],
@@ -1309,7 +1305,7 @@ class cex(Exchange, ImplicitAPI):
         #             "rejectCode": 405,
         #             "rejectReason": "Either AmountCcy1(OrderQty) or AmountCcy2(CashOrderQty) should be specified for market order not both",
         #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

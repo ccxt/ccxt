@@ -39,7 +39,6 @@ from ccxt.base.errors import AuthenticationError  # noqa: F401
 
 # ------------------------------------------------------------------------------
 
-
 class Argv(object):
     id_tests = False
     static_tests = False
@@ -123,6 +122,7 @@ NEW_LINE = '\n'
 LOG_CHARS_LENGTH = 10000
 
 
+
 def get_cli_arg_value(arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
     with_hyphen = '--' + arg
@@ -131,9 +131,7 @@ def get_cli_arg_value(arg):
     arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
-
 isWsTests = get_cli_arg_value('--ws')
-
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
@@ -141,7 +139,6 @@ def dump(*args):
 
 def convert_ascii(str):
     return str  # stub
-
 
 def json_parse(elem):
     return json.loads(elem)
@@ -182,7 +179,6 @@ def call_method_sync(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
-
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
@@ -191,15 +187,12 @@ async def call_method(test_files, methodName, exchange, skippedProperties, args)
 async def call_exchange_method_dynamically(exchange, methodName, args):
     return await getattr(exchange, methodName)(*args)
 
-
 def call_exchange_method_dynamically_sync(exchange, methodName, args):
     return getattr(exchange, methodName)(*args)
-
 
 async def call_overriden_method(exchange, methodName, args):
     # needed for php
     return await call_exchange_method_dynamically(exchange, methodName, args)
-
 
 def exception_message(exc):
     message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
@@ -208,11 +201,9 @@ def exception_message(exc):
         message = message[0:LOG_CHARS_LENGTH]
     return message
 
-
 # stub for c#
 def get_root_exception(exc):
     return exc
-
 
 def exit_script(code=0):
     exit(code)
@@ -263,24 +254,20 @@ def get_test_files_sync(properties, ws=False):
             dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
             module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
-        if (io_file_exists(filePathWithExt)):
+        if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
             tests[methodName] = imp  # getattr(imp, finalName)
     return tests
 
-
 async def get_test_files(properties, ws=False):
     return get_test_files_sync(properties, ws)
-
 
 async def close(exchange):
     if (not IS_SYNCHRONOUS and hasattr(exchange, 'close')):
         await exchange.close()
 
-
 def is_null_value(value):
     return value is None
-
 
 def set_fetch_response(exchange: ccxt.Exchange, data):
     if (IS_SYNCHRONOUS):
@@ -288,45 +275,35 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
             return data
         exchange.fetch = fetch
         return exchange
-
     async def fetch(url, method='GET', headers=None, body=None):
         return data
     exchange.fetch = fetch
     return exchange
 
-
 def get_lang():
     return LANG
-
 
 def get_ext():
     return EXT
 
-
 def get_root_dir():
     return ROOT_DIR
-
 
 def get_env_vars():
     return ENV_VARS
 
-
 def is_sync():
     return IS_SYNCHRONOUS
-
 
 def is_windows() -> bool:
     return sys.platform.startswith("win")
 
-
 def is_linux() -> bool:
     return sys.platform.startswith("linux")
-
 
 def is_amd64() -> bool:
     m = platform.machine()
     return m in ("x86_64", "AMD64", "amd64")
-
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

@@ -630,7 +630,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): CurrencyInterface {
+    public function parse_currency(array $currency): array {
         $id = $this->safe_string($currency, '_coin_id');
         $code = $this->safe_currency_code($id);
         $networks = array();
@@ -639,24 +639,22 @@ class cryptocom extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network_id');
             $network = $this->network_id_to_code($networkId, $code);
-            if ($network !== null) {
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
-                    'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
-                    'fee' => $this->safe_number($chain, 'withdrawal_fee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                            'max' => null,
-                        ),
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                        'max' => null,
                     ),
-                );
-            }
+                ),
+            );
         }
         return $this->safe_currency_structure(array(
             'info' => $currency,
@@ -1246,7 +1244,7 @@ class cryptocom extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'quantity');
             $account['used'] = $this->safe_string($balance, 'reserved_qty');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1373,13 +1371,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1603,13 +1595,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_advanced_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1750,7 +1736,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function edit_order_request(string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, string $symbol, float $amount, ?float $price = null, $params = array()) {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
@@ -2175,15 +2161,13 @@ class cryptocom extends Exchange {
                 $this->check_address($address);
                 $networkId = $this->safe_string($value, 'network');
                 $network = $this->network_id_to_code($networkId, $responseCode);
-                if ($network !== null) {
-                    $result[$network] = array(
-                        'info' => $value,
-                        'currency' => $responseCode,
-                        'network' => $network,
-                        'address' => $address,
-                        'tag' => $tag,
-                    );
-                }
+                $result[$network] = array(
+                    'info' => $value,
+                    'currency' => $responseCode,
+                    'network' => $network,
+                    'address' => $address,
+                    'tag' => $tag,
+                );
             }
             return $result;
         })();
@@ -2377,7 +2361,6 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
-        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -2398,7 +2381,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
+            'quoteVolume' => ($market['quote'] === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }
@@ -2775,12 +2758,10 @@ class cryptocom extends Exchange {
                 $networkId = $this->safe_string($networkInfo, 'network_id');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
-                        'deposit' => array( 'fee' => null, 'percentage' => null ),
-                        'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
-                    );
-                }
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
+                );
                 if ($networkListLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($networkInfo, 'withdrawal_fee');
                     $result['withdraw']['percentage'] = false;

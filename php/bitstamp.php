@@ -836,36 +836,26 @@ class bitstamp extends Exchange {
         return $finalResult;
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $market = $rawCurrency;
         $existing = $this->safe_dict($this->options, '_temp_currencies_result', array());
         list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $description = $this->safe_string($market, 'description');
-        if ($description === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing description');
-        }
         list($baseDescription, $quoteDescription) = explode(' / ', $description);
         $minimumOrder = $this->safe_string($market, 'minimum_order_value');
-        if ($minimumOrder === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing minimumOrder');
-        }
         $parts = explode(' ', $minimumOrder);
         $cost = $parts[0];
-        if (($base === null) || !(is_array($existing) && array_key_exists($base, $existing))) {
+        if (!(is_array($existing) && array_key_exists($base, $existing))) {
             $baseDecimals = $this->safe_integer($market, 'base_decimals');
-            if ($base !== null) {
-                $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
-            }
+            $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
         }
-        if (($quote === null) || !(is_array($existing) && array_key_exists($quote, $existing))) {
+        if (!(is_array($existing) && array_key_exists($quote, $existing))) {
             $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-            if ($quote !== null) {
-                $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
-            }
+            $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
         }
-        return $this->safe_value($this->options['_temp_currencies_result'], $quote);
+        return $this->options['_temp_currencies_result'][$quote];
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -904,9 +894,6 @@ class bitstamp extends Exchange {
         //     }
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
-        if ($microtimestamp === null) {
-            throw new ExchangeError($this->id . ' fetchOrderBook() missing microtimestamp');
-        }
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $microtimestamp;
@@ -1086,11 +1073,11 @@ class bitstamp extends Exchange {
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
-            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
-            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
         }
@@ -1380,7 +1367,7 @@ class bitstamp extends Exchange {
             $account['free'] = $this->safe_string($currencyBalance, 'available');
             $account['used'] = $this->safe_string($currencyBalance, 'reserved');
             $account['total'] = $this->safe_string($currencyBalance, 'total');
-            $this->store_by_key($result, $currencyCode, $account);
+            $result[$currencyCode] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1446,7 +1433,7 @@ class bitstamp extends Exchange {
         //
         $tradingFeesByMarketId = $this->index_by($response, 'currency_pair');
         $tradingFee = $this->safe_dict($tradingFeesByMarketId, $market['id']);
-        return $this->parse_trading_fee($tradingFee || array(), $market);
+        return $this->parse_trading_fee($tradingFee, $market);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -1467,7 +1454,7 @@ class bitstamp extends Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $this->store_by_key($result, $symbol, $fee);
+            $result[$symbol] = $fee;
         }
         return $result;
     }
@@ -1530,7 +1517,7 @@ class bitstamp extends Exchange {
         return $this->parse_transaction_fees($response);
     }
 
-    public function parse_transaction_fees($response, ?array $codes = null) {
+    public function parse_transaction_fees($response, $codes = null) {
         $result = array();
         $currencies = $this->index_by($response, 'currency');
         $ids = is_array($currencies) ? array_keys($currencies) : array();
@@ -1541,18 +1528,16 @@ class bitstamp extends Exchange {
             if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
-            if ($code !== null) {
-                $result[$code] = array(
-                    'withdraw_fee' => $this->safe_number($fees, 'fee'),
-                    'deposit' => array(),
-                    'info' => $this->safe_dict($currencies, $id),
-                );
-            }
+            $result[$code] = array(
+                'withdraw_fee' => $this->safe_number($fees, 'fee'),
+                'deposit' => array(),
+                'info' => $this->safe_dict($currencies, $id),
+            );
         }
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array()) {
         /**
          * fetch deposit and withdraw fees
          *
@@ -1580,7 +1565,7 @@ class bitstamp extends Exchange {
         return $this->parse_deposit_withdraw_fees($responseByCurrencyId, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
         for ($j = 0; $j < count($fee); $j++) {
@@ -1592,18 +1577,16 @@ class bitstamp extends Exchange {
                 'fee' => $withdrawFee,
                 'percentage' => null,
             );
-            if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
-                    'withdraw' => array(
-                        'fee' => $withdrawFee,
-                        'percentage' => null,
-                    ),
-                    'deposit' => array(
-                        'fee' => null,
-                        'percentage' => null,
-                    ),
-                );
-            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $withdrawFee,
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
         }
         return $result;
     }
@@ -1662,7 +1645,7 @@ class bitstamp extends Exchange {
                 $response = $this->privatePostSellPair($this->extend($request, $params));
             }
         }
-        $order = $this->parse_order($response || array(), $market);
+        $order = $this->parse_order($response, $market);
         $order['type'] = $type;
         return $order;
     }
@@ -1886,7 +1869,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -2650,15 +2633,12 @@ class bitstamp extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer($transfer, $currency = null) {
         //
         //    array( $status => 'ok' )
         //
         $status = $this->safe_string($transfer, 'status');
-        if ($currency === null) {
-            throw new ExchangeError($this->id . ' parseTransfer() could not resolve currency');
-        }
-        $result = array(
+        return array(
             'info' => $transfer,
             'id' => null,
             'timestamp' => null,
@@ -2669,7 +2649,6 @@ class bitstamp extends Exchange {
             'toAccount' => null,
             'status' => $this->parse_transfer_status($status),
         );
-        return $result;
     }
 
     public function parse_transfer_status(?string $status): ?string {

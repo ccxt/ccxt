@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_balance  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_watch_balance(exchange, skipped_properties, code):
     method = 'watchBalance'
     now = exchange.milliseconds()

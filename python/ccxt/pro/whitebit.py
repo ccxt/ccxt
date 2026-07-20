@@ -427,7 +427,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message, subscription: dict | None = None):
+    def handle_my_trades(self, client: Client, message, subscription=None):
         #
         #   {
         #       "method": "deals_update",
@@ -482,6 +482,18 @@ class whitebit(ccxt.async_support.whitebit):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
+        rawSide = self.safe_integer(trade, 8)
+        side = None
+        if rawSide == 1:
+            side = 'sell'
+        elif rawSide == 2:
+            side = 'buy'
+        role = self.safe_integer(trade, 9)
+        takerOrMaker = None
+        if role == 1:
+            takerOrMaker = 'maker'
+        elif role == 2:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -490,8 +502,8 @@ class whitebit(ccxt.async_support.whitebit):
             'symbol': market['symbol'],
             'order': orderId,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -524,7 +536,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription: dict | None = None):
+    def handle_order(self, client: Client, message, subscription=None):
         #
         # {
         #     "method": "ordersPending_update",
@@ -707,8 +719,6 @@ class whitebit(ccxt.async_support.whitebit):
         #   }
         #
         method = self.safe_string(message, 'method')
-        if method is None:
-            return
         data = self.safe_value(message, 'params')
         balanceDict = self.safe_value(data, 0)
         self.balance['info'] = balanceDict
@@ -719,7 +729,7 @@ class whitebit(ccxt.async_support.whitebit):
         account = self.account()
         account['free'] = self.safe_string(rawBalance, 'available')
         account['used'] = self.safe_string(rawBalance, 'freeze')
-        self.store_by_key(self.balance, code, account)
+        self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         messageHash = 'wallet:'
         if method.find('Spot') >= 0:
@@ -728,7 +738,7 @@ class whitebit(ccxt.async_support.whitebit):
             messageHash += 'margin'
         client.resolve(self.balance, messageHash)
 
-    async def watch_public(self, messageHash, method, reqParams: List[Any] = [], params={}):
+    async def watch_public(self, messageHash, method, reqParams=[], params={}):
         url = self.urls['api']['ws']
         id = self.nonce()
         request = {
@@ -751,7 +761,7 @@ class whitebit(ccxt.async_support.whitebit):
             subscription = {}
             market = self.market(symbol)
             marketId = market['id']
-            self.store_by_key(subscription, marketId, True)
+            subscription[marketId] = True
             marketIds = [marketId]
             if isNested:
                 marketIds = [marketIds]
@@ -769,7 +779,7 @@ class whitebit(ccxt.async_support.whitebit):
             marketId = market['id']
             isSubscribed = self.safe_bool(subscription, marketId, False)
             if not isSubscribed:
-                self.store_by_key(subscription, marketId, True)
+                subscription[marketId] = True
                 hasSymbolSubscription = False
             if hasSymbolSubscription:
                 # already subscribed to self market(s)
@@ -789,7 +799,7 @@ class whitebit(ccxt.async_support.whitebit):
                     del client.subscriptions[method]
                 return await self.watch(url, messageHash, resubRequest, method, subscription)
 
-    async def watch_private(self, messageHash, method, reqParams: List[Any] = [], params={}):
+    async def watch_private(self, messageHash, method, reqParams=[], params={}):
         self.check_required_credentials()
         await self.authenticate()
         url = self.urls['api']['ws']

@@ -392,10 +392,9 @@ class coinex(ccxt.async_support.coinex):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            if (accountType is not None) and (code is not None):
-                self.balance[accountType][code] = account
+            self.balance[accountType][code] = account
         else:
-            self.store_by_key(self.balance, code, account)
+            self.balance[code] = account
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1029,7 +1028,7 @@ class coinex(ccxt.async_support.coinex):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        order = self.safe_dict_2(data, 'order', 'stop', {})
+        order = self.extend({'status': self.safe_string(data, 'event')}, self.safe_dict_2(data, 'order', 'stop', {}))
         parsedOrder = self.parse_ws_order(order)
         symbol = parsedOrder['symbol']
         market = self.market(symbol)
@@ -1177,6 +1176,10 @@ class coinex(ccxt.async_support.coinex):
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
+            'put': 'open',
+            'update': 'open',
+            'modify': 'open',
+            'finish': 'closed',
         }
         return self.safe_string(statuses, status, status)
 

@@ -228,7 +228,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         output = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = self.market(symbol)
+            market = self.markets[symbol]
             if market['active']:
                 output.append(symbol)
         return output
@@ -286,7 +286,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(ticker, channel)
         client.resolve(ticker, channel + '::' + ticker['symbol'])
 
-    def parse_ws_instrument(self, ticker: dict, market: Market = None):
+    def parse_ws_instrument(self, ticker: dict, market=None):
         #
         #    {
         #        "sequence": 1,
@@ -555,7 +555,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(tradesArray, channel + '::' + trade['symbol'])
         return message
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market=None):
         #
         #    {
         #       "sequence": 0,

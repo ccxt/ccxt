@@ -660,9 +660,6 @@ class blockchaincom extends Exchange {
             $uppercaseOrderType = strtoupper($orderType);
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId', $this->uuid16());
             $params = $this->omit($params, array( 'ordType', 'clientOrderId', 'clOrdId' ));
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
             $request = array(
                 // 'stopPx' : limit $price
                 // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -773,7 +770,7 @@ class blockchaincom extends Exchange {
              * @see https://api.blockchain.com/v3/#getfees
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -789,9 +786,8 @@ class blockchaincom extends Exchange {
             $makerFee = $this->safe_number($response, 'makerRate');
             $takerFee = $this->safe_number($response, 'takerRate');
             $result = array();
-            $symbols = $this->require_symbols();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,

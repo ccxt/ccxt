@@ -2518,7 +2518,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         entry = rawCurrency
         id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
@@ -2535,8 +2535,6 @@ class bitget(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string(chain, 'chain')
             network = self.network_id_to_code(networkId, code)
-            if network is None:
-                raise ArgumentsRequired(self.id + ' requires a network argument')
             network = network.upper()
             withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
             rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
@@ -4514,7 +4512,7 @@ class bitget(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(entry, 'locked')
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_balance(self, balance) -> Balances:
@@ -4589,7 +4587,7 @@ class bitget(Exchange, ImplicitAPI):
                     frozen = self.safe_string(entry, 'frozen')
                     locked = self.safe_string(entry, 'locked')
                     account['used'] = Precise.string_add(frozen, locked)
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_order_status(self, status: Str):
@@ -5067,11 +5065,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_uta_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_uta_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
@@ -5173,11 +5167,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged'])
         return self.extend(request, params)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         marketType = None
         marginMode = None
@@ -9182,11 +9172,10 @@ class bitget(Exchange, ImplicitAPI):
             networkId = self.safe_string(chain, 'chain')
             currencyCode = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, currencyCode)
-            if networkCode is not None:
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
-                }
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
             if chainsLength == 1:
                 result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
                 result['withdraw']['percentage'] = False
@@ -10496,35 +10485,34 @@ class bitget(Exchange, ImplicitAPI):
             entry = data[i]
             id = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(id)
-            if code is not None:
-                result[code] = {
-                    'info': entry,
-                    'id': id,
-                    'code': code,
-                    'networks': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': self.safe_number(entry, 'available'),
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'amount': {
-                            'min': self.safe_number(entry, 'minAmount'),
-                            'max': self.safe_number(entry, 'maxAmount'),
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': self.safe_number(entry, 'available'),
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_number(entry, 'minAmount'),
+                        'max': self.safe_number(entry, 'maxAmount'),
                     },
-                    'created': None,
-                }
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
         return result
 
     async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:

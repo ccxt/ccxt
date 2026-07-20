@@ -3886,6 +3886,12 @@ public class BinanceCore extends BinanceApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                Object updateTime = this.safeInteger(balance, "updateTime");
+                if (Helpers.isTrue(Helpers.isEqual(updateTime, 0)))
+                {
+                    continue;
+                }
                 Object currencyId = this.safeString(balance, "asset");
                 Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -11376,7 +11382,7 @@ public class BinanceCore extends BinanceApi
         Object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Object symbol = this.safeString(market, "symbol");
-        Object leverageString = this.safeString(position, "leverage");
+        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         Object leverage = ((Helpers.isTrue((!Helpers.isEqual(leverageString, null))))) ? Helpers.parseInt(leverageString) : null;
         Object initialMarginString = this.safeString(position, "initialMargin");
         Object initialMargin = this.parseNumber(initialMarginString);
@@ -11768,7 +11774,7 @@ public class BinanceCore extends BinanceApi
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         Object initialMarginString = null;
         Object initialMarginPercentageString = null;
-        Object leverageString = this.safeString(position, "leverage");
+        Object leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
         if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
         {
             Object leverage = Helpers.parseInt(leverageString);

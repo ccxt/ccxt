@@ -626,7 +626,7 @@ class upbit(ccxt.async_support.upbit):
             account = self.account()
             account['free'] = available
             account['used'] = frozen
-            self.store_by_key(self.balance, code, account)
+            self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         messageHash = self.safe_string(message, 'type')
         client.resolve(self.balance, messageHash)

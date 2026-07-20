@@ -532,9 +532,6 @@ class woofipro extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol');
-        if ($marketId === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
-        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -544,7 +541,7 @@ class woofipro extends Exchange {
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -592,7 +589,7 @@ class woofipro extends Exchange {
             ),
             'created' => $this->safe_integer($market, 'created_time'),
             'info' => $market,
-        ));
+        );
     }
 
     public function fetch_markets($params = array()): array {
@@ -689,15 +686,12 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($tokenRows); $i++) {
             $token = $tokenRows[$i];
             $parsed = $this->parse_currency(array( '_token' => $token, '_indexedChains' => $indexedChains ));
-            if ($parsed === null) {
-                throw new ExchangeError($this->id . ' fetchCurrencies() could not resolve parsed');
-            }
             $result[$parsed['code']] = $parsed;
         }
         return $result;
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $token = $this->safe_dict($rawCurrency, '_token', array());
         $currencyId = $this->safe_string($token, 'token');
         $networks = $this->safe_list($token, 'chain_details', array());
@@ -710,28 +704,26 @@ class woofipro extends Exchange {
             $networkRow = $this->safe_dict($indexedChains, $networkId);
             $networkName = $this->safe_string($networkRow, 'name');
             $networkCode = $this->network_id_to_code($networkName, $code);
-            if ($networkCode !== null) {
-                $resultingNetworks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+            $resultingNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
-                    'info' => array( 'network' => $networkEntry, 'networkRow' => $networkRow ),
-                );
-            }
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
+                'info' => array( 'network' => $networkEntry, 'networkRow' => $networkRow ),
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -809,7 +801,7 @@ class woofipro extends Exchange {
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $feeCost = $this->safe_string($fee, 'cost');
-        if (($fee !== null) && ($feeCost !== null)) {
+        if ($feeCost !== null) {
             $fee['cost'] = $feeCost;
         }
         $cost = Precise::string_mul($price, $amount);
@@ -1198,7 +1190,7 @@ class woofipro extends Exchange {
          * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1235,9 +1227,8 @@ class woofipro extends Exchange {
         $maker = $this->safe_string($data, 'futures_maker_fee_rate');
         $taker = $this->safe_string($data, 'futures_taker_fee_rate');
         $result = array();
-        $symbols = $this->require_symbols();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1508,13 +1499,7 @@ class woofipro extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build the $request
@@ -1528,9 +1513,6 @@ class woofipro extends Exchange {
          */
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
-        }
         $market = $this->market($symbol);
         $orderSide = strtoupper($side);
         $request = array(
@@ -1787,9 +1769,6 @@ class woofipro extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         $response = null;
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-        }
         if ($isConditional) {
             $response = $this->v1PrivatePutAlgoOrder($this->extend($request, $params));
         } else {
@@ -1907,7 +1886,7 @@ class woofipro extends Exchange {
             $extendParams['id'] = $id;
         }
         if ($trigger) {
-            return $this->extend($this->parse_order($response || array()), $extendParams);
+            return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->extend($this->parse_order($data), $extendParams);
@@ -2077,7 +2056,7 @@ class woofipro extends Exchange {
         // }
         //
         $orders = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($orders || array(), $market);
+        return $this->parse_order($orders, $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2352,7 +2331,7 @@ class woofipro extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
             $account['frozen'] = $this->safe_string($balance, 'frozen');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2603,7 +2582,7 @@ class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        return $this->parse_transactions($rows || array(), $currency, $since, $limit, $params);
+        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
     public function get_withdraw_nonce($params = array()) {
@@ -2720,7 +2699,7 @@ class woofipro extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_leverage($leverage, ?array $market = null): array {
+    public function parse_leverage($leverage, $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
@@ -2871,7 +2850,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(?string $symbol, $params = array()) {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
@@ -2915,7 +2894,7 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_position($data, $market);
     }
 

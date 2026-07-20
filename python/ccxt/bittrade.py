@@ -452,15 +452,13 @@ class bittrade(Exchange, ImplicitAPI):
             self.load_markets()
         if symbols is None:
             symbols = self.symbols
-        if symbols is None:
-            raise ExchangeError(self.id + ' markets not loaded')
         result = {}
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id: Str, params={}):
+    def fetch_trading_limits_by_id(self, id: str, params={}):
         request = {
             'symbol': id,
         }
@@ -510,7 +508,7 @@ class bittrade(Exchange, ImplicitAPI):
         }
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -568,10 +566,6 @@ class bittrade(Exchange, ImplicitAPI):
             superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
             margin = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
             fee = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
-            if baseId is None:
-                raise ExchangeError(self.id + ' fetchMarkets() missing baseId')
-            if quoteId is None:
-                raise ExchangeError(self.id + ' fetchMarkets() missing quoteId')
             result.append({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -1112,7 +1106,7 @@ class bittrade(Exchange, ImplicitAPI):
         currencies = self.safe_value(response, 'data', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> CurrencyInterface:
+    def parse_currency(self, currency: dict) -> Currency:
         id = self.safe_value(currency, 'name')
         code = self.safe_currency_code(id)
         depositEnabled = self.safe_value(currency, 'deposit-enabled')
@@ -1162,19 +1156,15 @@ class bittrade(Exchange, ImplicitAPI):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = None
-            if (code is not None) and (code in result):
+            if code in result:
                 account = result[code]
             else:
                 account = self.account()
-            if account is None:
-                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
             if balance['type'] == 'trade':
                 account['free'] = self.safe_string(balance, 'balance')
-            if account is None:
-                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1238,7 +1228,7 @@ class bittrade(Exchange, ImplicitAPI):
             'id': id,
         }
         response = self.privateGetOrderOrdersId(self.extend(request, params))
-        order = self.safe_dict(response, 'data', {})
+        order = self.safe_dict(response, 'data')
         return self.parse_order(order)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1514,7 +1504,7 @@ class bittrade(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id

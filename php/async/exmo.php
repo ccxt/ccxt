@@ -490,9 +490,8 @@ class exmo extends Exchange {
             //     }
             //
             $result = array();
-            $symbols = $this->require_symbols();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
                 $market = $this->market($symbol);
                 $fee = $this->safe_value($response, $market['id'], array());
                 $makerString = $this->safe_string($fee, 'commission_maker_percent');
@@ -598,9 +597,7 @@ class exmo extends Exchange {
                     $typeInner = $this->safe_string($provider, 'type');
                     $commissionDesc = $this->safe_string($provider, 'commission_desc');
                     $fee = $this->parse_fixed_float_value($commissionDesc);
-                    if ($code !== null && $typeInner !== null) {
-                        $result[$code][$typeInner] = $fee;
-                    }
+                    $result[$code][$typeInner] = $fee;
                 }
                 $result[$code]['info'] = $providers;
             }
@@ -687,25 +684,21 @@ class exmo extends Exchange {
             }
             $network = $this->safe_value($result['networks'], $networkCode);
             if ($network === null) {
-                if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
-                        'withdraw' => array(
-                            'fee' => null,
-                            'percentage' => null,
-                        ),
-                        'deposit' => array(
-                            'fee' => null,
-                            'percentage' => null,
-                        ),
-                    );
-                }
-            }
-            if (($networkCode !== null) && ($type !== null)) {
-                $result['networks'][$networkCode][$type] = array(
-                    'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
-                    'percentage' => $percentage,
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
                 );
             }
+            $result['networks'][$networkCode][$type] = array(
+                'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
+                'percentage' => $percentage,
+            );
         }
         return $this->assign_default_deposit_withdraw_fees($result);
     }
@@ -771,7 +764,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $currency = $this->safe_dict($rawCurrency, 'currency', array());
         $providers = $this->safe_list($rawCurrency, 'providers', array());
         $currencyId = $this->safe_string($currency, 'name');
@@ -785,42 +778,37 @@ class exmo extends Exchange {
                 $provider = $providers[$j];
                 $name = $this->safe_string($provider, 'name');
                 // get network-id by removing extra things
-                if ($name === null) {
-                    throw new ExchangeError($this->id . ' parseCurrency() missing name');
-                }
                 $networkId = str_replace($currencyId . ' ', '', $name);
                 $networkId = str_replace('(', '', $networkId);
                 $replaceChar = ')'; // transpiler trick
                 $networkId = str_replace($replaceChar, '', $networkId);
                 $networkCode = $this->network_id_to_code($networkId, $code);
-                if (($networkCode === null) || !(is_array($networks) && array_key_exists($networkCode, $networks))) {
-                    if ($networkCode !== null) {
-                        $networks[$networkCode] = array(
-                            'id' => $networkId,
-                            'network' => $networkCode,
-                            'active' => null,
-                            'deposit' => null,
-                            'withdraw' => null,
-                            'fee' => null,
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                                'deposit' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
+                if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
                             ),
-                            'info' => array(), // set, because of multiple network sub-entries
-                        );
-                    }
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'info' => array(), // set, because of multiple network sub-entries
+                    );
                 }
                 $typeInner = $this->safe_string($provider, 'type');
                 $minValue = $this->safe_string($provider, 'min');
                 $maxValue = $this->safe_string($provider, 'max');
                 $activeProvider = $this->safe_bool($provider, 'enabled');
-                $networkEntry = $this->safe_value($networks, $networkCode);
+                $networkEntry = $networks[$networkCode];
                 if ($typeInner === 'deposit') {
                     $networkEntry['deposit'] = $activeProvider;
                     $networkEntry['limits']['deposit']['min'] = $minValue;
@@ -833,9 +821,7 @@ class exmo extends Exchange {
                 $info = $this->safe_list($networkEntry, 'info', array());
                 $info[] = $provider;
                 $networkEntry['info'] = $info;
-                if ($networkCode !== null) {
-                    $networks[$networkCode] = $networkEntry;
-                }
+                $networks[$networkCode] = $networkEntry;
             }
         }
         return $this->safe_currency_structure(array(
@@ -1105,7 +1091,7 @@ class exmo extends Exchange {
                 $account['used'] = $this->safe_string($item, 'used');
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['total'] = $this->safe_string($item, 'balance');
-                $this->store_by_key($result, $currency, $account);
+                $result[$currency] = $account;
             }
         } else {
             $free = $this->safe_value($response, 'balances', array());
@@ -1121,7 +1107,7 @@ class exmo extends Exchange {
                 if (is_array($used) && array_key_exists($currencyId, $used)) {
                     $account['used'] = $this->safe_string($used, $currencyId);
                 }
-                $this->store_by_key($result, $code, $account);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
@@ -1356,7 +1342,7 @@ class exmo extends Exchange {
             }
             $response = Async\await($this->publicGetTicker($params));
             $market = $this->market($symbol);
-            return $this->parse_ticker($this->safe_value($response, $market['id']), $market);
+            return $this->parse_ticker($response[$market['id']], $market);
         })();
     }
 
@@ -1960,7 +1946,7 @@ class exmo extends Exchange {
                 //
             }
             $trades = $this->safe_list($response, 'trades');
-            return $this->parse_trades($trades || array(), $market, $since, $limit);
+            return $this->parse_trades($trades, $market, $since, $limit);
         })();
     }
 
@@ -2405,7 +2391,7 @@ class exmo extends Exchange {
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
         $numSymbols = count($symbols);
         if ($numSymbols === 1) {
-            return $this->market($symbols[0]);
+            return $this->markets[$symbols[0]];
         }
         return null;
     }
@@ -2540,9 +2526,7 @@ class exmo extends Exchange {
                 $numParts = count($parts);
                 if ($numParts === 2) {
                     $address = $this->safe_string($parts, 1);
-                    if ($address !== null) {
-                        $address = str_replace(' ', '', $address);
-                    }
+                    $address = str_replace(' ', '', $address);
                 }
             }
         }
@@ -2950,9 +2934,6 @@ class exmo extends Exchange {
             if (!$success) {
                 $code = null;
                 $message = $this->safe_string_2($response, 'error', 'errmsg');
-                if ($message === null) {
-                    throw new ExchangeError($this->id . ' handleErrors() missing message');
-                }
                 $errorParts = explode(':', $message);
                 $numParts = count($errorParts);
                 if ($numParts > 1) {

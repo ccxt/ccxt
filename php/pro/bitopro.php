@@ -489,7 +489,7 @@ class bitopro extends \ccxt\async\bitopro {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         $this->balance = $this->safe_balance($result);
         $client->resolve($this->balance, $event);

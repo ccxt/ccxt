@@ -8,7 +8,6 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
-use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -105,7 +104,7 @@ class woo extends \ccxt\async\woo {
         })();
     }
 
-    public function unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()): PromiseInterface {
+    public function unwatch_public(string $subHash, string $symbol, string $topic, $params = array()): PromiseInterface {
         return Async\async(function () use ($subHash, $symbol, $topic, $params) {
             $urlUid = ($this->uid) ? '/' . $this->uid : '';
             $url = $this->urls['api']['ws']['public'] . $urlUid;
@@ -229,9 +228,6 @@ class woo extends \ccxt\async\woo {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        if ($topic === null) {
-            return;
-        }
         $method = $this->safe_string(explode('@', $topic), 1);
         if ($method === 'orderbookupdate') {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
@@ -244,25 +240,20 @@ class woo extends \ccxt\async\woo {
             } else {
                 try {
                     $ts = $this->safe_integer($message, 'ts');
-                    if ($ts === null) {
-                        return;
-                    }
                     if ($ts > $timestamp) {
                         $this->handle_order_book_message($client, $message, $orderbook);
                         $client->resolve($orderbook, $topic);
                     }
                 } catch (Exception $e) {
                     unset($this->orderbooks[$symbol]);
-                    if ($topic !== null) {
-                        unset($client->subscriptions[$topic]);
-                    }
+                    unset($client->subscriptions[$topic]);
                     $client->reject($e, $topic);
                 }
             }
         } else {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                 $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-                $subscription = $this->safe_value($client->subscriptions, $topic);
+                $subscription = $client->subscriptions[$topic];
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -278,15 +269,10 @@ class woo extends \ccxt\async\woo {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         $symbol = $this->safe_string($subscription, 'symbol'); // watchOrderBook
-        if ($symbol === null) {
-            return;
-        }
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            if ($symbol !== null) {
-                unset($this->orderbooks[$symbol]);
-            }
+            unset($this->orderbooks[$symbol]);
         }
-        $this->store_by_key($this->orderbooks, $symbol, $this->order_book(array(), $limit));
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
@@ -303,27 +289,22 @@ class woo extends \ccxt\async\woo {
                     // if the $orderbook is dropped before the $snapshot is received
                     return;
                 }
-                $orderbook = $this->safe_value($this->orderbooks, $symbol);
+                $orderbook = $this->orderbooks[$symbol];
                 $orderbook->reset($snapshot);
                 $messages = $orderbook->cache;
                 for ($i = 0; $i < count($messages); $i++) {
                     $messageItem = $messages[$i];
                     $ts = $this->safe_integer($messageItem, 'ts');
-                    if ($ts === null) {
-                        return;
-                    }
                     if ($ts < $orderbook['timestamp']) {
                         continue;
                     } else {
                         $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                 }
-                $this->store_by_key($this->orderbooks, $symbol, $orderbook);
+                $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve($orderbook, $messageHash);
             } catch (Exception $e) {
-                if ($messageHash !== null) {
-                    unset($client->subscriptions[$messageHash]);
-                }
+                unset($client->subscriptions[$messageHash]);
                 $client->reject($e, $messageHash);
             }
         })();
@@ -631,14 +612,11 @@ class woo extends \ccxt\async\woo {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->safe_dict($data, $i);
-            if ($ticker === null) {
-                return;
-            }
             $ticker['ts'] = $timestamp;
             $parsedTicker = $this->parse_ws_bid_ask($ticker);
             $symbol = $parsedTicker['symbol'];
-            $this->store_by_key($this->bidsasks, $symbol, $parsedTicker);
-            $this->store_by_key($result, $symbol, $parsedTicker);
+            $this->bidsasks[$symbol] = $parsedTicker;
+            $result[$symbol] = $parsedTicker;
         }
         $client->resolve($result, $topic);
     }
@@ -758,13 +736,11 @@ class woo extends \ccxt\async\woo {
             $this->safe_float($data, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            if ($symbol !== null && $timeframe !== null) {
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
-            }
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $stored->append($parsed);
         $client->resolve($stored, $topic);
@@ -1344,13 +1320,7 @@ class woo extends \ccxt\async\woo {
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
-                if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
-                }
                 for ($i = 0; $i < count($symbols); $i++) {
-                    if ($symbols === null) {
-                        throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
-                    }
                     $symbol = $symbols[$i];
                     $messageHashes[] = 'positions::' . $symbol;
                 }
@@ -1399,7 +1369,7 @@ class woo extends \ccxt\async\woo {
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if (($contracts !== null) && ($contracts > 0)) {
+                if ($contracts > 0) {
                     $cache->append($position);
                 }
             }
@@ -1523,16 +1493,13 @@ class woo extends \ccxt\async\woo {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = $this->account();
-            if (($code !== null) && (is_array($this->balance) && array_key_exists($code, $this->balance))) {
-                $account = $this->balance[$code];
-            }
+            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
-            $this->store_by_key($this->balance, $code, $account);
+            $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
@@ -1579,7 +1546,7 @@ class woo extends \ccxt\async\woo {
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
         $symbol = $fundingRate['symbol'];
-        $this->store_by_key($this->fundingRates, $symbol, $fundingRate);
+        $this->fundingRates[$symbol] = $fundingRate;
         $messageHash = $this->safe_string($message, 'topic');
         $client->resolve($fundingRate, $messageHash);
     }
@@ -1679,9 +1646,6 @@ class woo extends \ccxt\async\woo {
             $splitLength = count($splitTopic);
             if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
-                if ($name === null) {
-                    return;
-                }
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     $method($client, $message);

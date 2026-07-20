@@ -8,7 +8,7 @@ from ccxt.abstract.zebpay import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -374,7 +374,7 @@ class zebpay(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'data', [])
         return self.parse_currencies(rows)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
@@ -403,27 +403,26 @@ class zebpay(Exchange, ImplicitAPI):
             minNetworkDepositString = self.safe_string(chain, 'depositMinSize')
             if minNetworkDepositString is not None:
                 minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': depositAllowed and withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
-                    'fee': self.parse_number(withdrawFeeString),
-                    'precision': precision,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.parse_number(minNetworkDepositString),
-                            'max': None,
-                        },
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': depositAllowed and withdrawAllowed,
+                'deposit': depositAllowed,
+                'withdraw': withdrawAllowed,
+                'fee': self.parse_number(withdrawFeeString),
+                'precision': precision,
+                'limits': {
+                    'withdraw': {
+                        'min': self.parse_number(minNetworkWithdrawString),
+                        'max': None,
                     },
-                }
+                    'deposit': {
+                        'min': self.parse_number(minNetworkDepositString),
+                        'max': None,
+                    },
+                },
+            }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'code': code,
@@ -542,7 +541,7 @@ class zebpay(Exchange, ImplicitAPI):
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
-            self.store_by_key(result, symbol, fee)
+            result[symbol] = fee
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -986,8 +985,6 @@ class zebpay(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         params = self.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1027,7 +1024,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol, type, amount, request, price: Num = None, params={}):
+    def order_request(self, symbol, type, amount, request, price=None, params={}):
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopLossPrice', None)
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
@@ -1084,7 +1081,7 @@ class zebpay(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        return self.parse_order(self.safe_dict(response, 'data', {}))
+        return self.parse_order(self.safe_dict(response, 'data'))
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1179,7 +1176,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, None, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -1666,7 +1663,7 @@ class zebpay(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(entry, 'used')
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_position(self, position: dict, market: Market = None):

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Any, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -95,7 +95,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market=None):
         #
         #    {
         #        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -174,8 +174,6 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         event = self.safe_string(message, 'Event')
         channel = self.safe_string(message, 'Channel')
-        if channel is None:
-            return
         parts = channel.split('/')
         depth = self.safe_string(parts, 1)
         baseId = self.safe_string(parts, 2)

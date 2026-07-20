@@ -1039,10 +1039,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            if (accountType is not None) and (code is not None):
-                self.balance[accountType][code] = account
+            self.balance[accountType][code] = account
         else:
-            self.store_by_key(self.balance, code, account)
+            self.balance[code] = account
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """

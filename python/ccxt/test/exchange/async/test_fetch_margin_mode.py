@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_margin_mode  # noqa E402
 
-
 async def test_fetch_margin_mode(exchange, skipped_properties, symbol):
     method = 'fetchMarginMode'
     margin_mode = await exchange.fetch_margin_mode(symbol)

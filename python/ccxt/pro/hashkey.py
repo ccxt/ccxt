@@ -755,8 +755,7 @@ class hashkey(ccxt.async_support.hashkey):
         account = self.account()
         account['free'] = self.safe_string(balanceUpdate, 'f')
         account['used'] = self.safe_string(balanceUpdate, 'l')
-        if (type is not None) and (code is not None):
-            self.balance[type][code] = account
+        self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)

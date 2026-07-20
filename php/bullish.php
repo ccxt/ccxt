@@ -513,7 +513,7 @@ class bullish extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
         $name = $this->safe_string($rawCurrency, 'name');
@@ -2494,7 +2494,7 @@ class bullish extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'availableQuantity');
             $account['used'] = $this->safe_string($balance, 'lockedQuantity');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }

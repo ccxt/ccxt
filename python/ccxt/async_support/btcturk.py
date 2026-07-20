@@ -331,7 +331,7 @@ class btcturk(Exchange, ImplicitAPI):
                 maxAmount = self.safe_number(filter, 'maxAmount')
                 minCost = self.safe_number(filter, 'minExchangeValue')
         status = self.safe_string(entry, 'status')
-        return self.safe_market_structure({
+        return {
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -379,7 +379,7 @@ class btcturk(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': entry,
-        })
+        }
 
     def parse_balance(self, response) -> Balances:
         data = self.safe_list(response, 'data', [])
@@ -396,7 +396,7 @@ class btcturk(Exchange, ImplicitAPI):
             account['total'] = self.safe_string(entry, 'balance')
             account['free'] = self.safe_string(entry, 'free')
             account['used'] = self.safe_string(entry, 'locked')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -643,7 +643,7 @@ class btcturk(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_trades(data or [], market, since, limit)
+        return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -741,7 +741,7 @@ class btcturk(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcvs(self, ohlcvs, market: Any = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
         timestamp = self.safe_list(ohlcvs, 't', [])
         high = self.safe_list(ohlcvs, 'h', [])
@@ -792,7 +792,7 @@ class btcturk(Exchange, ImplicitAPI):
         elif not ('newClientOrderId' in params):
             request['newClientOrderId'] = self.uuid()
         response = await self.privatePostOrder(self.extend(request, params))
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1008,7 +1008,7 @@ class btcturk(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_trades(data or [], market, since, limit)
+        return self.parse_trades(data, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()

@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_order  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_fetch_orders(exchange, skipped_properties, symbol):
     method = 'fetchOrders'
     orders = await exchange.fetch_orders(symbol)

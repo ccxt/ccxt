@@ -727,7 +727,7 @@ class coinex extends Exchange {
         return $this->parse_currencies($data);
     }
 
-    public function parse_currency($coin): CurrencyInterface {
+    public function parse_currency($coin): array {
         $asset = $this->safe_dict($coin, 'asset', array());
         $currencyId = $this->safe_string($asset, 'ccy');
         $chains = $this->safe_list($coin, 'chains', array());
@@ -765,9 +765,7 @@ class coinex extends Exchange {
                 ),
                 'info' => $chain,
             );
-            if ($networkCode !== null) {
-                $networks[$networkCode] = $network;
-            }
+            $networks[$networkCode] = $network;
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -1041,7 +1039,11 @@ class coinex extends Exchange {
         //
         $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'swap' : 'spot';
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        $symbol = $market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        $quoteVolume = $market['inverse'] ? null : $this->safe_string($ticker, 'value');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1061,7 +1063,7 @@ class coinex extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
@@ -1736,7 +1738,7 @@ class coinex extends Exchange {
             $baseDebt = $this->safe_string($loan, 'base_ccy');
             $baseInterest = $this->safe_string($interest, 'base_ccy');
             $baseAccount['debt'] = Precise::string_add($baseDebt, $baseInterest);
-            $this->store_by_key($result, $baseCurrencyCode, $baseAccount);
+            $result[$baseCurrencyCode] = $baseAccount;
         }
         return $this->safe_balance($result);
     }
@@ -1768,7 +1770,7 @@ class coinex extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'frozen');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1803,7 +1805,7 @@ class coinex extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'frozen');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1835,7 +1837,7 @@ class coinex extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'frozen');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2172,13 +2174,7 @@ class coinex extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
@@ -3077,9 +3073,7 @@ class coinex extends Exchange {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
-            if ($marketId !== null) {
-                $orderSymbols[] = $marketId;
-            }
+            $orderSymbols[] = $marketId;
             $id = $this->safe_string($rawOrder, 'id');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
@@ -4588,7 +4582,7 @@ class coinex extends Exchange {
         //         "message" => "OK"
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data');
         $status = $this->safe_string_lower($response, 'message');
         $type = ($addOrReduce === 'reduce') ? 'reduce' : 'add';
         return $this->extend($this->parse_margin_modification($data, $market), array(
@@ -5850,7 +5844,7 @@ class coinex extends Exchange {
             }
             $code = $this->safe_currency_code($currencyId);
             if ($codes === null || $this->in_array($code, $codes)) {
-                $this->store_by_key($result, $code, $this->parse_deposit_withdraw_fee($item));
+                $result[$code] = $this->parse_deposit_withdraw_fee($item);
             }
         }
         return $result;
@@ -5911,18 +5905,16 @@ class coinex extends Exchange {
                     $currencyId = $this->safe_string($asset, 'ccy');
                     $feeCode = $this->safe_currency_code($currencyId, $currency);
                     $networkCode = $this->network_id_to_code($networkId, $feeCode);
-                    if ($networkCode !== null) {
-                        $result['networks'][$networkCode] = array(
-                            'withdraw' => array(
-                                'fee' => $this->safe_number($entry, 'withdrawal_fee'),
-                                'percentage' => false,
-                            ),
-                            'deposit' => array(
-                                'fee' => null,
-                                'percentage' => null,
-                            ),
-                        );
-                    }
+                    $result['networks'][$networkCode] = array(
+                        'withdraw' => array(
+                            'fee' => $this->safe_number($entry, 'withdrawal_fee'),
+                            'percentage' => false,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                    );
                 }
             }
         }

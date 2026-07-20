@@ -586,7 +586,7 @@ class kraken extends Exchange {
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return $this->decimal_to_precision($fee, TRUNCATE, $this->market($symbol)['precision']['amount'], $this->precisionMode);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -690,16 +690,10 @@ class kraken extends Exchange {
                 $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals')));
                 $spot = true;
                 // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-                if ($base === null) {
-                    throw new ExchangeError($this->id . ' method() missing base');
-                }
                 if ($spot && (is_array($cachedCurrencies) && array_key_exists($base, $cachedCurrencies))) {
-                    $currency = $this->safe_value($cachedCurrencies, $base);
+                    $currency = $cachedCurrencies[$base];
                     $currencyPrecision = $this->safe_number($currency, 'precision');
                     // if $currency precision is greater (e.g. 0.01) than $market precision (e.g. 0.001)
-                    if ($currencyPrecision === null) {
-                        throw new ExchangeError($this->id . ' method() missing currencyPrecision');
-                    }
                     if ($currencyPrecision > $precisionAmount) {
                         $precisionAmount = $currencyPrecision;
                     }
@@ -866,7 +860,7 @@ class kraken extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         // todo => will need to rethink the fees
         // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
         // to add support for multiple withdrawal/deposit methods and
@@ -879,9 +873,6 @@ class kraken extends Exchange {
         $id = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
-        if ($id === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing id');
-        }
         if (mb_strpos($id, '.') === false) {
             $altName = $this->safe_string($rawCurrency, 'altname');
             // handle cases like below:
@@ -890,19 +881,13 @@ class kraken extends Exchange {
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
-            if ($id === null) {
-                throw new ExchangeError($this->id . ' parseCurrency() missing id');
-            }
             if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
                 $code = $this->safe_currency_code($altName);
                 // also, add map in commonCurrencies:
-                $this->store_by_key($this->commonCurrencies, $id, $code);
+                $this->commonCurrencies[$id] = $code;
             } else {
                 $code = $this->safe_currency_code($id);
             }
-        }
-        if ($code === null) {
-            throw new ExchangeError($this->id . ' parseCurrency() missing code');
         }
         $isFiat = mb_strpos($code, '.HOLD') !== false;
         $rawCurrency = $this->omit($rawCurrency, '_coin_id');
@@ -1146,7 +1131,7 @@ class kraken extends Exchange {
                 $marketIds = array();
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
-                    $market = $this->market($symbol);
+                    $market = $this->markets[$symbol];
                     if ($market['active']) {
                         $marketIds[] = $market['id'];
                     }
@@ -1187,7 +1172,7 @@ class kraken extends Exchange {
                 'pair' => $market['id'],
             );
             $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
-            $ticker = $this->safe_value($response['result'], $market['id']);
+            $ticker = $response['result'][$market['id']];
             return $this->parse_ticker($ticker, $market);
         })();
     }
@@ -1250,9 +1235,6 @@ class kraken extends Exchange {
             }
             if ($since !== null) {
                 $scaledSince = $this->parse_to_int($since / 1000);
-                if ($parsedTimeframe === null) {
-                    throw new ExchangeError($this->id . ' fetchOHLCV() missing parsedTimeframe');
-                }
                 $timeFrameInSeconds = $parsedTimeframe * 60;
                 $request['since'] = $this->number_to_string($scaledSince - $timeFrameInSeconds); // expected to be in seconds
             }
@@ -1633,7 +1615,7 @@ class kraken extends Exchange {
             //     }
             //
             $result = $response['result'];
-            $trades = $this->safe_value($result, $id);
+            $trades = $result[$id];
             // $trades is a sorted array => last (most recent trade) goes last
             $length = count($trades);
             if ($length <= 0) {
@@ -1662,7 +1644,7 @@ class kraken extends Exchange {
             $account = $this->account();
             $account['used'] = $this->safe_string($balance, 'hold_trade');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2211,7 +2193,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function order_request(string $method, ?string $symbol, ?string $type, array $request, ?float $amount, ?float $price = null, $params = array()) {
+    public function order_request(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $params = $this->omit($params, array( 'clientOrderId' ));
         if ($clientOrderId !== null) {
@@ -2228,7 +2210,7 @@ class kraken extends Exchange {
         $trailingLimitPercent = $this->safe_string($params, 'trailingLimitPercent');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isTrailingPercentOrder = $trailingPercent !== null;
-        $isLimitOrder = ($type !== null) && str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         $isMarketOrder = $type === 'market';
         $cost = $this->safe_string($params, 'cost');
         $flags = $this->safe_string($params, 'oflags');
@@ -2804,17 +2786,11 @@ class kraken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
              */
-            if ($timeout === null) {
-                throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
-            }
             if ($timeout > 86400000) {
                 throw new BadRequest($this->id . ' cancelAllOrdersAfter $timeout should be less than 86400000 milliseconds');
             }
             if ($this->markets === null) {
                 Async\await($this->load_markets());
-            }
-            if ($timeout === null) {
-                throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
             }
             $request = array(
                 'timeout' => ($timeout > 0) ? ($this->parse_to_int($timeout / 1000)) : 0,
@@ -3427,9 +3403,6 @@ class kraken extends Exchange {
                     // find best matching deposit method, or fallback to the first one
                     for ($i = 0; $i < count($depositMethods); $i++) {
                         $entry = $this->safe_string($depositMethods[$i], 'method');
-                        if ($entry === null) {
-                            throw new ExchangeError($this->id . ' fetchDepositAddress() missing entry');
-                        }
                         if (mb_strpos($entry, $network) !== false) {
                             $depositMethod = $entry;
                             break;

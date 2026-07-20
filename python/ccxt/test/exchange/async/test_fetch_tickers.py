@@ -16,7 +16,6 @@ import asyncio
 from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_fetch_tickers(exchange, skipped_properties, symbol):
     # prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     # is impractical and the "every active market has a ticker" check doesn't apply — test
@@ -65,7 +64,5 @@ def fetch_tickers_amounts_test(exchange, skipped_properties, tickers):
         # ensure tickers length is less than markets length
         #
         all_markets = exchange.markets
-        if all_markets is None:
-            return
         all_markets_length = len(list(all_markets.keys()))
         assert obtained_tickers_length <= all_markets_length, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(all_markets_length) + ' markets'

@@ -358,7 +358,7 @@ class cex extends Exchange {
         return $this->parse_currencies($this->to_array($data));
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $type = $this->safe_bool($rawCurrency, 'fiat') ? 'fiat' : 'crypto';
@@ -372,29 +372,27 @@ class cex extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_string($rawNetwork, 'deposit') === 'enabled';
             $withdraw = $this->safe_string($rawNetwork, 'withdrawal') === 'enabled';
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'margin' => null,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => null,
-                    'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
-                    'precision' => $currencyPrecision,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $this->safe_number($rawNetwork, 'minDeposit'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($rawNetwork, 'minWithdrawal'),
-                            'max' => null,
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'margin' => null,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'active' => null,
+                'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
+                'precision' => $currencyPrecision,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($rawNetwork, 'minDeposit'),
+                        'max' => null,
                     ),
-                    'info' => $rawNetwork,
-                );
-            }
+                    'withdraw' => array(
+                        'min' => $this->safe_number($rawNetwork, 'minWithdrawal'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $rawNetwork,
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -876,11 +874,10 @@ class cex extends Exchange {
                 $market = $this->safe_market($key);
             }
             $parsed = $this->parse_trading_fee($response[$key], $market);
-            $this->store_by_key($result, $parsed['symbol'], $parsed);
+            $result[$parsed['symbol']] = $parsed;
         }
-        $symbols = $this->require_symbols();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             if (!(is_array($result) && array_key_exists($symbol, $result))) {
                 $market = $this->market($symbol);
                 $result[$symbol] = $this->parse_trading_fee($response, $market);
@@ -1006,7 +1003,7 @@ class cex extends Exchange {
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
                 'total' => $this->safe_string($balance, 'balance'),
             );
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1289,9 +1286,6 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
         $request = array(
             'clientOrderId' => $this->uuid(),
             'currency1' => $market['baseId'],
@@ -1363,7 +1357,7 @@ class cex extends Exchange {
         //             "rejectCode" => 405,
         //             "rejectReason" => "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for $market order not both",
         //
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 

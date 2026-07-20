@@ -472,9 +472,8 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         result = {}
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(response, market['id'], {})
             makerString = self.safe_string(fee, 'commission_maker_percent')
@@ -570,8 +569,7 @@ class exmo(Exchange, ImplicitAPI):
                 typeInner = self.safe_string(provider, 'type')
                 commissionDesc = self.safe_string(provider, 'commission_desc')
                 fee = self.parse_fixed_float_value(commissionDesc)
-                if code is not None and typeInner is not None:
-                    result[code][typeInner] = fee
+                result[code][typeInner] = fee
             result[code]['info'] = providers
         # cache them for later use
         self.options['transactionFees'] = result
@@ -649,22 +647,20 @@ class exmo(Exchange, ImplicitAPI):
                 percentage = splitCommissionDescLength >= 2
             network = self.safe_value(result['networks'], networkCode)
             if network is None:
-                if networkCode is not None:
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': None,
-                            'percentage': None,
-                        },
-                        'deposit': {
-                            'fee': None,
-                            'percentage': None,
-                        },
-                    }
-            if (networkCode is not None) and (type is not None):
-                result['networks'][networkCode][type] = {
-                    'fee': self.parse_fixed_float_value(self.safe_string(splitCommissionDesc, 0)),
-                    'percentage': percentage,
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
                 }
+            result['networks'][networkCode][type] = {
+                'fee': self.parse_fixed_float_value(self.safe_string(splitCommissionDesc, 0)),
+                'percentage': percentage,
+            }
         return self.assign_default_deposit_withdraw_fees(result)
 
     def fetch_currencies(self, params={}) -> Currencies:
@@ -724,7 +720,7 @@ class exmo(Exchange, ImplicitAPI):
             newArray.append({'currency': currency, 'providers': providers})
         return self.parse_currencies(newArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currency = self.safe_dict(rawCurrency, 'currency', {})
         providers = self.safe_list(rawCurrency, 'providers', [])
         currencyId = self.safe_string(currency, 'name')
@@ -738,39 +734,36 @@ class exmo(Exchange, ImplicitAPI):
                 provider = providers[j]
                 name = self.safe_string(provider, 'name')
                 # get network-id by removing extra things
-                if name is None:
-                    raise ExchangeError(self.id + ' parseCurrency() missing name')
                 networkId = name.replace(currencyId + ' ', '')
                 networkId = networkId.replace('(', '')
                 replaceChar = ')'  # transpiler trick
                 networkId = networkId.replace(replaceChar, '')
                 networkCode = self.network_id_to_code(networkId, code)
-                if (networkCode is None) or not (networkCode in networks):
-                    if networkCode is not None:
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': None,
-                            'deposit': None,
-                            'withdraw': None,
-                            'fee': None,
-                            'limits': {
-                                'withdraw': {
-                                    'min': None,
-                                    'max': None,
-                                },
-                                'deposit': {
-                                    'min': None,
-                                    'max': None,
-                                },
+                if not (networkCode in networks):
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': None,
+                        'deposit': None,
+                        'withdraw': None,
+                        'fee': None,
+                        'limits': {
+                            'withdraw': {
+                                'min': None,
+                                'max': None,
                             },
-                            'info': [],  # set, because of multiple network sub-entries
-                        }
+                            'deposit': {
+                                'min': None,
+                                'max': None,
+                            },
+                        },
+                        'info': [],  # set, because of multiple network sub-entries
+                    }
                 typeInner = self.safe_string(provider, 'type')
                 minValue = self.safe_string(provider, 'min')
                 maxValue = self.safe_string(provider, 'max')
                 activeProvider = self.safe_bool(provider, 'enabled')
-                networkEntry = self.safe_value(networks, networkCode)
+                networkEntry = networks[networkCode]
                 if typeInner == 'deposit':
                     networkEntry['deposit'] = activeProvider
                     networkEntry['limits']['deposit']['min'] = minValue
@@ -782,8 +775,7 @@ class exmo(Exchange, ImplicitAPI):
                 info = self.safe_list(networkEntry, 'info', [])
                 info.append(provider)
                 networkEntry['info'] = info
-                if networkCode is not None:
-                    networks[networkCode] = networkEntry
+                networks[networkCode] = networkEntry
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -1035,7 +1027,7 @@ class exmo(Exchange, ImplicitAPI):
                 account['used'] = self.safe_string(item, 'used')
                 account['free'] = self.safe_string(item, 'free')
                 account['total'] = self.safe_string(item, 'balance')
-                self.store_by_key(result, currency, account)
+                result[currency] = account
         else:
             free = self.safe_value(response, 'balances', {})
             used = self.safe_value(response, 'reserved', {})
@@ -1048,7 +1040,7 @@ class exmo(Exchange, ImplicitAPI):
                     account['free'] = self.safe_string(free, currencyId)
                 if currencyId in used:
                     account['used'] = self.safe_string(used, currencyId)
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1253,7 +1245,7 @@ class exmo(Exchange, ImplicitAPI):
             self.load_markets()
         response = self.publicGetTicker(params)
         market = self.market(symbol)
-        return self.parse_ticker(self.safe_value(response, market['id']), market)
+        return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1795,7 +1787,7 @@ class exmo(Exchange, ImplicitAPI):
             #     }
             #
         trades = self.safe_list(response, 'trades')
-        return self.parse_trades(trades or [], market, since, limit)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -2198,7 +2190,7 @@ class exmo(Exchange, ImplicitAPI):
         symbols = list(tradesBySymbol.keys())
         numSymbols = len(symbols)
         if numSymbols == 1:
-            return self.market(symbols[0])
+            return self.markets[symbols[0]]
         return None
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2321,8 +2313,7 @@ class exmo(Exchange, ImplicitAPI):
                 numParts = len(parts)
                 if numParts == 2:
                     address = self.safe_string(parts, 1)
-                    if address is not None:
-                        address = address.replace(' ', '')
+                    address = address.replace(' ', '')
         fee = {
             'currency': None,
             'cost': None,
@@ -2684,8 +2675,6 @@ class exmo(Exchange, ImplicitAPI):
             if not success:
                 code = None
                 message = self.safe_string_2(response, 'error', 'errmsg')
-                if message is None:
-                    raise ExchangeError(self.id + ' handleErrors() missing message')
                 errorParts = message.split(':')
                 numParts = len(errorParts)
                 if numParts > 1:

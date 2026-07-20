@@ -513,7 +513,7 @@ class bitbns(Exchange, ImplicitAPI):
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -661,8 +661,6 @@ class bitbns(Exchange, ImplicitAPI):
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
@@ -693,7 +691,7 @@ class bitbns(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        return self.parse_order(response or {}, market)
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -725,7 +723,7 @@ class bitbns(Exchange, ImplicitAPI):
         quoteSide += tail
         request['side'] = quoteSide
         response = await self.v2PostCancel(self.extend(request, params))
-        return self.parse_order(response or {}, market)
+        return self.parse_order(response, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -777,7 +775,7 @@ class bitbns(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        first = self.safe_dict(data, 0, {})
+        first = self.safe_dict(data, 0)
         return self.parse_order(first, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:

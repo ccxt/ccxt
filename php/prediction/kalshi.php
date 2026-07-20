@@ -7,7 +7,6 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\kalshi as Exchange;
-use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -357,9 +356,6 @@ class kalshi extends Exchange {
                     if ($this->markets === null) {
                         $this->markets = $this->create_safe_dictionary();
                     }
-                    if ($parsed === null) {
-                        throw new ExchangeError($this->id . ' fetchOutcome() could not resolve parsed');
-                    }
                     $this->markets[$parsed['market']] = $parsed;
                     // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                     // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -447,9 +443,6 @@ class kalshi extends Exchange {
                 $rawMarkets = $this->safe_list($response, 'markets', array());
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $parsed = $this->parse_market($rawMarkets[$i]);
-                    if ($parsed === null) {
-                        throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve parsed');
-                    }
                     $this->markets[$parsed['market']] = $parsed;
                     $this->index_market_outcomes($parsed);
                 }
@@ -1415,9 +1408,6 @@ class kalshi extends Exchange {
                 // the ticker filter narrows to the market; a market has both legs, so the
                 // wanted-leg filter below still drops the opposite-leg $fills
                 $outcomeObj = $this->outcome($outcome);
-                if ($outcomeObj === null) {
-                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
-                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             if ($limit !== null) {
@@ -1583,9 +1573,6 @@ class kalshi extends Exchange {
                 return $parsed;
             }
             $wantedTickers = array();
-            if ($outcomes === null) {
-                throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');
-            }
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
@@ -1780,9 +1767,6 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
-                if ($outcomeObj === null) {
-                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
-                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -1812,9 +1796,6 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
-                if ($outcomeObj === null) {
-                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
-                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -2185,9 +2166,6 @@ class kalshi extends Exchange {
              * @return {array[]} an array of event structures
              */
             $queries = $this->parse_search_queries($params);
-            if ($queries === null) {
-                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
-            }
             $queriesLength = count($queries);
             $params = $this->omit($params, array( 'query', 'queries' ));
             $userLimit = $this->safe_integer($params, 'limit');

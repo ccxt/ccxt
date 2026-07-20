@@ -1343,8 +1343,7 @@ class aster(ccxt.async_support.aster):
             account['free'] = self.safe_string(entry, 'f')
             account['used'] = self.safe_string(entry, 'l')
             account['total'] = self.safe_string(entry, wallet)
-            if (accountType is not None) and (code is not None):
-                self.balance[accountType][code] = account
+            self.balance[accountType][code] = account
         timestamp = self.safe_integer(message, 'E')
         self.balance[accountType]['timestamp'] = timestamp
         self.balance[accountType]['datetime'] = self.iso8601(timestamp)

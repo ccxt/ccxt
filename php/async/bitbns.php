@@ -529,7 +529,7 @@ class bitbns extends Exchange {
                     $currencyId = 'INR';
                 }
                 $code = $this->safe_currency_code($currencyId);
-                $this->store_by_key($result, $code, $account);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
@@ -690,9 +690,6 @@ class bitbns extends Exchange {
             $targetRate = $this->safe_string($params, 'target_rate');
             $trailRate = $this->safe_string($params, 'trail_rate');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
             $request = array(
                 'side' => strtoupper($side),
                 'symbol' => $market['uppercaseId'],
@@ -727,7 +724,7 @@ class bitbns extends Exchange {
             //         "code":200
             //     }
             //
-            return $this->parse_order($response || array(), $market);
+            return $this->parse_order($response, $market);
         })();
     }
 
@@ -764,7 +761,7 @@ class bitbns extends Exchange {
             $quoteSide .= $tail;
             $request['side'] = $quoteSide;
             $response = Async\await($this->v2PostCancel($this->extend($request, $params)));
-            return $this->parse_order($response || array(), $market);
+            return $this->parse_order($response, $market);
         })();
     }
 
@@ -822,7 +819,7 @@ class bitbns extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $first = $this->safe_dict($data, 0, array());
+            $first = $this->safe_dict($data, 0);
             return $this->parse_order($first, $market);
         })();
     }

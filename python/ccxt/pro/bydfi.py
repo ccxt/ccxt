@@ -922,7 +922,7 @@ class bydfi(ccxt.async_support.bydfi):
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'wb')
                 account['used'] = self.safe_string(balance, 'tfm')
-                self.store_by_key(result, code, account)
+                result[code] = account
             parsedBalance = self.safe_balance(result)
             self.balance = self.extend(self.balance, parsedBalance)
             client.resolve(self.balance, messageHash)

@@ -410,11 +410,9 @@ class coinex extends \ccxt\async\coinex {
             if ($this->safe_value($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
-            if (($accountType !== null) && ($code !== null)) {
-                $this->balance[$accountType][$code] = $account;
-            }
+            $this->balance[$accountType][$code] = $account;
         } else {
-            $this->store_by_key($this->balance, $code, $account);
+            $this->balance[$code] = $account;
         }
     }
 
@@ -1114,7 +1112,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
-        $order = $this->safe_dict_2($data, 'order', 'stop', array());
+        $order = $this->extend(array( 'status' => $this->safe_string($data, 'event') ), $this->safe_dict_2($data, 'order', 'stop', array()));
         $parsedOrder = $this->parse_ws_order($order);
         $symbol = $parsedOrder['symbol'];
         $market = $this->market($symbol);
@@ -1266,6 +1264,10 @@ class coinex extends \ccxt\async\coinex {
             'active_success' => 'open',
             'active_fail' => 'canceled',
             'cancel' => 'canceled',
+            'put' => 'open',
+            'update' => 'open',
+            'modify' => 'open',
+            'finish' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }

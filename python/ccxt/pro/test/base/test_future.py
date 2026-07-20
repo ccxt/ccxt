@@ -10,22 +10,18 @@ sys.path.append(root)
 from ccxt import ExchangeClosedByUser
 from ccxt.async_support.base.ws.future import Future
 
-
 # Helper functions
 async def resolve_later(future, result, delay):
     await asyncio.sleep(delay)
     future.resolve(result)
 
-
 async def cancel_later(future, delay):
     await asyncio.sleep(delay)
     future.cancel()
 
-
 async def reject_later(future, err, delay):
     await asyncio.sleep(delay)
     future.reject(err)
-
 
 async def test_resolve_before():
     print("test_resolve")
@@ -34,7 +30,6 @@ async def test_resolve_before():
     future.resolve(expected_result)
     assert future.done(), "Future is not marked as done"
     assert future.result() == expected_result, f"Expected result '{expected_result}', got '{future.result()}'"
-
 
 async def test_reject():
     print("test_reject")
@@ -48,7 +43,6 @@ async def test_reject():
     except Exception as e:
         assert str(e) == "test error", f"Expected 'test error', got '{str(e)}'"
 
-
 async def test_race_success_before():
     print("test_race_success")
     future1 = Future()
@@ -59,7 +53,6 @@ async def test_race_success_before():
     future2.cancel()
     assert result == "first", f"Expected 'first', got '{result}'"
 
-
 async def test_race_success_after():
     print("test_race_success")
     future1 = Future()
@@ -69,7 +62,6 @@ async def test_race_success_after():
     result = await race_future
     future2.cancel()
     assert result == "first", f"Expected 'first', got '{result}'"
-
 
 async def test_race_return_first_exception():
     print("test_race_return_first_exception")
@@ -82,7 +74,6 @@ async def test_race_return_first_exception():
     except Exception as e:
         assert str(e) == "Error in future1", f"Expected 'Error in future1', got '{str(e)}'"
 
-
 async def test_await_canceled_future():
     print("test_await_canceled_future")
     future = Future()
@@ -93,7 +84,6 @@ async def test_await_canceled_future():
     except asyncio.CancelledError as e:
         assert isinstance(e, asyncio.CancelledError), "Expected asyncio.CancelledError"
 
-
 async def test_cancel():
     print("test_cancel")
     future = Future()
@@ -103,7 +93,6 @@ async def test_cancel():
         assert False, "Expected an exception but none was raised"
     except asyncio.CancelledError as e:
         assert isinstance(e, asyncio.CancelledError), "Expected asyncio.CancelledError"
-
 
 async def test_race_cancel():
     print("test_race_cancel")
@@ -118,7 +107,6 @@ async def test_race_cancel():
     except asyncio.CancelledError:
         assert True
 
-
 async def test_race_mixed_outcomes():
     print("test_race_mixed_outcome")
     future1 = Future()
@@ -130,7 +118,6 @@ async def test_race_mixed_outcomes():
     assert result == "first", f"Expected 'first', got '{result}'"
     task.cancel()
     future2.cancel()
-
 
 async def test_race_with_wait_for_timeout():
     print("test_race_with_wait_for_timeout")
@@ -148,7 +135,6 @@ async def test_race_with_wait_for_timeout():
         assert True
     await task
 
-
 async def test_race_with_wait_for_completion():
     print("test_race_with_wait_for_completion")
     future1 = Future()
@@ -165,7 +151,6 @@ async def test_race_with_wait_for_completion():
         assert False, "Did not expect a timeout"
     await task
 
-
 async def test_race_with_precompleted_future():
     print("test_race_with_precompleted_future")
     future1 = Future()
@@ -175,7 +160,6 @@ async def test_race_with_precompleted_future():
     race_future = Future.race([future1, future2])
     result = await race_future
     assert result == "immediate success", "Race did not correctly prioritize already completed future."
-
 
 async def test_closed_by_user():
     print("test_closed_by_user")
@@ -194,7 +178,6 @@ async def test_closed_by_user():
     except Exception as e:
         assert False, f"Received Exception {e}"
 
-
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -208,3 +191,4 @@ async def test_ws_future():
     await test_race_with_wait_for_completion()
     await test_race_with_precompleted_future()
     await test_closed_by_user()
+

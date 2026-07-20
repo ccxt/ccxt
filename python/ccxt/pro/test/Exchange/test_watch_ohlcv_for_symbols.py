@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_ohlcv  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
     method = 'watchOHLCVForSymbols'
     now = exchange.milliseconds()
@@ -34,8 +33,6 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
         success = True
         try:
             response = await exchange.watch_ohlcv_for_symbols([[symbol, chosen_timeframe_key]], since, limit)
-            if response is None:
-                raise Error(exchange.id + ' watch returned undefined response')
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
@@ -43,8 +40,6 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
             # continue;
             success = False
         if success:
-            if response is None:
-                raise Error(exchange.id + ' watch returned undefined response')
             assertion_message = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosen_timeframe_key + ' | ' + exchange.json(response)
             assert exchange.is_dictionary(response), 'Response must be a dictionary. ' + assertion_message
             assert symbol in response, 'Response should contain the symbol as key. ' + assertion_message

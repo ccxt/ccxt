@@ -15,7 +15,6 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_set_markets_from_exchange():
     empty_exchange = ccxt.Exchange({
         'id': 'sample0',
@@ -43,7 +42,7 @@ async def test_set_markets_from_exchange():
     exchange2 = ccxt.Exchange({
         'id': 'primaryEx',
     })
-    assert (exchange1.markets is not None) and (len(list(exchange1.markets.keys())) > 0), 'Markets should be loaded in exchange1'
+    assert len(list(exchange1.markets.keys())) > 0, 'Markets should be loaded in exchange1'
     # Test error case: exchanges are different
     different_exchange = ccxt.Exchange({
         'id': 'secondaryEx',

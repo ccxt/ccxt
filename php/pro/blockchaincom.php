@@ -125,7 +125,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         $messageHash = 'balance';
         $this->balance = $this->safe_balance($result);
@@ -548,8 +548,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $cachedOrders = $this->orders;
         if ($cachedOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $cachedOrders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $cachedOrders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         if ($event === 'subscribed') {
             return;

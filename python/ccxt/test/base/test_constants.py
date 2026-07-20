@@ -22,7 +22,6 @@ from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS  # noqa E402
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO  # noqa E402
 
-
 def test_constants():
     # assert all
     assert ROUND == 1, 'ROUND should be 1'

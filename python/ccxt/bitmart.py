@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1272,27 +1272,26 @@ class bitmart(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, currencyCode)
             withdraw = self.safe_bool(currency, 'withdraw_enabled')
             deposit = self.safe_bool(currency, 'deposit_enabled')
-            if networkCode is not None:
-                entry['networks'][networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'code': networkCode,
-                    'withdraw': withdraw,
-                    'deposit': deposit,
-                    'active': withdraw and deposit,
-                    'fee': self.safe_number(currency, 'withdraw_fee'),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(currency, 'withdraw_minsize'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
+            entry['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'code': networkCode,
+                'withdraw': withdraw,
+                'deposit': deposit,
+                'active': withdraw and deposit,
+                'fee': self.safe_number(currency, 'withdraw_fee'),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdraw_minsize'),
+                        'max': None,
                     },
-                }
-            self.store_by_key(result, currencyCode, entry)
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+            result[currencyCode] = entry
         keys = list(result.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -2316,8 +2315,8 @@ class bitmart(Exchange, ImplicitAPI):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                self.store_by_key(subResult, baseCode, self.parse_balance_helper(base))
-                self.store_by_key(subResult, quoteCode, self.parse_balance_helper(quote))
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
             return result
         else:
@@ -2329,7 +2328,7 @@ class bitmart(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'available_balance')
                 account['used'] = self.safe_string_n(balance, ['unAvailable', 'frozen', 'frozen_balance'])
-                self.store_by_key(result, code, account)
+                result[code] = account
             return self.safe_balance(result)
 
     def parse_balance_helper(self, entry):
@@ -2856,7 +2855,7 @@ class bitmart(Exchange, ImplicitAPI):
             parsedOrders.append(order)
         return parsedOrders
 
-    def create_swap_order_request(self, symbol: Str, type: Str, side: Str, amount: float, price: Num = None, params={}):
+    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
  @ignore
         create a trade order
@@ -2898,7 +2897,7 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if amount is not None:
-            request['size'] = int((self.amount_to_precision(symbol, amount) or '0'))
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         timeInForce = self.safe_string(params, 'timeInForce')
         mode = self.safe_integer(params, 'mode')  # only for swap
         isMarketOrder = type == 'market'
@@ -2982,11 +2981,7 @@ class bitmart(Exchange, ImplicitAPI):
             request['type'] = type
         return self.extend(request, params)
 
-    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
  @ignore
         create a spot order request
@@ -4674,7 +4669,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
 
@@ -5359,7 +5354,7 @@ class bitmart(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}):
+    def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
         if self.markets is None:
             self.load_markets()
         codes = None

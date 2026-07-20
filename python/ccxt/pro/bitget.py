@@ -644,7 +644,7 @@ class bitget(ccxt.async_support.bitget):
         timeframe = self.find_timeframe(interval, timeframes)
         if timeframe is None:
             return
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -2267,9 +2267,7 @@ class bitget(ccxt.async_support.bitget):
                     entry = coins[j]
                     currencyId = self.safe_string(entry, 'coin')
                     code = self.safe_currency_code(currencyId)
-                    account = self.account()
-                    if (code is not None) and (code in self.balance):
-                        account = self.balance[code]
+                    account = self.balance[code] if (code in self.balance) else self.account()
                     borrow = self.safe_string(entry, 'borrow')
                     debts = self.safe_string(entry, 'debts')
                     if (borrow is not None) or (debts is not None):
@@ -2277,13 +2275,11 @@ class bitget(ccxt.async_support.bitget):
                     account['free'] = self.safe_string(entry, 'available')
                     account['used'] = self.safe_string(entry, 'locked')
                     account['total'] = self.safe_string(entry, 'balance')
-                    self.store_by_key(self.balance, code, account)
+                    self.balance[code] = account
             else:
                 currencyId = self.safe_string_2(rawBalance, 'coin', 'marginCoin')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
-                if (code is not None) and (code in self.balance):
-                    account = self.balance[code]
+                account = self.balance[code] if (code in self.balance) else self.account()
                 borrow = self.safe_string(rawBalance, 'borrow')
                 if borrow is not None:
                     interest = self.safe_string(rawBalance, 'interest')
@@ -2292,7 +2288,7 @@ class bitget(ccxt.async_support.bitget):
                 account['free'] = self.safe_string(rawBalance, freeQuery)
                 account['total'] = self.safe_string(rawBalance, 'equity')
                 account['used'] = self.safe_string(rawBalance, 'frozen')
-                self.store_by_key(self.balance, code, account)
+                self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         messageHash = 'balance:' + instType
         client.resolve(self.balance, messageHash)

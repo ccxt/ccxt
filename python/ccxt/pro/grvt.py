@@ -158,8 +158,8 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
-        interval = 500
-        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', interval)
+        interval = None
+        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -503,8 +503,8 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is None:
             limit, params = self.handle_option_and_params(params, 'watchOrderBook', 'limit', 100)
-        interval = 500
-        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
+        interval = None
+        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
         symbols = self.market_symbols(symbols)
         extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
         rawHashes = []

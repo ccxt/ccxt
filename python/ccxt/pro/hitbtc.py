@@ -343,8 +343,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             for i in range(0, len(symbols)):
                 marketId = self.market_id(symbols[i])
-                if marketId is not None:
-                    marketIds.append(marketId)
+                marketIds.append(marketId)
         request = {
             'params': {
                 'symbols': marketIds,
@@ -744,7 +743,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -756,7 +755,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "t": 1626860340000,             # Message timestamp
@@ -885,8 +884,6 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_order_helper(self, client: Client, message, order):
         orders = self.orders
-        if orders is None:
-            return
         marketId = self.safe_string_lower_2(order, 'instrument', 'symbol')
         method = self.safe_string(message, 'method', '')
         splitMethod = method.split('_order')

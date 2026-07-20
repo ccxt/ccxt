@@ -2532,7 +2532,7 @@ class bitget extends Exchange {
         return $this->parse_currencies($data);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $entry = $rawCurrency;
         $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
@@ -2550,9 +2550,6 @@ class bitget extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chain');
             $network = $this->network_id_to_code($networkId, $code);
-            if ($network === null) {
-                throw new ArgumentsRequired($this->id . ' requires a $network argument');
-            }
             $network = strtoupper($network);
             $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
             $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
@@ -4639,7 +4636,7 @@ class bitget extends Exchange {
             $account['used'] = $this->safe_string($entry, 'locked');
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -4718,7 +4715,7 @@ class bitget extends Exchange {
                     $account['used'] = Precise::string_add($frozen, $locked);
                 }
             }
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -5223,13 +5220,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_uta_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -5349,13 +5340,7 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $marketType = null;
         $marginMode = null;
@@ -9675,12 +9660,10 @@ class bitget extends Exchange {
             $networkId = $this->safe_string($chain, 'chain');
             $currencyCode = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-            if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
-                );
-            }
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
             if ($chainsLength === 1) {
                 $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
                 $result['withdraw']['percentage'] = false;
@@ -11063,36 +11046,34 @@ class bitget extends Exchange {
             $entry = $data[$i];
             $id = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($id);
-            if ($code !== null) {
-                $result[$code] = array(
-                    'info' => $entry,
-                    'id' => $id,
-                    'code' => $code,
-                    'networks' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => $this->safe_number($entry, 'available'),
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($entry, 'minAmount'),
-                            'max' => $this->safe_number($entry, 'maxAmount'),
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+            $result[$code] = array(
+                'info' => $entry,
+                'id' => $id,
+                'code' => $code,
+                'networks' => null,
+                'type' => null,
+                'name' => null,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => $this->safe_number($entry, 'available'),
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->safe_number($entry, 'minAmount'),
+                        'max' => $this->safe_number($entry, 'maxAmount'),
                     ),
-                    'created' => null,
-                );
-            }
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'created' => null,
+            );
         }
         return $result;
     }

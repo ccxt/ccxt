@@ -515,7 +515,7 @@ class modetrade extends Exchange {
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -563,7 +563,7 @@ class modetrade extends Exchange {
             ),
             'created' => $this->safe_integer($market, 'created_time'),
             'info' => $market,
-        ));
+        );
     }
 
     public function fetch_markets($params = array()): array {
@@ -653,7 +653,7 @@ class modetrade extends Exchange {
         return $this->parse_currencies($tokenRows);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, 'token');
         $networks = $this->safe_list($rawCurrency, 'chain_details', array());
         $code = $this->safe_currency_code($currencyId);
@@ -1475,13 +1475,7 @@ class modetrade extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build the $request
@@ -2320,7 +2314,7 @@ class modetrade extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
             $account['used'] = $this->safe_string($balance, 'frozen');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2844,7 +2838,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(?string $symbol, $params = array()) {
         /**
          *
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info

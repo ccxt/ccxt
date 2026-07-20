@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def test_currency(exchange, skipped_properties, method, entry):
     if entry is None:
         return

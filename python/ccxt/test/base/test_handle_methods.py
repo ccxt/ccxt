@@ -14,7 +14,6 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-
 def helper_test_handle_market_type_and_params():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',

@@ -529,7 +529,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency) -> Currency:
         id = self.safe_string(rawCurrency, 'id')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(id)
@@ -540,25 +540,24 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             network = supportedNetworks[j]
             networkId = self.safe_string(network, 'id')
             networkCode = self.network_id_to_code(networkId, code)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'id': networkId,
-                    'name': self.safe_string(network, 'name'),
-                    'network': networkCode,
-                    'active': self.safe_string(network, 'status') == 'online',
-                    'withdraw': None,
-                    'deposit': None,
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'min_withdrawal_amount'),
-                            'max': self.safe_number(network, 'max_withdrawal_amount'),
-                        },
+            networks[networkCode] = {
+                'id': networkId,
+                'name': self.safe_string(network, 'name'),
+                'network': networkCode,
+                'active': self.safe_string(network, 'status') == 'online',
+                'withdraw': None,
+                'deposit': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(network, 'min_withdrawal_amount'),
+                        'max': self.safe_number(network, 'max_withdrawal_amount'),
                     },
-                    'contract': self.safe_string(network, 'contract_address'),
-                    'info': network,
-                }
+                },
+                'contract': self.safe_string(network, 'contract_address'),
+                'info': network,
+            }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -766,7 +765,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1062,7 +1061,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'cost': cost,
         }, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
 
         https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
@@ -2065,7 +2064,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def request(self, path, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         if not isinstance(response, str):
             if 'message' in response:

@@ -1284,7 +1284,9 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}});
+        Object order = this.extend(new java.util.HashMap<String, Object>() {{
+            put( "status", CoinexCore.this.safeString(data, "event") );
+        }}, this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}}));
         Object parsedOrder = this.parseWsOrder(order);
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
         Object market = this.market(((String)symbol));
@@ -1444,6 +1446,10 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             put( "active_success", "open" );
             put( "active_fail", "canceled" );
             put( "cancel", "canceled" );
+            put( "put", "open" );
+            put( "update", "open" );
+            put( "modify", "open" );
+            put( "finish", "closed" );
         }};
         return this.safeString(statuses, status, status);
     }

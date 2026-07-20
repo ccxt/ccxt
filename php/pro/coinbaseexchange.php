@@ -66,7 +66,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         );
     }
 
-    public function subscribe($name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
+    public function subscribe($name, $symbol = null, $messageHashStart = null, $params = array()) {
         return Async\async(function () use ($name, $symbol, $messageHashStart, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -96,7 +96,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         })();
     }
 
-    public function subscribe_multiple($name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+    public function subscribe_multiple($name, $symbols = array(), $messageHashStart = null, $params = array()) {
         return Async\async(function () use ($name, $symbols, $messageHashStart, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -152,9 +152,6 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
-            }
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers() $symbols is required');
             }
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -446,7 +443,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($tradesArray === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $tradesArray = new ArrayCache($tradesLimit);
-                $this->store_by_key($this->trades, $symbol, $tradesArray);
+                $this->trades[$symbol] = $tradesArray;
             }
             $tradesArray->append($trade);
             $client->resolve($tradesArray, $messageHash);
@@ -660,9 +657,6 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $makerOrderId = $this->safe_string($message, 'maker_order_id');
             $takerOrderId = $this->safe_string($message, 'taker_order_id');
             $orders = $this->orders;
-            if ($orders === null) {
-                return;
-            }
             $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
             $previousOrder = $this->safe_value($previousOrders, $orderId);
             if ($previousOrder === null) {
@@ -674,9 +668,6 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $client->resolve($orders, $messageHash);
             } else {
                 $sequence = $this->safe_integer($message, 'sequence');
-                if ($sequence === null) {
-                    return;
-                }
                 $previousInfo = $this->safe_value($previousOrder, 'info', array());
                 $previousSequence = $this->safe_integer($previousInfo, 'sequence');
                 if (($previousSequence === null) || ($sequence > $previousSequence)) {
@@ -733,9 +724,6 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                             }
                         }
                         // update the newUpdates count
-                        if ($orders === null) {
-                            return;
-                        }
                         $orders->append($previousOrder);
                         $client->resolve($orders, $messageHash);
                     }
@@ -818,7 +806,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($marketId !== null) {
             $ticker = $this->parse_ticker($message);
             $symbol = $ticker['symbol'];
-            $this->store_by_key($this->tickers, $symbol, $ticker);
+            $this->tickers[$symbol] = $ticker;
             $messageHash = 'ticker:' . $symbol;
             $idMessageHash = 'ticker:' . $marketId;
             $client->resolve($ticker, $messageHash);
@@ -950,7 +938,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $side = $this->safe_string($sides, $key);
                 $price = $this->safe_number($change, 1);
                 $amount = $this->safe_number($change, 2);
-                $bookside = $this->safe_value($orderbook, $side);
+                $bookside = $orderbook[$side];
                 $bookside->store($price, $amount);
             }
             $orderbook['timestamp'] = $timestamp;

@@ -412,7 +412,7 @@ class bitflyer extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'amount');
             $account['free'] = $this->safe_string($balance, 'available');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -848,7 +848,7 @@ class bitflyer extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *

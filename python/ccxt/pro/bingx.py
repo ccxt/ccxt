@@ -1187,7 +1187,7 @@ class bingx(ccxt.async_support.bingx):
             future.resolve(cache)
             client.resolve(cache, 'swap:positions')
 
-    def parse_ws_position(self, position, market: Market = None):
+    def parse_ws_position(self, position, market=None):
         #
         #     {
         #         "s": "LINK-USDT",     # Symbol
@@ -1598,8 +1598,7 @@ class bingx(ccxt.async_support.bingx):
             account['info'] = balance
             account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
-            if (type is not None) and (code is not None):
-                self.balance[type][code] = account
+            self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')
 

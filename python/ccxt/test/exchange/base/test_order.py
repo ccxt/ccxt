@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base.test_trade import test_trade  # noqa E402
 
-
 def test_order(exchange, skipped_properties, method, entry, symbol, now):
     # prediction-market orders are keyed by an outcome handle, not a `symbol`
     if exchange.safe_bool(exchange.has, 'prediction', False):

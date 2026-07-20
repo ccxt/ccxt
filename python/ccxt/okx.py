@@ -32,7 +32,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import NullResponse
 from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1311,9 +1310,11 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'fetchCanceledOrders': {
                     'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'withdraw': {
                     # a funding password credential is required by the exchange for the
@@ -1556,7 +1557,7 @@ class okx(Exchange, ImplicitAPI):
             # "PERFTESTA-PERFTESTB") options, which would crash createExpiredOptionMarket
             # on the missing expiry.
             isOption = (partsLength > 3) and (marketId.endswith('-C') or marketId.endswith('-P'))
-        if isOption and (marketId is not None) and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
+        if isOption and (marketId is not None) and not (marketId in self.markets_by_id):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(okx, self).safe_market(marketId, market, delimiter, marketType)
@@ -2032,7 +2033,7 @@ class okx(Exchange, ImplicitAPI):
         currencies = list(dataByCurrencyId.values())
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> CurrencyInterface:
+    def parse_currency(self, currency: dict) -> Currency:
         chains = currency
         # currencies are grouped by chain entries, so there is at least one entry
         firstChain = self.safe_dict(chains, 0, {})
@@ -2052,23 +2053,22 @@ class okx(Exchange, ImplicitAPI):
             parts = self.array_slice(idParts, 1)
             chainPart = '-'.join(parts)
             networkCode = self.network_id_to_code(chainPart, code)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_bool(chain, 'canDep'),
-                    'withdraw': self.safe_bool(chain, 'canWd'),
-                    'fee': self.safe_number(chain, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'minWd'),
-                            'max': self.safe_number(chain, 'maxWd'),
-                        },
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'deposit': self.safe_bool(chain, 'canDep'),
+                'withdraw': self.safe_bool(chain, 'canWd'),
+                'fee': self.safe_number(chain, 'fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(chain, 'minWd'),
+                        'max': self.safe_number(chain, 'maxWd'),
                     },
-                    'info': chain,
-                }
+                },
+                'info': chain,
+            }
         return self.safe_currency_structure({
             'info': chains,
             'code': code,
@@ -2774,7 +2774,7 @@ class okx(Exchange, ImplicitAPI):
                 account['used'] = self.safe_string(balance, 'frozenBal')
             else:
                 account['free'] = availEq
-            self.store_by_key(result, code, account)
+            result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
@@ -2791,7 +2791,7 @@ class okx(Exchange, ImplicitAPI):
             account['total'] = self.safe_string(balance, 'bal')
             account['free'] = self.safe_string(balance, 'availBal')
             account['used'] = self.safe_string(balance, 'frozenBal')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -3036,11 +3036,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
         stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
@@ -5216,7 +5212,7 @@ class okx(Exchange, ImplicitAPI):
                 raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
             return result
         codeNetwork = self.network_id_to_code(code, code)
-        if (codeNetwork is not None) and (codeNetwork in response):
+        if codeNetwork in response:
             return response[codeNetwork]
         # if the network is not specified, return the first address
         keys = list(response.keys())
@@ -5259,8 +5255,7 @@ class okx(Exchange, ImplicitAPI):
         if fee is None:
             currencies = self.fetch_currencies()
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
-            networkCodeResolved = self.network_id_to_code(network, currency['code'])
-            targetNetwork = {} if (networkCodeResolved is None) else self.safe_dict(currency['networks'], networkCodeResolved, {})
+            targetNetwork = self.safe_dict(currency['networks'], self.network_id_to_code(network, currency['code']), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.')
@@ -5718,7 +5713,7 @@ class okx(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def fetch_position(self, symbol: str, params={}) -> Position:
+    def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
 
@@ -5790,7 +5785,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         position = self.safe_dict(data, 0)
         if position is None:
-            raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
+            return None
         return self.parse_position(position, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -6013,8 +6008,7 @@ class okx(Exchange, ImplicitAPI):
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
             if market['linear']:
-                initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
-                initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
+                initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
             else:
                 initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
         rounder = '0.00005'  # round to closest 0.01%
@@ -6937,7 +6931,7 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'ccy'))
-            if (code is not None) and (codes is None or self.in_array(code, codes)):
+            if codes is None or self.in_array(code, codes):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
@@ -6949,7 +6943,7 @@ class okx(Exchange, ImplicitAPI):
             borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
         return borrowRateHistories
 
-    def fetch_borrow_rate_histories(self, codes: Strings = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
 
@@ -7565,7 +7559,7 @@ class okx(Exchange, ImplicitAPI):
         # handle unified currency code or symbol
         currencyId = None
         market = None
-        if ((self.markets is not None) and (symbol in self.markets)) or ((self.markets_by_id is not None) and (symbol in self.markets_by_id)):
+        if (symbol in self.markets) or (symbol in self.markets_by_id):
             market = self.market(symbol)
             currencyId = market['baseId']
         else:
@@ -7756,7 +7750,7 @@ class okx(Exchange, ImplicitAPI):
             feeInfo = response[i]
             currencyId = self.safe_string(feeInfo, 'ccy')
             code = self.safe_currency_code(currencyId)
-            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
+            if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -7777,11 +7771,10 @@ class okx(Exchange, ImplicitAPI):
                     'percentage': None,
                 }
                 networkCode = self.network_id_to_code(networkId, code)
-                if networkCode is not None:
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    }
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]
@@ -8607,35 +8600,34 @@ class okx(Exchange, ImplicitAPI):
             entry = data[i]
             id = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(id)
-            if code is not None:
-                result[code] = {
-                    'info': entry,
-                    'id': id,
-                    'code': code,
-                    'networks': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'amount': {
-                            'min': self.safe_number(entry, 'min'),
-                            'max': self.safe_number(entry, 'max'),
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_number(entry, 'min'),
+                        'max': self.safe_number(entry, 'max'),
                     },
-                    'created': None,
-                }
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
         return result
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

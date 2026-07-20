@@ -445,17 +445,9 @@ class alpaca(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_string(response, 'timestamp')
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         localTime = timestamp[0:23]
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlagStrStart = len(timestamp) - 6
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlagStrEnd = len(timestamp) - 3
-        if timestamp is None:
-            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlag = timestamp[jetlagStrStart:jetlagStrEnd]
         iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
@@ -520,8 +512,6 @@ class alpaca(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(asset, 'symbol')
-        if marketId is None:
-            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('/')
         assetClass = self.safe_string(asset, 'class')
         baseId = self.safe_string(parts, 0)
@@ -538,7 +528,7 @@ class alpaca(Exchange, ImplicitAPI):
         minAmount = self.safe_number(asset, 'min_order_size')
         amount = self.safe_number(asset, 'min_trade_increment')
         price = self.safe_number(asset, 'price_increment')
-        return self.safe_market_structure({
+        return {
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -586,7 +576,7 @@ class alpaca(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': asset,
-        })
+        }
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -659,7 +649,7 @@ class alpaca(Exchange, ImplicitAPI):
             symbolTrades = [symbolTrades]
         else:
             raise NotSupported(self.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported')
-        return self.parse_trades(symbolTrades or [], market, since, limit)
+        return self.parse_trades(symbolTrades, market, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1851,7 +1841,7 @@ class alpaca(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         account['free'] = self.safe_string(response, 'cash')
         account['total'] = self.safe_string(response, 'equity')
-        self.store_by_key(result, code, account)
+        result[code] = account
         return self.safe_balance(result)
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

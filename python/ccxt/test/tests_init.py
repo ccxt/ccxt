@@ -27,7 +27,7 @@ if (IS_SYNCHRONOUS):
 else:
     from tests_async import testMainClass as testMainClassAsync
 
-    async def main():
+    async def main ():
         if (isBaseTests):
             if (isWs):
                 await test_base_init_ws()

@@ -913,7 +913,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $balance = $this->parse_ws_balance($rawBalance);
             $balanceType = $this->safe_string($rawBalance, 0);
             $oldBalance = $this->safe_value($this->balance, $balanceType, array());
-            $this->store_by_key($oldBalance, $code, $balance);
+            $oldBalance[$code] = $balance;
             $oldBalance['info'] = $message;
             $this->balance[$balanceType] = $this->safe_balance($oldBalance);
             $updatedTypes[$balanceType] = true;

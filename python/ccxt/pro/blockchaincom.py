@@ -119,7 +119,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         messageHash = 'balance'
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
@@ -511,8 +511,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         cachedOrders = self.orders
         if cachedOrders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            cachedOrders = ArrayCacheBySymbolById(limit)
-            self.orders = cachedOrders
+            self.orders = ArrayCacheBySymbolById(limit)
         if event == 'subscribed':
             return
         elif event == 'rejected':

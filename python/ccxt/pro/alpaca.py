@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -106,10 +106,10 @@ class alpaca(ccxt.async_support.alpaca):
         ticker = self.parse_ticker(message)
         symbol = ticker['symbol']
         messageHash = 'ticker:' + symbol
-        self.store_by_key(self.tickers, symbol, ticker)
-        client.resolve(self.safe_value(self.tickers, symbol), messageHash)
+        self.tickers[symbol] = ticker
+        client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
         #         "T": "q",
@@ -511,15 +511,13 @@ class alpaca(ccxt.async_support.alpaca):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             myTrades = ArrayCacheBySymbolById(limit)
         trade = self.parse_my_trade(rawOrder)
-        if trade is None:
-            return
         myTrades.append(trade)
         messageHash = 'myTrades:' + trade['symbol']
         client.resolve(myTrades, messageHash)
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
 
-    def parse_my_trade(self, trade, market: Market = None):
+    def parse_my_trade(self, trade, market=None):
         #
         #    {
         #        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -560,8 +558,6 @@ class alpaca(ccxt.async_support.alpaca):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'filled_at')
         type = self.safe_string(trade, 'type')
-        if type is None:
-            return None
         if type.find('limit') >= 0:
             # might be limit or stop-limit
             type = 'limit'

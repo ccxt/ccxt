@@ -101,8 +101,6 @@ class bittrade(ccxt.async_support.bittrade):
         #
         tick = self.safe_value(message, 'tick', {})
         ch = self.safe_string(message, 'ch')
-        if ch is None:
-            return message
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
@@ -173,8 +171,6 @@ class bittrade(ccxt.async_support.bittrade):
         tick = self.safe_value(message, 'tick', {})
         data = self.safe_value(tick, 'data', {})
         ch = self.safe_string(message, 'ch')
-        if ch is None:
-            return message
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
@@ -244,8 +240,6 @@ class bittrade(ccxt.async_support.bittrade):
         #     }
         #
         ch = self.safe_string(message, 'ch')
-        if ch is None:
-            return
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
@@ -402,8 +396,6 @@ class bittrade(ccxt.async_support.bittrade):
         tick = self.safe_value(message, 'tick', {})
         seqNum = self.safe_integer(tick, 'seqNum')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
-        if (prevSeqNum is None) or (seqNum is None):
-            return orderbook
         if (prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
@@ -452,8 +444,6 @@ class bittrade(ccxt.async_support.bittrade):
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
-        if symbol is None:
-            return
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
@@ -471,8 +461,6 @@ class bittrade(ccxt.async_support.bittrade):
         #     }
         #
         id = self.safe_string(message, 'id')
-        if id is None:
-            return message
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsById, id)
         if subscription is not None:
@@ -556,8 +544,6 @@ class bittrade(ccxt.async_support.bittrade):
         status = self.safe_string(message, 'status')
         if status == 'error':
             id = self.safe_string(message, 'id')
-            if id is None:
-                return False
             subscriptionsById = self.index_by(client.subscriptions, 'id')
             subscription = self.safe_value(subscriptionsById, id)
             if subscription is not None:

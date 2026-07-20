@@ -38,7 +38,7 @@ function test_set_markets_from_exchange() {
         $exchange2 = new \ccxt\async\Exchange(array(
             'id' => 'primaryEx',
         ));
-        assert(($exchange1->markets !== null) && (count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0), 'Markets should be loaded in exchange1');
+        assert(count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0, 'Markets should be loaded in exchange1');
         // Test error case: exchanges are different
         $different_exchange = new \ccxt\async\Exchange(array(
             'id' => 'secondaryEx',

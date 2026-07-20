@@ -175,8 +175,8 @@ class grvt extends \ccxt\async\grvt {
             }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
-            $interval = 500;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', $interval);
+            $interval = null;
+            list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', 500);
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
@@ -558,8 +558,8 @@ class grvt extends \ccxt\async\grvt {
             if ($limit === null) {
                 list($limit, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'limit', 100);
             }
-            $interval = 500;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
+            $interval = null;
+            list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', 500);
             $symbols = $this->market_symbols($symbols);
             $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
             $rawHashes = array();

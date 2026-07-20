@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -59,7 +59,7 @@ class coinbase(ccxt.async_support.coinbase):
             },
         })
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Str | Strings = None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol=None, params={}):
         """
  @ignore
         subscribes to a websocket channel
@@ -80,8 +80,8 @@ class coinbase(ccxt.async_support.coinbase):
         if isinstance(symbol, list):
             symbols = self.market_symbols(symbol)
             marketIds = self.market_ids(symbols)
-            productIds = marketIds or []
-            messageHash = messageHash + '::' + ','.join((symbol))
+            productIds = marketIds
+            messageHash = messageHash + '::' + ','.join(symbol)
         elif symbol is not None:
             market = self.market(symbol)
             messageHash = name + '::' + symbol
@@ -99,7 +99,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def un_subscribe(self, topic: str, name: str, isPrivate: bool, symbol: Str | Strings = None):
+    async def un_subscribe(self, topic: str, name: str, isPrivate: bool, symbol=None):
         """
  @ignore
         unSubscribes to a websocket channel
@@ -124,9 +124,9 @@ class coinbase(ccxt.async_support.coinbase):
         if isinstance(symbol, list):
             symbols = self.market_symbols(symbol)
             marketIds = self.market_ids(symbols)
-            productIds = marketIds or []
-            watchMessageHash = watchMessageHash + '::' + ','.join(symbols)
-            unWatchMessageHash = unWatchMessageHash + '::' + ','.join(symbols)
+            productIds = marketIds
+            watchMessageHash = watchMessageHash + '::' + ','.join(symbol)
+            unWatchMessageHash = unWatchMessageHash + '::' + ','.join(symbol)
         elif symbol is not None:
             market = self.market(symbol)
             watchMessageHash = name + '::' + symbol
@@ -239,7 +239,7 @@ class coinbase(ccxt.async_support.coinbase):
         self.options['unSubscription'] = None
         return res
 
-    def create_ws_auth(self, name: str, productIds: List[Str]):
+    def create_ws_auth(self, name: str, productIds: List[str]):
         subscribe = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
@@ -439,13 +439,13 @@ class coinbase(ccxt.async_support.coinbase):
                 result['timestamp'] = timestamp
                 result['datetime'] = datetime
                 symbol = result['symbol']
-                self.store_by_key(self.tickers, symbol, result)
+                self.tickers[symbol] = result
                 newTickers.append(result)
                 messageHash = channel + '::' + symbol
                 client.resolve(result, messageHash)
                 self.try_resolve_usdc(client, messageHash, result)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker, market=None):
         #
         #     {
         #         "type": "ticker",
@@ -675,8 +675,6 @@ class coinbase(ccxt.async_support.coinbase):
         #    }
         #
         events = self.safe_list(message, 'events')
-        if events is None:
-            return
         event = self.safe_value(events, 0)
         trades = self.safe_list(event, 'trades')
         trade = self.safe_dict(trades, 0)
@@ -691,8 +689,6 @@ class coinbase(ccxt.async_support.coinbase):
         for i in range(0, len(events)):
             currentEvent = events[i]
             currentTrades = self.safe_list(currentEvent, 'trades')
-            if currentTrades is None:
-                return
             for j in range(0, len(currentTrades)):
                 item = currentTrades[j]
                 tradesArray.append(self.parse_trade(item))
@@ -729,8 +725,6 @@ class coinbase(ccxt.async_support.coinbase):
         #    }
         #
         events = self.safe_list(message, 'events')
-        if events is None:
-            return
         marketIds = []
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -738,15 +732,11 @@ class coinbase(ccxt.async_support.coinbase):
         for i in range(0, len(events)):
             event = events[i]
             responseOrders = self.safe_list(event, 'orders')
-            if responseOrders is None:
-                return
             for j in range(0, len(responseOrders)):
                 responseOrder = responseOrders[j]
                 parsed = self.parse_ws_order(responseOrder)
                 cachedOrders = self.orders
                 marketId = self.safe_string(responseOrder, 'product_id')
-                if marketId is None:
-                    return
                 if not (marketId in marketIds):
                     marketIds.append(marketId)
                 cachedOrders.append(parsed)
@@ -758,7 +748,7 @@ class coinbase(ccxt.async_support.coinbase):
             self.try_resolve_usdc(client, messageHash, self.orders)
         client.resolve(self.orders, 'user')
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order, market=None):
         #
         #    {
         #        "order_id": "XXX",
@@ -815,7 +805,7 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbookSide = self.safe_value(orderbook, side)
+            orderbookSide = orderbook[side]
             orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
@@ -848,8 +838,6 @@ class coinbase(ccxt.async_support.coinbase):
         #    }
         #
         events = self.safe_list(message, 'events')
-        if events is None:
-            return
         datetime = self.safe_string(message, 'timestamp')
         for i in range(0, len(events)):
             event = events[i]
@@ -949,9 +937,7 @@ class coinbase(ccxt.async_support.coinbase):
         type = self.safe_string(message, 'type')
         if type == 'error':
             errorMessage = self.safe_string(message, 'message')
-            # ternary(not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            errorMessageValue = errorMessage if (errorMessage is not None) else 'unknown error'
-            raise ExchangeError(errorMessageValue)
+            raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
         if method:
             method(client, message)

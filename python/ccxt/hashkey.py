@@ -1191,7 +1191,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(coins)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(currencyId)
         networks = self.safe_list(rawCurrency, 'chainTypes')
@@ -1200,27 +1200,26 @@ class hashkey(Exchange, ImplicitAPI):
             network = networks[j]
             networkId = self.safe_string(network, 'chainType')
             networkCode = self.network_code_to_id(networkId, code)
-            if networkCode is not None:
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'minWithdrawQuantity'),
-                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(network, 'minDepositQuantity'),
-                            'max': None,
-                        },
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(network, 'minWithdrawQuantity'),
+                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))),
                     },
-                    'active': None,
-                    'deposit': self.safe_bool(network, 'allowDeposit'),
-                    'withdraw': self.safe_bool(network, 'allowWithdraw'),
-                    'fee': self.safe_number(network, 'withdrawFee'),
-                    'precision': None,
-                    'info': network,
-                }
+                    'deposit': {
+                        'min': self.safe_number(network, 'minDepositQuantity'),
+                        'max': None,
+                    },
+                },
+                'active': None,
+                'deposit': self.safe_bool(network, 'allowDeposit'),
+                'withdraw': self.safe_bool(network, 'allowWithdraw'),
+                'fee': self.safe_number(network, 'withdrawFee'),
+                'precision': None,
+                'info': network,
+            }
         rawType = self.safe_string(rawCurrency, 'tokenType')
         type = 'fiat' if (rawType == 'REAL_MONEY') else 'crypto'
         return self.safe_currency_structure({
@@ -1822,7 +1821,7 @@ class hashkey(Exchange, ImplicitAPI):
             account['total'] = self.safe_string(balanceEntry, 'total')
             account['free'] = self.safe_string(balanceEntry, 'free')
             account['used'] = self.safe_string(balanceEntry, 'locked')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def parse_swap_balance(self, balance) -> Balances:
@@ -1846,7 +1845,7 @@ class hashkey(Exchange, ImplicitAPI):
         result = {
             'info': balance,
         }
-        self.store_by_key(result, code, account)
+        result[code] = account
         return self.safe_balance(result)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2570,11 +2569,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         market = self.market(symbol)
         if market['spot']:
             return self.create_spot_order_request(symbol, type, side, amount, price, params)
@@ -2583,11 +2578,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets')
 
-    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
  @ignore
         helper function to build request
@@ -2629,7 +2620,7 @@ class hashkey(Exchange, ImplicitAPI):
             params['newClientOrderId'] = clientOrderId
         return self.extend(request, params)
 
-    def create_swap_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
  @ignore
         helper function to build request

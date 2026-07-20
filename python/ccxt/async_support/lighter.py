@@ -454,7 +454,7 @@ class lighter(Exchange, ImplicitAPI):
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
         return(signer is not None)
 
-    def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: Any = None) -> List[Any]:
+    def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None) -> List[Any]:
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
@@ -463,7 +463,7 @@ class lighter(Exchange, ImplicitAPI):
             self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
         return [self.parse_to_int(apiKeyIndex), params]
 
-    async def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: Any = None) -> List[Any]:
+    async def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None) -> List[Any]:
         accountIndex = None
         accountIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if accountIndex is None:
@@ -669,11 +669,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> List[Any]:
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> List[Any]:
         """
  @ignore
         helper function to build the request
@@ -1208,7 +1204,7 @@ class lighter(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'asset_details', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'asset_id')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'symbol'))
         decimals = self.safe_string(rawCurrency, 'decimals')
@@ -1726,7 +1722,7 @@ class lighter(Exchange, ImplicitAPI):
                     balance = self.safe_dict(result, code, self.account())
                     balance['total'] = Precise.string_add(balance['total'], self.safe_string(asset, 'balance'))
                     balance['used'] = Precise.string_add(balance['used'], self.safe_string(asset, 'locked_balance'))
-                    self.store_by_key(result, code, balance)
+                    result[code] = balance
             else:
                 perpBalance = self.safe_dict(result, 'USDC', self.account())
                 perpTotal = self.safe_string(perpBalance, 'total', '0')
@@ -2873,7 +2869,7 @@ class lighter(Exchange, ImplicitAPI):
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires an marginMode parameter')
         leverage = None
-        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage')
+        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 'leverage')
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires an leverage parameter')
         return await self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)

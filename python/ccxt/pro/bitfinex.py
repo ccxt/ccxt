@@ -831,7 +831,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             balance = self.parse_ws_balance(rawBalance)
             balanceType = self.safe_string(rawBalance, 0)
             oldBalance = self.safe_value(self.balance, balanceType, {})
-            self.store_by_key(oldBalance, code, balance)
+            oldBalance[code] = balance
             oldBalance['info'] = message
             self.balance[balanceType] = self.safe_balance(oldBalance)
             updatedTypes[balanceType] = True

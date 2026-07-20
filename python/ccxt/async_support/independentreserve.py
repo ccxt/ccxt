@@ -403,7 +403,7 @@ class independentreserve(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'AvailableBalance')
             account['total'] = self.safe_string(balance, 'TotalBalance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -815,15 +815,13 @@ class independentreserve(Exchange, ImplicitAPI):
             currencyId = self.safe_string(fee, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             tradingFee = self.safe_number(fee, 'Fee')
-            if code is not None:
-                fees[code] = {
-                    'info': fee,
-                    'fee': tradingFee,
-                }
+            fees[code] = {
+                'info': fee,
+                'fee': tradingFee,
+            }
         result = {}
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(fees, market['base'], {})
             result[symbol] = {

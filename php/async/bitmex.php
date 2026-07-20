@@ -478,7 +478,7 @@ class bitmex extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): CurrencyInterface {
+    public function parse_currency(array $currency): array {
         $asset = $this->safe_string($currency, 'asset');
         $code = $this->safe_currency_code($asset);
         $id = $this->safe_string($currency, 'currency');
@@ -505,28 +505,26 @@ class bitmex extends Exchange {
             if ($isWithdrawEnabled) {
                 $withdrawEnabled = true;
             }
-            if ($network !== null) {
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'active' => $active,
-                    'deposit' => $isDepositEnabled,
-                    'withdraw' => $isWithdrawEnabled,
-                    'fee' => $withdrawalFee,
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
+                'fee' => $withdrawalFee,
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                );
-            }
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
         }
         $currencyEnabled = $this->safe_value($currency, 'enabled');
         $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
@@ -600,7 +598,7 @@ class bitmex extends Exchange {
             return $this->parse_number($rawQuantity);
         }
         $symbol = $this->safe_symbol($symbol);
-        $marketExists = (($this->symbols !== null) && $this->in_array($symbol, $this->symbols));
+        $marketExists = $this->in_array($symbol, $this->symbols);
         if (!$marketExists) {
             return $this->parse_number($rawQuantity);
         }
@@ -884,10 +882,7 @@ class bitmex extends Exchange {
             $isQuanto = null;
             $linear = null;
         }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' parseMarket() requires a symbol');
-        }
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -938,7 +933,7 @@ class bitmex extends Exchange {
             ),
             'created' => null, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info' => $market,
-        ));
+        );
     }
 
     public function parse_balance($response): array {
@@ -999,7 +994,7 @@ class bitmex extends Exchange {
             $total = $this->safe_string($balance, 'marginBalance');
             $account['free'] = $this->convert_to_real_amount($code, $free);
             $account['total'] = $this->convert_to_real_amount($code, $total);
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1112,8 +1107,7 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4927
                 // the exchange sometimes returns null $price in the orderbook
                 if ($price !== null) {
-                    $resultSide = $result[$side];
-                    $resultSide[] = array( $price, $amount );
+                    $result[$side][] = array( $price, $amount );
                 }
             }
             $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -2033,7 +2027,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_bool($market, 'inverse', false) === true;
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -2468,9 +2462,6 @@ class bitmex extends Exchange {
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
-            }
-            if ($timeout === null) {
-                throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
             }
             $request = array(
                 'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
@@ -2918,9 +2909,6 @@ class bitmex extends Exchange {
             }
             $request = array();
             $market = null;
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
             if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
                 $code = $this->currency($symbol);
                 $request['symbol'] = $code['id'];
@@ -3148,12 +3136,10 @@ class bitmex extends Exchange {
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
                 $withdrawalFeeId = $this->safe_string($network, 'withdrawalFee');
                 $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeId, $precision));
-                if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
-                        'deposit' => array( 'fee' => null, 'percentage' => null ),
-                        'withdraw' => array( 'fee' => $withdrawalFee, 'percentage' => false ),
-                    );
-                }
+                $result['networks'][$networkCode] = array(
+                    'deposit' => array( 'fee' => null, 'percentage' => null ),
+                    'withdraw' => array( 'fee' => $withdrawalFee, 'percentage' => false ),
+                );
                 if ($networksLength === 1) {
                     $result['withdraw']['fee'] = $withdrawalFee;
                     $result['withdraw']['percentage'] = false;
@@ -3294,7 +3280,7 @@ class bitmex extends Exchange {
         return $cost;
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the public liquidations of a trading pair
@@ -3699,7 +3685,7 @@ class bitmex extends Exchange {
         })();
     }
 
-    public function parse_settlements($settlements, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_settlements($settlements, $market = null, $since = null, $limit = null) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -3709,7 +3695,7 @@ class bitmex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement($settlement, ?array $market = null) {
+    public function parse_settlement($settlement, $market = null) {
         //
         //    {
         //        timestamp => '2025-03-28T12:00:00.000Z',
@@ -3830,9 +3816,6 @@ class bitmex extends Exchange {
                 'api-key' => $this->apiKey,
             );
             $expires = $this->sum($this->seconds(), $expires);
-            if ($expires === null) {
-                throw new ExchangeError($this->id . ' sign() missing expires');
-            }
             $stringExpires = (string) $expires;
             $auth .= $stringExpires;
             $headers['api-expires'] = $stringExpires;

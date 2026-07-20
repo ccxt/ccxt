@@ -8,7 +8,6 @@ from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -501,7 +500,7 @@ class hollaex(Exchange, ImplicitAPI):
         values = list(coins.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         withdrawalLimits = self.safe_list(rawCurrency, 'withdrawal_limits', [])
@@ -514,23 +513,22 @@ class hollaex(Exchange, ImplicitAPI):
             networkId = networkIds[j]
             networkEntry = self.safe_dict(rawNetworks, networkId)
             networkCode = self.network_id_to_code(networkId, code)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': self.safe_bool(networkEntry, 'active'),
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': self.safe_number(networkEntry, 'value'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': self.safe_bool(networkEntry, 'active'),
+                'deposit': None,
+                'withdraw': None,
+                'fee': self.safe_number(networkEntry, 'value'),
+                'precision': None,
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
                     },
-                    'info': networkEntry,
-                }
+                },
+                'info': networkEntry,
+            }
         return self.safe_currency_structure({
             'id': id,
             'numericId': self.safe_integer(rawCurrency, 'id'),
@@ -981,17 +979,14 @@ class hollaex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        currenciesById = self.currencies_by_id
-        if currenciesById is None:
-            raise ExchangeError(self.id + ' currencies not loaded')
-        currencyIds = list(currenciesById.keys())
+        currencyIds = list(self.currencies_by_id.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(response, currencyId + '_available')
             account['total'] = self.safe_string(response, currencyId + '_balance')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1916,8 +1911,6 @@ class hollaex(Exchange, ImplicitAPI):
                 currencyId = self.safe_string(value, 'symbol')
                 currencyCode = self.safe_currency_code(currencyId)
                 networkCode = self.network_id_to_code(key, currencyCode)
-                if networkCode is None:
-                    raise ArgumentsRequired(self.id + ' requires a networkCode argument')
                 networkCodeUpper = networkCode.upper()  # default to the upper case network code
                 withdrawalFee = self.safe_number(value, 'value')
                 result['networks'][networkCodeUpper] = {

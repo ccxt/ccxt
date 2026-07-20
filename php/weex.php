@@ -850,7 +850,7 @@ class weex extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($currencyId);
         $name = $this->safe_string($rawCurrency, 'name');
@@ -860,29 +860,27 @@ class weex extends Exchange {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'withdrawMin'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'depositDust'),
-                            'max' => null,
-                        ),
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
+                        'max' => null,
                     ),
-                );
-            }
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'depositDust'),
+                        'max' => null,
+                    ),
+                ),
+            );
         }
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         $networksLength = count($networkKeys);
@@ -1021,7 +1019,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade', false) === true;
+            $active = $this->safe_bool($market, 'enableTrade');
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1032,9 +1030,6 @@ class weex extends Exchange {
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
         $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
-        if ($id === null) {
-            throw new ExchangeError($this->id . ' method() missing id');
-        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => strtolower($id),
@@ -1441,9 +1436,6 @@ class weex extends Exchange {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
                 } elseif ($since === null) {
-                    if ($until === null) {
-                        throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
-                    }
                     $startTime = $until - $timeDelta;
                 } else {
                     $endTime = $since . $timeDelta;
@@ -1520,7 +1512,7 @@ class weex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_trades($response || array(), $market, $since, $limit);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1872,7 +1864,7 @@ class weex extends Exchange {
             $account['free'] = $this->safe_string_2($entry, 'availableBalance', 'free');
             $account['used'] = $this->safe_string_2($entry, 'frozen', 'locked');
             $account['total'] = $this->safe_string($entry, 'balance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1947,7 +1939,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status): ?string {
+    public function parse_transfer_status(?string $status): string {
         $statuses = array(
             'Successful' => 'ok',
         );
@@ -2013,23 +2005,11 @@ class weex extends Exchange {
         //         "transactTime" => 1775608924724
         //     }
         //
-        if ($response === null) {
-            throw new NullResponse($this->id . ' parseOrder() returned empty response');
-        }
         return $this->parse_order($response, $market);
     }
 
-    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createSpotOrderRequest() requires a $side argument');
-        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2090,23 +2070,11 @@ class weex extends Exchange {
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
         }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' createOrder() returned empty response');
-        }
         return $this->parse_order($response, $market);
     }
 
-    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createContractOrderRequest() requires a $side argument');
-        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -2279,9 +2247,6 @@ class weex extends Exchange {
         } else {
             $response = $this->contractPrivateDeleteCapiV3Order($this->extend($request, $params));
         }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' parseOrder() returned empty response');
-        }
         $order = $this->parse_order($response, $market);
         $order['status'] = 'canceled';
         return $order;
@@ -2386,7 +2351,7 @@ class weex extends Exchange {
         return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2446,9 +2411,6 @@ class weex extends Exchange {
             $response = $this->privateGetApiV3Order($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateGetCapiV3Order($this->extend($request, $params));
-        }
-        if ($response === null) {
-            throw new NullResponse($this->id . ' parseOrder() returned empty response');
         }
         return $this->parse_order($response, $market);
     }
@@ -3107,7 +3069,7 @@ class weex extends Exchange {
             //
             $response = $this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params));
         }
-        return $this->parse_trades($response || array(), $market, $since, $limit);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3147,9 +3109,6 @@ class weex extends Exchange {
             $currency = $this->currency($code);
         }
         if ($accountType === 'contract') {
-            if ($currency === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
-            }
             if ($code !== null) {
                 $request['currency'] = $currency['id'];
             }
@@ -3237,9 +3196,6 @@ class weex extends Exchange {
         $before = Precise::string_sub($after, $amountRaw);
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
-        if ($amountRaw === null) {
-            throw new ExchangeError($this->id . ' parseLedgerEntry() missing amountRaw');
-        }
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
@@ -3615,7 +3571,7 @@ class weex extends Exchange {
         return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
     }
 
-    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string($marginMode, 'marginType');
         return array(

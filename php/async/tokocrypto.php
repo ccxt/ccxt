@@ -1218,7 +1218,7 @@ class tokocrypto extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_trades($response || array(), $market, $since, $limit);
+            return $this->parse_trades($response, $market, $since, $limit);
         })();
     }
 
@@ -1536,7 +1536,7 @@ class tokocrypto extends Exchange {
         })();
     }
 
-    public function parse_balance_custom($response, ?string $type = null, ?string $marginMode = null) {
+    public function parse_balance_custom($response, $type = null, $marginMode = null) {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
@@ -1552,7 +1552,7 @@ class tokocrypto extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'free');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2391,7 +2391,7 @@ class tokocrypto extends Exchange {
         })();
     }
 
-    public function parse_transaction_status_by_type($status, ?string $type = null) {
+    public function parse_transaction_status_by_type($status, $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',

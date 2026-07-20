@@ -802,7 +802,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         //
         //            array(
         //                "id" => "4",
@@ -1415,7 +1415,7 @@ class grvt extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['free'] = $availableBalance; // todo => revise after API team clarification
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -2594,7 +2594,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         //
         // fetchMarginModes
         //
@@ -3228,14 +3228,11 @@ class grvt extends Exchange {
         return $this->convert_to_big_int_custom('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    public function create_signed_request(mixed $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
+    public function create_signed_request(mixed $request, string $structureType, $currencyObj = null, ?string $signerAddress = null): array {
         $messageData = null;
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
             $amountInt = $request['num_tokens'] * $amountMultiplier;
-            if ($currencyObj === null) {
-                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
-            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'fromSubAccount' => $request['from_sub_account_id'],
@@ -3248,9 +3245,6 @@ class grvt extends Exchange {
             );
         } elseif ($structureType === 'EIP712_WITHDRAWAL_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
-            if ($currencyObj === null) {
-                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
-            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'toEthAddress' => $request['to_eth_address'],

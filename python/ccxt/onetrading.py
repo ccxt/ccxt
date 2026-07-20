@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -450,7 +450,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         id = self.safe_string(rawCurrency, 'code')
         code = self.safe_currency_code(id)
         return self.safe_currency_structure({
@@ -548,7 +548,7 @@ class onetrading(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         if isPerp:
             symbol = symbol + ':' + quote
-        return self.safe_market_structure({
+        return {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -596,7 +596,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        })
+        }
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
@@ -676,9 +676,8 @@ class onetrading(Exchange, ImplicitAPI):
         firstSpotTier = self.safe_dict(spotTiers, 0, {})
         firstFuturesTier = self.safe_dict(futuresTiers, 0, {})
         result = {}
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             tierObject = firstSpotTier if (market['spot']) else firstFuturesTier
             result[symbol] = {
@@ -741,9 +740,8 @@ class onetrading(Exchange, ImplicitAPI):
         futuresTakerFee = Precise.string_div(futuresTakerFee, '100')
         result = {}
         # tiers = self.parse_fee_tiers(feeTiers)
-        symbols = self.require_symbols()
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             makerFee = spotMakerFee if (market['spot']) else futuresMakerFee
             takerFee = spotTakerFee if (market['spot']) else futuresTakerFee
@@ -902,7 +900,7 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
-            self.store_by_key(result, symbol, ticker)
+            result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1015,14 +1013,10 @@ class onetrading(Exchange, ImplicitAPI):
             'MONTHS': 'M',
         }
         lowercaseUnit = self.safe_string(units, unit)
-        if (period is None) or (lowercaseUnit is None):
-            raise ExchangeError(self.id + ' parseOHLCV() missing period/unit')
         timeframe = period + lowercaseUnit
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
-        if timestamp is None:
-            raise ExchangeError(self.id + ' parseOHLCV() missing timestamp')
         alignedTimestamp = duration * self.parse_to_int(timestamp / duration)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
@@ -1052,8 +1046,6 @@ class onetrading(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         periodUnit = self.safe_string(self.timeframes, timeframe)
-        if periodUnit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV() missing periodUnit')
         period, unit = periodUnit.split('/')
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
@@ -1173,7 +1165,7 @@ class onetrading(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'locked')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1362,8 +1354,6 @@ class onetrading(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'instrument_code': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET, STOP

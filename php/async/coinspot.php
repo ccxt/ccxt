@@ -314,7 +314,7 @@ class coinspot extends Exchange {
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'balance');
-                    $this->store_by_key($result, $code, $account);
+                    $result[$code] = $account;
                 }
             }
         } else {
@@ -324,7 +324,7 @@ class coinspot extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balances, $currencyId);
-                $this->store_by_key($result, $code, $account);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);

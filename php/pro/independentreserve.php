@@ -101,7 +101,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         //    {
         //        "TradeGuid" => "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -186,9 +186,6 @@ class independentreserve extends \ccxt\async\independentreserve {
         //
         $event = $this->safe_string($message, 'Event');
         $channel = $this->safe_string($message, 'Channel');
-        if ($channel === null) {
-            return;
-        }
         $parts = explode('/', $channel);
         $depth = $this->safe_string($parts, 1);
         $baseId = $this->safe_string($parts, 2);

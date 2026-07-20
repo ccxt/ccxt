@@ -5,11 +5,10 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
@@ -227,7 +226,7 @@ class onetrading(ccxt.async_support.onetrading):
             client.resolve(self.tickers[symbol], 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker, market=None):
         #
         #     {
         #         "instrument": "ETH_BTC",
@@ -511,7 +510,7 @@ class onetrading(ccxt.async_support.onetrading):
         client.resolve(self.orders, 'orders:' + order['symbol'])
         client.resolve(self.orders, 'orders')
 
-    def parse_trading_order(self, order, market: Market = None):
+    def parse_trading_order(self, order, market=None):
         #
         #     {
         #         "order_book_sequence": 892925263,
@@ -1010,7 +1009,7 @@ class onetrading(ccxt.async_support.onetrading):
         account = self.account()
         account['free'] = self.safe_string(balance, 'new_available')
         account['used'] = self.safe_string(balance, 'new_locked')
-        self.store_by_key(self.balance, code, account)
+        self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1053,9 +1052,8 @@ class onetrading(ccxt.async_support.onetrading):
                 subscription = {}
         subscriptionMarketId = self.safe_value(subscription, marketId)
         if subscriptionMarketId is None:
-            self.store_by_key(subscription, marketId, {})
-        if (marketId is not None) and (timeframe is not None):
-            subscription[marketId][timeframe] = True
+            subscription[marketId] = {}
+        subscription[marketId][timeframe] = True
         properties = []
         marketIds = list(subscription.keys())
         for i in range(0, len(marketIds)):
@@ -1132,19 +1130,16 @@ class onetrading(ccxt.async_support.onetrading):
             self.safe_number(message, 'volume'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
         stored.append(parsed)
-        if symbol is not None and timeframe is not None:
-            self.ohlcvs[symbol][timeframe] = stored
+        self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, channel)
 
-    def find_timeframe(self, timeframe, timeframes: Any = None):
+    def find_timeframe(self, timeframe, timeframes=None):
         timeframes = timeframes or self.timeframes
-        if timeframes is None:
-            raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
         keys = list(timeframes.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -1262,10 +1257,7 @@ class onetrading(ccxt.async_support.onetrading):
         marketIds = []
         numSymbols = len(symbols)
         if numSymbols == 0:
-            marketsById = self.markets_by_id
-            if marketsById is None:
-                return []
-            marketIds = list(marketsById.keys())
+            marketIds = list(self.markets_by_id.keys())
         else:
             marketIds = self.market_ids(symbols)
         url = self.urls['api']['ws']

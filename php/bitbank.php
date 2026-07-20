@@ -309,7 +309,7 @@ class bitbank extends Exchange {
         $quoteId = $this->safe_string($entry, 'quote_asset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -359,7 +359,7 @@ class bitbank extends Exchange {
             ),
             'created' => null,
             'info' => $entry,
-        ));
+        );
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -660,7 +660,7 @@ class bitbank extends Exchange {
             $account['free'] = $this->safe_string($balance, 'free_amount');
             $account['used'] = $this->safe_string($balance, 'locked_amount');
             $account['total'] = $this->safe_string($balance, 'onhand_amount');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }

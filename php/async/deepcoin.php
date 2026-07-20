@@ -371,7 +371,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), mixed $defaultValue = null): mixed {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array(), $defaultValue = null): mixed {
         $instType = $this->safe_string($params, 'instType');
         $params = $this->omit($params, 'instType');
         $type = $this->safe_string($params, 'type');
@@ -581,19 +581,17 @@ class deepcoin extends Exchange {
     }
 
     public function set_markets($markets, $currencies = null) {
-        $result = parent::set_markets($markets, $currencies);
-        $symbols = is_array($result) ? array_keys($result) : array();
+        $markets = parent::set_markets($markets, $currencies);
+        $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $result[$symbol];
-            if (($market !== null) && $market['swap']) {
-                $additionalId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
-                if ($this->markets_by_id !== null) {
-                    $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap $market id+quote
-                }
+            $market = $markets[$symbol];
+            if ($market['swap']) {
+                $additionalId = $market['baseId'] . $market['quoteId'];
+                $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap $market id+quote
             }
         }
-        return $result;
+        return $this->markets;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1558,17 +1556,11 @@ class deepcoin extends Exchange {
         })();
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build request
          */
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
         $market = $this->market($symbol);
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         // $isTriggerOrder = ($triggerPrice !== null) || $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice') !== null;
@@ -1586,7 +1578,7 @@ class deepcoin extends Exchange {
         }
     }
 
-    public function create_regular_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_regular_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1606,12 +1598,6 @@ class deepcoin extends Exchange {
          * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          * @param {string} [$params->mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
          */
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
         $market = $this->market($symbol);
         $orderType = $type;
         list($orderType, $params) = $this->handle_type_post_only_and_time_in_force($type, $params);
@@ -1701,7 +1687,7 @@ class deepcoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_trigger_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_trigger_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -1714,12 +1700,6 @@ class deepcoin extends Exchange {
          * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin orders
          * @param {string} [$params->marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          */
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1783,7 +1763,7 @@ class deepcoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function handle_type_post_only_and_time_in_force(?string $type, $params) {
+    public function handle_type_post_only_and_time_in_force(string $type, $params) {
         $postOnly = false;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
         if ($postOnly) {

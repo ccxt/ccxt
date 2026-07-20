@@ -607,7 +607,27 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
+        Object rawSide = this.safeInteger(trade, 8);
+        Object side = null;
+        if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
+        {
+            side = "sell";
+        } else if (Helpers.isTrue(Helpers.isEqual(rawSide, 2)))
+        {
+            side = "buy";
+        }
+        Object role = this.safeInteger(trade, 9);
+        Object takerOrMaker = null;
+        if (Helpers.isTrue(Helpers.isEqual(role, 1)))
+        {
+            takerOrMaker = "maker";
+        } else if (Helpers.isTrue(Helpers.isEqual(role, 2)))
+        {
+            takerOrMaker = "taker";
+        }
         final Object finalMarket_2 = market;
+        final Object finalSide = side;
+        final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -617,8 +637,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
             put( "order", orderId );
             put( "type", null );
-            put( "side", null );
-            put( "takerOrMaker", null );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );

@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_position  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 async def test_fetch_positions(exchange, skipped_properties, symbol):
     method = 'fetchPositions'
     now = exchange.milliseconds()

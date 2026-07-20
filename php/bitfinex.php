@@ -562,14 +562,12 @@ class bitfinex extends Exchange {
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         $symbol = $this->safe_symbol($symbol);
-        $market = $this->market($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function price_to_precision($symbol, $price) {
         $symbol = $this->safe_symbol($symbol);
-        $market = $this->market($symbol);
-        $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -899,24 +897,22 @@ class bitfinex extends Exchange {
             $networkId = $networkIds[$j];
             $network = $this->network_id_to_code($networkId, $code);
             $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
-            if ($network !== null) {
-                $networks[$network] = array(
-                    'info' => $networkId,
-                    'id' => strtolower($networkId),
-                    'network' => $networkId,
-                    'active' => null,
-                    'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
-                    'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+            $networks[$network] = array(
+                'info' => $networkId,
+                'id' => strtolower($networkId),
+                'network' => $networkId,
+                'active' => null,
+                'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
+                'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                );
-            }
+                ),
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -986,7 +982,7 @@ class bitfinex extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account['total'] = $this->safe_string($balance, 2);
                 $account['free'] = $this->safe_string($balance, 4);
-                $this->store_by_key($result, $code, $account);
+                $result[$code] = $account;
             }
         }
         return $this->safe_balance($result);
@@ -1184,8 +1180,7 @@ class bitfinex extends Exchange {
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
             $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
-            $resultSide = $result[$side];
-            $resultSide[] = array( $price, $this->parse_number($amount) );
+            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -1707,13 +1702,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
-        }
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build an order $request
@@ -3262,7 +3251,7 @@ class bitfinex extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding $rate prices
          *

@@ -11,7 +11,6 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
@@ -99,7 +98,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> Any:
+    async def unwatch_public(self, subHash: str, symbol: str, topic: str, params={}) -> Any:
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
@@ -210,8 +209,6 @@ class woo(ccxt.async_support.woo):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         topic = self.safe_string(message, 'topic')
-        if topic is None:
-            return
         method = self.safe_string(topic.split('@'), 1)
         if method == 'orderbookupdate':
             if not (symbol in self.orderbooks):
@@ -223,20 +220,17 @@ class woo(ccxt.async_support.woo):
             else:
                 try:
                     ts = self.safe_integer(message, 'ts')
-                    if ts is None:
-                        return
                     if ts > timestamp:
                         self.handle_order_book_message(client, message, orderbook)
                         client.resolve(orderbook, topic)
                 except Exception as e:
                     del self.orderbooks[symbol]
-                    if topic is not None:
-                        del client.subscriptions[topic]
+                    del client.subscriptions[topic]
                     client.reject(e, topic)
         else:
             if not (symbol in self.orderbooks):
                 defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-                subscription = self.safe_value(client.subscriptions, topic)
+                subscription = client.subscriptions[topic]
                 limit = self.safe_integer(subscription, 'limit', defaultLimit)
                 self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
@@ -249,12 +243,9 @@ class woo(ccxt.async_support.woo):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
         symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
-        if symbol is None:
-            return
         if symbol in self.orderbooks:
-            if symbol is not None:
-                del self.orderbooks[symbol]
-        self.store_by_key(self.orderbooks, symbol, self.order_book({}, limit))
+            del self.orderbooks[symbol]
+        self.orderbooks[symbol] = self.order_book({}, limit)
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
@@ -268,23 +259,20 @@ class woo(ccxt.async_support.woo):
             if self.safe_value(self.orderbooks, symbol) is None:
                 # if the orderbook is dropped before the snapshot is received
                 return
-            orderbook = self.safe_value(self.orderbooks, symbol)
+            orderbook = self.orderbooks[symbol]
             orderbook.reset(snapshot)
             messages = orderbook.cache
             for i in range(0, len(messages)):
                 messageItem = messages[i]
                 ts = self.safe_integer(messageItem, 'ts')
-                if ts is None:
-                    return
                 if ts < orderbook['timestamp']:
                     continue
                 else:
                     self.handle_order_book_message(client, messageItem, orderbook)
-            self.store_by_key(self.orderbooks, symbol, orderbook)
+            self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         except Exception as e:
-            if messageHash is not None:
-                del client.subscriptions[messageHash]
+            del client.subscriptions[messageHash]
             client.reject(e, messageHash)
 
     def handle_order_book_message(self, client: Client, message, orderbook):
@@ -554,13 +542,11 @@ class woo(ccxt.async_support.woo):
         result = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i)
-            if ticker is None:
-                return
             ticker['ts'] = timestamp
             parsedTicker = self.parse_ws_bid_ask(ticker)
             symbol = parsedTicker['symbol']
-            self.store_by_key(self.bidsasks, symbol, parsedTicker)
-            self.store_by_key(result, symbol, parsedTicker)
+            self.bidsasks[symbol] = parsedTicker
+            result[symbol] = parsedTicker
         client.resolve(result, topic)
 
     def parse_ws_bid_ask(self, ticker, market: Market = None):
@@ -667,12 +653,11 @@ class woo(ccxt.async_support.woo):
             self.safe_float(data, 'volume'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            if symbol is not None and timeframe is not None:
-                self.ohlcvs[symbol][timeframe] = stored
+            self.ohlcvs[symbol][timeframe] = stored
         stored.append(parsed)
         client.resolve(stored, topic)
 
@@ -1194,11 +1179,7 @@ class woo(ccxt.async_support.woo):
         messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
-            if symbols is None:
-                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             for i in range(0, len(symbols)):
-                if symbols is None:
-                    raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
                 symbol = symbols[i]
                 messageHashes.append('positions::' + symbol)
         else:
@@ -1237,7 +1218,7 @@ class woo(ccxt.async_support.woo):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if (contracts is not None) and (contracts > 0):
+            if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -1349,15 +1330,13 @@ class woo(ccxt.async_support.woo):
             key = keys[i]
             value = balances[key]
             code = self.safe_currency_code(key)
-            account = self.account()
-            if (code is not None) and (code in self.balance):
-                account = self.balance[code]
+            account = self.balance[code] if (code in self.balance) else self.account()
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
-            self.store_by_key(self.balance, code, account)
+            self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
@@ -1398,7 +1377,7 @@ class woo(ccxt.async_support.woo):
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_funding_rate(data)
         symbol = fundingRate['symbol']
-        self.store_by_key(self.fundingRates, symbol, fundingRate)
+        self.fundingRates[symbol] = fundingRate
         messageHash = self.safe_string(message, 'topic')
         client.resolve(fundingRate, messageHash)
 
@@ -1485,8 +1464,6 @@ class woo(ccxt.async_support.woo):
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
-                if name is None:
-                    return
                 method = self.safe_value(methods, name)
                 if method is not None:
                     method(client, message)

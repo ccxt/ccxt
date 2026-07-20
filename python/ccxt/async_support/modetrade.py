@@ -523,7 +523,7 @@ class modetrade(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return self.safe_market_structure({
+        return {
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -571,7 +571,7 @@ class modetrade(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        })
+        }
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -658,7 +658,7 @@ class modetrade(Exchange, ImplicitAPI):
         tokenRows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(tokenRows)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'token')
         networks = self.safe_list(rawCurrency, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
@@ -1426,11 +1426,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
  @ignore
         helper function to build the request
@@ -2199,7 +2195,7 @@ class modetrade(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['used'] = self.safe_string(balance, 'frozen')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -2686,7 +2682,7 @@ class modetrade(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: Str, params={}):
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info

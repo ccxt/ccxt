@@ -1212,9 +1212,11 @@ public partial class okx : Exchange
                 } },
                 { "fetchCanceledOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
+                    { "paginationDirection", "forward" },
                 } },
                 { "fetchClosedOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
+                    { "paginationDirection", "forward" },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "password", null },

@@ -319,9 +319,6 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
-        if ($market === null) {
-            return;
-        }
         $tickers = $this->safe_list($message, 'd', array());
         $data = $this->safe_dict($tickers, 0, array());
         $ticker = $this->parse_ws_ticker($data, $market);
@@ -352,9 +349,8 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($ticker, 'C');
         $close = $this->safe_string($ticker, 'c');
-        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'h'),
@@ -512,9 +508,6 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
-        if ($market === null) {
-            return;
-        }
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
@@ -538,7 +531,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($tradesArray, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade($trade, $market = null) {
         //
         //     {
         //         "T" => 1776089287762,
@@ -550,13 +543,12 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'T');
-        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 't'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => null,
             'side' => null,
@@ -745,9 +737,6 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
-        if ($market === null) {
-            return;
-        }
         $symbol = $market['symbol'];
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
@@ -756,13 +745,11 @@ class weex extends \ccxt\async\weex {
         $firstEntry = $this->safe_dict($data, 0, array());
         $interval = $this->safe_string($firstEntry, 'i');
         $timeframe = $this->find_timeframe($interval);
-        if (($symbol === null) || ($timeframe === null) || !(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            if ($symbol !== null && $timeframe !== null) {
-                $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
-            }
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->ohlcvs[$symbol][$timeframe];
         for ($i = 0; $i < count($data); $i++) {
             $entry = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ohlcv($entry);
@@ -773,7 +760,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         t => 1776092400000,
@@ -942,9 +929,6 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
-        if ($market === null) {
-            return;
-        }
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
@@ -1077,21 +1061,17 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $market = $this->get_market_from_client_and_message($client, $message);
-        if ($market === null) {
-            return;
-        }
         $ticker = $this->parse_ws_bid_ask($message, $market);
         $symbol = $ticker['symbol'];
-        $this->store_by_key($this->bidsasks, $symbol, $ticker);
+        $this->bidsasks[$symbol] = $ticker;
         $messageHash = 'bidask::' . $symbol;
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($message, ?array $market = null) {
+    public function parse_ws_bid_ask($message, $market = null) {
         $timestamp = $this->safe_integer($message, 'E');
-        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->safe_string($message, 'a'),
@@ -1233,7 +1213,7 @@ class weex extends \ccxt\async\weex {
             $trade = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_my_trade($trade);
             $symbol = $parsed['symbol'];
-            $this->store_by_key($symbols, $symbol, true);
+            $symbols[$symbol] = true;
             $trades->append($parsed);
         }
         $messageHash = 'myTrades';
@@ -1250,7 +1230,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($trades, $messageHash);
     }
 
-    public function parse_ws_my_trade($trade, ?array $market = null) {
+    public function parse_ws_my_trade($trade, $market = null) {
         //
         // spot
         //     {
@@ -1275,8 +1255,7 @@ class weex extends \ccxt\async\weex {
         if ($positionSide !== null) {
             $marketType = 'swap';
         }
-        $marketResolved = $this->safe_market($marketId, null, null, $marketType);
-        $market = $marketResolved;
+        $market = $this->safe_market($marketId, null, null, $marketType);
         $side = $this->safe_string_lower($trade, 'orderSide');
         $fee = null;
         $commission = $this->safe_string($trade, 'fillFee');
@@ -1285,9 +1264,9 @@ class weex extends \ccxt\async\weex {
             $feeCurrency = $this->safe_currency_code($commissionAsset);
             if ($marketType === 'spot') {
                 if ($side === 'buy') {
-                    $feeCurrency = $marketResolved['base'];
+                    $feeCurrency = $market['base'];
                 } else {
-                    $feeCurrency = $marketResolved['quote'];
+                    $feeCurrency = $market['quote'];
                 }
             }
             $fee = array(
@@ -1300,7 +1279,7 @@ class weex extends \ccxt\async\weex {
             'id' => $this->safe_string($trade, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'order' => $this->safe_string($trade, 'orderId'),
             'type' => $this->safe_string($trade, 'type'),
             'side' => $side,
@@ -1444,7 +1423,7 @@ class weex extends \ccxt\async\weex {
             $parsed = $this->parse_ws_order($rawOrder);
             $orders->append($parsed);
             $symbol = $parsed['symbol'];
-            $this->store_by_key($symbols, $symbol, true);
+            $symbols[$symbol] = true;
         }
         $messageHash = 'orders';
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
@@ -1460,7 +1439,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order($order, $market = null) {
         //
         // spot
         //     {
@@ -1553,8 +1532,7 @@ class weex extends \ccxt\async\weex {
         if ($positionSide !== null) {
             $marketType = 'swap';
         }
-        $marketResolved = $this->safe_market($marketId, null, null, $marketType);
-        $market = $marketResolved;
+        $market = $this->safe_market($marketId, null, null, $marketType);
         $side = $this->safe_string_lower($order, 'orderSide');
         $fee = null;
         $commission = $this->safe_string($order, 'cumFillFee');
@@ -1563,9 +1541,9 @@ class weex extends \ccxt\async\weex {
             $feeCurrency = $this->safe_currency_code($commissionAsset);
             if ($marketType === 'spot') {
                 if ($side === 'buy') {
-                    $feeCurrency = $marketResolved['base'];
+                    $feeCurrency = $market['base'];
                 } else {
-                    $feeCurrency = $marketResolved['quote'];
+                    $feeCurrency = $market['quote'];
                 }
             }
             $fee = array(
@@ -1586,7 +1564,7 @@ class weex extends \ccxt\async\weex {
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
-            'symbol' => $marketResolved['symbol'],
+            'symbol' => $market['symbol'],
             'type' => $this->parseOrderType($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
@@ -1756,9 +1734,7 @@ class weex extends \ccxt\async\weex {
             $account['free'] = $this->safe_string_2($entry, 'available', 'amount');
             $account['used'] = $this->safe_string($entry, 'frozen');
             $account['total'] = $this->safe_string_2($entry, 'equity', 'legacyAmount');
-            if (($accountType !== null) && ($code !== null)) {
-                $this->balance[$accountType][$code] = $account;
-            }
+            $this->balance[$accountType][$code] = $account;
         }
         $timestamp = $this->safe_integer($message, 'E');
         $this->balance[$accountType]['timestamp'] = $timestamp;
@@ -1931,7 +1907,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position($position, $market = null) {
         // same api
         return $this->parse_position($position, $market);
     }

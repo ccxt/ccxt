@@ -15,7 +15,6 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def helper_test_init_throttler():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -100,7 +99,7 @@ def helper_test_init_market():
             'BTC/USD': sample_market,
         },
     })
-    assert (exchange2.markets is not None) and (exchange2.markets['BTC/USD'] is not None)
+    assert exchange2.markets['BTC/USD'] is not None
 
 
 def helper_test_properties():

@@ -112,11 +112,11 @@ class alpaca extends \ccxt\async\alpaca {
         $ticker = $this->parse_ticker($message);
         $symbol = $ticker['symbol'];
         $messageHash = 'ticker:' . $symbol;
-        $this->store_by_key($this->tickers, $symbol, $ticker);
-        $client->resolve($this->safe_value($this->tickers, $symbol), $messageHash);
+        $this->tickers[$symbol] = $ticker;
+        $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
         //         "T" => "q",
@@ -560,9 +560,6 @@ class alpaca extends \ccxt\async\alpaca {
             $myTrades = new ArrayCacheBySymbolById($limit);
         }
         $trade = $this->parse_my_trade($rawOrder);
-        if ($trade === null) {
-            return;
-        }
         $myTrades->append($trade);
         $messageHash = 'myTrades:' . $trade['symbol'];
         $client->resolve($myTrades, $messageHash);
@@ -570,7 +567,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function parse_my_trade($trade, ?array $market = null) {
+    public function parse_my_trade($trade, $market = null) {
         //
         //    {
         //        "id" => "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -611,9 +608,6 @@ class alpaca extends \ccxt\async\alpaca {
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'filled_at');
         $type = $this->safe_string($trade, 'type');
-        if ($type === null) {
-            return null;
-        }
         if (mb_strpos($type, 'limit') !== false) {
             // might be limit or stop-limit
             $type = 'limit';

@@ -524,7 +524,7 @@ class btcmarkets extends Exchange {
         if ($quote === 'AUD') {
             $minPrice = $pricePrecision;
         }
-        return $this->safe_market_structure(array(
+        return array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -574,7 +574,7 @@ class btcmarkets extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        ));
+        );
     }
 
     public function fetch_time($params = array()): ?int {
@@ -604,7 +604,7 @@ class btcmarkets extends Exchange {
             $account = $this->account();
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1113,7 +1113,7 @@ class btcmarkets extends Exchange {
          * @param {array} $params
          * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote $currency, for the order
          */
-        $market = $this->market($symbol);
+        $market = $this->markets[$symbol];
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
@@ -1132,7 +1132,7 @@ class btcmarkets extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $rateCost) || '0'),
+            'cost' => floatval($this->fee_to_precision($symbol, $rateCost)),
         );
     }
 

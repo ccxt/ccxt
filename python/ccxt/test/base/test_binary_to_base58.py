@@ -14,7 +14,6 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-
 def helper_str_to_binary_5(exchange, str):
     return exchange.base64_to_binary(exchange.string_to_base64(str))
 

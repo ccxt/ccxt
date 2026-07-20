@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptomus import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -316,8 +316,6 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(market, 'symbol')
-        if marketId is None:
-            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
         baseId = parts[0]
         quoteId = parts[1]
@@ -413,7 +411,7 @@ class cryptomus(Exchange, ImplicitAPI):
         groupedArray = list(groupedById.values())
         return self.parse_currencies(groupedArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         # currency here is array of networks
         id = None  # all entried have same id, were grouped by
         code = None
@@ -426,27 +424,26 @@ class cryptomus(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(id)
             networkId = self.safe_string(networkEntry, 'network_code')
             networkCode = self.network_id_to_code(networkId, code)
-            if networkCode is not None:
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkEntry, 'min_withdraw'),
-                            'max': self.safe_number(networkEntry, 'max_withdraw'),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEntry, 'min_deposit'),
-                            'max': self.safe_number(networkEntry, 'max_deposit'),
-                        },
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'min_withdraw'),
+                        'max': self.safe_number(networkEntry, 'max_withdraw'),
                     },
-                    'active': None,
-                    'deposit': self.safe_bool(networkEntry, 'can_deposit'),
-                    'withdraw': self.safe_bool(networkEntry, 'can_withdraw'),
-                    'fee': None,
-                    'precision': None,
-                    'info': networkEntry,
-                }
+                    'deposit': {
+                        'min': self.safe_number(networkEntry, 'min_deposit'),
+                        'max': self.safe_number(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': None,
+                'deposit': self.safe_bool(networkEntry, 'can_deposit'),
+                'withdraw': self.safe_bool(networkEntry, 'can_withdraw'),
+                'fee': None,
+                'precision': None,
+                'info': networkEntry,
+            }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -598,7 +595,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data')
-        return self.parse_trades(data or [], market, since, limit)
+        return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -676,7 +673,7 @@ class cryptomus(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balanceEntry, 'available')
             account['used'] = self.safe_string(balanceEntry, 'held')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:

@@ -14,7 +14,6 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-
 def test_remove_repeated_elements_from_array():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',

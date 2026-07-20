@@ -15,7 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_order  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
 def test_fetch_closed_orders(exchange, skipped_properties, symbol):
     method = 'fetchClosedOrders'
     orders = exchange.fetch_closed_orders(symbol)

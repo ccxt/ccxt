@@ -320,9 +320,6 @@ class cryptomus extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($market, 'symbol');
-        if ($marketId === null) {
-            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
-        }
         $parts = explode('_', $marketId);
         $baseId = $parts[0];
         $quoteId = $parts[1];
@@ -422,7 +419,7 @@ class cryptomus extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): CurrencyInterface {
+    public function parse_currency(array $rawCurrency): array {
         // currency here is array of $networks
         $id = null; // all entried have same $id, were grouped by
         $code = null;
@@ -436,28 +433,26 @@ class cryptomus extends Exchange {
             }
             $networkId = $this->safe_string($networkEntry, 'network_code');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            if ($networkCode !== null) {
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                            'max' => $this->safe_number($networkEntry, 'max_withdraw'),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                            'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                        ),
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
                     ),
-                    'active' => null,
-                    'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
-                    'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $networkEntry,
-                );
-            }
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -622,7 +617,7 @@ class cryptomus extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data');
-            return $this->parse_trades($data || array(), $market, $since, $limit);
+            return $this->parse_trades($data, $market, $since, $limit);
         })();
     }
 
@@ -707,7 +702,7 @@ class cryptomus extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balanceEntry, 'available');
             $account['used'] = $this->safe_string($balanceEntry, 'held');
-            $this->store_by_key($result, $code, $account);
+            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }

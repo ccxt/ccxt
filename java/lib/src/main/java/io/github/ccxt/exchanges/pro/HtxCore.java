@@ -1382,6 +1382,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     put( "id", orderId );
                     put( "trades", trades );
                     put( "status", status );
+                    put( "lastTradeTimestamp", HtxCore.this.safeInteger(finalData, "tradeTime") );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "filled", HtxCore.this.parseNumber(filled) );
                     put( "remaining", HtxCore.this.parseNumber(remaining) );

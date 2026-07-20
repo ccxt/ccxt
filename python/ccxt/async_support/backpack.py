@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -543,7 +543,7 @@ class backpack(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         currencyId = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(currencyId)
         networks = self.safe_list(rawCurrency, 'tokens', [])
@@ -553,27 +553,26 @@ class backpack(Exchange, ImplicitAPI):
             networkId = self.safe_string(network, 'blockchain')
             networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
             networkCode = self.network_id_to_code(networkIdLowerCase, code)
-            if networkCode is not None:
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'minimumWithdrawal'),
-                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(network, 'minimumDeposit'),
-                            'max': None,
-                        },
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(network, 'minimumWithdrawal'),
+                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
                     },
-                    'active': None,
-                    'deposit': self.safe_bool(network, 'depositEnabled'),
-                    'withdraw': self.safe_bool(network, 'withdrawEnabled'),
-                    'fee': self.safe_number(network, 'withdrawalFee'),
-                    'precision': None,
-                    'info': network,
-                }
+                    'deposit': {
+                        'min': self.safe_number(network, 'minimumDeposit'),
+                        'max': None,
+                    },
+                },
+                'active': None,
+                'deposit': self.safe_bool(network, 'depositEnabled'),
+                'withdraw': self.safe_bool(network, 'withdrawEnabled'),
+                'fee': self.safe_number(network, 'withdrawalFee'),
+                'precision': None,
+                'info': network,
+            }
         active = None
         deposit = None
         withdraw = None
@@ -932,8 +931,6 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         microseconds = self.safe_integer(response, 'timestamp')
-        if microseconds is None:
-            raise ExchangeError(self.id + ' fetchOrderBook() missing microseconds')
         timestamp = self.parse_to_int(microseconds / 1000)
         orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
@@ -1107,7 +1104,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
 
@@ -1182,7 +1179,7 @@ class backpack(Exchange, ImplicitAPI):
             response = await self.publicGetApiV1TradesHistory(self.extend(request, params))
         else:
             response = await self.publicGetApiV1Trades(self.extend(request, params))
-        return self.parse_trades(response or [], market, since, limit)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -1309,8 +1306,6 @@ class backpack(Exchange, ImplicitAPI):
         #     }
         #
         status = self.safe_string(response, 'status')
-        if status is None:
-            raise ExchangeError(self.id + ' fetchStatus() missing status')
         return {
             'status': status.lower(),
             'updated': None,
@@ -1370,7 +1365,7 @@ class backpack(Exchange, ImplicitAPI):
             used = Precise.string_add(locked, staked)
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = used
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1701,11 +1696,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1Orders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

@@ -1357,8 +1357,6 @@ class paradex(Exchange, ImplicitAPI):
         now = self.nonce()
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
-            if cachedExpires is None:
-                raise ExchangeError(self.id + ' authenticateRest() missing cachedExpires')
             if now < cachedExpires:
                 return cachedToken
         account = await self.retrieve_account()
@@ -1513,11 +1511,7 @@ class paradex(Exchange, ImplicitAPI):
     def scale_number(self, num: str):
         return Precise.string_mul(num, '100000000')
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
@@ -1593,8 +1587,6 @@ class paradex(Exchange, ImplicitAPI):
         account = await self.retrieve_account()
         now = self.nonce()
         orderType = self.safe_string(request, 'type')
-        if orderType is None:
-            raise ExchangeError(self.id + ' signOrderRequest() missing orderType')
         isMarket = (orderType.find('MARKET') >= 0)
         orderReq = {
             'timestamp': now * 1000,
@@ -2166,7 +2158,7 @@ class paradex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_string(balance, 'size')
-            self.store_by_key(result, code, account)
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2708,7 +2700,7 @@ class paradex(Exchange, ImplicitAPI):
         configs = self.safe_list(response, 'configs')
         return self.parse_margin_mode(self.safe_dict(configs, 0), market)
 
-    def parse_margin_mode(self, rawMarginMode: dict, market: Market = None) -> MarginMode:
+    def parse_margin_mode(self, rawMarginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(rawMarginMode, 'market')
         market = self.safe_market(marketId, market)
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
@@ -2735,8 +2727,8 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        leverage = 1
-        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', leverage)
+        leverage = None
+        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 1)
         request = {
             'market': market['id'],
             'leverage': leverage,

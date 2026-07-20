@@ -305,8 +305,6 @@ class mercado(Exchange, ImplicitAPI):
             quoteId = 'BRL'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
             id = quote + base
             result.append({
                 'id': id,
@@ -515,7 +513,7 @@ class mercado(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available')
                 account['total'] = self.safe_string(balance, 'total')
-                self.store_by_key(result, code, account)
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
