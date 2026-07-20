@@ -358,7 +358,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
             }
-            Object firstMarket = this.getMarketFromSymbols(symbols);
+            Object firstMarket = null;
+            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            {
+                firstMarket = this.getMarketFromSymbols(symbols);
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);

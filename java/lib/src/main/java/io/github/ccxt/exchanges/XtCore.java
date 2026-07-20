@@ -2021,7 +2021,7 @@ public class XtCore extends XtApi
             put( "change", XtCore.this.safeNumber(ticker, "cv") );
             put( "percentage", XtCore.this.parseNumber(finalPercentage) );
             put( "average", null );
-            put( "baseVolume", XtCore.this.safeNumber(ticker, "a") );
+            put( "baseVolume", XtCore.this.safeNumber2(ticker, "a", "q") );
             put( "quoteVolume", XtCore.this.safeNumber(ticker, "v") );
             put( "info", ticker );
         }}, market);
