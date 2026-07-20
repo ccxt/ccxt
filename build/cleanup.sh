@@ -31,7 +31,7 @@ restore() {
 
 restore package.json
 restore package-lock.json
-restore yarn.lock
+# restore yarn.lock  # yarn.lock is not checked in, so don't restore it
 restore README.md
 restore js
 restore cs/ccxt/api
