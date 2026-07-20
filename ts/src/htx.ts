@@ -6937,7 +6937,9 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode) || '0');
+        const amountPrecisionRaw = this.currencyToPrecision (code, amount, networkCode);
+        const amountPrecision = (amountPrecisionRaw === undefined) ? '0' : amountPrecisionRaw;
+        amount = parseFloat (amountPrecision);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
@@ -6955,9 +6957,11 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat (amountSubtractedString || '0');
-            request['fee'] = parseFloat (feeString || '0');
-            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode) || '0');
+            const amountSubtracted = parseFloat ((amountSubtractedString === undefined) ? '0' : amountSubtractedString);
+            request['fee'] = parseFloat ((feeString === undefined) ? '0' : feeString);
+            const amountAfterFeeRaw = this.currencyToPrecision (code, amountSubtracted, networkCode);
+            const amountAfterFee = (amountAfterFeeRaw === undefined) ? '0' : amountAfterFeeRaw;
+            amount = parseFloat (amountAfterFee);
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
@@ -7051,9 +7055,11 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
+        const transferAmountRaw = this.currencyToPrecision (code, amount);
+        const transferAmount = (transferAmountRaw === undefined) ? '0' : transferAmountRaw;
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat (this.currencyToPrecision (code, amount) || '0'),
+            'amount': parseFloat (transferAmount),
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);

@@ -2557,10 +2557,12 @@ export default class mexc extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
+        const volRaw = this.amountToPrecision (symbol, amount);
+        const volString = (volRaw === undefined) ? '0' : volRaw;
         const request: Dict = {
             'symbol': market['id'],
-            // 'price': parseFloat (this.priceToPrecision (symbol, price) || '0'),
-            'vol': parseFloat ((this.amountToPrecision (symbol, amount) || '0')),
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)),
+            'vol': parseFloat (volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -2584,7 +2586,9 @@ export default class mexc extends Exchange {
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         if ((type !== 5) && (type !== 6) && (type !== 'market')) {
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price) || '0');
+            const priceRaw = this.priceToPrecision (symbol, price);
+            const priceString = (priceRaw === undefined) ? '0' : priceRaw;
+            request['price'] = parseFloat (priceString);
         }
         if (openType === 1) {
             const leverage = this.safeInteger (params, 'leverage');

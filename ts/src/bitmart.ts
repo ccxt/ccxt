@@ -3007,7 +3007,9 @@ export default class bitmart extends Exchange {
             'symbol': market['id'],
         };
         if (amount !== undefined) {
-            request['size'] = parseInt ((this.amountToPrecision (symbol, amount) || '0'));
+            const sizeStringRaw = this.amountToPrecision (symbol, amount);
+            const sizeString = (sizeStringRaw === undefined) ? '0' : sizeStringRaw;
+            request['size'] = parseInt (sizeString);
         }
         const timeInForce = this.safeString (params, 'timeInForce');
         const mode = this.safeInteger (params, 'mode'); // only for swap

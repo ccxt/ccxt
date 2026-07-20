@@ -1623,11 +1623,13 @@ export default class ndax extends Exchange {
             'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price) || '0'),
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price) || '0');
+            const limitPriceRaw = this.priceToPrecision (symbol, price);
+            const limitPriceString = (limitPriceRaw === undefined) ? '0' : limitPriceRaw;
+            request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1690,11 +1692,13 @@ export default class ndax extends Exchange {
             'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
             'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price) || '0'),
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price) || '0');
+            const limitPriceRaw = this.priceToPrecision (symbol, price);
+            const limitPriceString = (limitPriceRaw === undefined) ? '0' : limitPriceRaw;
+            request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
