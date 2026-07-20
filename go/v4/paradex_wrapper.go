@@ -61,7 +61,7 @@ func (this *Paradex) FetchStatus(params ...any) (map[string]any, error) {
 /**
  * @method
  * @name paradex#fetchMarkets
- * @description retrieves data on all markets for bitget
+ * @description retrieves data on all markets for paradex
  * @see https://docs.paradex.trade/api/prod/markets/get-markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -72,6 +72,50 @@ func (this *Paradex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Paradex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+	opts := FetchTradingFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTradingFee(symbol, params)
+	if IsError(res) {
+		return TradingFeeInterface{}, CreateReturnError(res)
+	}
+	return NewTradingFeeInterface(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Paradex) FetchTradingFees(params ...any) (TradingFees, error) {
+	res := <-this.Core.FetchTradingFees(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
 }
 
 /**
@@ -191,7 +235,7 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -334,6 +378,79 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
 
 /**
  * @method
+ * @name paradex#editOrder
+ * @description edit an open limit order or TPSL order
+ * @see https://docs.paradex.trade/api/prod/orders/modify
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market to edit an order in
+ * @param {string} type 'limit' or a TPSL order type
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of the currency you want to trade in units of the base currency
+ * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.stopPrice] alias for triggerPrice
+ * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Paradex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#createOrders
+ * @description create a list of trade orders
+ * @see https://docs.paradex.trade/api/prod/orders/batch
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Paradex) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
+
+	opts := CreateOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
  * @name paradex#cancelOrder
  * @description cancels an open order
  * @see https://docs.paradex.trade/api/prod/orders/cancel
@@ -366,6 +483,41 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 		return Order{}, CreateReturnError(res)
 	}
 	return NewOrder(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#cancelOrders
+ * @description cancel multiple orders
+ * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
+ * @param {string[]} ids order ids
+ * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]} [params.clientOrderIds] client order ids
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Paradex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+
+	opts := CancelOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelOrders(ids, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
 }
 
 /**
@@ -656,22 +808,27 @@ func (this *Paradex) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 
 /**
  * @method
- * @name paradex#fetchLiquidations
- * @description retrieves the public liquidations of a trading pair
+ * @name paradex#fetchMyLiquidations
+ * @description retrieves the users liquidated positions
  * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
- * @param {string} symbol unified CCXT market symbol
+ * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
- * @param {object} [params] exchange specific parameters for the huobi api endpoint
+ * @param {object} [params] exchange specific parameters
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Paradex) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
+func (this *Paradex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
-	opts := FetchLiquidationsOptionsStruct{}
+	opts := FetchMyLiquidationsOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
 	}
 
 	var since any = nil
@@ -688,12 +845,26 @@ func (this *Paradex) FetchLiquidations(symbol string, options ...FetchLiquidatio
 	if opts.Params != nil {
 		params = *opts.Params
 	}
-	res := <-this.Core.FetchLiquidations(symbol, since, limit, params)
+	res := <-this.Core.FetchMyLiquidations(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewLiquidationArray(res), nil
 }
+
+/**
+ * @method
+ * @name paradex#fetchDeposits
+ * @description fetch all deposits made to an account
+ * @see https://docs.paradex.trade/api/prod/transfers/get
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch deposits for
+ * @param {int} [limit] the maximum number of deposits structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
 func (this *Paradex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsOptionsStruct{}
@@ -738,7 +909,7 @@ func (this *Paradex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
- * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
@@ -773,6 +944,53 @@ func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 		return nil, CreateReturnError(res)
 	}
 	return NewTransactionArray(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchTransfers
+ * @description fetch a history of transfers made on an account
+ * @see https://docs.paradex.trade/api/prod/transfers/get
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Paradex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+
+	opts := FetchTransfersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTransfers(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransferEntryArray(res), nil
 }
 
 /**
@@ -964,6 +1182,54 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks,
 
 /**
  * @method
+ * @name paradex#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.paradex.trade/api/prod/account/get-funding
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.cursor] returns the next paginated page
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *Paradex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+	opts := FetchFundingHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingHistoryArray(res), nil
+}
+
+/**
+ * @method
  * @name paradex#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
@@ -1013,9 +1279,6 @@ func (this *Paradex) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 func (this *Paradex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Paradex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
 func (this *Paradex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
@@ -1061,9 +1324,6 @@ func (this *Paradex) CreateMarketSellOrder(symbol string, amount float64, option
 func (this *Paradex) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
 }
-func (this *Paradex) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
 func (this *Paradex) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
 }
@@ -1105,9 +1365,6 @@ func (this *Paradex) EditLimitOrder(id string, symbol string, side string, amoun
 }
 func (this *Paradex) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Paradex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
 func (this *Paradex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
@@ -1175,9 +1432,6 @@ func (this *Paradex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 func (this *Paradex) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
-func (this *Paradex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
 func (this *Paradex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
 }
@@ -1214,6 +1468,9 @@ func (this *Paradex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages
 func (this *Paradex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 	return this.exchangeTyped.FetchLeverageTiers(options...)
 }
+func (this *Paradex) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.FetchLiquidations(symbol, options...)
+}
 func (this *Paradex) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
 	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
 }
@@ -1237,9 +1494,6 @@ func (this *Paradex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOpti
 }
 func (this *Paradex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Paradex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
 func (this *Paradex) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
@@ -1286,12 +1540,6 @@ func (this *Paradex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Paradex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Paradex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Paradex) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
 func (this *Paradex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
@@ -1306,9 +1554,6 @@ func (this *Paradex) FetchTransactions(options ...FetchTransactionsOptions) ([]T
 }
 func (this *Paradex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Paradex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
 }
 func (this *Paradex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)

@@ -1,8 +1,5 @@
-- [Coinbasepro Cursor Pagination](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -49,5 +46,5 @@ do {
 
 echo "fetched " . count($all_results) . " results in total\n";
 
-?> 
+?>
 ```

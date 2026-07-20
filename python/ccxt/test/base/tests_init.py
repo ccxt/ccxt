@@ -52,6 +52,7 @@ from ccxt.test.base.test_string_to_base64 import test_string_to_base64  # noqa E
 from ccxt.test.base.test_urlencode import test_urlencode  # noqa E402
 from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
 from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
+from ccxt.test.base.test_fetch_history import test_fetch_history  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
@@ -134,6 +135,8 @@ async def base_tests_init():
     test_unique()
     test_urlencode_nested()
     await test_sleep()
+    await test_fetch_history()
     test_io()
     test_is_json_encoded_object()
     test_encode_decode()
+    return True

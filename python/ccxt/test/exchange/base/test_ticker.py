@@ -16,6 +16,19 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
+    # prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    # books where bid==ask and a stale `last` far from the median are normal — skip the
+    # crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    # omits vwap/previousClose entirely, so their presence must not be asserted
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+            'spread': True,
+            'lastBetweenBidAsk': True,
+            'maxIncrease': True,
+            'vwap': True,
+            'previousClose': True,
+        }, skipped_properties)
     format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -49,10 +62,14 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     log_text = test_shared_methods.log_template(exchange, method, entry)
     # check market
     market = None
+    is_unrecognized_symbol = False
     is_fetch_ticker_called = method == 'fetchTicker'
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
-    if symbol_for_market is not None and (symbol_for_market in exchange.markets):
-        market = exchange.market(symbol_for_market)
+    if symbol_for_market is not None:
+        if symbol_for_market in exchange.markets:
+            market = exchange.market(symbol_for_market)
+        else:
+            is_unrecognized_symbol = True
     # temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if not ('checkInactiveMarkets' in skipped_properties):
         if market is not None and market['active'] is False:
@@ -150,7 +167,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         assert Precise.string_ge(last_string, median_low) and Precise.string_le(last_string, median_high), 'last price should be within 1% of the bid/ask median price' + log_text
     percentage = exchange.safe_string(entry, 'percentage')
     change = exchange.safe_string(entry, 'change')
-    if not ('maxIncrease' in skipped_properties):
+    if not ('maxIncrease' in skipped_properties) and not is_unrecognized_symbol:
         #
         # percentage
         #

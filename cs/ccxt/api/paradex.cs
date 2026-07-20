@@ -16,6 +16,11 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetBboMarket",parameters);
     }
 
+    public async Task<object> publicGetBboMarketInteractive (object parameters = null)
+    {
+        return await this.callAsync ("publicGetBboMarketInteractive",parameters);
+    }
+
     public async Task<object> publicGetFundingData (object parameters = null)
     {
         return await this.callAsync ("publicGetFundingData",parameters);
@@ -26,9 +31,19 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetMarkets",parameters);
     }
 
+    public async Task<object> publicGetMarketsHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketsHistory",parameters);
+    }
+
     public async Task<object> publicGetMarketsKlines (object parameters = null)
     {
         return await this.callAsync ("publicGetMarketsKlines",parameters);
+    }
+
+    public async Task<object> publicGetMarketsSettlementPrice (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketsSettlementPrice",parameters);
     }
 
     public async Task<object> publicGetMarketsSummary (object parameters = null)
@@ -41,9 +56,29 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetOrderbookMarket",parameters);
     }
 
+    public async Task<object> publicGetOrderbookMarketImpactPrice (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOrderbookMarketImpactPrice",parameters);
+    }
+
+    public async Task<object> publicGetOrderbookMarketInteractive (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOrderbookMarketInteractive",parameters);
+    }
+
     public async Task<object> publicGetInsurance (object parameters = null)
     {
         return await this.callAsync ("publicGetInsurance",parameters);
+    }
+
+    public async Task<object> publicGetJwksJson (object parameters = null)
+    {
+        return await this.callAsync ("publicGetJwksJson",parameters);
+    }
+
+    public async Task<object> publicGetOnboarding (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOnboarding",parameters);
     }
 
     public async Task<object> publicGetReferralsConfig (object parameters = null)
@@ -51,9 +86,24 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetReferralsConfig",parameters);
     }
 
+    public async Task<object> publicGetStakingConfig (object parameters = null)
+    {
+        return await this.callAsync ("publicGetStakingConfig",parameters);
+    }
+
+    public async Task<object> publicGetSystemAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSystemAnnouncements",parameters);
+    }
+
     public async Task<object> publicGetSystemConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetSystemConfig",parameters);
+    }
+
+    public async Task<object> publicGetSystemPortfolioMarginConfig (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSystemPortfolioMarginConfig",parameters);
     }
 
     public async Task<object> publicGetSystemState (object parameters = null)
@@ -64,6 +114,11 @@ public partial class paradex : Exchange
     public async Task<object> publicGetSystemTime (object parameters = null)
     {
         return await this.callAsync ("publicGetSystemTime",parameters);
+    }
+
+    public async Task<object> publicGetSystemVolumeTiers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSystemVolumeTiers",parameters);
     }
 
     public async Task<object> publicGetTrades (object parameters = null)
@@ -106,19 +161,39 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetVaultsTransfers",parameters);
     }
 
+    public async Task<object> publicGetXpFeeConfig (object parameters = null)
+    {
+        return await this.callAsync ("publicGetXpFeeConfig",parameters);
+    }
+
+    public async Task<object> publicGetXpPublicTransfers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetXpPublicTransfers",parameters);
+    }
+
+    public async Task<object> publicGetXpTransferTransferId (object parameters = null)
+    {
+        return await this.callAsync ("publicGetXpTransferTransferId",parameters);
+    }
+
     public async Task<object> privateGetAccount (object parameters = null)
     {
         return await this.callAsync ("privateGetAccount",parameters);
     }
 
-    public async Task<object> privateGetAccountInfo (object parameters = null)
+    public async Task<object> privateGetAccountCompliance (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountInfo",parameters);
+        return await this.callAsync ("privateGetAccountCompliance",parameters);
     }
 
     public async Task<object> privateGetAccountHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountHistory",parameters);
+    }
+
+    public async Task<object> privateGetAccountInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountInfo",parameters);
     }
 
     public async Task<object> privateGetAccountMargin (object parameters = null)
@@ -131,9 +206,19 @@ public partial class paradex : Exchange
         return await this.callAsync ("privateGetAccountProfile",parameters);
     }
 
+    public async Task<object> privateGetAccountSettings (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSettings",parameters);
+    }
+
     public async Task<object> privateGetAccountSubaccounts (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountSubaccounts",parameters);
+    }
+
+    public async Task<object> privateGetAccountSummary (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSummary",parameters);
     }
 
     public async Task<object> privateGetBalance (object parameters = null)
@@ -166,6 +251,56 @@ public partial class paradex : Exchange
         return await this.callAsync ("privateGetTransactions",parameters);
     }
 
+    public async Task<object> privateGetAccountKeysSubkeys (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountKeysSubkeys",parameters);
+    }
+
+    public async Task<object> privateGetAccountKeysSubkeysPublicKey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountKeysSubkeysPublicKey",parameters);
+    }
+
+    public async Task<object> privateGetAccountTokens (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountTokens",parameters);
+    }
+
+    public async Task<object> privateGetAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAlgoOrders",parameters);
+    }
+
+    public async Task<object> privateGetAlgoOrdersHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAlgoOrdersHistory",parameters);
+    }
+
+    public async Task<object> privateGetAlgoOrdersAlgoId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAlgoOrdersAlgoId",parameters);
+    }
+
+    public async Task<object> privateGetBlockTrades (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBlockTrades",parameters);
+    }
+
+    public async Task<object> privateGetBlockTradesBlockTradeId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBlockTradesBlockTradeId",parameters);
+    }
+
+    public async Task<object> privateGetBlockTradesBlockTradeIdOffers (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBlockTradesBlockTradeIdOffers",parameters);
+    }
+
+    public async Task<object> privateGetBlockTradesBlockTradeIdOffersOfferId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBlockTradesBlockTradeIdOffersOfferId",parameters);
+    }
+
     public async Task<object> privateGetLiquidations (object parameters = null)
     {
         return await this.callAsync ("privateGetLiquidations",parameters);
@@ -191,11 +326,6 @@ public partial class paradex : Exchange
         return await this.callAsync ("privateGetOrdersOrderId",parameters);
     }
 
-    public async Task<object> privateGetPointsDataMarketProgram (object parameters = null)
-    {
-        return await this.callAsync ("privateGetPointsDataMarketProgram",parameters);
-    }
-
     public async Task<object> privateGetReferralsQrCode (object parameters = null)
     {
         return await this.callAsync ("privateGetReferralsQrCode",parameters);
@@ -206,24 +336,19 @@ public partial class paradex : Exchange
         return await this.callAsync ("privateGetReferralsSummary",parameters);
     }
 
+    public async Task<object> privateGetStakingHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetStakingHistory",parameters);
+    }
+
+    public async Task<object> privateGetStakingSummary (object parameters = null)
+    {
+        return await this.callAsync ("privateGetStakingSummary",parameters);
+    }
+
     public async Task<object> privateGetTransfers (object parameters = null)
     {
         return await this.callAsync ("privateGetTransfers",parameters);
-    }
-
-    public async Task<object> privateGetAlgoOrders (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAlgoOrders",parameters);
-    }
-
-    public async Task<object> privateGetAlgoOrdersHistory (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAlgoOrdersHistory",parameters);
-    }
-
-    public async Task<object> privateGetAlgoOrdersAlgoId (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAlgoOrdersAlgoId",parameters);
     }
 
     public async Task<object> privateGetVaultsAccountSummary (object parameters = null)
@@ -231,14 +356,44 @@ public partial class paradex : Exchange
         return await this.callAsync ("privateGetVaultsAccountSummary",parameters);
     }
 
+    public async Task<object> privateGetVaultsMine (object parameters = null)
+    {
+        return await this.callAsync ("privateGetVaultsMine",parameters);
+    }
+
+    public async Task<object> privateGetXpAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetXpAccountBalance",parameters);
+    }
+
+    public async Task<object> privateGetXpTransfers (object parameters = null)
+    {
+        return await this.callAsync ("privateGetXpTransfers",parameters);
+    }
+
+    public async Task<object> privatePostAccountCompliance (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountCompliance",parameters);
+    }
+
     public async Task<object> privatePostAccountMarginMarket (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMarginMarket",parameters);
     }
 
-    public async Task<object> privatePostAccountProfileMaxSlippage (object parameters = null)
+    public async Task<object> privatePostAccountProfileMarketMaxSlippageMarket (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountProfileMaxSlippage",parameters);
+        return await this.callAsync ("privatePostAccountProfileMarketMaxSlippageMarket",parameters);
+    }
+
+    public async Task<object> privatePostAccountProfileNotifications (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountProfileNotifications",parameters);
+    }
+
+    public async Task<object> privatePostAccountProfileNotificationsLastSeen (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountProfileNotificationsLastSeen",parameters);
     }
 
     public async Task<object> privatePostAccountProfileReferralCode (object parameters = null)
@@ -246,14 +401,74 @@ public partial class paradex : Exchange
         return await this.callAsync ("privatePostAccountProfileReferralCode",parameters);
     }
 
+    public async Task<object> privatePostAccountProfileRefreshInventory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountProfileRefreshInventory",parameters);
+    }
+
+    public async Task<object> privatePostAccountProfileSizeCurrencyDisplay (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountProfileSizeCurrencyDisplay",parameters);
+    }
+
     public async Task<object> privatePostAccountProfileUsername (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountProfileUsername",parameters);
     }
 
+    public async Task<object> privatePostAccountReferrer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountReferrer",parameters);
+    }
+
+    public async Task<object> privatePostAccountSettingsTradingValueDisplay (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSettingsTradingValueDisplay",parameters);
+    }
+
+    public async Task<object> privatePostAccountKeysSubkeysActivate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountKeysSubkeysActivate",parameters);
+    }
+
+    public async Task<object> privatePostAccountKeysSubkeys (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountKeysSubkeys",parameters);
+    }
+
+    public async Task<object> privatePostAccountTokens (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountTokens",parameters);
+    }
+
+    public async Task<object> privatePostAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAlgoOrders",parameters);
+    }
+
     public async Task<object> privatePostAuth (object parameters = null)
     {
         return await this.callAsync ("privatePostAuth",parameters);
+    }
+
+    public async Task<object> privatePostBlockTrades (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlockTrades",parameters);
+    }
+
+    public async Task<object> privatePostBlockTradesBlockTradeIdExecute (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlockTradesBlockTradeIdExecute",parameters);
+    }
+
+    public async Task<object> privatePostBlockTradesBlockTradeIdOffers (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlockTradesBlockTradeIdOffers",parameters);
+    }
+
+    public async Task<object> privatePostBlockTradesBlockTradeIdOffersOfferIdExecute (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBlockTradesBlockTradeIdOffersOfferIdExecute",parameters);
     }
 
     public async Task<object> privatePostOnboarding (object parameters = null)
@@ -271,9 +486,14 @@ public partial class paradex : Exchange
         return await this.callAsync ("privatePostOrdersBatch",parameters);
     }
 
-    public async Task<object> privatePostAlgoOrders (object parameters = null)
+    public async Task<object> privatePostV2Auth (object parameters = null)
     {
-        return await this.callAsync ("privatePostAlgoOrders",parameters);
+        return await this.callAsync ("privatePostV2Auth",parameters);
+    }
+
+    public async Task<object> privatePostV2Onboarding (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV2Onboarding",parameters);
     }
 
     public async Task<object> privatePostVaults (object parameters = null)
@@ -281,14 +501,59 @@ public partial class paradex : Exchange
         return await this.callAsync ("privatePostVaults",parameters);
     }
 
+    public async Task<object> privatePostXpTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostXpTransfer",parameters);
+    }
+
+    public async Task<object> privatePutAccountProfile (object parameters = null)
+    {
+        return await this.callAsync ("privatePutAccountProfile",parameters);
+    }
+
+    public async Task<object> privatePutAccountKeysSubkeysPublicKey (object parameters = null)
+    {
+        return await this.callAsync ("privatePutAccountKeysSubkeysPublicKey",parameters);
+    }
+
     public async Task<object> privatePutOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("privatePutOrdersOrderId",parameters);
     }
 
+    public async Task<object> privateDeleteAccountKeysSubkeysPublicKey (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteAccountKeysSubkeysPublicKey",parameters);
+    }
+
+    public async Task<object> privateDeleteAccountTokensLookupId (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteAccountTokensLookupId",parameters);
+    }
+
+    public async Task<object> privateDeleteAlgoOrdersAlgoId (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteAlgoOrdersAlgoId",parameters);
+    }
+
+    public async Task<object> privateDeleteBlockTradesBlockTradeId (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteBlockTradesBlockTradeId",parameters);
+    }
+
+    public async Task<object> privateDeleteBlockTradesBlockTradeIdOffersOfferId (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteBlockTradesBlockTradeIdOffersOfferId",parameters);
+    }
+
     public async Task<object> privateDeleteOrders (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrders",parameters);
+    }
+
+    public async Task<object> privateDeleteOrdersBatch (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteOrdersBatch",parameters);
     }
 
     public async Task<object> privateDeleteOrdersByClientIdClientId (object parameters = null)
@@ -299,11 +564,6 @@ public partial class paradex : Exchange
     public async Task<object> privateDeleteOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrdersOrderId",parameters);
-    }
-
-    public async Task<object> privateDeleteAlgoOrdersAlgoId (object parameters = null)
-    {
-        return await this.callAsync ("privateDeleteAlgoOrdersAlgoId",parameters);
     }
 
 }

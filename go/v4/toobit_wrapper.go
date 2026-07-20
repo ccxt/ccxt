@@ -46,7 +46,7 @@ func (this *Toobit) FetchStatus(params ...any) (map[string]any, error) {
  * @method
  * @name toobit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -62,6 +62,7 @@ func (this *Toobit) FetchTime(params ...any) (int64, error) {
  * @method
  * @name toobit#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -77,8 +78,8 @@ func (this *Toobit) FetchCurrencies(params ...any) (Currencies, error) {
  * @method
  * @name toobit#fetchMarkets
  * @description retrieves data on all markets for toobit
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -94,12 +95,12 @@ func (this *Toobit) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name toobit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#order-book
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Toobit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -129,8 +130,8 @@ func (this *Toobit) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @method
  * @name toobit#fetchTrades
  * @description get a list of the most recent trades for a particular symbol
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
@@ -170,8 +171,10 @@ func (this *Toobit) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @method
  * @name toobit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -217,8 +220,8 @@ func (this *Toobit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @method
  * @name toobit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -251,7 +254,7 @@ func (this *Toobit) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @method
  * @name toobit#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -285,7 +288,7 @@ func (this *Toobit) FetchLastPrices(options ...FetchLastPricesOptions) (LastPric
  * @method
  * @name toobit#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+ * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -319,7 +322,7 @@ func (this *Toobit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, err
  * @method
  * @name toobit#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
@@ -352,7 +355,7 @@ func (this *Toobit) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
  * @method
  * @name toobit#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -399,9 +402,9 @@ func (this *Toobit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @method
  * @name toobit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
- * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Toobit) FetchBalance(params ...any) (Balances, error) {
@@ -416,8 +419,8 @@ func (this *Toobit) FetchBalance(params ...any) (Balances, error) {
  * @method
  * @name toobit#createOrder
  * @description create a trade order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market', 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -454,8 +457,8 @@ func (this *Toobit) CreateOrder(symbol string, typeVar string, side string, amou
  * @method
  * @name toobit#cancelOrder
  * @description cancels an open order
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -489,8 +492,8 @@ func (this *Toobit) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @method
  * @name toobit#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
  * @param {string} symbol unified symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -523,8 +526,8 @@ func (this *Toobit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @method
  * @name toobit#cancelOrders
  * @description cancel multiple orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -558,8 +561,8 @@ func (this *Toobit) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @method
  * @name toobit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -593,8 +596,8 @@ func (this *Toobit) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @method
  * @name toobit#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -639,7 +642,7 @@ func (this *Toobit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @method
  * @name toobit#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -684,7 +687,7 @@ func (this *Toobit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
  * @method
  * @name toobit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -729,8 +732,8 @@ func (this *Toobit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @method
  * @name toobit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -776,7 +779,7 @@ func (this *Toobit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @method
  * @name toobit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount 'spot', 'swap'
@@ -807,8 +810,8 @@ func (this *Toobit) Transfer(code string, amount float64, fromAccount string, to
  * @method
  * @name toobit#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+ * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -854,7 +857,7 @@ func (this *Toobit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
  * @method
  * @name toobit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -870,7 +873,7 @@ func (this *Toobit) FetchTradingFees(params ...any) (TradingFees, error) {
  * @method
  * @name toobit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposit structures to retrieve
@@ -915,7 +918,7 @@ func (this *Toobit) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @method
  * @name toobit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
@@ -955,7 +958,18 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchDepositsOrWithdrawalsHelper(typeVar, code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -967,7 +981,7 @@ func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, sinc
  * @method
  * @name toobit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -995,12 +1009,13 @@ func (this *Toobit) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @method
  * @name toobit#withdraw
  * @description make a withdrawal
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+ * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Toobit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -1031,7 +1046,7 @@ func (this *Toobit) Withdraw(code string, amount float64, address string, option
  * @method
  * @name toobit#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1065,7 +1080,7 @@ func (this *Toobit) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @method
  * @name toobit#setLeverage
  * @description set the level of leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1099,7 +1114,7 @@ func (this *Toobit) SetLeverage(leverage int64, options ...SetLeverageOptions) (
  * @method
  * @name toobit#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -1127,7 +1142,7 @@ func (this *Toobit) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @method
  * @name toobit#fetchPositions
  * @description fetch all open positions
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+ * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

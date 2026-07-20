@@ -18,7 +18,8 @@ function tco_debug($exchange, $symbol, $message) {
     $debug_create_order = true;
     if ($debug_create_order) {
         // for c# fix, extra step to convert them to string
-        var_dump(' >>>>> testCreateOrder [', ((string) ($exchange['id'])), ' : ', $symbol, '] ', $message);
+        $msg = ' >>>>> testCreateOrder [' . ((string) ($exchange['id'])) . ' : ' . $symbol . '] ' . $message;
+        var_dump($msg);
     }
     return true;
 }
@@ -43,19 +44,19 @@ function test_create_order($exchange, $skipped_properties, $symbol) {
         // **************** [Scenario 1 - START] **************** //
         tco_debug($exchange, $symbol, '### SCENARIO 1 ###');
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-        \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
+        \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy'));
         if ($is_swap_future) {
             // for swap markets, we test sell orders too
-            \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
+            \React\Async\await(tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell'));
         }
         tco_debug($exchange, $symbol, '### SCENARIO 1 PASSED ###');
         // **************** [Scenario 2 - START] **************** //
         tco_debug($exchange, $symbol, '### SCENARIO 2 ###');
         // create an order which IS GUARANTEED to have a fill (full or partial)
-        \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null));
+        \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy'));
         if ($is_swap_future) {
             // for swap markets, we test sell orders too
-            \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null));
+            \React\Async\await(tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell'));
         }
         tco_debug($exchange, $symbol, '### SCENARIO 2 PASSED ###');
         // **************** [Scenario 3 - START] **************** //
@@ -103,7 +104,7 @@ function tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_p
             assert_in_array($exchange, $skipped_properties, 'fetchedOrder', $fetched_order, 'side', [null, $buy_or_sell]);
             \React\Async\await(tco_cancel_order($exchange, $symbol, $created_order['id']));
         } catch(\Throwable $e) {
-            throw new Error($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
+            throw new Exception($log_prefix . ' failed for Scenario 1: ' . ((string) $e));
         }
         return true;
     }) ();
@@ -142,7 +143,7 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
             $exitorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $exitorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $exitorder_filled, $exitorder_fetched, $exit_side, $amount_to_close);
         } catch(\Throwable $e) {
-            throw new Error('failed for Scenario 2: ' . ((string) $e));
+            throw new Exception('failed for Scenario 2: ' . ((string) $e));
         }
         return true;
     }) ();
@@ -184,7 +185,7 @@ function tco_cancel_order($exchange, $symbol, $order_id = null) {
             $used_method = 'cancelAllOrders';
             $cancel_result = \React\Async\await($exchange->cancel_all_orders($symbol));
         } elseif ($exchange->has['cancelOrders']) {
-            throw new Error($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
+            throw new Exception($log_prefix . ' cancelOrders method is not unified yet, coming soon...');
         }
         tco_debug($exchange, $symbol, 'canceled order using ' . $used_method . ':' . $cancel_result['id']);
         // todo:

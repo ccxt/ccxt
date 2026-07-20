@@ -1,5 +1,8 @@
 name: Python
 
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -27,7 +30,7 @@ jobs:
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
@@ -36,7 +39,7 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     - name: Install python dependencies
-      run: pip install -r ci-requirements.txt
+      run: pip install -r build/ci-requirements.txt
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -46,7 +49,7 @@ jobs:
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-py
     - name: Transpile to Python
@@ -63,6 +66,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileWs --python $exchange
         done
+    - name: Transpile prediction to Python
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-py
     - name: Post-transpile (syntax check)
       run: npm run check-python-syntax
     - name: Run Base Tests
@@ -96,11 +102,19 @@ jobs:
           npm run response-py-sync -- $exchange
           npm run response-py-async -- $exchange
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-py-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-py-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
           name: shared_env
           path: shared_env.txt
+    - name: Copy Python files
+      run: npm run copy-python-files
 
     - name: Upload Python Files
       uses: actions/upload-artifact@v4
@@ -114,7 +128,9 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add python/
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+          git pull origin master
+          git add python/ examples/py
           git commit -m "[Automated changes] Python files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
@@ -136,7 +152,7 @@ jobs:
           name: python-files
           path: python/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -148,7 +164,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Run Id Tests
@@ -172,7 +188,7 @@ jobs:
           name: python-files
           path: python/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -184,7 +200,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests

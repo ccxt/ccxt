@@ -116,12 +116,12 @@ class xt(ccxt.async_support.xt):
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
         firstDeltaNonce = self.safe_integer_2(firstDelta, 'i', 'u')
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaNonce = self.safe_integer_2(delta, 'i', 'u')
-            if deltaNonce >= nonce:
+            if (deltaNonce is not None) and (nonce is not None) and (deltaNonce >= nonce):
                 return i
         return len(cache)
 
@@ -144,7 +144,7 @@ class xt(ccxt.async_support.xt):
         # self.handleBidAsks(storedBids, bids)
         # self.handleBidAsks(storedAsks, asks)
 
-    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: List[str] = None, params={}):
+    async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: Strings = None, params={}):
         """
  @ignore
         Connects to a websocket channel
@@ -187,13 +187,13 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        subscription: dict = {
+        subscription = {
             'id': id,
         }
         url = self.urls['api']['ws'][tradeType] + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: List[str] = None, params={}, subscriptionParams={}) -> Any:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> Any:
         """
  @ignore
         Connects to a websocket channel
@@ -238,7 +238,7 @@ class xt(ccxt.async_support.xt):
         if isContract:
             tail = 'user' if privateAccess else 'market'
         url = self.urls['api']['ws'][tradeType] + '/' + tail
-        subscription: dict = {
+        subscription = {
             'unsubscribe': True,
             'id': id,
             'subMessageHashes': [subMessageHash],
@@ -265,7 +265,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         options = self.safe_dict(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
@@ -286,7 +287,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         options = self.safe_dict(self.options, 'unWatchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker')
@@ -308,7 +310,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
@@ -333,7 +336,8 @@ class xt(ccxt.async_support.xt):
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_dict(self.options, 'unWatchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
@@ -359,7 +363,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
@@ -379,7 +384,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         messageHash = 'unsubscribe::' + name
@@ -399,7 +405,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'trade@' + market['id']
         trades = await self.subscribe(name, 'public', 'watchTrades', market, None, params)
@@ -418,7 +425,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'trade@' + market['id']
         messageHash = 'unsubscribe::' + name
@@ -439,7 +447,8 @@ class xt(ccxt.async_support.xt):
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         params = self.omit(params, 'levels')
@@ -463,7 +472,8 @@ class xt(ccxt.async_support.xt):
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         levels = self.safe_string(params, 'levels')
         params = self.omit(params, 'levels')
@@ -486,7 +496,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'order'
         market = None
         if symbol is not None:
@@ -509,7 +520,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'trade'
         market = None
         if symbol is not None:
@@ -529,7 +541,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'balance'
         return await self.subscribe(name, 'private', 'watchBalance', None, None, params)
 
@@ -545,7 +558,8 @@ class xt(ccxt.async_support.xt):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['contract'] + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)
@@ -572,13 +586,13 @@ class xt(ccxt.async_support.xt):
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
     async def load_positions_snapshot(self, client, messageHash):
-        positions = await self.fetch_positions(None)
+        positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -702,7 +716,8 @@ class xt(ccxt.async_support.xt):
             isSpot = cv is not None
             ticker = self.parse_ticker(data)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             event = self.safe_string(message, 'event')
             messageHashTail = 'spot' if isSpot else 'contract'
             messageHash = event + '::' + messageHashTail
@@ -786,7 +801,8 @@ class xt(ccxt.async_support.xt):
             tickerData = data[i]
             ticker = self.parse_ticker(tickerData)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             newTickers.append(ticker)
         messageHashStart = self.safe_string(message, 'topic') + '::' + tradeType
         messageHashes = self.find_message_hashes(client, messageHashStart + '::')
@@ -844,7 +860,7 @@ class xt(ccxt.async_support.xt):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         if marketId is not None:
-            timeframe = self.safe_string(data, 'i')
+            timeframe = self.safe_string(data, 'i', '')
             tradeType = 'spot' if ('q' in data) else 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
@@ -974,10 +990,12 @@ class xt(ccxt.async_support.xt):
         data = self.safe_dict(message, 'data')
         marketId = self.safe_string(data, 's')
         if marketId is not None:
-            event = self.safe_string(message, 'event')
+            event = self.safe_string(message, 'event', '')
             splitEvent = event.split(',')
-            event = self.safe_string(splitEvent, 0)
-            tradeType = 'contract' if ('fu' in data) else 'spot'
+            event = self.safe_string(splitEvent, 0, '')
+            tradeType = 'spot'
+            if (data is not None) and ('fu' in data):
+                tradeType = 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             obAsks = self.safe_list(data, 'a')
@@ -1297,7 +1315,10 @@ class xt(ccxt.async_support.xt):
             stored = ArrayCacheBySymbolById(limit)
             self.myTrades = stored
         parsedTrade = self.parse_trade(data)
-        market = self.market(parsedTrade['symbol'])
+        tradeSymbol = parsedTrade['symbol']
+        if tradeSymbol is None:
+            return
+        market = self.market(tradeSymbol)
         stored.append(parsedTrade)
         tradeType = 'contract' if market['contract'] else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
@@ -1320,10 +1341,10 @@ class xt(ccxt.async_support.xt):
                 'order': self.handle_order,
                 'position': self.handle_position,
             }
-            method = self.safe_value(methods, topic)
+            method = None if (topic is None) else self.safe_value(methods, topic)
             if topic == 'trade':
                 data = self.safe_dict(message, 'data')
-                if ('oi' in data) or ('orderId' in data):
+                if (data is not None) and (('oi' in data) or ('orderId' in data)):
                     method = self.handle_my_trades
                 else:
                     method = self.handle_trade

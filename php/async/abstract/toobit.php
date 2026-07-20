@@ -31,11 +31,14 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function common_get_quote_v1_index_klines($params = array()) {
         return $this->request('quote/v1/index/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function common_get_quote_v1_indexpricecomponents($params = array()) {
+        return $this->request('quote/v1/indexPriceComponents', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function common_get_quote_v1_markprice_klines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function common_get_quote_v1_markprice($params = array()) {
-        return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 10));
     }
     public function common_get_quote_v1_index($params = array()) {
         return $this->request('quote/v1/index', 'common', 'GET', $params, null, null, array("cost" => 1));
@@ -49,14 +52,23 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function common_get_quote_v1_ticker_price($params = array()) {
         return $this->request('quote/v1/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function common_get_quote_v1_contract_ticker_price($params = array()) {
+        return $this->request('quote/v1/contract/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function common_get_quote_v1_ticker_bookticker($params = array()) {
         return $this->request('quote/v1/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function common_get_quote_v1_contract_ticker_bookticker($params = array()) {
+        return $this->request('quote/v1/contract/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function common_get_api_v1_futures_fundingrate($params = array()) {
         return $this->request('api/v1/futures/fundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function common_get_api_v1_futures_historyfundingrate($params = array()) {
         return $this->request('api/v1/futures/historyFundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function common_get_api_v1_futures_risklimits($params = array()) {
+        return $this->request('api/v1/futures/riskLimits', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_api_v1_account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -97,6 +109,12 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function private_get_api_v1_subaccount($params = array()) {
         return $this->request('api/v1/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_api_v1_account_subaccount($params = array()) {
+        return $this->request('api/v1/account/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_v1_subaccount_list($params = array()) {
+        return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_api_v1_futures_accountleverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -105,6 +123,9 @@ abstract class toobit extends \ccxt\async\Exchange {
     }
     public function private_get_api_v1_futures_positions($params = array()) {
         return $this->request('api/v1/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    public function private_get_api_v1_futures_historypositions($params = array()) {
+        return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_api_v1_futures_balance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -120,6 +141,48 @@ abstract class toobit extends \ccxt\async\Exchange {
     }
     public function private_get_api_v1_futures_todaypnl($params = array()) {
         return $this->request('api/v1/futures/todayPnl', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_v1_account_download_detail($params = array()) {
+        return $this->request('api/v1/account/download/detail', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_api_v1_agent_inviteuserlist($params = array()) {
+        return $this->request('api/v1/agent/inviteUserList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_commissiondatalist($params = array()) {
+        return $this->request('api/v1/agent/commissionDataList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_commissiondatainfo($params = array()) {
+        return $this->request('api/v1/agent/commissionDataInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_inviterelationcheck($params = array()) {
+        return $this->request('api/v1/agent/inviteRelationCheck', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_depositdetaillist($params = array()) {
+        return $this->request('api/v1/agent/depositDetailList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_querysubagentdata($params = array()) {
+        return $this->request('api/v1/agent/querySubAgentData', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_spotorderslist($params = array()) {
+        return $this->request('api/v1/agent/spotOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_futuresorderslist($params = array()) {
+        return $this->request('api/v1/agent/futuresOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_futurespositionslist($params = array()) {
+        return $this->request('api/v1/agent/futuresPositionsList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_invite_commission_detail($params = array()) {
+        return $this->request('api/v1/agent/invite-commission-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_user_export($params = array()) {
+        return $this->request('api/v1/agent/user/export', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_export_list($params = array()) {
+        return $this->request('api/v1/agent/export-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_api_v1_agent_export_url($params = array()) {
+        return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_api_v1_spot_ordertest($params = array()) {
         return $this->request('api/v1/spot/orderTest', 'private', 'POST', $params, null, null, array("cost" => 1.67));
@@ -154,6 +217,21 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function private_post_api_v1_futures_positionmargin($params = array()) {
         return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_api_v1_futures_order_update($params = array()) {
+        return $this->request('api/v1/futures/order/update', 'private', 'POST', $params, null, null, array("cost" => 3.34));
+    }
+    public function private_post_api_v1_futures_autoaddmargin($params = array()) {
+        return $this->request('api/v1/futures/autoAddMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_api_v1_futures_flashclose($params = array()) {
+        return $this->request('api/v1/futures/flashClose', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_api_v1_futures_reverseposition($params = array()) {
+        return $this->request('api/v1/futures/reversePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_api_v1_account_download_apply($params = array()) {
+        return $this->request('api/v1/account/download/apply', 'private', 'POST', $params, null, null, array("cost" => 1000));
+    }
     public function private_post_api_v1_userdatastream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -170,16 +248,22 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/spot/openOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
     public function private_delete_api_v1_futures_batchorders($params = array()) {
-        return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
+        return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
     public function private_delete_api_v1_spot_cancelorderbyids($params = array()) {
         return $this->request('api/v1/spot/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
     public function private_delete_api_v1_futures_cancelorderbyids($params = array()) {
-        return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
+        return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
+    }
+    public function private_delete_api_v1_userdatastream($params = array()) {
+        return $this->request('api/v1/userDataStream', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_api_v1_listenkey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function private_put_api_v1_userdatastream($params = array()) {
+        return $this->request('api/v1/userDataStream', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_put_api_v1_listenkey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -208,11 +292,14 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function commonGetQuoteV1IndexKlines($params = array()) {
         return $this->request('quote/v1/index/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function commonGetQuoteV1IndexPriceComponents($params = array()) {
+        return $this->request('quote/v1/indexPriceComponents', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function commonGetQuoteV1MarkPriceKlines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function commonGetQuoteV1MarkPrice($params = array()) {
-        return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('quote/v1/markPrice', 'common', 'GET', $params, null, null, array("cost" => 10));
     }
     public function commonGetQuoteV1Index($params = array()) {
         return $this->request('quote/v1/index', 'common', 'GET', $params, null, null, array("cost" => 1));
@@ -226,14 +313,23 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function commonGetQuoteV1TickerPrice($params = array()) {
         return $this->request('quote/v1/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function commonGetQuoteV1ContractTickerPrice($params = array()) {
+        return $this->request('quote/v1/contract/ticker/price', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function commonGetQuoteV1TickerBookTicker($params = array()) {
         return $this->request('quote/v1/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function commonGetQuoteV1ContractTickerBookTicker($params = array()) {
+        return $this->request('quote/v1/contract/ticker/bookTicker', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function commonGetApiV1FuturesFundingRate($params = array()) {
         return $this->request('api/v1/futures/fundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function commonGetApiV1FuturesHistoryFundingRate($params = array()) {
         return $this->request('api/v1/futures/historyFundingRate', 'common', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function commonGetApiV1FuturesRiskLimits($params = array()) {
+        return $this->request('api/v1/futures/riskLimits', 'common', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetApiV1Account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -274,6 +370,12 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function privateGetApiV1SubAccount($params = array()) {
         return $this->request('api/v1/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetApiV1AccountSubAccount($params = array()) {
+        return $this->request('api/v1/account/subAccount', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiV1SubAccountList($params = array()) {
+        return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetApiV1FuturesAccountLeverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -282,6 +384,9 @@ abstract class toobit extends \ccxt\async\Exchange {
     }
     public function privateGetApiV1FuturesPositions($params = array()) {
         return $this->request('api/v1/futures/positions', 'private', 'GET', $params, null, null, array("cost" => 8.35));
+    }
+    public function privateGetApiV1FuturesHistoryPositions($params = array()) {
+        return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetApiV1FuturesBalance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -297,6 +402,48 @@ abstract class toobit extends \ccxt\async\Exchange {
     }
     public function privateGetApiV1FuturesTodayPnl($params = array()) {
         return $this->request('api/v1/futures/todayPnl', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiV1AccountDownloadDetail($params = array()) {
+        return $this->request('api/v1/account/download/detail', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetApiV1AgentInviteUserList($params = array()) {
+        return $this->request('api/v1/agent/inviteUserList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentCommissionDataList($params = array()) {
+        return $this->request('api/v1/agent/commissionDataList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentCommissionDataInfo($params = array()) {
+        return $this->request('api/v1/agent/commissionDataInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentInviteRelationCheck($params = array()) {
+        return $this->request('api/v1/agent/inviteRelationCheck', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentDepositDetailList($params = array()) {
+        return $this->request('api/v1/agent/depositDetailList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentQuerySubAgentData($params = array()) {
+        return $this->request('api/v1/agent/querySubAgentData', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentSpotOrdersList($params = array()) {
+        return $this->request('api/v1/agent/spotOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentFuturesOrdersList($params = array()) {
+        return $this->request('api/v1/agent/futuresOrdersList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentFuturesPositionsList($params = array()) {
+        return $this->request('api/v1/agent/futuresPositionsList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentInviteCommissionDetail($params = array()) {
+        return $this->request('api/v1/agent/invite-commission-detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentUserExport($params = array()) {
+        return $this->request('api/v1/agent/user/export', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentExportList($params = array()) {
+        return $this->request('api/v1/agent/export-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetApiV1AgentExportUrl($params = array()) {
+        return $this->request('api/v1/agent/export-url', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostApiV1SpotOrderTest($params = array()) {
         return $this->request('api/v1/spot/orderTest', 'private', 'POST', $params, null, null, array("cost" => 1.67));
@@ -331,6 +478,21 @@ abstract class toobit extends \ccxt\async\Exchange {
     public function privatePostApiV1FuturesPositionMargin($params = array()) {
         return $this->request('api/v1/futures/positionMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostApiV1FuturesOrderUpdate($params = array()) {
+        return $this->request('api/v1/futures/order/update', 'private', 'POST', $params, null, null, array("cost" => 3.34));
+    }
+    public function privatePostApiV1FuturesAutoAddMargin($params = array()) {
+        return $this->request('api/v1/futures/autoAddMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostApiV1FuturesFlashClose($params = array()) {
+        return $this->request('api/v1/futures/flashClose', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostApiV1FuturesReversePosition($params = array()) {
+        return $this->request('api/v1/futures/reversePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostApiV1AccountDownloadApply($params = array()) {
+        return $this->request('api/v1/account/download/apply', 'private', 'POST', $params, null, null, array("cost" => 1000));
+    }
     public function privatePostApiV1UserDataStream($params = array()) {
         return $this->request('api/v1/userDataStream', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -347,16 +509,22 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/spot/openOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
     public function privateDeleteApiV1FuturesBatchOrders($params = array()) {
-        return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
+        return $this->request('api/v1/futures/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
     }
     public function privateDeleteApiV1SpotCancelOrderByIds($params = array()) {
         return $this->request('api/v1/spot/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
     }
     public function privateDeleteApiV1FuturesCancelOrderByIds($params = array()) {
-        return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 8.35));
+        return $this->request('api/v1/futures/cancelOrderByIds', 'private', 'DELETE', $params, null, null, array("cost" => 5.01));
+    }
+    public function privateDeleteApiV1UserDataStream($params = array()) {
+        return $this->request('api/v1/userDataStream', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteApiV1ListenKey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function privatePutApiV1UserDataStream($params = array()) {
+        return $this->request('api/v1/userDataStream', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privatePutApiV1ListenKey($params = array()) {
         return $this->request('api/v1/listenKey', 'private', 'PUT', $params, null, null, array("cost" => 1));

@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable max-classes-per-file */
 import fs from 'fs';
+import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
@@ -9,7 +10,7 @@ import { unCamelCase } from '../base/functions/string.js';
 import { Str } from '../base/types.js';
 
 // js specific codes //
-const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
+const DIR_NAME = path.dirname (fileURLToPath (import.meta.url)) + path.sep;
 process.on ('uncaughtException', (e) => {
     throw new Error ('[TEST_FAILURE] ' + exceptionMessage (e));
     // process.exit (1);
@@ -58,7 +59,7 @@ function getCliArgValue (arg) {
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
 const LANG = 'JS';
-const ROOT_DIR = DIR_NAME + '/../../../';
+const ROOT_DIR = path.resolve (DIR_NAME, '..', '..', '..') + path.sep;
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
@@ -146,6 +147,14 @@ function setExchangeProp (exchange, prop, value) {
 }
 
 function initExchange (exchangeId, args, isWs = false): Exchange {
+    const prediction = (ccxt as any).prediction;
+    const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
+    // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
+    // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
+    // the prediction class carries the watch* methods too (no ccxt.pro variant), so route WS there as well
+    if (hasPrediction && (getCliArgValue ('--prediction') || !(exchangeId in ccxt))) {
+        return new (prediction)[exchangeId] (args);
+    }
     if (isWs) {
         return new (ccxt.pro)[exchangeId] (args);
     }
@@ -163,13 +172,13 @@ function getTestFilesSync (properties, ws = false) {
 }
 
 async function getTestFiles (properties, ws = false) {
-    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
+    const targetPath = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
     const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
-        const filePathWoExt = path + 'Exchange/test.' + name;
+        const filePathWoExt = targetPath + 'Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);
@@ -179,7 +188,7 @@ async function getTestFiles (properties, ws = false) {
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = path + '/base/errors/test.' + name;
+        const filePathWoExt = targetPath + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);

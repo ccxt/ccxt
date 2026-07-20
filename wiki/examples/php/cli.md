@@ -1,8 +1,5 @@
-- [Cli](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
@@ -52,10 +49,16 @@ $main = function() use ($argv) {
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
 
+        $prediction = count(array_filter($args, function ($option) { return strstr($option, '--prediction') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--prediction') === false; }));
+
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
-        $exchange_found = in_array($id, \ccxt\async\Exchange::$exchanges);
+        // regular ids win for ids present in both namespaces (e.g. hyperliquid); --prediction
+        // forces the prediction namespace, and prediction is the fallback for prediction-only ids
+        $is_prediction = class_exists('\\ccxt\\prediction\\' . $id) && ($prediction || !in_array($id, \ccxt\async\Exchange::$exchanges));
+        $exchange_found = in_array($id, \ccxt\async\Exchange::$exchanges) || $is_prediction;
 
         if ($exchange_found) {
 
@@ -71,7 +74,9 @@ $main = function() use ($argv) {
 
             // instantiate the exchange by id
             $exchange = null;
-            if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
+            if ($is_prediction) {
+                $exchange = '\\ccxt\\prediction\\' . $id;
+            } else if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
                 $exchange = '\\ccxt\\pro\\' . $id;
             } else {
                 $exchange = '\\ccxt\\async\\' . $id;
@@ -206,5 +211,5 @@ $promise = Async\coroutine($main);
 Async\await($promise);
 
 ?>
- 
+
 ```

@@ -6,6 +6,20 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any) {
+	// prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+	// books where bid==ask and a stale `last` far from the median are normal — skip the
+	// crypto-oriented price-relationship checks for them. the PredictionTicker type also
+	// omits vwap/previousClose entirely, so their presence must not be Asserted
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol":            true,
+			"spread":            true,
+			"lastBetweenBidAsk": true,
+			"maxIncrease":       true,
+			"vwap":              true,
+			"previousClose":     true,
+		}, skippedProperties)
+	}
 	var format any = map[string]any{
 		"info":          map[string]any{},
 		"symbol":        "ETH/BTC",
@@ -40,10 +54,15 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var logText any = LogTemplate(exchange, method, entry)
 	// check market
 	var market any = nil
+	var isUnrecognizedSymbol any = false
 	var isFetchTickerCalled any = IsEqual(method, "fetchTicker")
 	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
-	if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
-		market = exchange.Market(symbolForMarket)
+	if IsTrue(!IsEqual(symbolForMarket, nil)) {
+		if IsTrue(InOp(exchange.GetMarkets(), symbolForMarket)) {
+			market = exchange.Market(symbolForMarket)
+		} else {
+			isUnrecognizedSymbol = true
+		}
 	}
 	// temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
 	if !IsTrue((InOp(skippedProperties, "checkInactiveMarkets"))) {
@@ -158,7 +177,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")
 	var change any = exchange.SafeString(entry, "change")
-	if !IsTrue((InOp(skippedProperties, "maxIncrease"))) {
+	if IsTrue(!IsTrue((InOp(skippedProperties, "maxIncrease"))) && !IsTrue(isUnrecognizedSymbol)) {
 		//
 		// percentage
 		//

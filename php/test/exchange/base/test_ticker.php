@@ -10,6 +10,20 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
+    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    // books where bid==ask and a stale `last` far from the median are normal — skip the
+    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    // omits vwap/previousClose entirely, so their presence must not be asserted
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $skipped_properties = $exchange->extend(array(
+            'symbol' => true,
+            'spread' => true,
+            'lastBetweenBidAsk' => true,
+            'maxIncrease' => true,
+            'vwap' => true,
+            'previousClose' => true,
+        ), $skipped_properties);
+    }
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',
@@ -44,10 +58,15 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $log_text = log_template($exchange, $method, $entry);
     // check market
     $market = null;
+    $is_unrecognized_symbol = false;
     $is_fetch_ticker_called = $method === 'fetchTicker';
     $symbol_for_market = ($symbol !== null) ? $symbol : $exchange->safe_string($entry, 'symbol');
-    if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
-        $market = $exchange->market($symbol_for_market);
+    if ($symbol_for_market !== null) {
+        if (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets)) {
+            $market = $exchange->market($symbol_for_market);
+        } else {
+            $is_unrecognized_symbol = true;
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if (!(is_array($skipped_properties) && array_key_exists('checkInactiveMarkets', $skipped_properties))) {
@@ -162,7 +181,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     }
     $percentage = $exchange->safe_string($entry, 'percentage');
     $change = $exchange->safe_string($entry, 'change');
-    if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties)) && !$is_unrecognized_symbol) {
         //
         // percentage
         //

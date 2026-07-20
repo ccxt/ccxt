@@ -20,16 +20,16 @@ func (this *PacificaCore) Describe() any {
 		"countries":            []any{},
 		"version":              "v1",
 		"isSandboxModeEnabled": false,
-		"rateLimit":            50,
+		"rateLimit":            600,
 		"certified":            false,
 		"pro":                  true,
 		"dex":                  true,
 		"has": map[string]any{
 			"CORS":                                 nil,
-			"spot":                                 false,
+			"spot":                                 true,
 			"margin":                               false,
 			"swap":                                 true,
-			"future":                               true,
+			"future":                               false,
 			"option":                               false,
 			"addMargin":                            false,
 			"borrowCrossMargin":                    false,
@@ -51,7 +51,7 @@ func (this *PacificaCore) Describe() any {
 			"createStopOrder":                      true,
 			"editOrder":                            true,
 			"editOrders":                           false,
-			"fetchAccounts":                        true,
+			"fetchAccounts":                        false,
 			"fetchBalance":                         true,
 			"fetchBorrowInterest":                  false,
 			"fetchBorrowRateHistories":             false,
@@ -65,7 +65,7 @@ func (this *PacificaCore) Describe() any {
 			"fetchDepositAddress":                  false,
 			"fetchDepositAddresses":                false,
 			"fetchDeposits":                        false,
-			"fetchDepositWithdrawFee":              "emulated",
+			"fetchDepositWithdrawFee":              false,
 			"fetchDepositWithdrawFees":             false,
 			"fetchFundingHistory":                  true,
 			"fetchFundingRate":                     false,
@@ -131,10 +131,12 @@ func (this *PacificaCore) Describe() any {
 			"8h":  "8h",
 			"12h": "12h",
 			"1d":  "1d",
+			"1w":  "1w",
+			"1M":  "1M",
 		},
 		"hostname": "pacifica.fi",
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4",
+			"logo": "https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610",
 			"api": map[string]any{
 				"public":  "https://api.{hostname}",
 				"private": "https://api.{hostname}",
@@ -151,49 +153,77 @@ func (this *PacificaCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"info":                            1,
-					"info/prices":                     1,
-					"kline":                           12,
-					"kline/mark":                      12,
-					"book":                            1,
-					"trades":                          1,
-					"funding_rate/history":            1,
-					"account":                         1,
-					"account/settings":                1,
-					"positions":                       1,
-					"trades/history":                  12,
-					"funding/history":                 1,
-					"portfolio":                       1,
-					"account/balance/history":         12,
-					"orders":                          1,
-					"orders/history":                  12,
-					"orders/history_by_id":            1,
-					"account/builder_codes/approvals": 1,
+					"info":                                   1,
+					"info/fees":                              1,
+					"info/prices":                            1,
+					"kline":                                  12,
+					"kline/mark":                             12,
+					"book":                                   1,
+					"trades":                                 1,
+					"funding_rate/history":                   1,
+					"loan_pool":                              1,
+					"account":                                1,
+					"account/loan":                           1,
+					"account/settings":                       1,
+					"positions":                              1,
+					"trades/history":                         12,
+					"funding/history":                        1,
+					"portfolio":                              1,
+					"account/balance/history":                12,
+					"account/spot_balance/history":           1,
+					"account/spot_asset/deposit/history":     1,
+					"account/spot_asset/withdraw/history":    1,
+					"account/spot_asset/withdraw/pending":    1,
+					"orders":                                 1,
+					"orders/history":                         12,
+					"orders/history_by_id":                   1,
+					"spot_assets":                            1,
+					"spot_assets/bridge/info":                1,
+					"spot_assets/bridge/parameters/{symbol}": 1,
+					"lake/list":                              1,
+					"account/builder_codes/approvals":        1,
 				},
 			},
 			"private": map[string]any{
 				"post": map[string]any{
-					"account/leverage":              1,
-					"account/margin":                1,
-					"account/withdraw":              1,
-					"account/subaccount/create":     1,
-					"account/subaccount/list":       1,
-					"account/subaccount/transfer":   1,
-					"orders/create":                 1,
-					"orders/create_market":          1,
-					"orders/stop/create":            1,
-					"positions/tpsl":                1,
-					"orders/cancel":                 0.5,
-					"orders/cancel_all":             0.5,
-					"orders/stop/cancel":            0.5,
-					"orders/edit":                   1,
-					"orders/batch":                  1,
-					"account/builder_codes/approve": 1,
-					"account/builder_codes/revoke":  1,
-					"agent/bind":                    1,
-					"account/api_keys/create":       1,
-					"account/api_keys/revoke":       1,
-					"account/api_keys":              1,
+					"account/leverage":                       1,
+					"account/margin":                         1,
+					"account/withdraw":                       1,
+					"account/settings/auto_lend_disabled":    1,
+					"account/settings/spot":                  1,
+					"account/spot_asset/withdraw":            1,
+					"account/subaccount/create":              1,
+					"account/subaccount/list":                1,
+					"account/subaccount/transfer":            1,
+					"account/subaccount/spot_asset/transfer": 1,
+					"positions/add_isolated_margin":          1,
+					"orders/create":                          1,
+					"orders/create_market":                   1,
+					"orders/stop/create":                     1,
+					"positions/tpsl":                         1,
+					"orders/cancel":                          0.5,
+					"orders/cancel_all":                      0.5,
+					"orders/stop/cancel":                     0.5,
+					"orders/edit":                            1,
+					"orders/batch":                           1,
+					"account/builder_codes/approve":          1,
+					"account/builder_codes/revoke":           1,
+					"agent/bind":                             1,
+					"account/api_keys/create":                1,
+					"account/api_keys/revoke":                1,
+					"account/api_keys":                       1,
+					"lake/add_blacklist":                     1,
+					"lake/add_max_leverage":                  1,
+					"lake/add_whitelist":                     1,
+					"lake/claim_manager":                     1,
+					"lake/claim_referral_code":               1,
+					"lake/create":                            1,
+					"lake/deposit":                           1,
+					"lake/remove_blacklist":                  1,
+					"lake/remove_max_leverage":               1,
+					"lake/remove_whitelist":                  1,
+					"lake/update_deposit_cap":                1,
+					"lake/withdraw":                          1,
 				},
 			},
 		},
@@ -211,10 +241,131 @@ func (this *PacificaCore) Describe() any {
 		},
 		"exceptions": map[string]any{
 			"exact": map[string]any{
+				"0":   ExchangeError,
+				"1":   ExchangeError,
+				"2":   ExchangeError,
+				"3":   ExchangeError,
+				"4":   InvalidOrder,
+				"5":   InsufficientFunds,
+				"6":   OrderNotFound,
+				"7":   InvalidOrder,
+				"8":   InvalidOrder,
+				"9":   InsufficientFunds,
+				"10":  InvalidOrder,
+				"11":  ExchangeError,
+				"12":  ExchangeError,
+				"13":  ExchangeError,
+				"14":  ExchangeError,
+				"15":  BadRequest,
+				"16":  InvalidOrder,
+				"17":  InvalidOrder,
+				"18":  InvalidOrder,
+				"19":  InvalidOrder,
+				"20":  InvalidOrder,
+				"21":  InvalidOrder,
+				"22":  InvalidOrder,
+				"23":  InvalidOrder,
+				"24":  ExchangeError,
+				"25":  InvalidOrder,
+				"26":  ExchangeError,
+				"27":  ExchangeError,
+				"28":  InvalidOrder,
+				"29":  InvalidOrder,
+				"30":  InvalidOrder,
+				"31":  PermissionDenied,
+				"32":  PermissionDenied,
+				"33":  BadRequest,
+				"34":  PermissionDenied,
+				"35":  PermissionDenied,
+				"36":  InvalidOrder,
+				"37":  InvalidOrder,
+				"38":  PermissionDenied,
+				"39":  BadRequest,
+				"40":  PermissionDenied,
+				"41":  InvalidOrder,
+				"42":  ExchangeError,
+				"43":  InvalidOrder,
+				"44":  InvalidOrder,
+				"45":  InvalidOrder,
+				"46":  InvalidOrder,
+				"47":  OrderNotFound,
+				"48":  InvalidOrder,
+				"49":  InvalidOrder,
+				"50":  BadRequest,
+				"51":  NotSupported,
+				"52":  InvalidOrder,
+				"53":  InvalidOrder,
+				"54":  ExchangeError,
+				"55":  ExchangeError,
+				"56":  ExchangeError,
+				"59":  InvalidOrder,
+				"61":  InsufficientFunds,
+				"62":  InsufficientFunds,
+				"63":  ExchangeError,
+				"64":  BadRequest,
+				"65":  InsufficientFunds,
+				"66":  ExchangeError,
+				"67":  ExchangeError,
+				"68":  InvalidOrder,
+				"69":  InvalidOrder,
+				"70":  InsufficientFunds,
+				"71":  ExchangeError,
+				"72":  PermissionDenied,
+				"73":  PermissionDenied,
+				"74":  PermissionDenied,
+				"75":  InvalidOrder,
+				"76":  PermissionDenied,
+				"77":  BadRequest,
+				"78":  InsufficientFunds,
+				"79":  ExchangeError,
+				"80":  InvalidOrder,
+				"81":  BadRequest,
+				"82":  InvalidOrder,
+				"83":  ExchangeNotAvailable,
+				"84":  BadRequest,
+				"85":  BadRequest,
+				"86":  BadRequest,
+				"87":  PermissionDenied,
+				"88":  BadRequest,
+				"89":  BadRequest,
+				"90":  BadRequest,
+				"91":  ExchangeError,
+				"92":  ExchangeNotAvailable,
+				"93":  BadRequest,
+				"94":  InvalidOrder,
+				"95":  ExchangeError,
+				"96":  ExchangeError,
+				"97":  ExchangeError,
+				"99":  InvalidOrder,
+				"100": PermissionDenied,
+				"101": ExchangeNotAvailable,
+				"102": BadRequest,
+				"103": PermissionDenied,
+				"104": InvalidOrder,
+				"105": InvalidOrder,
+				"106": NotSupported,
+				"107": NotSupported,
+				"108": NotSupported,
+				"109": NotSupported,
+				"110": BadRequest,
+				"111": ExchangeNotAvailable,
+				"112": InvalidOrder,
+				"113": ExchangeError,
+				"114": ExchangeError,
+				"115": ExchangeError,
+				"116": ExchangeError,
+				"117": ExchangeError,
+				"118": ExchangeError,
+				"119": ExchangeNotAvailable,
+				"120": PermissionDenied,
+				"121": InvalidOrder,
 				"400": BadRequest,
+				"401": AuthenticationError,
+				"402": AuthenticationError,
 				"403": PermissionDenied,
 				"404": BadRequest,
 				"409": ExchangeError,
+				"420": ExchangeError,
 				"422": ExchangeError,
 				"429": RateLimitExceeded,
 				"500": ExchangeError,
@@ -247,7 +398,7 @@ func (this *PacificaCore) Describe() any {
 			"defaultType":           "swap",
 			"defaultSlippage":       "0.5",
 			"expiryWindow":          5000,
-			"maxCostHugeWithApiKey": 3,
+			"maxCostHugeWithApiKey": 4,
 			"marketHelperProps":     []any{},
 			"defaultMarginMode":     "cross",
 			"builderSupportOperations": map[string]any{
@@ -396,8 +547,8 @@ func (this *PacificaCore) InitializeClient() <-chan any {
 				}()
 				// try block:
 
-				retRes38512 := (<-this.HandleBuilderFeeApproval())
-				PanicOnError(retRes38512)
+				retRes53612 := (<-this.HandleBuilderFeeApproval())
+				PanicOnError(retRes53612)
 				return nil
 			}(this)
 
@@ -450,8 +601,8 @@ func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
 				var builder any = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
 				var maxFeeRate any = this.SafeString(this.Options, "feeRate", "0.01")
 
-				retRes40712 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
-				PanicOnError(retRes40712)
+				retRes55812 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
+				PanicOnError(retRes55812)
 				AddElementToObject(this.Options, "approvedBuilderFee", true)
 				return nil
 			}(this)
@@ -469,8 +620,9 @@ func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
  * @method
  * @name pacifica#fetchMarkets
  * @description retrieves data on all markets for pacifica
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of objects representing market data
+ * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
  */
 func (this *PacificaCore) FetchMarkets(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -479,19 +631,51 @@ func (this *PacificaCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		if IsTrue(this.CheckRequiredCredentials(false)) {
 
-			retRes42412 := (<-this.InitializeClient())
-			PanicOnError(retRes42412)
+		response := (<-this.PublicGetInfo(params))
+		PanicOnError(response) // meta
+		// {
+		//   "success": true,
+		//   "data": [
+		//     {
+		//       "symbol": "BTC",
+		//       "tick_size": "1",
+		//       "min_tick": "0",
+		//       "max_tick": "1000000",
+		//       "lot_size": "0.00001",
+		//       "max_leverage": 50,
+		//       "isolated_only": false,
+		//       "min_order_size": "10",
+		//       "max_order_size": "5000000",
+		//       "funding_rate": "0.0000125",
+		//       "next_funding_rate": "0.0000125",
+		//       "created_at": 1748881333944,
+		//       "instrument_type": "perpetual",
+		//       "base_asset": "BTC"
+		//     },
+		//     {
+		//       "symbol": "SOL-USDC",
+		//       "tick_size": "0.01",
+		//       "min_tick": "0",
+		//       "max_tick": "1000000",
+		//       "lot_size": "0.001",
+		//       "max_leverage": 1,
+		//       "isolated_only": false,
+		//       "min_order_size": "10",
+		//       "max_order_size": "1000000",
+		//       "funding_rate": "0",
+		//       "next_funding_rate": "0",
+		//       "created_at": 1776615970246,
+		//       "instrument_type": "spot",
+		//       "base_asset": "SOL"
+		//     },
+		//   ],
+		//   "error": null,
+		//   "code": null
+		// }
+		var markets any = this.SafeList(response, "data", []any{})
 
-			retRes42512 := (<-this.LoadAccountSettings())
-			PanicOnError(retRes42512)
-		}
-
-		swapMarkets := (<-this.FetchSwapMarkets(params))
-		PanicOnError(swapMarkets)
-
-		ch <- swapMarkets
+		ch <- this.ParseMarkets(markets)
 		return nil
 
 	}()
@@ -514,71 +698,16 @@ func (this *PacificaCore) FetchSwapMarkets(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		response := (<-this.PublicGetInfo(params))
-		PanicOnError(response) // meta
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "symbol": "ETH",
-		//       "tick_size": "0.1",
-		//       "min_tick": "0",
-		//       "max_tick": "1000000",
-		//       "lot_size": "0.0001",
-		//       "max_leverage": 50,
-		//       "isolated_only": false,
-		//       "min_order_size": "10",
-		//       "max_order_size": "5000000",
-		//       "funding_rate": "0.0000125",
-		//       "next_funding_rate": "0.0000125",
-		//       "created_at": 1748881333944
-		//     },
-		//     {
-		//       "symbol": "BTC",
-		//       "tick_size": "1",
-		//       "min_tick": "0",
-		//       "max_tick": "1000000",
-		//       "lot_size": "0.00001",
-		//       "max_leverage": 50,
-		//       "isolated_only": false,
-		//       "min_order_size": "10",
-		//       "max_order_size": "5000000",
-		//       "funding_rate": "0.0000125",
-		//       "next_funding_rate": "0.0000125",
-		//       "created_at": 1748881333944
-		//     },
-		//     ....
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		var meta any = this.SafeList(response, "data", []any{})
-		var results any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(meta)); i++ {
-			AppendToArray(&results, GetValue(meta, i))
-		}
+		markets := (<-this.FetchMarkets(params))
+		PanicOnError(markets)
 
-		ch <- this.ParseMarkets(results)
+		ch <- this.FilterBy(markets, "type", "swap")
 		return nil
 
 	}()
 	return ch
 }
 func (this *PacificaCore) ParseMarket(market any) any {
-	//     {
-	//       "symbol": "ETH",
-	//       "tick_size": "0.1",
-	//       "min_tick": "0",
-	//       "max_tick": "1000000",
-	//       "lot_size": "0.0001",
-	//       "max_leverage": 50,
-	//       "isolated_only": false,
-	//       "min_order_size": "10",
-	//       "max_order_size": "5000000",
-	//       "funding_rate": "0.0000125",
-	//       "next_funding_rate": "0.0000125",
-	//       "created_at": 1748881333944
-	//     },
 	//     {
 	//       "symbol": "BTC",
 	//       "tick_size": "1",
@@ -591,29 +720,69 @@ func (this *PacificaCore) ParseMarket(market any) any {
 	//       "max_order_size": "5000000",
 	//       "funding_rate": "0.0000125",
 	//       "next_funding_rate": "0.0000125",
-	//       "created_at": 1748881333944
+	//       "created_at": 1748881333944,
+	//       "instrument_type": "perpetual",
+	//       "base_asset": "BTC"
 	//     },
-	var quoteId any = "usdc"
-	var settleId any = "usdc"
+	//     {
+	//       "symbol": "SOL-USDC",
+	//       "tick_size": "0.01",
+	//       "min_tick": "0",
+	//       "max_tick": "1000000",
+	//       "lot_size": "0.001",
+	//       "max_leverage": 1,
+	//       "isolated_only": false,
+	//       "min_order_size": "10",
+	//       "max_order_size": "1000000",
+	//       "funding_rate": "0",
+	//       "next_funding_rate": "0",
+	//       "created_at": 1776615970246,
+	//       "instrument_type": "spot",
+	//       "base_asset": "SOL"
+	//     },
 	var id any = this.SafeString(market, "symbol")
-	var baseId any = ToLower(id)
-	var baseName any = ToUpper(id)
-	var base any = this.SafeCurrencyCode(baseName)
+	var baseId any = this.SafeString(market, "base_asset", id)
+	var instrumentType any = this.SafeString(market, "instrument_type")
+	var isSpot any = (IsEqual(instrumentType, "spot"))
+	var isSwap any = !IsTrue(isSpot)
+	var quoteId any = "USDC"
+	var settleId any = nil
+	var typeVar any = "spot"
+	var linear any = nil
+	var inverse any = nil
+	var contractSize any = nil
+	var minLeverage any = nil
+	var maxLeverage any = nil
+	var crossMargin any = nil
+	var isolatedMargin any = nil
+	if IsTrue(isSpot) {
+		var idParts any = Split(id, "-")
+		quoteId = this.SafeString(idParts, 1, quoteId)
+	}
+	var isolatedOnly any = this.SafeBool(market, "isolated_only", false)
+	if IsTrue(isSwap) {
+		settleId = quoteId
+		typeVar = "swap"
+		linear = true
+		inverse = false
+		contractSize = this.ParseNumber("1")
+		minLeverage = 1
+		maxLeverage = this.SafeInteger(market, "max_leverage")
+		crossMargin = !IsTrue(isolatedOnly)
+		isolatedMargin = true
+	}
+	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(base, "/"), quote)
-	var contract any = true
-	var swap any = true
-	if IsTrue(contract) {
-		if IsTrue(swap) {
-			symbol = Add(Add(symbol, ":"), settle)
-		}
+	if IsTrue(isSwap) {
+		symbol = Add(Add(symbol, ":"), settle)
 	}
-	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
+	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
 	var taker any = this.SafeNumber(fees, "taker")
 	var maker any = this.SafeNumber(fees, "maker")
-	var amountPrecisionStr any = this.SafeString(market, "lot_size")
-	var pricePrecisionStr any = this.SafeString(market, "tick_size")
+	var amountPrecision any = this.SafeNumber(market, "lot_size")
+	var pricePrecision any = this.SafeNumber(market, "tick_size")
 	var active any = true // there is no non-active markets comes from endpoint market info
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -622,52 +791,51 @@ func (this *PacificaCore) ParseMarket(market any) any {
 		"quote":          quote,
 		"settle":         settle,
 		"baseId":         baseId,
-		"baseName":       baseName,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           "swap",
-		"spot":           false,
-		"margin":         nil,
-		"swap":           swap,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           isSwap,
 		"future":         false,
 		"option":         false,
 		"active":         active,
-		"contract":       contract,
-		"linear":         true,
-		"inverse":        false,
+		"contract":       isSwap,
+		"linear":         linear,
+		"inverse":        inverse,
 		"taker":          taker,
 		"maker":          maker,
-		"contractSize":   this.ParseNumber("1"),
+		"contractSize":   contractSize,
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
 		"precision": map[string]any{
-			"amount": this.ParseNumber(amountPrecisionStr),
-			"price":  this.ParseNumber(pricePrecisionStr),
+			"amount": amountPrecision,
+			"price":  pricePrecision,
 		},
 		"limits": map[string]any{
 			"leverage": map[string]any{
-				"min": 1,
-				"max": this.SafeInteger(market, "max_leverage"),
+				"min": minLeverage,
+				"max": maxLeverage,
 			},
 			"amount": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
 			"price": map[string]any{
-				"min": this.SafeString(market, "min_tick"),
-				"max": this.SafeString(market, "max_tick"),
+				"min": this.SafeNumber(market, "min_tick"),
+				"max": this.SafeNumber(market, "max_tick"),
 			},
 			"cost": map[string]any{
-				"min": nil,
-				"max": nil,
+				"min": this.SafeNumber(market, "min_order_size"),
+				"max": this.SafeNumber(market, "max_order_size"),
 			},
 		},
-		"created": nil,
+		"created": this.SafeInteger(market, "created_at"),
 		"marginModes": map[string]any{
-			"cross":    true,
-			"isolated": true,
+			"cross":    crossMargin,
+			"isolated": isolatedMargin,
 		},
 		"info": market,
 	})
@@ -749,6 +917,7 @@ func (this *PacificaCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @method
  * @name pacifica#fetchLeverage
  * @description fetch the set leverage for a market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
  * @param {string} symbol  unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] will default to walletAddress if not provided
@@ -762,11 +931,13 @@ func (this *PacificaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes6588 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes6588)
+		retRes8348 := (<-this.LoadAccountSettings())
+		PanicOnError(retRes8348)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6598 := (<-this.LoadMarkets())
-		PanicOnError(retRes6598)
+			retRes83612 := (<-this.LoadMarkets())
+			PanicOnError(retRes83612)
+		}
 		var market any = this.Market(symbol)
 		var userAccount any = nil
 		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
@@ -920,6 +1091,7 @@ func (this *PacificaCore) ParseAccountSettings(settings any) any {
  * @method
  * @name pacifica#fetchMarginMode
  * @description fetches the margin mode of the trading pair
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] will default to walletAddress if not provided
@@ -933,8 +1105,8 @@ func (this *PacificaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7848 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes7848)
+		retRes9638 := (<-this.LoadAccountSettings())
+		PanicOnError(retRes9638)
 		var userAccount any = nil
 		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
 		userAccount = GetValue(userAccountparamsVariable, 0)
@@ -1006,7 +1178,7 @@ func (this *PacificaCore) ParseMarginModeFromSetting(symbol any, setting any) an
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1017,9 +1189,11 @@ func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8498 := (<-this.LoadMarkets())
-		PanicOnError(retRes8498)
+			retRes102912 := (<-this.LoadMarkets())
+			PanicOnError(retRes102912)
+		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
 		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
@@ -1086,6 +1260,7 @@ func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @method
  * @name pacifica#fetchFundingRates
  * @description retrieves data on all swap markets for pacifica
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -1185,7 +1360,7 @@ func (this *PacificaCore) ParseFundingRate(info any, optionalArgs ...any) any {
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
- * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+ * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1213,9 +1388,11 @@ func (this *PacificaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"symbol\" argument")))
 		}
 		var defaultMaxLimit any = 3950 // 4000 by docs, but in fact >~3960 returns error
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10068 := (<-this.LoadMarkets())
-		PanicOnError(retRes10068)
+			retRes118912 := (<-this.LoadMarkets())
+			PanicOnError(retRes118912)
+		}
 		var market any = this.Market(symbol)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1223,9 +1400,9 @@ func (this *PacificaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes101119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-			PanicOnError(retRes101119)
-			ch <- retRes101119
+			retRes119519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+			PanicOnError(retRes119519)
+			ch <- retRes119519
 			return nil
 		}
 		var tf any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1325,9 +1502,11 @@ func (this *PacificaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10978 := (<-this.LoadMarkets())
-		PanicOnError(retRes10978)
+			retRes128212 := (<-this.LoadMarkets())
+			PanicOnError(retRes128212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1390,9 +1569,11 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11418 := (<-this.LoadMarkets())
-		PanicOnError(retRes11418)
+			retRes132812 := (<-this.LoadMarkets())
+			PanicOnError(retRes132812)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1408,9 +1589,9 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes115219 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes115219)
-			ch <- retRes115219
+			retRes134019 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes134019)
+			ch <- retRes134019
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1419,7 +1600,7 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(requestparamsVariable, 1)
 		AddElementToObject(request, "account", userAddress)
 		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -1572,12 +1753,14 @@ func (this *PacificaCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12958 := (<-this.LoadMarkets())
-		PanicOnError(retRes12958)
+			retRes148412 := (<-this.LoadMarkets())
+			PanicOnError(retRes148412)
+		}
 
-		retRes12968 := (<-this.InitializeClient())
-		PanicOnError(retRes12968)
+		retRes14868 := (<-this.InitializeClient())
+		PanicOnError(retRes14868)
 		requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request := GetValue(requestoperationTypeVariable, 0)
 		operationType := GetValue(requestoperationTypeVariable, 1)
@@ -1732,7 +1915,7 @@ func (this *PacificaCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	if IsTrue(IsTrue(!IsEqual(amount, nil)) && IsTrue((IsTrue(!IsEqual(operationType, "create_stop_order")) && IsTrue(!IsEqual(operationType, "set_position_tpsl"))))) {
 		AddElementToObject(sigPayload, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var clientOrderId any = this.SafeStringN(params, []any{"clientOrderId"})
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(sigPayload, "client_order_id", clientOrderId)
 	}
@@ -1830,12 +2013,14 @@ func (this *PacificaCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15238 := (<-this.LoadMarkets())
-		PanicOnError(retRes15238)
+			retRes171412 := (<-this.LoadMarkets())
+			PanicOnError(retRes171412)
+		}
 
-		retRes15248 := (<-this.InitializeClient())
-		PanicOnError(retRes15248)
+		retRes17168 := (<-this.InitializeClient())
+		PanicOnError(retRes17168)
 		var request any = this.CreateOrdersRequest(orders)
 
 		response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
@@ -1907,12 +2092,14 @@ func (this *PacificaCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15778 := (<-this.LoadMarkets())
-		PanicOnError(retRes15778)
+			retRes177012 := (<-this.LoadMarkets())
+			PanicOnError(retRes177012)
+		}
 
-		retRes15788 := (<-this.InitializeClient())
-		PanicOnError(retRes15788)
+		retRes17728 := (<-this.InitializeClient())
+		PanicOnError(retRes17728)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
 		}
@@ -2018,12 +2205,14 @@ func (this *PacificaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16628 := (<-this.LoadMarkets())
-		PanicOnError(retRes16628)
+			retRes185712 := (<-this.LoadMarkets())
+			PanicOnError(retRes185712)
+		}
 
-		retRes16638 := (<-this.InitializeClient())
-		PanicOnError(retRes16638)
+		retRes18598 := (<-this.InitializeClient())
+		PanicOnError(retRes18598)
 		var request any = this.CancelAllOrdersRequest(symbol, params)
 		params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
 
@@ -2089,12 +2278,14 @@ func (this *PacificaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17158 := (<-this.LoadMarkets())
-		PanicOnError(retRes17158)
+			retRes191212 := (<-this.LoadMarkets())
+			PanicOnError(retRes191212)
+		}
 
-		retRes17168 := (<-this.InitializeClient())
-		PanicOnError(retRes17168)
+		retRes19148 := (<-this.InitializeClient())
+		PanicOnError(retRes19148)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2185,12 +2376,14 @@ func (this *PacificaCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17808 := (<-this.LoadMarkets())
-		PanicOnError(retRes17808)
+			retRes197912 := (<-this.LoadMarkets())
+			PanicOnError(retRes197912)
+		}
 
-		retRes17818 := (<-this.InitializeClient())
-		PanicOnError(retRes17818)
+		retRes19818 := (<-this.InitializeClient())
+		PanicOnError(retRes19818)
 		var market any = this.Market(symbol)
 		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 		params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
@@ -2231,7 +2424,7 @@ func (this *PacificaCore) EditOrderRequest(id any, symbol any, typeVar any, side
 	var priceNormalized any = this.PriceToPrecision(symbol, price)
 	var amountNormalized any = this.AmountToPrecision(symbol, amount)
 	var sigPayload any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": this.SafeString(market, "id"),
 		"price":  priceNormalized,
 		"amount": amountNormalized,
 	}
@@ -2273,9 +2466,11 @@ func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18408 := (<-this.LoadMarkets())
-		PanicOnError(retRes18408)
+			retRes204112 := (<-this.LoadMarkets())
+			PanicOnError(retRes204112)
+		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
@@ -2287,9 +2482,9 @@ func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes184919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes184919)
-			ch <- retRes184919
+			retRes205119 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes205119)
+			ch <- retRes205119
 			return nil
 		}
 		var request any = map[string]any{
@@ -2359,9 +2554,11 @@ func (this *PacificaCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19038 := (<-this.LoadMarkets())
-		PanicOnError(retRes19038)
+			retRes210612 := (<-this.LoadMarkets())
+			PanicOnError(retRes210612)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetInfoPrices(params))
@@ -2440,6 +2637,7 @@ func (this *PacificaCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name pacifica#fetchClosedOrders
  * @description fetch all unfilled currently closed orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2460,9 +2658,11 @@ func (this *PacificaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19828 := (<-this.LoadMarkets())
-		PanicOnError(retRes19828)
+			retRes218812 := (<-this.LoadMarkets())
+			PanicOnError(retRes218812)
+		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2479,6 +2679,7 @@ func (this *PacificaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name pacifica#fetchCanceledOrders
  * @description fetch all canceled orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2499,9 +2700,11 @@ func (this *PacificaCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20008 := (<-this.LoadMarkets())
-		PanicOnError(retRes20008)
+			retRes220912 := (<-this.LoadMarkets())
+			PanicOnError(retRes220912)
+		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2518,6 +2721,7 @@ func (this *PacificaCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name pacifica#fetchCanceledAndClosedOrders
  * @description fetch all closed and canceled orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2538,9 +2742,11 @@ func (this *PacificaCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-ch
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20188 := (<-this.LoadMarkets())
-		PanicOnError(retRes20188)
+			retRes223012 := (<-this.LoadMarkets())
+			PanicOnError(retRes223012)
+		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2578,9 +2784,11 @@ func (this *PacificaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20378 := (<-this.LoadMarkets())
-		PanicOnError(retRes20378)
+			retRes225112 := (<-this.LoadMarkets())
+			PanicOnError(retRes225112)
+		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -2657,9 +2865,11 @@ func (this *PacificaCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20938 := (<-this.LoadMarkets())
-		PanicOnError(retRes20938)
+			retRes230912 := (<-this.LoadMarkets())
+			PanicOnError(retRes230912)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
@@ -2667,9 +2877,9 @@ func (this *PacificaCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // max default 100
 		if IsTrue(paginate) {
 
-			retRes209819 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes209819)
-			ch <- retRes209819
+			retRes231519 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes231519)
+			ch <- retRes231519
 			return nil
 		}
 		var userAddress any = nil
@@ -2761,9 +2971,11 @@ func (this *PacificaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21738 := (<-this.LoadMarkets())
-		PanicOnError(retRes21738)
+			retRes239112 := (<-this.LoadMarkets())
+			PanicOnError(retRes239112)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3056,9 +3268,11 @@ func (this *PacificaCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24418 := (<-this.LoadMarkets())
-		PanicOnError(retRes24418)
+			retRes266112 := (<-this.LoadMarkets())
+			PanicOnError(retRes266112)
+		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -3179,9 +3393,11 @@ func (this *PacificaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-c
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25448 := (<-this.LoadMarkets())
-		PanicOnError(retRes25448)
+			retRes276612 := (<-this.LoadMarkets())
+			PanicOnError(retRes276612)
+		}
 		var market any = this.Market(symbol)
 		var isIsolated any = (IsEqual(marginMode, "isolated"))
 		var sigPayload any = map[string]any{
@@ -3228,9 +3444,11 @@ func (this *PacificaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25768 := (<-this.LoadMarkets())
-		PanicOnError(retRes25768)
+			retRes280012 := (<-this.LoadMarkets())
+			PanicOnError(retRes280012)
+		}
 		var market any = this.Market(symbol)
 		var sigPayload any = map[string]any{
 			"symbol":   GetValue(market, "id"),
@@ -3275,9 +3493,11 @@ func (this *PacificaCore) Withdraw(code any, amount any, address any, optionalAr
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		var operationType any = "withdraw"
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26068 := (<-this.LoadMarkets())
-		PanicOnError(retRes26068)
+			retRes283212 := (<-this.LoadMarkets())
+			PanicOnError(retRes283212)
+		}
 		this.CheckAddress(address)
 		var sigPayload any = map[string]any{
 			"amount": ToString(amount),
@@ -3314,9 +3534,11 @@ func (this *PacificaCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26288 := (<-this.LoadMarkets())
-		PanicOnError(retRes26288)
+			retRes285612 := (<-this.LoadMarkets())
+			PanicOnError(retRes285612)
+		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -3396,6 +3618,7 @@ func (this *PacificaCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @method
  * @name pacifica#fetchOpenInterests
  * @description Retrieves the open interest for a list of symbols
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -3409,9 +3632,11 @@ func (this *PacificaCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27038 := (<-this.LoadMarkets())
-		PanicOnError(retRes27038)
+			retRes293412 := (<-this.LoadMarkets())
+			PanicOnError(retRes293412)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		swapMarkets := (<-this.FetchSwapMarkets())
@@ -3428,6 +3653,7 @@ func (this *PacificaCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
  * @method
  * @name pacifica#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -3440,9 +3666,11 @@ func (this *PacificaCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		symbol = this.Symbol(symbol)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27198 := (<-this.LoadMarkets())
-		PanicOnError(retRes27198)
+			retRes295312 := (<-this.LoadMarkets())
+			PanicOnError(retRes295312)
+		}
 
 		ois := (<-this.FetchOpenInterests([]any{symbol}, params))
 		PanicOnError(ois)
@@ -3520,9 +3748,11 @@ func (this *PacificaCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27778 := (<-this.LoadMarkets())
-		PanicOnError(retRes27778)
+			retRes301312 := (<-this.LoadMarkets())
+			PanicOnError(retRes301312)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
@@ -3534,9 +3764,9 @@ func (this *PacificaCore) FetchLedger(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes278419 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes278419)
-			ch <- retRes278419
+			retRes302119 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes302119)
+			ch <- retRes302119
 			return nil
 		}
 		var request any = map[string]any{
@@ -3630,6 +3860,7 @@ func (this *PacificaCore) ParseLedgerEntryType(typeVar any) any {
  * @method
  * @name pacifica#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3652,9 +3883,11 @@ func (this *PacificaCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28808 := (<-this.LoadMarkets())
-		PanicOnError(retRes28808)
+			retRes311912 := (<-this.LoadMarkets())
+			PanicOnError(retRes311912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3676,9 +3909,9 @@ func (this *PacificaCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100
 		if IsTrue(paginate) {
 
-			retRes289719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes289719)
-			ch <- retRes289719
+			retRes313719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes313719)
+			ch <- retRes313719
 			return nil
 		}
 
@@ -3821,6 +4054,7 @@ func (this *PacificaCore) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @method
  * @name pacifica#createSubAccount
  * @description creates a sub-account under the main account
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -3925,9 +4159,9 @@ func (this *PacificaCore) BindAgentWallet(agentAddress any, optionalArgs ...any)
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes309415 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-		PanicOnError(retRes309415)
-		ch <- retRes309415
+		retRes333515 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+		PanicOnError(retRes333515)
+		ch <- retRes333515
 		return nil
 
 	}()
@@ -3944,9 +4178,9 @@ func (this *PacificaCore) CreateApiKey(optionalArgs ...any) <-chan any {
 		var sigPayload any = map[string]any{}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes310115 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-		PanicOnError(retRes310115)
-		ch <- retRes310115
+		retRes334215 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+		PanicOnError(retRes334215)
+		ch <- retRes334215
 		return nil
 
 	}()
@@ -3965,9 +4199,9 @@ func (this *PacificaCore) RevokeApiKey(apiKey any, optionalArgs ...any) <-chan a
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes311015 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-		PanicOnError(retRes311015)
-		ch <- retRes311015
+		retRes335115 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+		PanicOnError(retRes335115)
+		ch <- retRes335115
 		return nil
 
 	}()
@@ -3984,9 +4218,9 @@ func (this *PacificaCore) FetchApiKeys(optionalArgs ...any) <-chan any {
 		var sigPayload any = map[string]any{}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes311715 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-		PanicOnError(retRes311715)
-		ch <- retRes311715
+		retRes335815 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+		PanicOnError(retRes335815)
+		ch <- retRes335815
 		return nil
 
 	}()
@@ -4006,9 +4240,9 @@ func (this *PacificaCore) ApproveBuilderCode(builderCode any, maxFeeRate any, op
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes312715 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-		PanicOnError(retRes312715)
-		ch <- retRes312715
+		retRes336815 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+		PanicOnError(retRes336815)
+		ch <- retRes336815
 		return nil
 
 	}()
@@ -4023,9 +4257,9 @@ func (this *PacificaCore) FetchBuilderApprovals(address any) <-chan any {
 			"account": address,
 		}
 
-		retRes313415 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-		PanicOnError(retRes313415)
-		ch <- retRes313415
+		retRes337515 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+		PanicOnError(retRes337515)
+		ch <- retRes337515
 		return nil
 
 	}()
@@ -4044,9 +4278,9 @@ func (this *PacificaCore) RevokeBuilderCode(builderCode any, optionalArgs ...any
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes314315 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-		PanicOnError(retRes314315)
-		ch <- retRes314315
+		retRes338415 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+		PanicOnError(retRes338415)
+		ch <- retRes338415
 		return nil
 
 	}()
@@ -4145,7 +4379,7 @@ func (this *PacificaCore) CalculateRateLimiterCost(api any, method any, path any
 	return costNumber
 }
 func (this *PacificaCore) SortJsonKeys(value any) any {
-	if IsTrue(IsObject(value)) {
+	if IsTrue(this.IsDictionary(value)) {
 		var result any = map[string]any{}
 		var keys any = ObjectKeys(value)
 		var sortedKeys any = this.Sort(keys)

@@ -1,8 +1,5 @@
-- [Okex Watch Balance And Create Order](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 const exchange = new ccxt.pro.okx({
@@ -42,5 +39,5 @@ async function createOrder(symbol, type, side, amount, price = undefined, params
     const price = ticker['bid'];
     await createOrder(symbol, type, side, amount, price);
 })();
- 
+
 ```

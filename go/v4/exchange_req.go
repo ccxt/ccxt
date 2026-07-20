@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any {
+func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan any {
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
@@ -172,8 +172,13 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-		this.Last_response_headers = HeaderToMap(resp.Header)
-		this.LastResponseHeaders = HeaderToMap(resp.Header)
+		respHeadersMap := HeaderToMap(resp.Header)
+		// guard the shared bookkeeping fields: concurrent requests on the same
+		// *Exchange would otherwise data-race on these writes
+		this.lastMu.Lock()
+		this.Last_response_headers = respHeadersMap
+		this.LastResponseHeaders = respHeadersMap
+		this.lastMu.Unlock()
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -245,7 +250,7 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 	return ch
 }
 
-func (this *Exchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
+func (this *BaseExchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
 
 	codeString := ToString(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)

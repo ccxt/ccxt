@@ -1,56 +1,51 @@
-- [Gateio Watch Order Book](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 'use strict';
-
+'use strict';
 import ccxt from '../../js/ccxt.js';
-
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
-
+console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 const orderbooks = {};
-
-async function watchAllSymbols (exchange, symbols) {
+async function watchAllSymbols(exchange, symbols) {
     while (true) { // eslint-disable-line no-constant-condition
-        const keys = Object.keys (orderbooks);
+        const keys = Object.keys(orderbooks);
         if (symbols.length === keys.length) {
-            console.log ('\n\n\n\n\n');
-            console.log ('----------------------------------------------------');
-            console.log ('All orderbooks received at least one update:');
+            console.log('\n\n\n\n\n');
+            console.log('----------------------------------------------------');
+            console.log('All orderbooks received at least one update:');
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const orderbook = orderbooks[symbol];
-                console.log (exchange.iso8601 (exchange.milliseconds ()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
+                console.log(exchange.iso8601(exchange.milliseconds()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
             }
-            console.log ('----------------------------------------------------');
-            console.log ('\n\n\n\n\n');
+            console.log('----------------------------------------------------');
+            console.log('\n\n\n\n\n');
             // process.exit () // stop here if you want
             break;
-        } else {
-            await exchange.sleep (1000);
+        }
+        else {
+            await exchange.sleep(1000);
         }
     }
 }
-
-async function watchOrderBook (exchange, symbol) {
+async function watchOrderBook(exchange, symbol) {
     while (true) { // eslint-disable-line no-constant-condition
         try {
-            const orderbook = await exchange.watchOrderBook (symbol);
+            const orderbook = await exchange.watchOrderBook(symbol);
             orderbooks[symbol] = orderbook;
-            console.log (exchange.iso8601 (exchange.milliseconds ()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
-        } catch (e) {
-            console.log (e);
+            console.log(exchange.iso8601(exchange.milliseconds()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
+        }
+        catch (e) {
+            console.log(e);
         }
     }
 }
-
-async function main () {
-    const exchange = new ccxt.pro.gateio ({ // eslint-disable-line import/no-named-as-default-member
+async function main() {
+    const exchange = new ccxt.pro.gate({
         'options': {
             'defaultType': 'swap',
         },
     });
-    await exchange.loadMarkets ();
+    await exchange.loadMarkets();
     // exchange.verbose = true // uncomment for debugging purposes if necessary
     const symbols = [
         // 'SOS/USDT:USDT',
@@ -66,12 +61,11 @@ async function main () {
         // 'ROOK/USDT:USDT',
         // 'ROSE/USDT:USDT',
     ];
-    await Promise.all ([
-        watchAllSymbols (exchange, symbols),
-        ...symbols.map ((symbol) => watchOrderBook (exchange, symbol)),
+    await Promise.all([
+        watchAllSymbols(exchange, symbols),
+        ...symbols.map((symbol) => watchOrderBook(exchange, symbol)),
     ]);
 }
+main();
 
-main ();
- 
 ```

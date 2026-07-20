@@ -21,6 +21,10 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: E402
 import ccxt as ccxt_sync  # noqa: E402
 import ccxt.pro as ccxtpro  # noqa: E402
+# prediction-market exchanges are async-only and live at ccxt.prediction.<id>
+# (there is no sync variant); see build/transpile.ts python2Folder=undefined for prediction
+ccxt_prediction_sync = None
+import ccxt.prediction as ccxt_prediction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 # from typing import Optional
@@ -59,6 +63,8 @@ class Argv(object):
 argv = Argv()
 parser = argparse.ArgumentParser()
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
+parser.add_argument('--prediction', action='store_true', help='force the prediction-markets namespace for ids in both namespaces')
+parser.add_argument('--fundedTests', action='store_true', help='run funded order-placement tests')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
@@ -219,7 +225,16 @@ def set_exchange_prop(exchange, prop, value):
 
 def init_exchange(exchangeId, args, is_ws=False):
     if IS_SYNCHRONOUS:
+        # regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+        if not hasattr(ccxt_sync, exchangeId) and hasattr(ccxt_prediction_sync, exchangeId):
+            return getattr(ccxt_prediction_sync, exchangeId)(args)
         return getattr(ccxt_sync, exchangeId)(args)
+    # the --prediction flag forces the prediction-markets namespace for ids present in both
+    # (e.g. hyperliquid); the prediction class carries the watch* methods too (no separate pro
+    # namespace), so route both REST and WS there. otherwise regular ccxt/ccxtpro wins
+    force_prediction = get_cli_arg_value('--prediction')
+    if hasattr(ccxt_prediction, exchangeId) and (force_prediction or not hasattr(ccxt, exchangeId)):
+        return getattr(ccxt_prediction, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)

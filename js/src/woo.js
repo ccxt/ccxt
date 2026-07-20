@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
+import { AccountSuspended, AuthenticationError, BadSymbol, DuplicateOrderId, InsufficientFunds, OrderNotFound, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -20,7 +20,7 @@ export default class woo extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'woo',
             'name': 'WOO X',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -37,7 +37,7 @@ export default class woo extends Exchange {
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
-                'cancelWithdraw': false,
+                'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': true,
@@ -206,13 +206,13 @@ export default class woo extends Exchange {
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 3.33,
+                            'positions': 3.33, // 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
                             'client/transaction_history': 60,
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 1,
+                            'order': 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
                             'asset/ltv': 30,
                             'asset/internal_withdraw': 30,
@@ -241,51 +241,51 @@ export default class woo extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1,
-                            'instruments': 1,
-                            'token': 1,
-                            'tokenNetwork': 1,
-                            'tokenInfo': 1,
-                            'marketTrades': 1,
-                            'marketTradesHistory': 1,
-                            'orderbook': 1,
-                            'kline': 1,
-                            'klineHistory': 1,
-                            'futures': 1,
-                            'fundingRate': 1,
-                            'fundingRateHistory': 1,
+                            'systemInfo': 1, // 10/1s
+                            'instruments': 1, // 10/1s
+                            'token': 1, // 10/1s
+                            'tokenNetwork': 1, // 10/1s
+                            'tokenInfo': 1, // 10/1s
+                            'marketTrades': 1, // 10/1s
+                            'marketTradesHistory': 1, // 10/1s
+                            'orderbook': 1, // 10/1s
+                            'kline': 1, // 10/1s
+                            'klineHistory': 1, // 10/1s
+                            'futures': 1, // 10/1s
+                            'fundingRate': 1, // 10/1s
+                            'fundingRateHistory': 1, // 10/1s
                             'insuranceFund': 1, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2,
-                            'trade/orders': 1,
-                            'trade/algoOrder': 1,
-                            'trade/algoOrders': 1,
-                            'trade/transaction': 1,
-                            'trade/transactionHistory': 5,
-                            'trade/tradingFee': 5,
-                            'account/info': 60,
-                            'account/tokenConfig': 1,
-                            'account/symbolConfig': 1,
-                            'account/subAccounts/all': 60,
-                            'account/referral/summary': 60,
-                            'account/referral/rewardHistory': 60,
-                            'account/credentials': 60,
-                            'asset/balances': 1,
-                            'asset/token/history': 60,
-                            'asset/transfer/history': 30,
-                            'asset/wallet/history': 60,
-                            'asset/wallet/deposit': 60,
-                            'asset/staking/yieldHistory': 60,
-                            'futures/positions': 3.33,
-                            'futures/leverage': 60,
-                            'futures/defaultMarginMode': 60,
-                            'futures/fundingFee/history': 30,
-                            'spotMargin/interestRate': 60,
-                            'spotMargin/interestHistory': 60,
-                            'spotMargin/maxMargin': 60,
+                            'trade/order': 2, // 5/1s
+                            'trade/orders': 1, // 10/1s
+                            'trade/algoOrder': 1, // 10/1s
+                            'trade/algoOrders': 1, // 10/1s
+                            'trade/transaction': 1, // 10/1s
+                            'trade/transactionHistory': 5, // 2/1s
+                            'trade/tradingFee': 5, // 2/1s
+                            'account/info': 60, // 10/60s
+                            'account/tokenConfig': 1, // 10/1s
+                            'account/symbolConfig': 1, // 10/1s
+                            'account/subAccounts/all': 60, // 10/60s
+                            'account/referral/summary': 60, // 10/60s
+                            'account/referral/rewardHistory': 60, // 10/60s
+                            'account/credentials': 60, // 10/60s
+                            'asset/balances': 1, // 10/1s
+                            'asset/token/history': 60, // 10/60s
+                            'asset/transfer/history': 30, // 20/60s
+                            'asset/wallet/history': 60, // 10/60s
+                            'asset/wallet/deposit': 60, // 10/60s
+                            'asset/staking/yieldHistory': 60, // 10/60s
+                            'futures/positions': 3.33, // 30/10s
+                            'futures/leverage': 60, // 10/60s
+                            'futures/defaultMarginMode': 60, // 10/60s
+                            'futures/fundingFee/history': 30, // 20/60s
+                            'spotMargin/interestRate': 60, // 10/60s
+                            'spotMargin/interestHistory': 60, // 10/60s
+                            'spotMargin/maxMargin': 60, // 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
                             'positions': 3.33,
@@ -297,34 +297,34 @@ export default class woo extends Exchange {
                             'convert/trades': 1,
                         },
                         'post': {
-                            'trade/order': 2,
-                            'trade/algoOrder': 5,
-                            'trade/cancelAllAfter': 1,
-                            'account/tradingMode': 120,
-                            'account/listenKey': 20,
-                            'asset/transfer': 30,
-                            'asset/wallet/withdraw': 60,
-                            'spotMargin/leverage': 120,
-                            'spotMargin/interestRepay': 60,
+                            'trade/order': 2, // 5/1s
+                            'trade/algoOrder': 5, // 2/1s
+                            'trade/cancelAllAfter': 1, // 10/1s
+                            'account/tradingMode': 120, // 5/60s
+                            'account/listenKey': 20, // 5/10s
+                            'asset/transfer': 30, // 20/60s
+                            'asset/wallet/withdraw': 60, // 10/60s
+                            'spotMargin/leverage': 120, // 5/60s
+                            'spotMargin/interestRepay': 60, // 10/60s
                             'algo/order': 5,
                             'convert/rft': 60,
                         },
                         'put': {
-                            'trade/order': 2,
-                            'trade/algoOrder': 2,
-                            'futures/leverage': 60,
-                            'futures/positionMode': 120,
+                            'trade/order': 2, // 5/1s
+                            'trade/algoOrder': 2, // 5/1s
+                            'futures/leverage': 60, // 10/60s
+                            'futures/positionMode': 120, // 5/60s
                             'order/{oid}': 2,
                             'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
                             'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
-                            'trade/order': 1,
-                            'trade/orders': 1,
-                            'trade/algoOrder': 1,
-                            'trade/algoOrders': 1,
-                            'trade/allOrders': 1,
+                            'trade/order': 1, // 10/1s
+                            'trade/orders': 1, // 10/1s
+                            'trade/algoOrder': 1, // 10/1s
+                            'trade/algoOrders': 1, // 10/1s
+                            'trade/allOrders': 1, // 10/1s
                             'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
@@ -342,8 +342,8 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
@@ -386,8 +386,8 @@ export default class woo extends Exchange {
                             'index': false,
                         },
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -470,29 +470,174 @@ export default class woo extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': OperationFailed,
-                    '-1001': AuthenticationError,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': BadRequest,
-                    '-1005': BadRequest,
-                    '-1006': BadRequest,
-                    '-1007': BadRequest,
-                    '-1008': InvalidOrder,
-                    '-1009': BadRequest,
-                    '-1012': BadRequest,
-                    '-1101': InvalidOrder,
-                    '-1102': InvalidOrder,
-                    '-1103': InvalidOrder,
-                    '-1104': InvalidOrder,
+                    '-1000': OperationFailed, // { "code": -1000,  "message": "An unknown error occurred while processing the request" } ||  {"success":false,"code":"-1000","message":"An internal error has occurred. We are unable to process your request. Please try again later."}
+                    '-1001': AuthenticationError, // { "code": -1001,  "message": "The api key or secret is in wrong format" }
+                    '-1002': AuthenticationError, // { "code": -1002,  "message": "API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked." }
+                    '-1003': RateLimitExceeded, // { "code": -1003,  "message": "Rate limit exceed." }
+                    '-1004': BadRequest, // { "code": -1004,  "message": "An unknown parameter was sent." }
+                    '-1005': BadRequest, // { "code": -1005,  "message": "Some parameters are in wrong format for api." }
+                    '-1006': BadRequest, // { "code": -1006,  "message": "The data is not found in server." }
+                    '-1007': BadRequest, // { "code": -1007,  "message": "The data is already exists or your request is duplicated." }
+                    '-1008': InvalidOrder, // { "code": -1008,  "message": "The quantity of settlement is too high than you can request." }
+                    '-1009': BadRequest, // { "code": -1009,  "message": "Can not request withdrawal settlement, you need to deposit other arrears first." }
+                    '-1012': BadRequest, // { "code": -1012,  "message": "Amount is required for buy market orders when margin disabled."}  The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds." }
+                    '-1101': InvalidOrder, // { "code": -1101,  "message": "The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure." }
+                    '-1102': InvalidOrder, // { "code": -1102,  "message": "The order value (price * size) is too small." }
+                    '-1103': InvalidOrder, // { "code": -1103,  "message": "The order price is not following the tick size rule for the symbol." }
+                    '-1104': InvalidOrder, // { "code": -1104,  "message": "The order quantity is not following the step size rule for the symbol." }
                     '-1105': InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
+                    '317136': InvalidOrder, // Edit tpsl quantity is not allowed for quantity bracket
+                    '317137': InvalidOrder, // Edit quantity should edit both legs
+                    '317138': InvalidOrder, // Edit quantity should be same for both legs
+                    '317139': InvalidOrder, // Trigger price of 1st leg should not be empty for STOP_BRACKET
+                    '317140': InvalidOrder, // The quantity of a quantity TP/SL order should not be empty.
+                    '317141': InvalidOrder, // The algo quantity TP/SL limit order should have field price
+                    '317142': InvalidOrder, // The algo trigger type of quantity TP/SL should not be CLOSE_POSITION
+                    '317143': InvalidOrder, // The side of TP/SL legs should be the same
+                    '317144': InvalidOrder, // IndexPrice is not supported for non spot symbol `${symbol}`
+                    '317145': InvalidOrder, // same as INVALID_PRICE_QUOTE_MIN but different ‘code’
+                    '317146': InvalidOrder, // same as INVALID_PRICE_QUOTE_MAX but different ‘code’
+                    '317147': InvalidOrder, // same as INVALID_PRICE_TICKER_SIZE but different ‘code’
+                    '317148': BadRequest, // symbol can’t be empty.
+                    '317149': OrderNotFound, // same with TRADE_NOT_FOUND with different ErrorCodes
+                    '317150': InvalidOrder, // trigger price must be greater than `${price}`
+                    '317151': InvalidOrder, // trigger price must be less than `${price}`
+                    '317152': OrderNotFound, // The order not found for the order id : `${orderId}`
+                    '317153': OrderNotFound, // child order not found for the order id : `${orderId}`
+                    '317154': OperationFailed, // RPC failed: error: `${msg}`
+                    '317155': BadSymbol, // unsupported symbol: `${symbol}`
+                    '317156': BadSymbol, // unsupported symbol: `${symbol}`
+                    '317157': InvalidOrder, // Trading with `${symbol1}`/`${symbol2}` is temporarily suspended. Please try again later.
+                    '317158': InvalidOrder, // Trading with `${token}`-PERP is temporarily suspended. Please try again later.
+                    '317159': BadSymbol, // This pair is currently not supported.
+                    '317160': InvalidOrder, // The order id and symbol are not matched
+                    '317161': InvalidOrder, // The order is completed
+                    '317162': BadRequest, // The params should not be null or 0
+                    '317163': InvalidOrder, // cannot edit TP/SL quantity under bracket order
+                    '317164': InvalidOrder, // Invalid client order id
+                    '317165': InvalidOrder, // invalid order id list
+                    '317166': InvalidOrder, // invalid client order id list
+                    '317167': InvalidOrder, // unsupported algo type: `${algoType}`
+                    '317168': OperationFailed, // Order failed due to internal service error. Please contact customer service.
+                    '317169': InvalidOrder, // Trading with `${left}`/`${right}` is temporarily suspended. Please try again later.
+                    '317170': InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '317171': BadRequest, // error path format
+                    '317172': BadRequest, // The userId should not be null or 0
+                    '317173': BadRequest, // The orderId should not be null or 0
+                    '317174': InvalidOrder, // The order is processing
+                    '317176': InvalidOrder, // The trigger after should from 0 to `${maxTriggerAfter}`
+                    '317177': InvalidOrder, // Order has terminated
+                    '317178': BadRequest, // The receive window is invalid.
+                    '317179': BadRequest, // Request has failed as the receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317184': OrderNotFound, // The order cannot be found, or it is already completed.
+                    '317206': InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
+                    '317207': InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302001': ExchangeError, // data status is not expected
+                    '302002': ExchangeError, // The data doesn’t exist.
+                    '302003': BadRequest, // The param number is invalid.
+                    '302004': BadRequest, // invalid params
+                    '302005': ExchangeError, // An error has occurred due to other pending requests. Please try again later.
+                    '302101': BadSymbol, // symbol is not exists
+                    '302102': InsufficientFunds, // Your margin is insufficient! Please liquidate assets.
+                    '302103': InsufficientFunds, // Your margin will be insufficient after withdrawal.
+                    '302104': InsufficientFunds, // Your margin will be insufficient after this action.
+                    '302109': OperationFailed, // create order engine error
+                    '302110': ExchangeError, // application is lock now
+                    '302111': InvalidOrder, // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
+                    '302112': InvalidOrder, // Remaining order quantity is smaller than transaction quantity
+                    '302113': InvalidOrder, // Order side is not same as transaction side
+                    '302114': InvalidOrder, // Order price too small
+                    '302115': InvalidOrder, // Order quantity too small
+                    '302117': DuplicateOrderId, // The client_order_id is repeated.
+                    '302118': InsufficientFunds, // no enough balance to close
+                    '302119': InsufficientFunds, // Insufficient funds. Please enable margin trading. Note that certain coins do not allow for leverage trading.
+                    '302120': InvalidOrder, // Please lower the leverage ratio below 1.0 and close your short positions.
+                    '302121': InvalidOrder, // Please repay your interest.
+                    '302122': InvalidOrder, // Remaining order amount is smaller than transaction quantity
+                    '302123': ExchangeError, // user group data not found
+                    '302125': InvalidOrder, // Quantity should be less than your position.
+                    '302126': InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302127': InvalidOrder, // Your order is terminated.
+                    '302128': InsufficientFunds, // Insufficient `${token}`. Note that `${baseToken}` do not allow for margin trading.
+                    '302129': OrderNotFound, // The order doesn’t exist.
+                    '302130': InvalidOrder, // The order didn’t update.
+                    '302131': InvalidOrder, // Please enable futures trading in Margin & Futures tab. You can create subaccounts to separate margin and futures positions.
+                    '302132': InvalidOrder, // Attempt failed. Please close your negative positions and try again.
+                    '302133': InvalidOrder, // Please repay your interest.
+                    '302134': BadRequest, // The details are empty.
+                    '302135': BadRequest, // The amount must be positive.
+                    '302136': BadRequest, // Your balance must be positive.
+                    '302137': InvalidOrder, // You don’t have enough position for MKT close. Please check your open orders.
+                    '302138': InvalidOrder, // Insufficient position for reduce only order.
+                    '302140': InvalidOrder, // The order price is too small.
+                    '302141': InvalidOrder, // The order quantity is too small.
+                    '302142': InvalidOrder, // The order quantity must bigger than the executed quantity.
+                    '302143': ExchangeError, // Application not found.
+                    '302144': InvalidOrder, // There isn’t a positive amount to repay the interest balance.
+                    '302145': InsufficientFunds, // Your margin will be insufficient after disabling this token as collateral.
+                    '302147': InvalidOrder, // Amount is required for buy market orders when margin disabled.
+                    '302148': InvalidOrder, // Amount is required for ASK buy order when margin disabled.
+                    '302149': InvalidOrder, // Amount is required for BID buy order when margin disabled.
+                    '302150': InvalidOrder, // Quantity is required for sell market orders when margin disabled.
+                    '302151': InvalidOrder, // Quantity is required for ASK sell order when margin disabled.
+                    '302152': InvalidOrder, // Quantity is required for BID sell order when margin disabled.
+                    '302154': InsufficientFunds, // Insufficient `${stableToken}`.
+                    '302155': InsufficientFunds, // Insufficient `${token}`. Please enable margin trading for leverage trading.
+                    '302156': InvalidOrder, // Short selling `${token}` is not available now.
+                    '302157': InsufficientFunds, // Insufficient `${token}`. Please enable margin trading in Margin & Futures tab for spot leverage trading.
+                    '302159': RequestTimeout, // Your request has timed out. Please try again later.
+                    '302160': InvalidOrder, // Reduce only orders are only supported under spot pairs quoted by your account currency `${AccountCurrency}`.
+                    '302162': InvalidOrder, // You are not able to place this order under Reduce Only trading mode.
+                    '302163': InvalidOrder, // Reduce only orders are not allowed.
+                    '302164': InvalidOrder, // The order value should be greater or equal to `${minNotional}`.
+                    '302165': ExchangeError, // The token has no price.
+                    '302166': InvalidOrder, // Token balance cannot be negative under Spot Only.
+                    '302167': InvalidOrder, // Token balance cannot be negative under Spot & Futures.
+                    '302168': InvalidOrder, // The token is not enabled for margin.
+                    '302169': InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Margin.
+                    '302170': InsufficientFunds, // Collateral is not sufficient to cover initial margin requirements under Spot & Futures.
+                    '302171': InvalidOrder, // Buy or sell orders by amount are not supported under Reduce Only trading mode.
+                    '302172': InvalidOrder, // `${token}` max position size of `${maxPosition}` is exceeded.
+                    '302177': InvalidOrder, // Pending new orders cannot be edited.
+                    '302178': InvalidOrder, // Order is rejected as you have an existing market close order.
+                    '302185': InvalidOrder, // Your order request cannot be processed at this moment because the position mode is currently being switched.
+                    '302186': InvalidOrder, // The position side you’ve used is not compatible with your current position mode.
+                    '302188': InvalidOrder, // exceed max open notional
+                    '302189': InvalidOrder, // Changing isolated position leverage is not allowed when there is a pending order.
+                    '302190': InvalidOrder, // Unable to adjust isolated margin while there are pending orders. Please cancel them to proceed.
+                    '302191': InvalidOrder, // Only adjustments to futures isolated margin are allowed.
+                    '302192': InvalidOrder, // The amount exceeds the withdrawable margin limit.
+                    '302193': InsufficientFunds, // The amount exceeds the available USDT balance.
+                    '302194': InvalidOrder, // Maximum number of isolated pending orders for `${symbol}` reached.
+                    '302195': InvalidOrder, // The position side you’ve used is invalid
+                    '302196': InvalidOrder, // Please use up all of your active futures credits before adding more.
+                    '302197': InvalidOrder, // Futures credits cannot be reduced while there are open positions.
+                    '302198': InvalidOrder, // Futures credits cannot be reduced while there are still pending orders.
+                    '302199': InvalidOrder, // Please switch to futures trading mode to adjust futures credits.
+                    '302301': InsufficientFunds, // The balance isn’t enough.
+                    '302303': InvalidOrder, // Too many pending orders on reduce only order
+                    '302305': InsufficientFunds, // Failed to update cross margin leverages due to insufficient margin. Please top up or close your cross positions to proceed.
+                    '302306': BadRequest, // Invalid leverage, please provide positive integer leverage
+                    '302307': AccountSuspended, // The account has been suspended
+                    '302308': InvalidOrder, // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302309': InvalidOrder, // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading
+                    '302310': InsufficientFunds, // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302311': ExchangeError, // This request is currently being processed.
+                    '302312': ExchangeError, // This request is currently being processed.
+                    '302313': ExchangeError, // This request is currently being processed.
+                    '302314': InvalidOrder, // Quantity should be less than your position.
+                    '302999': ExchangeError, // An unknown error has occurred.
+                    '311001': ExchangeError, // The data status is invalid.
+                    '311002': ExchangeError, // The data does not exist.
+                    '311004': ExchangeError, // The parameters are invalid.
+                    '311999': OperationFailed, // There is a system error.
                 },
                 'broad': {
-                    'Can not place': ExchangeError,
-                    'maintenance': OnMaintenance,
-                    'symbol must not be blank': BadRequest,
-                    'The token is not supported': BadRequest,
-                    'Your order and symbol are not valid or already canceled': BadRequest,
+                    'Can not place': ExchangeError, // { "code": -1011,  "message": "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." }
+                    'maintenance': OnMaintenance, // {"code":"-1011","message":"The system is under maintenance.","success":false}
+                    'symbol must not be blank': BadRequest, // when sending 'cancelOrder' without symbol [-1005]
+                    'The token is not supported': BadRequest, // when getting incorrect token's deposit address [-1005]
+                    'Your order and symbol are not valid or already canceled': BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
                     'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest, // when selling insufficent token [-1012]
                 },
             },
@@ -612,10 +757,10 @@ export default class woo extends Exchange {
         return this.parseMarkets(rows);
     }
     parseMarket(market) {
-        const marketId = this.safeString(market, 'symbol');
+        const marketId = this.safeString(market, 'symbol', '');
         const parts = marketId.split('_');
         const first = this.safeString(parts, 0);
-        let marketType;
+        let marketType = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {
@@ -710,7 +855,9 @@ export default class woo extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -790,7 +937,7 @@ export default class woo extends Exchange {
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
         const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
+        if ((fee !== undefined) && (feeCost !== undefined)) {
             fee['cost'] = feeCost;
         }
         const cost = Precise.stringMul(price, amount);
@@ -854,7 +1001,9 @@ export default class woo extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -883,7 +1032,9 @@ export default class woo extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetAccountInfo(params);
         //
         //     {
@@ -920,8 +1071,12 @@ export default class woo extends Exchange {
         const maker = this.safeString(data, 'makerFeeRate');
         const taker = this.safeString(data, 'takerFeeRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            return result;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1025,78 +1180,91 @@ export default class woo extends Exchange {
         const tokensById = this.groupBy(tokenRows, 'balance_token');
         const currencyIds = Object.keys(tokensById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode(currencyId);
-            const tokensByNetworkId = this.indexBy(tokensById[currencyId], 'network');
-            const chainsByNetworkId = this.indexBy(networksById[currencyId], 'network');
-            const keys = Object.keys(chainsByNetworkId);
-            const resultingNetworks = {};
-            for (let j = 0; j < keys.length; j++) {
-                const networkId = keys[j];
-                const tokenEntry = this.safeDict(tokensByNetworkId, networkId, {});
-                const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode(networkId, code);
-                const specialNetworkId = this.safeString(tokenEntry, 'token');
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'currencyNetworkId': specialNetworkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
-                    'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
-                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': [networkEntry, tokenEntry],
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
+            const id = currencyIds[i];
+            const customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            };
+            const parsed = this.parseCurrency(customCurrency);
+            const code = this.safeString(parsed, 'code');
+            result[code] = parsed;
+        }
+        return result;
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode(currencyId);
+        const tokensByNetworkId = this.indexBy(rawCurrency['_tokens_by_id'], 'network');
+        const chainsByNetworkId = this.indexBy(rawCurrency['_networks_by_id'], 'network');
+        const keys = Object.keys(chainsByNetworkId);
+        const resultingNetworks = {};
+        for (let j = 0; j < keys.length; j++) {
+            const networkId = keys[j];
+            const tokenEntry = this.safeDict(tokensByNetworkId, networkId, {});
+            const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
+            const networkCode = this.networkIdToCode(networkId, code);
+            const specialNetworkId = this.safeString(tokenEntry, 'token');
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                'network': networkCode,
                 'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
+                'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
+                'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
+                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
                 'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                 },
-                'info': [tokensByNetworkId, chainsByNetworkId],
-            });
+                'info': { 'network': networkEntry, 'token': tokenEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
      * @name woo#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1107,14 +1275,16 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://docs.woox.io/#send-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
@@ -1125,7 +1295,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingAmountOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1151,7 +1321,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingPercentOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1203,7 +1373,9 @@ export default class woo extends Exchange {
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         params = this.omit(params, ['reduceOnly', 'reduce_only']);
         const orderType = type.toUpperCase();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const orderSide = side.toUpperCase();
         const request = {
@@ -1408,7 +1580,9 @@ export default class woo extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
         // 'quantity': this.amountToPrecision (symbol, amount),
@@ -1499,7 +1673,9 @@ export default class woo extends Exchange {
         if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1520,7 +1696,7 @@ export default class woo extends Exchange {
             response = await this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, params));
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             if (isByClientOrder) {
                 request['clientOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -1560,7 +1736,9 @@ export default class woo extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
@@ -1597,7 +1775,9 @@ export default class woo extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'triggerAfter': (timeout > 0) ? Math.min(timeout, 900000) : 0,
         };
@@ -1626,7 +1806,9 @@ export default class woo extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1741,7 +1923,9 @@ export default class woo extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1880,7 +2064,9 @@ export default class woo extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -1902,7 +2088,9 @@ export default class woo extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'COMPLETED' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -1912,7 +2100,7 @@ export default class woo extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrder(order, market = undefined) {
         //
@@ -2047,7 +2235,7 @@ export default class woo extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
@@ -2057,7 +2245,7 @@ export default class woo extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': undefined,
+            'remaining': undefined, // TO_DO
             'cost': cost,
             'trades': undefined,
             'fee': {
@@ -2092,10 +2280,12 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2143,7 +2333,9 @@ export default class woo extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2210,7 +2402,9 @@ export default class woo extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2253,7 +2447,9 @@ export default class woo extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2418,12 +2614,14 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.woox.io/#get-current-holding-get-balance-new
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetAssetBalances(params);
         //
         //     {
@@ -2477,13 +2675,15 @@ export default class woo extends Exchange {
      */
     async fetchDepositAddress(code, params = {}) {
         // this method is TODO because of networks unification
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const request = {
             'token': currency['id'],
-            'network': this.networkCodeToId(networkCode),
+            'network': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, params));
         //
@@ -2523,7 +2723,9 @@ export default class woo extends Exchange {
         };
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2533,7 +2735,7 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2653,7 +2855,7 @@ export default class woo extends Exchange {
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2725,7 +2927,7 @@ export default class woo extends Exchange {
         };
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = this.safeList(currencyRows, 1, []);
         return this.parseTransactions(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2782,7 +2984,7 @@ export default class woo extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
         };
     }
     parseTransactionStatus(status) {
@@ -2799,7 +3001,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.woox.io/#get-transfer-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2808,7 +3010,9 @@ export default class woo extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'token': currency['id'],
@@ -2979,7 +3183,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw-v3
+     * @see https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2989,7 +3193,9 @@ export default class woo extends Exchange {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -3005,7 +3211,7 @@ export default class woo extends Exchange {
         }
         params = this.omit(params, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId(network);
+        request['network'] = this.networkCodeToId(network, currency['code']);
         const response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, params));
         //
         //     {
@@ -3039,7 +3245,9 @@ export default class woo extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayMargin(code, amount, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3047,7 +3255,7 @@ export default class woo extends Exchange {
         }
         const currency = this.currency(code);
         const request = {
-            'token': currency['id'],
+            'token': currency['id'], // interest token that you want to repay
             'amount': this.currencyToPrecision(code, amount),
         };
         const response = await this.v1PrivatePostInterestRepay(this.extend(request, params));
@@ -3222,7 +3430,9 @@ export default class woo extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -3351,7 +3561,9 @@ export default class woo extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3392,7 +3604,9 @@ export default class woo extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.v3PublicGetFundingRate(params);
         //
@@ -3433,7 +3647,9 @@ export default class woo extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -3535,7 +3751,9 @@ export default class woo extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let response = undefined;
         if (market['spot']) {
@@ -3631,7 +3849,7 @@ export default class woo extends Exchange {
         const marginMode = this.safeStringLower(leverage, 'marginMode');
         let spotLeverage = this.safeInteger(leverage, 'leverage');
         if (spotLeverage === 0) {
-            spotLeverage = null;
+            spotLeverage = undefined;
         }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
@@ -3673,7 +3891,9 @@ export default class woo extends Exchange {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'leverage': leverage,
         };
@@ -3681,18 +3901,18 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if ((symbol === undefined) || market['spot']) {
+        if ((symbol === undefined) || this.safeBool(market, 'spot')) {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
         }
-        else if (market['swap']) {
-            request['symbol'] = market['id'];
+        else if (this.safeBool(market, 'swap')) {
+            request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode(marginMode);
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, params));
         }
         else {
-            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + this.safeString(market, 'type') + ' markets');
         }
     }
     /**
@@ -3724,11 +3944,13 @@ export default class woo extends Exchange {
         return await this.modifyMarginHelper(symbol, amount, 'REDUCE', params);
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'adjust_token': 'USDT',
+            'adjust_token': 'USDT', // todo check
             'adjust_amount': amount,
             'action': type,
         };
@@ -3744,7 +3966,9 @@ export default class woo extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3796,7 +4020,9 @@ export default class woo extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetFuturesPositions(params);
         //
         //     {
@@ -3952,7 +4178,9 @@ export default class woo extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'sellToken': fromCode.toUpperCase(),
             'buyToken': toCode.toUpperCase(),
@@ -3995,7 +4223,9 @@ export default class woo extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'quoteId': id,
         };
@@ -4024,7 +4254,9 @@ export default class woo extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTrade(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'quoteId': id,
         };
@@ -4069,7 +4301,9 @@ export default class woo extends Exchange {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         [request, params] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
@@ -4166,7 +4400,9 @@ export default class woo extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetConvertAssetInfo(params);
         //
         //     {
@@ -4222,13 +4458,15 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://docs.woox.io/#get-all-position-info-new
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const response = await this.v3PrivateGetFuturesPositions(params);
         //

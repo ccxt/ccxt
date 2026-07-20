@@ -72,12 +72,14 @@ interface Exchange {
     spotPrivateGetRebateAffiliateCampaign (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateAffiliateReferral (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateAffiliateSubaffiliates (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateList (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSelfSymbols (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetAssetInternalTransferRecord (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrderTest (params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostApiKeyInfo (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountApiKey (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountFutures (params?: {}): Promise<implicitReturnType>;
@@ -96,6 +98,7 @@ interface Exchange {
     spotPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteOpenOrders (params?: {}): Promise<implicitReturnType>;
+    spotPrivateDeleteOrderAll (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteSubAccountApiKey (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteStrategyGroup (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteStrategyGroupUid (params?: {}): Promise<implicitReturnType>;
@@ -139,6 +142,7 @@ interface Exchange {
     contractPrivateGetPositionFundingRecords (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetPositionPositionMode (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListOpenOrdersSymbol (params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetOrderListOpenOrders (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListHistoryOrders (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListOrderDealsV3 (params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderExternalSymbolExternalOid (params?: {}): Promise<implicitReturnType>;

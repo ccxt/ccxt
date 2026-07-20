@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOpenInterest(Exchange exchange, object skippedProperties, object method, object entry)
+    public static void testOpenInterest(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "symbol", "BTC/USDT" },

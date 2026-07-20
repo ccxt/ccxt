@@ -47,7 +47,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -58,7 +58,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "USDT": {
         "info": [
@@ -294,7 +295,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -305,7 +306,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "EUR": {
         "info": [
@@ -332,14 +334,15 @@
         "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "USD": {
         "info": [
@@ -383,7 +386,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -394,7 +397,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "LTC": {
         "info": [
@@ -444,7 +448,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -455,7 +459,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "ETH": {
         "info": [
@@ -505,7 +510,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -516,7 +521,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "ADA": {
         "info": [
@@ -566,7 +572,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -577,7 +583,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "XRP": {
         "info": [
@@ -627,7 +634,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -638,7 +645,8 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": true
     },
     "USDC": {
         "info": [
@@ -691,7 +699,7 @@
         },
         "limits": {
             "amount": {
-                "min": 1e-8,
+                "min": null,
                 "max": null
             },
             "withdraw": {
@@ -702,6 +710,7 @@
                 "min": null,
                 "max": null
             }
-        }
+        },
+        "margin": false
     }
 }

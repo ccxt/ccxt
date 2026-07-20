@@ -177,7 +177,8 @@
                                         "deposit_enabled": true,
                                         "confirmation_required": "100"
                                     }
-                                ]
+                                ],
+                                "_coin_id": "USDT"
                             }
                         }
                     }
@@ -236,7 +237,8 @@
                                     "deposit_enabled": true,
                                     "confirmation_required": "100"
                                 }
-                            ]
+                            ],
+                            "_coin_id": "USDT"
                         },
                         "id": "USDT",
                         "numericId": null,
@@ -244,7 +246,7 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "Tether USD",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.18,
@@ -261,7 +263,7 @@
                                 },
                                 "id": "ETH",
                                 "network": "ERC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 10,
@@ -284,7 +286,7 @@
                                 },
                                 "id": "CRONOS",
                                 "network": "CRC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.18,
@@ -307,7 +309,7 @@
                                 },
                                 "id": "SOL",
                                 "network": "SOL",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 5.32,
@@ -330,7 +332,7 @@
                                 },
                                 "id": "MATIC",
                                 "network": "MATIC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.8,
@@ -353,7 +355,7 @@
                                 },
                                 "id": "ARB",
                                 "network": "ARB",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1.18,
@@ -376,7 +378,7 @@
                                 },
                                 "id": "OP",
                                 "network": "OP",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1.25,
@@ -2007,7 +2009,7 @@
                         "unrealizedPnl": 14.721750955418,
                         "liquidationPrice": null,
                         "marginMode": null,
-                        "percentage": null,
+                        "percentage": 4.45,
                         "marginRatio": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
@@ -2318,7 +2320,7 @@
                   "unrealizedPnl": -0.003390752,
                   "liquidationPrice": null,
                   "marginMode": null,
-                  "percentage": null,
+                  "percentage": -0.03,
                   "marginRatio": null,
                   "stopLossPrice": null,
                   "takeProfitPrice": null

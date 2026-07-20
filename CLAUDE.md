@@ -1,6 +1,6 @@
 # CCXT — Repository Guide for Contributors and AI Agents
 
-CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) that is **transpiled** to JavaScript, Python, PHP, C#, and Go. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
+CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) **transpiled** to JavaScript, Python, PHP, C#, Go and Java. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
 
 Authoritative rules: `CONTRIBUTING.md` (transpiler conventions), `wiki/Manual.md` (unified API spec), `wiki/Requirements.md` (new-exchange checklist).
 
@@ -8,32 +8,32 @@ Authoritative rules: `CONTRIBUTING.md` (transpiler conventions), `wiki/Manual.md
 
 ## 1. Architecture
 
-### REST vs Pro (WebSocket) — two layers, one inheritance chain
+### REST vs Pro (WebSocket)
 
 | | REST | Pro (WebSocket) |
 |---|---|---|
 | Source dir | `ts/src/<exchange>.ts` | `ts/src/pro/<exchange>.ts` |
 | Class | `class <exchange> extends Exchange` | `class <exchange> extends <exchange>Rest` |
 | Method prefix | `fetch*` (one-shot HTTP) | `watch*` / `unWatch*` (subscribe) |
-| Base class | `ts/src/base/Exchange.ts` | adds `ts/src/base/ws/{Client,Cache,OrderBook,Future,WsClient}.ts` |
+| Base | `ts/src/base/Exchange.ts` | adds `ts/src/base/ws/{Client,Cache,OrderBook,Future,WsClient}.ts` |
 | Transport (JS) | `node-fetch` / browser `fetch` | `ws` npm package |
 
-The pro class **imports the REST class as `<exchange>Rest`** and extends it. `describe()` deep-extends the REST `describe()` to add `has.watch*` flags and `urls.api.ws`. WebSocket subscriptions go through `client(url)` (returns a `Client` instance per URL) and resolve via `Future`s; live updates land in the right `Cache` (`ArrayCacheBySymbolById`, `ArrayCacheByTimestamp`, etc.). Read `ts/src/base/ws/Client.ts` and one example like `ts/src/pro/binance.ts` before editing pro code.
+The pro class imports the REST class as `<exchange>Rest` and extends it. `describe()` deep-extends the REST `describe()` to add `has.watch*` flags and `urls.api.ws`. WS subscriptions go through `client(url)` (one `Client` per URL) and resolve via `Future`s; live updates land in the right `Cache` (`ArrayCacheBySymbolById`, `ArrayCacheByTimestamp`, etc.). Read `ts/src/base/ws/Client.ts` and `ts/src/pro/binance.ts` before editing pro code.
 
 ### Per-language model
 
 | Language | Sync | Async | WS transport | Notes |
 |---|---|---|---|---|
-| TypeScript / JS | n/a | native `async/await` | `ws` (Node), `WebSocket` (browser) | one ESM module |
-| Python | `ccxt.<ex>` | `ccxt.async_support.<ex>` | `aiohttp` + `asyncio` | **sync is auto-generated from async** by stripping `async`/`await` |
-| PHP | `ccxt\<ex>` | `ccxt\async\<ex>` | `ReactPHP` promises (`React\Async\await`) | **async is auto-generated from sync** |
-| C# | n/a | native `Task`/`async` | `System.Net.WebSockets` | single async-only mode; PascalCase wrappers in `cs/ccxt/wrappers/` |
-| Go | sync calls returning `(value, error)` | none | `gorilla/websocket` | each exchange has three files: `<ex>.go` (core), `<ex>_api.go` (implicit endpoints), `<ex>_wrapper.go` (typed wrappers) |
+| TS / JS | n/a | native `async/await` | `ws` / browser `WebSocket` | one ESM module |
+| Python | `ccxt.<ex>` | `ccxt.async_support.<ex>` | `aiohttp` + `asyncio` | **sync auto-generated from async** |
+| PHP | `ccxt\<ex>` | `ccxt\async\<ex>` | ReactPHP promises | **async auto-generated from sync** |
+| C# | n/a | native `Task`/`async` | `System.Net.WebSockets` | PascalCase wrappers in `cs/ccxt/wrappers/` |
+| Go | `(value, error)` returns | none | `gorilla/websocket` | three files per exchange: `<ex>.go`, `<ex>_api.go`, `<ex>_wrapper.go` |
 
 ### Two transpilers
 
-1. **Regex transpiler** — `build/transpile.ts`, `build/transpileWS.ts` → Python and PHP. Brittle; depends on TS formatting.
-2. **AST transpiler** — npm package `ast-transpiler`, used by `build/csharpTranspiler.ts` and `build/goTranspiler.ts` → C# and Go. More forgiving; uses TypeScript AST.
+1. **Regex** — `build/transpile.ts`, `build/transpileWS.ts` → Python and PHP. Brittle; depends on TS formatting.
+2. **AST** — `ast-transpiler` npm package, used by `build/csharpTranspiler.ts` and `build/goTranspiler.ts` → C# and Go. More forgiving.
 
 Code in `ts/src/` must satisfy **both**.
 
@@ -42,325 +42,338 @@ Code in `ts/src/` must satisfy **both**.
 ## 2. Source of truth — edit ONLY these
 
 - `ts/src/*.ts` — REST exchange implementations
-- `ts/src/pro/*.ts` — WebSocket exchange implementations
-- `ts/src/base/Exchange.ts` — base class methods (transpiled into per-language base files via a marker; see §4)
+- `ts/src/pro/*.ts` — WS exchange implementations
+- `ts/src/base/Exchange.ts` — base class (partly transpiled; see §4)
 - `ts/src/base/ws/{Client,Cache,OrderBook,OrderBookSide,Future,WsClient}.ts` — pro base
 - `ts/src/base/{errors,errorHierarchy,Precise,types,functions}.ts`
 - `ts/src/test/Exchange/test.*.ts` — REST unified-method tests
 - `ts/src/test/Exchange/base/test.<structure>.ts` — shared validators (orderBook, ticker, trade, …)
 - `ts/src/pro/test/Exchange/test.watch*.ts` — WS unified-method tests
-- `ts/src/test/base/**`, `ts/src/pro/test/base/**` — base unit tests (utility/Cache/OrderBook)
+- `ts/src/test/base/**`, `ts/src/pro/test/base/**` — base unit tests
 - Static fixtures: `ts/src/test/static/{request,response}/<exchange>.json`
 
 ---
 
 ## 3. NEVER commit edits to generated files
 
-These are overwritten by the build. Patches will be reverted:
+These are overwritten by the build:
 
-- `js/**` (output of `tsc`)
-- `python/ccxt/*.py`, `python/ccxt/async_support/*.py` (per-exchange files)
-- `python/ccxt/test/tests_sync.py` and any other transpiled test
-- `php/*.php`, `php/async/*.php`, `php/pro/*.php` (per-exchange files)
+- `js/**` (tsc output)
+- `python/ccxt/*.py`, `python/ccxt/async_support/*.py` (per-exchange)
+- `python/ccxt/test/tests_sync.py` and any transpiled test
+- `php/*.php`, `php/async/*.php`, `php/pro/*.php` (per-exchange)
 - `cs/ccxt/exchanges/**`, `cs/ccxt/ws/**`, `cs/ccxt/api/**`, `cs/ccxt/wrappers/**`
-- `cs/ccxt/base/Exchange.BaseMethods.cs` (generated portion of the base class)
+- `cs/ccxt/base/Exchange.BaseMethods.cs` (generated portion only)
 - `go/v4/*.go` and `go/v4/pro/*.go` (every per-exchange Go file)
-- `ts/src/abstract/*.ts` (auto-emitted from each exchange's `api` block)
+- `ts/src/abstract/*.ts` (emitted from each exchange's `api` block)
 - `dist/**`, `build/ccxt.wiki`, `index.d.cts`
 - `README.md` exchange tables, `wiki/Exchange-Markets*.md`
 - `python/{README.md,LICENSE.txt,keys.json,package.json}` (copies)
 - `package.json` version bumps (use `npm run vss`)
 
-Generated files start with a banner like `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN`. If you see it, find the TS source.
+Generated files start with `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN`. If you see it, find the TS source.
 
 ---
 
 ## 4. Files that are PARTLY hand-written, PARTLY transpiled
 
-The base `Exchange` class in each language has a delimiter line. Everything **below** is regenerated from `ts/src/base/Exchange.ts`; everything **above** is hand-written and language-specific (HTTP client, language polyfills, crypto bindings).
+The base `Exchange` class in each language has a delimiter. Everything **below** is regenerated from `ts/src/base/Exchange.ts`; everything **above** is hand-written (HTTP client, polyfills, crypto).
 
 Marker: `METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT`
 
-| File | Marker line | Edit only above |
+| File | Marker (~line) | Above the marker |
 |---|---|---|
-| `python/ccxt/base/exchange.py` | ~2547 | sync HTTP client, sync polyfills |
-| `python/ccxt/async_support/base/exchange.py` | ~680 | aiohttp client, asyncio glue |
-| `php/Exchange.php` | ~2771 | curl HTTP client, PHP polyfills |
-| `php/async/Exchange.php` | ~411 | ReactPHP HTTP client |
+| `python/ccxt/base/exchange.py` | 2547 | sync HTTP client, polyfills |
+| `python/ccxt/async_support/base/exchange.py` | 680 | aiohttp client, asyncio glue |
+| `php/Exchange.php` | 2771 | curl HTTP client, PHP polyfills |
+| `php/async/Exchange.php` | 411 | ReactPHP HTTP client |
 
-C#: only `cs/ccxt/base/Exchange.BaseMethods.cs` is generated. All other `cs/ccxt/base/Exchange.*.cs` files are hand-written. Behavioural changes that should propagate to all languages go in `ts/src/base/Exchange.ts`, never in the per-language base files.
+C#: only `cs/ccxt/base/Exchange.BaseMethods.cs` is generated. Other `cs/ccxt/base/Exchange.*.cs` are hand-written. Behavioural changes go in `ts/src/base/Exchange.ts`, not per-language base files.
 
-### Hand-written base files (safe to edit; never overwritten)
+### Hand-written base files (safe to edit)
 
 - `python/ccxt/base/{errors,types,precise,decimal_to_precision}.py`
-- `python/ccxt/async_support/base/{throttler.py, ws/{client,cache,order_book,future,functions}.py}` and the top of `exchange.py`
+- `python/ccxt/async_support/base/{throttler.py, ws/*.py}` + top of `exchange.py`
 - `php/{<ErrorName>.php, Precise.php, Throttler.php}`, `php/static_dependencies/**`, `php/pro/{Client.php, ArrayCache*.php, OrderBook.php, BaseCache.php}`, top of `php/Exchange.php`
-- `cs/ccxt/base/Exchange.*.cs` (except `Exchange.BaseMethods.cs`), `cs/ccxt/static/**`, `cs/ccxt/ws/{Client,ArrayCache,Future,OrderBook}.cs`
-- Go base lives outside `go/v4/` (in separate base packages — confirm by reading `go/v4/<exchange>.go` imports)
+- `cs/ccxt/base/Exchange.*.cs` (except `BaseMethods.cs`), `cs/ccxt/static/**`, `cs/ccxt/ws/{Client,ArrayCache,Future,OrderBook}.cs`
+- Go base lives outside `go/v4/` (in separate base packages — confirm via imports in `go/v4/<exchange>.go`)
 
 ---
 
 ## 5. Testing — TDD-first workflow
 
-**Default rule: every new method or behaviour change ships with a test.** Adding code without a test is an outlier that needs justification in the PR. The library has six interlocking test layers; pick the right ones for what you changed.
+**Default rule: every new method or behaviour change ships with a test.** Adding code without a test needs justification in the PR.
 
 ### 5.1 Test layers
 
-| Layer | Source | Runs offline? | When to add/update |
+| Layer | Source | Offline? | When |
 |---|---|---|---|
-| **Base unit tests (REST)** | `ts/src/test/base/test.*.ts` (`safeMethods`, `precise`, `decimalToPrecision`, crypto, `extend`, `omit`, …) | yes | when you change a base utility in `ts/src/base/` |
-| **Base unit tests (WS)** | `ts/src/pro/test/base/test.{cache,orderBook,close}.ts` | yes | when you change `ts/src/base/ws/*` |
-| **Unified-method tests** | `ts/src/test/Exchange/test.<method>.ts` and `ts/src/pro/test/Exchange/test.watch<method>.ts` | yes (drive validators) | when you add a new unified method or change its return shape |
-| **Structure validators** | `ts/src/test/Exchange/base/test.<structure>.ts` (`order`, `ticker`, `trade`, `orderBook`, `position`, `currency`, …) | yes | when you change a unified return structure in `wiki/Manual.md` |
-| **Static request tests** | `ts/src/test/static/request/<exchange>.json` | yes (no HTTP) | when you change how an exchange builds its request URL/body |
-| **Static response tests** | `ts/src/test/static/response/<exchange>.json` | yes (no HTTP) | when you change how an exchange parses a response |
-| **ID tests** | exchange `api` block | yes | when you add new endpoints |
-| **Live tests** | hits real exchange | NO — needs network/keys | smoke-check before merge; never the primary gate |
+| Base unit (REST) | `ts/src/test/base/test.*.ts` | yes | base utility changed |
+| Base unit (WS) | `ts/src/pro/test/base/test.{cache,orderBook,close}.ts` | yes | `ts/src/base/ws/*` changed |
+| Unified-method | `ts/src/test/Exchange/test.<method>.ts` (+ `pro/test/Exchange/test.watch<method>.ts`) | yes | new unified method / return shape changed |
+| Structure validators | `ts/src/test/Exchange/base/test.<structure>.ts` | yes | unified return structure changed |
+| Static request | `ts/src/test/static/request/<exchange>.json` | yes | exchange request URL/body changed |
+| Static response | `ts/src/test/static/response/<exchange>.json` | yes | exchange response parsing changed |
+| ID tests | `api` block | yes | new endpoints added |
+| Live | real exchange | NO | smoke-check before merge; never primary gate |
 
-### 5.2 TDD loop for a typical change
+### 5.2 TDD loop
 
-1. **Write/extend the test first** in `ts/src/test/...` or update the static JSON fixture.
-2. Edit the TS source in `ts/src/`.
+1. Write/extend the test first (`ts/src/test/...` or static JSON fixture).
+2. Edit `ts/src/`.
 3. Fast verify: `npm run tsBuild && npm run lint`.
-4. Run the offline tests in JS first (cheapest): `npm run test-base-rest-js`, `npm run id-tests-js`, `npm run request-js`, `npm run response-js`.
-5. Once green in JS, **transpile and run in every other language**: see §6 build matrix.
-6. Only after all five languages pass offline, run a live test for one symbol: `node run-tests <exchange> --js` (and `--ws` if relevant).
+4. Offline tests in JS first (cheapest): `npm run test-base-rest-js`, `id-tests-js`, `request-js`, `response-js`.
+5. Once green in JS, transpile and run in every other language (see §6).
+6. Only after all five langs pass offline, run a live test: `node run-tests <exchange> --js` (and `--ws` if relevant).
 
-Skip none of these. A test passing only in TS means nothing — the regex transpiler can silently mangle code that compiles in TS, and AST-transpiled C#/Go can diverge on edge cases.
+A test passing only in TS means nothing — the regex transpiler can silently mangle code that compiles in TS, and AST-transpiled C#/Go can diverge on edge cases.
 
-### 5.3 Static fixture workflow (request/response)
+### 5.3 Static fixture workflow
 
-This is the primary regression net for per-exchange behaviour. Both fixtures are JSON; both are regenerated by the CLI:
+Primary regression net for per-exchange behaviour. Regenerated via CLI:
 
 ```bash
-# Record the URL/body produced by a method (creates a request entry)
-node cli.js <exchange> <method> <args...> --report
-# Record what the parser does with a fresh API response (creates a response entry)
-node cli.js <exchange> <method> <args...> --response
+node cli.js <exchange> <method> <args...> --report     # request entry
+node cli.js <exchange> <method> <args...> --response   # response entry
 ```
 
-Then paste the printed output into the `methods.<methodName>` array of `ts/src/test/static/request/<exchange>.json` or `.../response/<exchange>.json`. Re-run:
+Paste output into `methods.<methodName>` array of the respective JSON, then re-run:
 
 ```bash
 npm run request-tests        # all langs
 npm run response-tests       # all langs
-# or per-lang for fast iteration
-npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go
-npm run response-js && npm run response-py && npm run response-php && npm run response-cs && npm run response-go
+# per-lang: npm run request-js/-py/-php/-cs/-go (same for response-*)
 ```
 
-A behaviour change that doesn't update its static fixture is a regression waiting to ship.
+### 5.4 Per-language unified-method test entry points
 
-### 5.4 Per-language unified-method tests
+| Lang | Entry | Lang | Entry |
+|---|---|---|---|
+| TS | `npm run ti-ts` | PHP | `npm run ti-php` (sync via `--sync`) |
+| JS | `npm run ti-js` | C# | `npm run ti-cs` |
+| Python | `npm run ti-py` (sync via `--sync`) | Go | `npm run ti-go` |
 
-Each `test.<method>.ts` is transpiled to JS/Py/PHP/C#/Go and exercises the same assertions across all languages. Driver entry points:
-
-| Language | Entry point |
-|---|---|
-| TS | `npm run ti-ts` (= `tsx ts/src/test/tests.init.ts`) |
-| JS | `npm run ti-js` |
-| Python (async) | `npm run ti-py` (sync via `--sync`) |
-| PHP (async) | `npm run ti-php` (sync via `--sync`) |
-| C# | `npm run ti-cs` |
-| Go | `npm run ti-go` |
-
-Combined offline matrix:
-
-```bash
-npm run id-tests          # all langs (JS, Py, PHP, C#)
-npm run request-tests     # all langs (JS, Py, PHP, C#, Go)
-npm run response-tests    # all langs (JS, Py, PHP, C#, Go)
-npm run test-base-rest    # all langs base utilities
-npm run test-base-ws      # all langs WS base
-```
+Combined offline matrix: `npm run id-tests`, `request-tests`, `response-tests`, `test-base-rest`, `test-base-ws`.
 
 ### 5.5 Live tests (last)
 
 > ## 🚨 HARD SAFETY RULES — non-negotiable
 >
-> These apply to humans, agents, CI scripts — anything that hits a real exchange with real credentials. Violations are merge-blocking and footgun-grade dangerous.
+> Applies to humans, agents, and CI — anything hitting a real exchange with real credentials.
 >
-> 1. **Never risk more than the equivalent of 25 USD per trade.** Compute the notional before every `createOrder` call: `notional = amount × markPrice`. If `notional ≥ 25 USD` (or the equivalent in the quote currency), abort and reduce the amount. For derivatives, `notional` is the position value, not the margin posted.
->    - For pairs whose minimum order size already exceeds 25 USD (some illiquid altcoins): **skip the live test entirely** and rely on static request/response fixtures. Do not "round down" past the exchange minimum — the order will reject and you'll have wasted a code path.
->    - This cap is **per individual trade**, including the cleanup trade (§ table below). A 24 USD buy followed by a 24 USD sell to flatten is fine. A 30 USD anything is not.
-> 2. **Never call `exchange.withdraw()` against a live exchange.** Ever. Not on testnet, not on sandbox, not with a small amount, not "just to verify". `withdraw` is fixture-only forever — capture static request and response fixtures via `node cli.js <id> withdraw <args> --report` / `--response` and assert against those. Live withdraw means real funds leaving an account; one mistake is permanent.
+> 1. **Never risk more than 25 USD equivalent per trade.** Compute notional before every `createOrder`: `notional = amount × markPrice`. Abort/reduce if ≥ 25 USD. For derivatives, notional is the position value. The cap is per individual trade — including cleanup (a 24 USD buy + 24 USD sell to flatten is fine; 30 USD anything is not). For pairs whose minimum order size already exceeds 25 USD: **skip the live test** and rely on static fixtures.
+> 2. **Never call `exchange.withdraw()` against a live exchange.** Ever. Not testnet, not sandbox, not "just to verify". Withdraw is fixture-only forever — capture via `--report`/`--response` and assert against those.
 >
-> If you cannot live-test a method while staying under both rules, that's the correct outcome — fixtures cover the parser/request layer; the live exchange is for smoke testing, not for completeness theatre.
-
+> If you cannot live-test a method under both rules, that's the correct outcome.
 
 ```bash
 node run-tests <exchange>                      # all five langs
 node run-tests <exchange> --js                 # one lang
 node run-tests <exchange> --ws --python-async  # WS, async python
-node run-tests <exchange> --sandbox            # use exchange's testnet URLs
-node run-tests <exchange> --useProxy           # route via proxy from skip-tests.json
+node run-tests <exchange> --sandbox            # testnet URLs
+node run-tests <exchange> --useProxy           # proxy from skip-tests.json
 ```
 
-Live tests are the **last** gate, not the first — they're slow, flaky, and rate-limited. Public endpoints run without keys; private endpoints need credentials (see §5.6).
+Live tests are the **last** gate. Public endpoints need no keys; private endpoints do (see §5.6).
 
-**Always clean up after a live write-endpoint test.** A test that places an order, transfers funds, sets leverage, or otherwise mutates exchange state must restore the original state in a `finally` block — even on test failure. Defaults:
+**Always clean up after a live write-endpoint test** in a `finally` block:
 
-| Method tested | Cleanup |
+| Method | Cleanup |
 |---|---|
-| `createOrder` (limit, did not fill) | `cancelOrder(id, symbol)`, then `fetchOrder` to confirm status `canceled` |
-| `createOrder` (market, or limit that filled — partial or full) | place an opposite-side trade of the **filled amount** to return to a flat position; for derivatives, `closePosition` or an opposite-side reduce-only order |
-| `editOrder` | `cancelOrder` on the resulting order id |
-| `transfer` | reverse `transfer` from destination back to source |
-| `setLeverage` / `setMarginMode` / `setPositionMode` | snapshot the value first, restore it after |
-| `withdraw` | **don't live-test**; use static fixtures only |
+| `createOrder` (limit, unfilled) | `cancelOrder`, then `fetchOrder` to confirm `canceled` |
+| `createOrder` (market or filled limit) | opposite-side trade of filled amount; derivatives: `closePosition` or reduce-only |
+| `editOrder` | `cancelOrder` on resulting id |
+| `transfer` | reverse transfer |
+| `setLeverage` / `setMarginMode` / `setPositionMode` | snapshot value first, restore after |
+| `withdraw` | **don't live-test**; fixtures only |
 
-Use the exchange's **minimum order size** so cleanup is cheap if it fails. Log every mutating call so a human can intervene if the cleanup step itself errors. Prefer a sub-account or a dedicated low-balance test account configured in `keys.local.json` — never your personal trading keys.
+Use the exchange's minimum order size. Log every mutating call. Prefer a sub-account or dedicated low-balance test account — never personal trading keys.
 
 ### 5.6 Testing private endpoints — API keys and sandbox
 
-Two configuration paths, both gitignored. The test runner reads from both.
+The runner resolves credentials from three sources, in this order (each overrides the previous):
 
-**Option A — `keys.local.json` at repo root** (preferred for local iteration; one file holds every exchange):
+1. **`keys.json`** at repo root — **committed**. Holds non-secret defaults (e.g. `options.defaultType`, sandbox flags, market preferences). Don't put real secrets here — it ships in the repo. Use it as the schema reference for which fields each exchange accepts.
+2. **`keys.local.json`** at repo root — **gitignored**. Your real credentials live here. Deep-extends `keys.json`, so you only need to specify the fields you're overriding.
+3. **Environment variables** — pattern `<EXCHANGE_ID>_<CREDENTIAL>` upper-cased (`BINANCE_APIKEY`, `BINANCE_SECRET`, `OKX_PASSWORD`, `KRAKEN_UID`, `HYPERLIQUID_WALLETADDRESS`, `HYPERLIQUID_PRIVATEKEY`, …). Only loaded when **`--loadKeys`** is passed, and only fills credentials still missing after steps 1–2. The credential names come from each exchange's `requiredCredentials` block (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, `token`, `twofa`).
+
+Shape of `keys.local.json` (same shape applies to `keys.json`):
 
 ```json
 {
-    "binance": {
-        "apiKey": "xxx",
-        "secret": "yyy",
-        "options": { "defaultType": "spot" }
-    },
-    "kraken": { "apiKey": "xxx", "secret": "yyy" },
-    "okx": { "apiKey": "xxx", "secret": "yyy", "password": "passphrase" },
+    "binance":     { "apiKey": "xxx", "secret": "yyy", "options": { "defaultType": "spot" } },
+    "okx":         { "apiKey": "xxx", "secret": "yyy", "password": "passphrase" },
     "hyperliquid": { "walletAddress": "0x...", "privateKey": "0x..." }
 }
 ```
 
-Fields under each exchange override the same keys on the constructed exchange instance. `options` lets you flip per-exchange behaviour (account type, sandbox flags, market preferences). The keys you need are exactly those listed in that exchange's `requiredCredentials` block in `describe()` — common ones: `apiKey`, `secret`, `password` (passphrase), `uid`, `walletAddress`, `privateKey`. `keys.json` (committed, schema only) is the reference template.
+Fields under each exchange override same-named properties on the constructed instance. `options` flips per-exchange behaviour (account type, sandbox flags, market preferences).
 
-**Option B — environment variables** (preferred for CI; one var per credential):
-
-The runner derives names as `<EXCHANGE_ID>_<CREDENTIAL>` upper-cased: `BINANCE_APIKEY`, `BINANCE_SECRET`, `OKX_PASSWORD`, `KRAKEN_UID`, `HYPERLIQUID_WALLETADDRESS`, etc. Pass `--loadKeys` to enable env loading:
+Env-var usage (CI):
 
 ```bash
 BINANCE_APIKEY=... BINANCE_SECRET=... node run-tests binance --js --loadKeys --private
 ```
 
-**`--sandbox` flag.** Exchanges that ship a testnet declare it as `urls.test` in `describe()`. `--sandbox` (or `setSandboxMode(true)`) swaps `urls.api` with `urls.test` so live tests hit the testnet. Not all exchanges support sandbox — `setSandboxMode` throws `NotSupported` if `urls.test` is missing.
+`--loadKeys` is required — without it, env vars are ignored even if set.
 
-**Where to get keys:**
+**`--sandbox`.** Swaps `urls.api` ↔ `urls.test` (declared in `describe()`). Throws `NotSupported` if `urls.test` is missing.
 
-- **Sandbox / testnet (preferred for development).** Most major exchanges run a testnet or demo trading portal: Binance (`testnet.binance.vision` for spot, `testnet.binancefuture.com` for derivatives), Bybit (`testnet.bybit.com`), OKX (demo trading inside the main site), Kraken Futures demo, Deribit (`test.deribit.com`), Coinbase sandbox, BitMEX testnet, Phemex testnet. Sign up with a throwaway email and generate keys there. Most testnets fund you with play money on request. If `urls.test` exists in the exchange's `describe()`, a testnet exists.
-- **Live keys (when no sandbox exists).** Use a dedicated low-balance account: small funds (a few dollars), withdrawal permission **disabled**, IP allowlist set to your dev/CI IP. Never reuse personal trading keys.
-- **No keys at all.** You can still validate ~80% of changes via offline tests (base, request/response, id) and live public endpoints. Only private-endpoint paths need keys.
+**Where to get keys.** Sandbox/testnet is preferred — if `urls.test` exists in `describe()`, a testnet exists (Binance, Bybit, OKX demo, Deribit, Coinbase sandbox, BitMEX, Phemex…). Most fund play money on request. Some exchanges (Binance, Bybit, OKX, Bitget, Gate, etc.) also offer a **demo trading** mode inside the live API — keys generated from the exchange's demo portal hit the live host but trade against simulated balances. CCXT exposes this via the same `setSandboxMode(true)` / `--sandbox` flag when the exchange wires it up (some use a header/account-type switch rather than `urls.test`); check the exchange file before assuming behaviour. When no sandbox or demo exists, use a dedicated low-balance account with **withdrawal disabled** and an IP allowlist. With no keys you can still cover ~80% via offline tests + live public endpoints.
 
-**Private-test flags.** `--private` runs both public and private; `--privateOnly` skips public; `--verbose` prints requests/responses; `--debug` is louder still.
+**Private flags.** `--private` (public + private), `--privateOnly`, `--verbose`, `--debug`.
 
-### 5.7 Ad-hoc testing — the per-language CLI
+### 5.7 Ad-hoc testing — per-language CLI
 
-There's a working CLI in every language. Use it instead of writing throwaway test scripts. It reads the same `keys.local.json` / env vars as the test runner and can call any unified or implicit method directly.
+Working CLI in every language. Reads same `keys.local.json` / env vars as runner.
 
 ```bash
 npm run cli.ts -- binance fetchTicker BTC/USDT --verbose
-npm run cli.js -- okx fetchOrderBook BTC/USDT 50
 npm run cli.py -- kraken fetchOHLCV BTC/USDT 1h
-npm run cli.php -- bybit fetchBalance --verbose
 npm run cli.cs -- coinbase fetchMarkets
-npm run cli.go -- hyperliquid fetchPositions
+# also: cli.js, cli.php, cli.go
 ```
 
-When iterating on a single exchange/method, run the CLI in the language you're debugging — `cli.py` for a Python-only failure, `cli.cs` for a C# transpiler-output bug, etc. This is much faster than running `node run-tests`.
-
-**Always pass `--verbose` when implementing or debugging a new endpoint.** It prints the full HTTP request (URL, headers, body) and raw response, which is what you need to diagnose signing, parsing, and rate-limit issues. Add `--sandbox` to hit testnet URLs. The CLI also drives static-fixture capture via `--report` and `--response` (see §5.3).
+Iterate in the language where the bug shows up (`cli.py` for a Python-only failure, etc.) — much faster than `node run-tests`. **Always pass `--verbose`** when implementing/debugging an endpoint; prints full HTTP request and raw response (needed for signing/parsing/rate-limit issues). Add `--sandbox` for testnet. Drives static-fixture capture via `--report`/`--response` (§5.3).
 
 ### 5.8 Skipping known-broken tests — `skip-tests.json`
 
-The runner reads `skip-tests.json` at root before each exchange. Use it for transient outages, exchange-specific quirks, or unsupported features — never to silence a regression you introduced.
+For transient outages, exchange quirks, or unsupported features — never to silence a regression you introduced.
 
 ```json
 {
     "<exchange>": {
-        "skip": "exchange down — temporary",   // skip the whole REST run
-        "skipWs": "no WS support yet",         // skip pro tests only
-        "until": "2026-06-07",                 // optional auto-expiry
+        "skip": "exchange down",
+        "skipWs": "no WS support yet",
+        "until": "2026-06-07",
         "preferredSpotSymbol": "ETH/USDT",
-        "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
-            "fetchOHLCV": "endpoint 500s",      // skip one method
-            "ticker": { "spread": "broken bid/ask" },  // skip one structure field
-            "fetchTickers": { "checkActiveSymbols": "todo" }
+            "fetchOHLCV": "endpoint 500s",
+            "ticker": { "spread": "broken bid/ask" }
         },
         "httpProxy": "http://...",
-        "wsProxy": "wss://..."                  // used when --useProxy
+        "wsProxy": "wss://..."
     }
 }
 ```
 
-Keep an `until` date on temporary skips. Skips without expiry rot.
+Always set `until`. Skips without expiry rot.
 
 ### 5.9 The `has` capability flags
 
-Tests for unified methods only run when the exchange declares support: `exchange.has['fetchOHLCV'] === true`. This block lives in `describe()` and gates which `test.<method>.ts` files execute. Two consequences:
+Unified-method tests only run when `exchange.has['<method>'] === true` (in `describe()`). Adding a new unified method? Set `has.<method>: true` or the test won't run. Don't lie: `true` without implementation fails tests; missing/`false` on something implemented means it's silently untested.
 
-- **Adding a new unified method?** Set `has.<method>: true` in `describe()` or the test won't run.
-- **Don't lie.** A `has.<method>: true` with no implementation will fail tests; a `false` (or missing) on something you actually implemented means it's silently untested.
-
-The `features` block in `describe()` declares finer-grained capabilities (e.g., `createOrder.triggerPrice`, `fetchOrders.daysBack`). It's verified by `test.features.ts`. Keep both blocks accurate when you change behaviour.
+The `features` block declares finer-grained capabilities (`createOrder.triggerPrice`, `fetchOrders.daysBack`), verified by `test.features.ts`. Keep both accurate.
 
 ---
 
 ## 6. Build & verify — required after every change
 
-A change to `ts/src/` is **not done** until it transpiles cleanly to all five languages. The regex transpiler can fail silently on formatting issues even when `tsc` is happy.
+A `ts/src/` change is **not done** until it transpiles cleanly to all five languages.
 
 ### 6.1 Fast inner loop
 
 ```bash
 npm run tsBuild     # TS → JS only — fastest sanity check
 npm run lint        # ESLint on ts/src/*.ts and ts/src/pro/*.ts
+npm run eslint "ts/src/<exchange>.ts"   # lint single exchange (CI scoped)
 ```
 
 ### 6.2 Per-language transpile (run all five before declaring done)
 
 ```bash
-npm run transpile         # TS → Python + PHP (regex)  — covers REST and WS
+npm run transpile         # TS → Python + PHP (regex, REST + WS)
 npm run transpileCS       # TS → C# (AST)
+npm run transpileCSWs     # C# WebSocket
 npm run transpileGO       # TS → Go (AST)
-# scoped variants for one exchange:
-npm run transpileCsSingle # CS, single file
-npm run go-build-single   # Go, single exchange
+npm run transpileJava     # TS → Java (REST + WS + wrappers)
+# scoped (single exchange):
+npm run transpileRest --python <ex> && npm run transpileWs --python <ex>
+npm run transpileRest -- --php <ex> && npm run transpileWs -- --php <ex>
+npm run transpileCsSingle -- <ex>          # REST
+npm run transpileCsSingle -- --ws <ex>     # WebSocket
+npm run transpileJavaSingle -- <ex>        # REST
+npm run transpileJavaSingle -- --ws <ex>   # WebSocket
+npm run go-build-single -- <ex1> <ex2> # Go scoped
 ```
 
 ### 6.3 Compile each target
 
 ```bash
-npm run buildCS      # dotnet build cs/ccxt.sln
-npm run buildGO      # go build -C go ./v4 && go build -C go ./v4/pro
-npm run check-python-syntax   # tox -e qa
-npm run check-php-syntax      # syntax check sync + async
+npm run buildCS              # dotnet build cs/ccxt.sln
+npm run buildGO              # go build -C go ./v4 && go build -C go ./v4/pro
+npm run buildJava            # cd java/ && ./gradlew build && cd ../
+npm run check-python-syntax  # tox -e qa
+npm run check-php-syntax
+go -C go build ./tests/main.go   # Go test binary
+go fmt .                         # Go format (in go/v4 and go/tests/base)
 ```
 
-### 6.4 Full build (slow; ~10+ minutes)
+### 6.4 Full build (slow)
 
 ```bash
 npm run build           # incremental: pre-transpile → transpile → CS → docs
-npm run force-build     # rebuild every exchange in every language (very slow)
+npm run force-build     # rebuild everything (very slow — reserve for releases)
 ```
 
-Don't run `force-build` casually — it touches thousands of files. Reserve it for releases or deep refactors of `ts/src/base/Exchange.ts`.
+### 6.4.1 Offline tests (per-language)
 
-### 6.5 Verify-after-change checklist (paste this into your PR description)
+```bash
+# Base tests (only when important_modified in CI):
+npm run test-base-rest-{js,py,php,cs,go}    # REST base tests
+npm run test-base-ws-{js,py,php,cs,go}      # WS base tests
+npm run test-types-go                        # Go type tests
+# ID tests:
+npm run id-tests-{js,py,php,cs,go,java}
+# Request/response tests (full or scoped with -- <exchange>):
+npm run request-{js,py,php,cs,go,java}      # all exchanges
+npm run request-py-sync -- <ex> && npm run request-py-async -- <ex>  # Python scoped
+npm run request-php-sync -- <ex> && npm run request-php-async -- <ex> # PHP scoped
+npm run response-{js,py,php,cs,go,java}     # same pattern
+```
+
+### 6.4.2 Live tests
+
+```bash
+./run-tests-simul.sh --js                              # all JS
+./run-tests-simul.sh --js "<rest_exchanges>" "<ws_exchanges>"  # scoped
+# Same pattern: --python-async, --php-async, --csharp, --go, --java
+npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
+```
+
+### 6.5 Verify-after-change checklist (paste into PR)
 
 - [ ] `npm run lint`
 - [ ] `npm run tsBuild`
-- [ ] `npm run transpile` (Python + PHP — regex transpiler is the brittle one)
-- [ ] `npm run transpileCS` and `npm run buildCS`
-- [ ] `npm run transpileGO` and `npm run buildGO`
-- [ ] `npm run check-python-syntax`
-- [ ] `npm run check-php-syntax`
-- [ ] Offline tests in all langs touched: `request-tests`, `response-tests`, `id-tests`, and `test-base-rest`/`test-base-ws` if base changed
+- [ ] `npm run transpile` (Python + PHP)
+- [ ] `npm run transpileCS` + `npm run buildCS`
+- [ ] `npm run transpileGO` + `npm run buildGO`
+- [ ] `npm run check-python-syntax` + `npm run check-php-syntax`
+- [ ] Offline tests touched: `request-tests`, `response-tests`, `id-tests`; `test-base-rest`/`-ws` if base changed
 - [ ] At least one live smoke test on the affected exchange
-- [ ] Diff contains **only** `ts/src/**` changes (and optionally hand-written base files / static JSON fixtures)
+- [ ] Diff contains **only** `ts/src/**` (+ optional hand-written base / static JSON)
+
+### 6.6 GitHub Actions CI
+
+Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `build/utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
+
+| Lang | Workflow | Pre-transpile | Full transpile | Build | Live tests |
+|---|---|---|---|---|---|
+| JS | `js.yml` | `pre-transpile-js` | ↑ (includes tsc) | ↑ | `./run-tests-simul.sh --js` |
+| Python | `python.yml` | `pre-transpile-py` | `force-transpile-fast-py` | `check-python-syntax` | `./run-tests-simul.sh --python-async` |
+| PHP | `php.yml` | `pre-transpile-php` | `force-transpile-fast-php` | `check-php-syntax` | `./run-tests-simul.sh --php-async` |
+| C# | `cs.yml` | `pre-transpile-cs` | `transpileCS && transpileCSWs` | `buildCS` | `./run-tests-simul.sh --csharp` |
+| Go | `go-app.yml` | `export-exchanges && emitAPI` | `goTranspiler.ts && --ws` | `buildGO` + `go fmt` | `./run-tests-simul.sh --go` |
+| Java | `java.yml` | `pre-transpile-java` | `transpileJava` | `buildJava` | `./run-tests-simul.sh --java` |
+| Rust | `rust.yml` | — | early-stage, no transpile/test steps wired up yet | — | — |
+
+**Reproduce locally:** `npm run export-exchanges && npm run emitAPI` first → `npm run pre-transpile-<lang>` → transpile → build → `npm run request-<lang> && npm run response-<lang>` → `./run-tests-simul.sh --<lang> "<ex>" "<ex>"` for live.
 
 ---
 
 ## 7. Docstrings — required on every public method
 
-Every public method in `ts/src/<exchange>.ts` and `ts/src/pro/<exchange>.ts` (and any new method in `ts/src/base/Exchange.ts`) gets a JSDoc block. They drive `npm run build-docs` (which produces the wiki), they're surfaced as IDE intellisense in JS/TS, and they're transpiled into Python/PHP/C#/Go docstrings — so a missing or wrong docstring shows up everywhere.
+Every public method in `ts/src/<exchange>.ts`, `ts/src/pro/<exchange>.ts`, and new methods in `ts/src/base/Exchange.ts` gets a JSDoc block. They drive `npm run build-docs`, IDE intellisense (JS/TS), and Python/PHP/C#/Go docstrings — missing/wrong docstrings show everywhere.
 
 ### Pattern
 
@@ -368,280 +381,197 @@ Every public method in `ts/src/<exchange>.ts` and `ts/src/pro/<exchange>.ts` (an
 /**
  * @method
  * @name <id>#<methodName>
- * @description <one-line description, lowercase, no trailing period>
- * @see https://docs.<exchange>.com/<endpoint>      // primary URL — repeat @see for each variant (spot/swap/future)
+ * @description <one-line, lowercase, no trailing period>
+ * @see https://docs.<exchange>.com/<endpoint>      // repeat @see per variant (spot/swap/future)
  * @param {string} symbol unified market symbol
  * @param {int} [since] timestamp in ms of the earliest entry to fetch
  * @param {int} [limit] the maximum number of entries to return
- * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.until] timestamp in ms of the latest entry
- * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object[]} a list of [<structure>](https://docs.ccxt.com/#/?id=<anchor>-structure) objects
  */
-async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-    // ...
-}
+async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> { ... }
 ```
 
 ### Rules
 
-- `@name <id>#<methodName>` — `<id>` matches the class id, e.g. `binance#fetchTime`. Required for the docs generator.
-- `@description` — one line, lowercase, no trailing period. Describe what it does, not how.
-- `@see` — repeat for each upstream API doc. Add an end-of-line comment when one method spans multiple endpoint variants (`// spot`, `// swap`, `// future`, `// margin`).
-- **Required type:** wrap `{type}` and use `[name]` for optional params. Required when the method throws on `undefined`; optional otherwise.
-  - Required: `@param {string} symbol`
-  - Optional: `@param {int} [since]`, `@param {string|undefined} [code]` for nullable types
-- `@param {object} [params]` is always present (extra exchange-specific params).
-- `params.<key>` — for any param that travels inside `params`, document it explicitly: `@param {string} [params.until]`. If your method reads `params['triggerPrice']`, it must show up as `@param {float} [params.triggerPrice] ...`.
-- `not used by <id>.<method>` — when a unified parameter is accepted but ignored: `@param {int} [since] not used by binance.fetchOpenOrders`.
-- `@returns` — link to the structure in the manual, e.g. `[order structure](https://docs.ccxt.com/#/?id=order-structure)`. For arrays, `{object[]}`.
-- **`@ignore` for internal helpers.** Public methods on the exchange class that aren't part of the unified API (e.g. exchange-specific helpers like `isGateFuturesContractWithDecimalSize`, signed-amount calculators, internal request builders) still need a JSDoc block — but mark them `@ignore` so they don't pollute the user-facing wiki / IDE intellisense. Example:
-  ```ts
-  /**
-   * @ignore
-   * @method
-   * @description amountToPrecision + sign flip for short side, returned as string
-   */
-  getGateFuturesSignedAmount (symbol: string, side: OrderSide, amount: number) {
-      // ...
-  }
-  ```
-  See `binance.ts` and `kraken.ts` for usage. Public unified methods (`fetchTicker`, `createOrder`, …) must NOT be marked `@ignore`.
+- `@name <id>#<methodName>` — `<id>` matches class id (e.g. `binance#fetchTime`). Required for docs generator.
+- `@description` — one line, lowercase, no trailing period.
+- `@see` — repeat per upstream doc; end-of-line comment when one method spans multiple endpoint variants (`// spot`, `// swap`).
+- **Types:** wrap `{type}`, use `[name]` for optional params. Required: `@param {string} symbol`. Optional: `@param {int} [since]`, `@param {string|undefined} [code]` for nullables.
+- `@param {object} [params]` is always present.
+- `params.<key>` — document every param read from `params`: `@param {float} [params.triggerPrice] ...`.
+- `not used by <id>.<method>` — for accepted-but-ignored unified params.
+- `@returns` — link to manual structure: `[order structure](https://docs.ccxt.com/#/?id=order-structure)`. Arrays as `{object[]}`.
+- **`@ignore` for internal helpers** — public methods that aren't part of the unified API (exchange-specific helpers, signed-amount calculators, request builders) still need JSDoc but must be `@ignore`'d. See `binance.ts`, `kraken.ts`. Unified methods (`fetchTicker`, `createOrder`, …) must NOT be `@ignore`.
 
-The transpilers convert these JSDoc blocks into native docstrings:
-- Python: `"""..."""` Sphinx-style
-- PHP: `/** ... */` PHPDoc
-- C#: `///` XML doc comments
-- Go: package-level `//` comments
-
-A missing `@param {object} [params]` or wrong type name (`{str}` instead of `{string}`) will produce broken docs in all five languages — re-run `npm run build-docs` to verify.
+Transpilers convert these to Python (`"""..."""` Sphinx), PHP (`/** */` PHPDoc), C# (`///` XML), Go (`//` package-level).
 
 ## 8. When you change behaviour, update the user-facing docs
 
-Code changes that introduce, rename, remove, or change the contract of a unified method, a structure, or a global function need follow-up doc edits. The library is documentation-driven for users; an undocumented feature is invisible.
-
-| You changed… | Also update |
+| Changed… | Also update |
 |---|---|
-| A unified method signature (new param, removed param, default change) | The JSDoc in `ts/src/<exchange>.ts` or `ts/src/base/Exchange.ts` AND the matching section in `wiki/Manual.md` |
-| A returned structure (e.g. added a field to `Order`) | `wiki/Manual.md` (search for `<structure>-structure`) AND any structure validator under `ts/src/test/Exchange/base/test.<structure>.ts` |
-| A new global helper in `ts/src/base/Exchange.ts` | JSDoc on the method itself; if it's exposed to users, add a section to `wiki/Manual.md` |
-| A new unified method (e.g. `fetchPositionMode`) | JSDoc on every implementing exchange, `has` flag in `describe()`, a unified test under `ts/src/test/Exchange/test.<method>.ts`, and a `wiki/Manual.md` section |
-| Capability or feature flag | Update `wiki/Requirements.md` if it's a new requirement; the `features` block self-documents |
-| Examples-worthy behaviour | Add a runnable example under `examples/ts/` (transpiled to other languages by `npm run tsBuildExamples`) |
-| End-user usage docs | Update the matching section in `.claude/skills/ccxt-{typescript,python,php,csharp,go}/SKILL.md` so AI assistants embedded in user projects know about it |
-| Top-level summaries (`README.md`, `llms.txt`, `llms-full.txt`) | Only when adding/removing a top-level capability — most edits don't need this |
+| Unified method signature | JSDoc + matching section in `wiki/Manual.md` |
+| Returned structure | `wiki/Manual.md` (`<structure>-structure`) + validator in `ts/src/test/Exchange/base/test.<structure>.ts` |
+| New global helper in `ts/src/base/Exchange.ts` | JSDoc; if user-facing, section in `wiki/Manual.md` |
+| New unified method | JSDoc on every implementer, `has` flag in `describe()`, test in `ts/src/test/Exchange/`, section in `wiki/Manual.md` |
+| Capability / feature flag | `wiki/Requirements.md` if new requirement; `features` block self-documents |
+| Examples-worthy behaviour | Example under `examples/ts/` (`npm run tsBuildExamples`) |
+| End-user usage docs | Matching section in `.claude/skills/ccxt-{typescript,python,php,csharp,go}/SKILL.md` |
+| Top-level summaries (`README.md`, `llms.txt`, `llms-full.txt`) | Only for top-level capability additions/removals |
 
-The user-facing skills under `.claude/skills/ccxt-<lang>/` exist so callers can ask their AI assistant "how do I use this?". They're separate from this CLAUDE.md (which is for contributors). When you change a public API, both places need updating: the wiki for human readers, the skills for AI-assisted callers.
+User-facing skills under `.claude/skills/ccxt-<lang>/` are for callers asking AI assistants "how do I use this?" — separate from this CLAUDE.md (contributor-facing). Public API changes update both: wiki for humans, skills for AI-assisted callers.
 
 ## 9. TS coding rules to keep the transpilers happy
 
 Full list in `CONTRIBUTING.md`. Top recurring violations:
 
 - 4-space indent, **no tabs**. Blank line between methods, **no blank lines inside a method body**.
-- Single-quoted string keys: `obj['key']` — never `obj.key`.
-- Use `safeString`/`safeNumber`/`safeInteger`/`safeDict`/`safeList`/`safeBool` to read dict values. Never `obj['key'] || fallback` (works in JS, breaks in Python/PHP).
-- **Avoid `safeValue`.** It's the typeless escape hatch and is treated as deprecated when the type is known. Reach for the typed variant (`safeDict`, `safeList`, `safeBool`, `safeString`, …) and only fall back to `safeValue` when the value really can be any of several types.
-- Arithmetic must go through `Precise.stringAdd/Sub/Mul/Div/Gt/...`. The `+` operator is for string concatenation only.
-- No `.includes()` — use `.indexOf(x) !== -1`. No `.map`/`.filter` with arrow callbacks in derived classes. No `in` operator on arrays.
+- Single-quoted string keys: `obj['key']`, never `obj.key`.
+- Use `safeString`/`safeNumber`/`safeInteger`/`safeDict`/`safeList`/`safeBool`. Never `obj['key'] || fallback` (breaks in Python/PHP).
+- **Avoid `safeValue`** — typeless escape hatch, deprecated when type is known. Use typed variants; fall back only when value is truly any-of-several.
+- Arithmetic via `Precise.stringAdd/Sub/Mul/Div/Gt/...`. `+` is string concatenation only.
+- No `.includes()` — use `.indexOf(x) !== -1`. No `.map`/`.filter` arrow callbacks in derived classes. No `in` operator on arrays.
+- **Never name a variable/param after a target-language reserved word** — `from`, `type`, `id`, `in`, `is`, `with`, `class`, `def`, `lambda`, `global`, `pass`, `print`, `var`, `function`, `list`, `dict`, `string`, `object`, `end`, `fn` break Python/PHP/C#/Go/Java. Use `fromAddress`, `typeVar`, etc.
+- **Don't return `Promise<void>`** (leaves bare `void` in Python) and **don't write a bare `return;`** in a value-returning method (C# CS0126/CS0161). Use `Promise<any>` + `return undefined;`, and end such methods with `return undefined;`.
+- **Integer division**: `x.length / 2` is a float in Python — wrap any quotient fed to `intToBase16`/array indexing in `this.parseToInt(...)`.
+- **`.padStart`/`.padEnd` only on a bare identifier** — `expr().padStart(n,'0')` leaks a function call in PHP; assign to a local first.
 - Always bracket ternaries: `(cond) ? a : b`. Don't nest them.
-- Control characters use double quotes with an inline lint disable: `"\n" // eslint-disable-line quotes`.
-- Array length hint: `const n = arr.length;` on its own line tells the regex transpiler it's an array (not a string).
-- Send exchange-specific market IDs, never unified symbols: `this.market(symbol)['id']`. Parse responses with `this.safeSymbol(marketId, market)`.
+- Control chars: double quotes with inline disable: `"\n" // eslint-disable-line quotes`.
+- Array length hint: `const n = arr.length;` on its own line tells regex transpiler it's an array.
+- Send exchange-specific market IDs, never unified symbols: `this.market(symbol)['id']`. Parse via `this.safeSymbol(marketId, market)`.
 - Crypto/signing must use base methods (`this.hmac`, `this.jwt`, `this.ecdsa`, `this.hash`, `this.totp`). No external libs in derived classes.
-- Each `define`d API endpoint becomes an **implicit method** like `publicGetEndpoint`. Don't write explicit HTTP wrappers — list the URL in the `api` block in `describe()` instead.
+- Each `define`d endpoint becomes an implicit method (`publicGetEndpoint`). Don't write explicit HTTP wrappers — list URLs in the `api` block.
 
-### Patterns that became standard after CONTRIBUTING.md was last revised
+### Standard patterns (post-TS migration)
 
-CONTRIBUTING.md is the authoritative ruleset but predates the TS migration in places. Verified against recent exchanges (`pacifica.ts`, `weex.ts`, `hyperliquid.ts`, `aster.ts`) and the certified set (`binance.ts`, `okx.ts`, `kraken.ts`, `bybit.ts`):
+Verified across recent (`pacifica.ts`, `weex.ts`, `hyperliquid.ts`, `aster.ts`) and certified (`binance.ts`, `okx.ts`, `kraken.ts`, `bybit.ts`):
 
-- **Typed `Promise<...>` return signatures are mandatory.** Use `Promise<Market[]>`, `Promise<Order>`, `Promise<Trade[]>`, `Promise<OrderBook>`, `Promise<Int>`, `Promise<Str>`, `Promise<Dict>`, etc. Plain `Promise<any>` and untyped returns are not accepted in new code.
-- **Import lightweight types from `./base/types.js`.** Standard imports: `Dict`, `Str`, `Int`, `Num`, `Strings`, plus structure types (`Market`, `Ticker`, `Trade`, `Order`, `OrderBook`, `Position`, `Balances`, `OHLCV`, …). Use `Str`/`Int`/`Num` for nullable scalars in signatures: `async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order>`.
-- **Use the `handle*AndParams` extractors** instead of hand-rolling option lookups:
-  - `this.handleOptionAndParams(params, '<methodName>', '<key>', defaultValue)` — option → params → default fallback chain.
-  - `this.handleMarketTypeAndParams('<methodName>', market, params)` — returns `[type, params]` with `'spot' | 'swap' | 'future' | 'margin' | 'option'` resolution.
-  - `this.handleSubTypeAndParams('<methodName>', market, params)` — `'linear' | 'inverse'`.
-  - `this.handleNetworkCodeAndParams(params)` — pulls a unified network code out of `params['network']`.
-- **Parser helpers are typed too.** Prefer `this.safeMarketStructure({ ... })` over hand-built dicts in `parseMarket`. Use `this.safeMarket(marketId, market, delimiter, marketType)` and `this.safeCurrency(currencyId, currency)` for symbol/code resolution. `this.safeCurrencyCode(currencyId, currency)` returns just the code string. `this.safeOrder2(...)` and `this.safeTicker(...)` apply the unified post-processing on a partly-built dict.
-- **Error mapping at runtime via the `exceptions` block.** In `handleErrors`, after extracting the error code/message, call `this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback)` and `this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback)`. Don't write a chain of `if (errorCode === 'X') throw new Y` — keep the mapping declarative in `describe().exceptions`.
-- **`safeDict` / `safeList` / `safeBool` are the standard typed reads.** Recent exchanges show `safeValue` falling out of use as soon as the type is known (often <5 occurrences per file vs. dozens for the typed variants).
-- **eslint-disable comments around control characters** (CONTRIBUTING.md §734) are still needed *when you actually use a control char in a literal string*. Most modern `sign()` implementations build URLs/bodies with `this.urlencode()` / `this.json()` and so don't trigger the rule. If you do need `"\n"` or `"\t"` in a literal, the inline disable is still mandatory.
+- **Typed `Promise<...>` return signatures are mandatory.** `Promise<Market[]>`, `Promise<Order>`, `Promise<OrderBook>`, etc. No `Promise<any>` in new code.
+- **Import types from `./base/types.js`**: `Dict`, `Str`, `Int`, `Num`, `Strings`, structure types (`Market`, `Ticker`, `Trade`, `Order`, `OrderBook`, `Position`, `Balances`, `OHLCV`). Use `Str`/`Int`/`Num` for nullable scalars: `async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order>`.
+- **Use `handle*AndParams` extractors:**
+  - `handleOptionAndParams(params, '<methodName>', '<key>', defaultValue)` — option → params → default.
+  - `handleMarketTypeAndParams('<methodName>', market, params)` → `[type, params]`, `'spot' | 'swap' | …`.
+  - `handleSubTypeAndParams('<methodName>', market, params)` → `'linear' | 'inverse'`.
+  - `handleNetworkCodeAndParams(params)` — unified network code from `params['network']`.
+- **Typed parser helpers.** `safeMarketStructure({...})` in `parseMarket`; `safeMarket(marketId, market, delimiter, marketType)`, `safeCurrency`, `safeCurrencyCode`; `safeOrder2`, `safeTicker` for unified post-processing.
+- **Declarative error mapping.** In `handleErrors`, call `throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback)` and `throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback)`. Don't write `if (errorCode === ...) throw new ...` chains — keep mapping in `describe().exceptions`.
+- **eslint-disable for control characters** still needed *when* you use them in a literal. Modern `sign()` impls use `urlencode()`/`json()` and usually don't trigger it.
 
 ---
 
 ## 10. Common contributor questions
 
-**Q: My exchange has a testnet but `--sandbox` doesn't work.**
-Add a `'test'` entry under `urls` in `describe()` mirroring the live `api` shape (e.g., `urls: { api: { public: 'https://api...', private: '...' }, test: { public: 'https://testnet...', private: '...' } }`). `setSandboxMode(true)` then swaps them. Some exchanges expose only some endpoints on testnet — set the unsupported ones to the live URL or guard with `NotSupported`.
+**Q: Testnet exists but `--sandbox` doesn't work.** Add `urls.test` mirroring `urls.api`. `setSandboxMode(true)` swaps them. Some exchanges expose only some endpoints on testnet — set unsupported ones to live URL or guard with `NotSupported`.
 
-**Q: A test is flaky for reasons outside my change.**
-Add an entry to `skip-tests.json` with a clear reason and an `until:` date. Don't disable a test by deleting it.
+**Q: A test is flaky outside my change.** Add to `skip-tests.json` with reason + `until:` date. Don't delete the test.
 
-**Q: How do I scope a build to one exchange while iterating?**
-The full `npm run build` is slow. Faster alternatives: `npm run tsBuild` (TS → JS only), `tsx build/transpile.ts <exchange>` (one exchange to Py/PHP), `npm run transpileCsSingle` and `npm run go-build-single` (per-exchange C# / Go). For tests: `node run-tests <exchange> --js`.
+**Q: How do I scope a build to one exchange?** `npm run tsBuild` (TS→JS only); `tsx build/transpile.ts <exchange>` (one to Py/PHP); `npm run transpileCsSingle`, `npm run go-build-single`. Tests: `node run-tests <exchange> --js`.
 
-**Q: Should I add a helper method?**
-If it's reusable across exchanges, add it to `ts/src/base/Exchange.ts` (it'll get transpiled into every language's base). If it's exchange-specific, keep it in the exchange file. Don't add a base method that only one exchange uses.
+**Q: Add a helper method?** Reusable across exchanges → `ts/src/base/Exchange.ts`. Exchange-specific → exchange file. Don't add a base method only one exchange uses.
 
-**Q: When do I need to add a new unified method vs. extend an existing one?**
-Match `wiki/Manual.md` — that's the spec. New unified methods need agreement; check `wiki/Requirements.md` and open a discussion before implementing. Exchange-specific tweaks go through `params` (documented in the docstring as `params.<key>`).
+**Q: New unified method vs. extend existing?** Match `wiki/Manual.md`. New unified methods need agreement — check `wiki/Requirements.md` and discuss first. Exchange-specific tweaks go through `params`.
 
-**Q: What do I do about the `requiredCredentials` block?**
-It tells the test runner which credentials this exchange needs. Mark `apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, `token`, `twofa` as `true` only if the exchange actually uses them. Test runner uses this to derive env-var names and to decide whether private tests can run.
+**Q: `requiredCredentials` block?** Mark `apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, `token`, `twofa` as `true` only if the exchange uses them. Runner uses this for env-var names and private-test gating.
 
-**Q: How are exchange aliases handled?**
-Files like `binanceus.ts`, `coinbaseadvanced.ts` are thin subclasses that override URLs/options of a parent. Tests skip aliases (`if (exchange.alias) return`) — keep behaviour in the parent, not the alias.
+**Q: Exchange aliases?** Files like `binanceus.ts`, `coinbaseadvanced.ts` are thin URL/option overrides of a parent. Tests skip aliases (`if (exchange.alias) return`) — keep behaviour in the parent.
 
-**Q: Linting fails on a transpiler-required pattern (e.g. `"\n"` in double quotes).**
-Use the inline disable: `// eslint-disable-line quotes` or `// eslint-disable-next-line quotes`. These are mandatory in those spots, not a workaround.
+**Q: Lint fails on a transpiler-required pattern (e.g. `"\n"` in double quotes).** Use the inline disable: `// eslint-disable-line quotes`. Mandatory in those spots, not a workaround.
 
-**Q: I have a Python/PHP/C#/Go stack trace and the bug is hard to spot from the TS source — can I edit the transpiled file to debug?**
-Yes, as a **scratchpad only**. Editing the generated file lets you add `print` / `var_dump` / `Console.WriteLine` / `fmt.Println` right where the language-specific failure happens, which is often the fastest way to localise an issue. Two rules:
-1. The fix itself **must** be ported back to `ts/src/<exchange>.ts` and verified by re-running `npm run transpile` (or the C#/Go variant). The next build will overwrite your throwaway edits.
-2. Don't `git add` the transpiled file. Confirm before committing: `git status` should show only `ts/src/**` and (rarely) hand-written base files / static fixtures.
+**Q: Hard-to-spot bug from a Py/PHP/C#/Go stack trace — can I edit the transpiled file?** Yes, as a **scratchpad** for `print`/`var_dump`/`Console.WriteLine`/`fmt.Println`. The fix itself must be ported back to `ts/src/<exchange>.ts` and verified via `npm run transpile`. Don't `git add` the transpiled file.
 
-**Q: I implemented an endpoint based on the exchange's documentation and the response shape is different from what the docs say — what now?**
-Trust the live response over the docs. Exchange docs are routinely outdated, lag deployments, omit fields, or describe a different version. Workflow:
-1. Hit the live endpoint with `npm run cli.ts -- <id> <method> <args> --verbose` and inspect the raw response.
-2. Capture a static-response fixture (`--response`) so the parser is regression-tested against real data going forward.
-3. If the docs disagree with reality, link both in your PR and code from the live response. Add a comment in the parser pointing to the live shape if the discrepancy is non-obvious.
-Always cite the upstream doc URL in `@see`, but don't assume it's correct.
+**Q: Endpoint response shape doesn't match exchange docs.** Trust the live response. Workflow: hit live with `npm run cli.ts -- <id> <method> <args> --verbose`, capture static-response fixture (`--response`), link both in the PR. Cite the doc URL in `@see` but don't assume it's correct.
 
 ---
 
 ## 11. Pull-request etiquette
 
-- **One PR per exchange.** Don't bundle multiple exchange edits.
-- Commit only `ts/src/**` and (rarely) hand-written base files / static JSON fixtures. Generated files in your diff means you ran `npm run build` and committed output — undo that.
+- **One PR per exchange.** Don't bundle multiple exchanges.
+- Commit only `ts/src/**` (+ rarely hand-written base / static JSON fixtures). Generated files in your diff means you committed build output — undo that.
 - Set the pre-push hook once: `git config core.hooksPath .git-templates/hooks`.
-- Don't add language-specific behaviour. If something can't be done uniformly across all five languages, ask in the PR before implementing.
+- Don't add language-specific behaviour. If something can't be uniform across all five langs, ask in the PR first.
 
 ### PR title
 
-Conventional-commit style scoped to the exchange:
+Conventional commits scoped to the exchange:
 
 ```
 <type>(<exchange>): <description>
 ```
 
-`<type>` ∈ `fix | feat | chore | refactor | docs | test | perf`. `<exchange>` is the lowercase exchange id (e.g. `binance`, `okx`, `kraken`). Examples:
+`<type>` ∈ `fix | feat | chore | refactor | docs | test | perf`. `<exchange>` is the lowercase id. Use `base` for `ts/src/base/Exchange.ts`, `pro` for cross-cutting WS plumbing, `tests` for test-only edits, `build` for transpiler/build-script changes.
 
-- `fix(binance): correct fundingRate sign for short positions`
-- `feat(okx): add fetchMyLiquidations`
-- `chore(kraken): bump rate limit to match new quotas`
-- `refactor(base): consolidate safeOrder helpers`
+Examples: `fix(binance): correct fundingRate sign for short positions`, `feat(okx): add fetchMyLiquidations`.
 
-Use `base` for `ts/src/base/Exchange.ts` changes, `pro` for cross-cutting WS plumbing, `tests` for test-only edits, `build` for transpiler/build-script changes.
+### PR description
 
-### PR description template
-
-```markdown
-## Summary
-<1–3 lines: what changed and why>
-
-Fixes #<issue-number>            <!-- omit if no issue -->
-Refs #<related-pr-or-issue>      <!-- if applicable -->
-
-## Tests run
-- [ ] `npm run lint`
-- [ ] `npm run tsBuild`
-- [ ] `npm run transpile` (Python + PHP)
-- [ ] `npm run transpileCS` + `npm run buildCS`
-- [ ] `npm run transpileGO` + `npm run buildGO`
-- [ ] `npm run request-tests` (or per-lang) — result: <pass/fail/N/A>
-- [ ] `npm run response-tests` (or per-lang) — result: <pass/fail/N/A>
-- [ ] `npm run id-tests` — result: <pass/fail/N/A>
-- [ ] `npm run test-base-rest` / `test-base-ws` (if base touched) — result: <pass/fail/N/A>
-- [ ] Live smoke: `node run-tests <exchange> --js [--ws]` — result: <pass/fail>
-
-## Notes
-<sandbox usage, manual repro, edge cases, anything reviewers should look at first>
-```
-
-Paste the actual command output (or a one-line summary per command) under each item — checking a box without evidence isn't review-able.
+Use the §6.5 checklist as the body. Paste actual output (or one-line summary) under each item — checked boxes without evidence aren't review-able. Add `## Summary` (1–3 lines: what + why), `Fixes #<n>` / `Refs #<n>` if applicable, and `## Notes` for sandbox usage / manual repro / edge cases.
 
 ---
 
-## 12. For AI agents specifically
+## 12. For AI agents — the rules that catch agents most often
 
-- **Locate the source first.** A user reporting a Python/PHP/C#/Go bug almost always needs a fix in `ts/src/<exchange>.ts` (or `ts/src/pro/<exchange>.ts`). Patches to the transpiled file will be lost on the next build.
-- **Pattern-match on existing exchanges.** Pick a similar implemented exchange (`binance.ts`, `kraken.ts`, `okx.ts`) and copy the style. Don't invent.
-- **TDD: write or update the test before/with the code.** For exchange behaviour, that means adding a method entry in `ts/src/test/static/request/<exchange>.json` and/or `.../response/<exchange>.json`. For base utilities, add to `ts/src/test/base/`. For unified methods, add to `ts/src/test/Exchange/`.
-- **Verify in all languages.** Don't claim a fix is done after `tsBuild` passes. Run §6.5 before reporting completion. If you can't run a step (e.g., missing toolchain), say so explicitly rather than skipping it silently.
-- **Don't run `npm run build` casually** — it's slow and rewrites thousands of files. Use `npm run tsBuild` + `npm run lint` for fast feedback. Use `npm run transpile`, `npm run transpileCS`, `npm run transpileGO` to spot-check transpiler output without doing the full build.
-- **Don't commit generated diffs.** If your branch shows changes in `js/`, `python/ccxt/<exchange>.py`, `php/<exchange>.php`, `cs/ccxt/exchanges/`, `go/v4/`, `ts/src/abstract/`, or `dist/`, those should be reverted unless you intentionally edited a hand-written base file.
-- **Check the file banner.** A `PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED` header means stop and find the TS source.
-- **Always write/update the JSDoc** when adding or changing a public method (§7). Missing or wrong docstrings break the docs in all five languages.
-- **Pass `--verbose` when implementing or debugging an endpoint.** It prints the full request and raw response — essential for getting signing, parsing, and rate-limit issues right.
-- **When you change behaviour, update the docs.** New unified method, changed structure, new helper, new capability — see §8 for the matrix of what to update (`wiki/Manual.md`, `wiki/Requirements.md`, `examples/`, user-facing skills under `.claude/skills/ccxt-<lang>/`).
-- **Trust live responses over exchange docs.** Always cite the upstream URL in `@see`, but verify response shape with `npm run cli.ts -- <id> <method> --verbose` and capture a static-response fixture. Docs lag, omit fields, and describe stale versions.
-- **Use the transpiled file as a debugging scratchpad, not as a fix location.** If localising a bug is faster by editing `python/ccxt/<id>.py` or `php/<id>.php` directly with print statements, do it — but port the actual fix to `ts/src/` and never `git add` the transpiled file.
+- **Locate the source first.** A Python/PHP/C#/Go bug almost always needs a fix in `ts/src/<exchange>.ts` (or `ts/src/pro/<exchange>.ts`). Check the file banner — `PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED` means find the TS.
+- **Pattern-match existing exchanges** (`binance.ts`, `kraken.ts`, `okx.ts`). Don't invent.
+- **TDD: write/update the test with the code** (static JSON fixture or unified test).
+- **Verify in all five languages** (run §6.5). Don't claim done after `tsBuild`. If you can't run a step, say so — don't skip silently.
+- **Don't `npm run build` casually** — it's slow and rewrites thousands of files. Use `tsBuild` + `lint` for fast feedback; `transpile`, `transpileCS`, `transpileGO` to spot-check.
+- **Don't commit generated diffs** in `js/`, `python/ccxt/<exchange>.py`, `php/<exchange>.php`, `cs/ccxt/exchanges/`, `go/v4/`, `ts/src/abstract/`, or `dist/`.  `go/v4/`  is an exception because some files like `exchange.go/exchange_*.go` are not automatically generated so those can be commited
+- **Always write/update JSDoc** when adding/changing a public method (§7).
+- **Pass `--verbose`** when implementing/debugging an endpoint.
+- **Update docs when behaviour changes** (§8: wiki, examples, user-facing skills).
+- **Trust live responses over exchange docs.** Verify with `cli.ts ... --verbose` and capture a static-response fixture.
+- **Transpiled file = debugging scratchpad, not fix location.** Port back to `ts/src/`; never `git add` the transpiled file.
 
 ---
 
-## 13. Keep this guide alive — when to update CLAUDE.md / skills
+## 13. Keeping this guide alive
 
-A doc only stays useful if it's edited as the codebase changes. If you discover something that this guide doesn't capture and would have saved you time, add it. Bias toward small targeted edits over big rewrites.
+Update CLAUDE.md when: a rule is wrong/out-of-date, you hit an uncovered gotcha, a now-standard pattern (≥3 recent files) isn't documented, or you learned something general about the architecture or workflow.
 
-**Update CLAUDE.md when:**
-- A rule here is wrong or out of date (line numbers shifted, command renamed, marker moved).
-- You hit a transpiler / build / test gotcha that isn't covered and would catch the next contributor.
-- A pattern that's now standard across `ts/src/` exchanges (≥3 recent files use it the same way) isn't documented.
-- You learned something general about the architecture or workflow that applies broadly, not to one exchange.
+Don't update CLAUDE.md when: the lesson is exchange-specific (comment it in that file), it's already in `CONTRIBUTING.md` / `wiki/Manual.md` (link, don't duplicate), or it's a one-off.
 
-**Don't update CLAUDE.md when:**
-- The lesson is exchange-specific — put it in a comment in that exchange file.
-- It's already in `CONTRIBUTING.md` or `wiki/Manual.md` — link, don't duplicate.
-- It's a one-off problem unlikely to recur.
+Create a skill (`.claude/skills/<name>/SKILL.md`) when you've done the same multi-step workflow ≥3 times and it would benefit from being scriptable.
 
-**Update / create a skill (`.claude/skills/<name>/SKILL.md`) when:**
-- You've done the same multi-step workflow ≥3 times and it would benefit from being scriptable. Examples: regenerating static fixtures for an exchange, bulk-updating a base method's signature, rolling out a new unified field across all exchanges.
-- A workflow needs structured inputs/arguments — turn it into a slash-invocable skill.
+Update `.claude/skills/ccxt-<lang>/` when public surface area changes (§8).
 
-**Update the user-facing `.claude/skills/ccxt-<lang>/` when:**
-- You add or change public surface area that callers need to know about (§8 has the full matrix).
-
-When you edit CLAUDE.md, keep it under the 200-line guideline if you can. If a section grows large, consider splitting it into `.claude/rules/<topic>.md` with a `paths:` frontmatter so it loads only when relevant files are open.
+Keep CLAUDE.md compact. If a section grows large, split into `.claude/rules/<topic>.md` with `paths:` frontmatter so it loads only when relevant files are open.
 
 ## 14. Tooling — automated PR review
 
-`.claude/agents/ccxt-pr-reviewer.md` defines a subagent that does an end-to-end review of a PR: reads the diff, transpiles and builds in all five languages, runs offline + live smoke tests, probes for race conditions / security leaks / performance issues / regressions / breaking changes, and posts a single structured review (inline comments + verdict + test checklist + migration notes if needed).
-
-Invoke from a session:
+`.claude/agents/ccxt-pr-reviewer.md` does an end-to-end review: reads the diff, transpiles and builds in all five languages, runs offline + live smoke tests, probes for race conditions / security / performance / regressions / breaking changes, and posts a single structured review (inline comments + verdict + test checklist + migration notes).
 
 ```
 Use the ccxt-pr-reviewer agent to review PR 28543.
-```
-
-Or for the current branch's PR:
-
-```
 Use the ccxt-pr-reviewer agent to review this branch.
 ```
 
-The agent reads `CLAUDE.md` to ground itself in project rules, runs verification commands directly (not theoretical recommendations), and caps inline comments at 12 with severity tags (🚨 Blocker / ⚠️ Concern / 💡 Suggestion / 📝 Nit). It only `APPROVE`s when zero issues are found and every test in Phases 3–5 of its workflow passes — it doesn't approve out of politeness. Read the agent file for the full workflow before relying on its output.
+Caps inline comments at 12 with severity tags (🚨 Blocker / ⚠️ Concern / 💡 Suggestion / 📝 Nit). Only `APPROVE`s when zero issues and every test in Phases 3–5 passes — it doesn't approve out of politeness. Read the agent file for the full workflow before relying on its output.
 
 ## 15. Quick repo map
 
 ```
 ts/src/                 source TS — REST exchanges, base, REST tests
-ts/src/pro/             source TS — WebSocket exchanges, WS tests
+ts/src/pro/             source TS — WS exchanges, WS tests
+ts/src/prediction/      source TS — prediction-market exchanges (extend PredictionExchange)
+ts/src/base/PredictionExchange.ts  prediction base (outcome loading/caching — see .claude/rules/prediction-outcomes.md)
 ts/src/abstract/        AUTO-GENERATED API method signatures
-ts/src/base/Exchange.ts master base class (partly transpiled into all langs)
-ts/src/base/ws/         WS base classes (Client, Cache, OrderBook, Future)
-ts/src/test/            REST tests (unified methods, base utilities, static fixtures)
-ts/src/pro/test/        WS tests (watch* methods, base WS)
-build/                  transpilers + build scripts (transpile.ts is the regex one)
+ts/src/base/Exchange.ts master base (partly transpiled into all langs)
+ts/src/base/ws/         WS base (Client, Cache, OrderBook, Future)
+ts/src/test/            REST tests (unified methods, base, static fixtures)
+ts/src/pro/test/        WS tests
+build/                  transpilers + build scripts (transpile.ts = regex)
 js/                     GENERATED — tsc output
-python/ccxt/            GENERATED exchanges + hand-written base/
-python/ccxt/async_support/  GENERATED async exchanges + hand-written base/ + ws/
-php/                    GENERATED exchanges + hand-written Exchange.php top + error classes
-php/async/, php/pro/    GENERATED async + WS PHP + hand-written ReactPHP plumbing
-cs/ccxt/                GENERATED exchanges + hand-written base/ (except BaseMethods.cs)
-go/v4/                  GENERATED Go (every file in here is transpiled)
-wiki/                   docs (Manual.md is the API spec — authoritative)
-examples/               per-language usage examples for end users
+python/ccxt/            GENERATED + hand-written base/
+python/ccxt/async_support/  GENERATED + hand-written base/ + ws/
+php/                    GENERATED + hand-written Exchange.php top + errors
+php/async/, php/pro/    GENERATED + hand-written ReactPHP plumbing
+cs/ccxt/                GENERATED + hand-written base/ (except BaseMethods.cs)
+go/v4/                  GENERATED Go (every file is transpiled)
+wiki/                   docs (Manual.md = authoritative API spec)
+examples/               per-language end-user examples
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)
-                        documents the public API for callers; useful to contributors
-                        as a reference for existing unified methods, but NOT a guide
-                        for editing CCXT itself — this CLAUDE.md is the contributor guide
+                        — public API reference for callers, NOT for editing CCXT
+.claude/rules/          topic-scoped contributor rules (auto-load via `paths:` frontmatter);
+                        prediction-outcomes.md = the outcome loading/caching pattern
 ```

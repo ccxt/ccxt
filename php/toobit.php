@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\toobit as Exchange;
 
 class toobit extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'toobit',
@@ -42,6 +41,7 @@ class toobit extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -55,6 +55,7 @@ class toobit extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -65,28 +66,30 @@ class toobit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'setLeverage' => true,
                 'setMarginMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
+                'logo' => 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api' => array(
                     'common' => 'https://api.toobit.com',
                     'private' => 'https://api.toobit.com',
                 ),
                 'www' => 'https://www.toobit.com/',
                 'doc' => array(
-                    'https://toobit-docs.github.io/apidocs/spot/v1/en/',
-                    'https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/',
+                    'https://api-docs.toobit.com/',
                 ),
                 'referral' => array(
                     'url' => 'https://www.toobit.com/en-US/r?i=IFFPy0',
@@ -105,15 +108,19 @@ class toobit extends Exchange {
                         'quote/v1/trades' => 1,
                         'quote/v1/klines' => 1,
                         'quote/v1/index/klines' => 1,
+                        'quote/v1/indexPriceComponents' => 1,
                         'quote/v1/markPrice/klines' => 1,
-                        'quote/v1/markPrice' => 1,
+                        'quote/v1/markPrice' => 10, // 5 requests per second
                         'quote/v1/index' => 1,
                         'quote/v1/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
                         'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
                         'quote/v1/ticker/price' => 1,
+                        'quote/v1/contract/ticker/price' => 1,
                         'quote/v1/ticker/bookTicker' => 1,
+                        'quote/v1/contract/ticker/bookTicker' => 1,
                         'api/v1/futures/fundingRate' => 1,
                         'api/v1/futures/historyFundingRate' => 1,
+                        'api/v1/futures/riskLimits' => 1,
                     ),
                 ),
                 'private' => array(
@@ -132,14 +139,31 @@ class toobit extends Exchange {
                         'api/v1/account/deposit/address' => 1,
                         // contracts
                         'api/v1/subAccount' => 5,
+                        'api/v1/account/subAccount' => 5,
+                        'api/v1/subAccount/list' => 5,
                         'api/v1/futures/accountLeverage' => 1,
                         'api/v1/futures/order' => 1 * 1.67,
                         'api/v1/futures/positions' => 5 * 1.67,
+                        'api/v1/futures/historyPositions' => 5,
                         'api/v1/futures/balance' => 5,
                         'api/v1/futures/userTrades' => 5 * 1.67,
                         'api/v1/futures/balanceFlow' => 5,
                         'api/v1/futures/commissionRate' => 5,
                         'api/v1/futures/todayPnl' => 5,
+                        'api/v1/account/download/detail' => 10,
+                        'api/v1/agent/inviteUserList' => 1,
+                        'api/v1/agent/commissionDataList' => 1,
+                        'api/v1/agent/commissionDataInfo' => 1,
+                        'api/v1/agent/inviteRelationCheck' => 1,
+                        'api/v1/agent/depositDetailList' => 1,
+                        'api/v1/agent/querySubAgentData' => 1,
+                        'api/v1/agent/spotOrdersList' => 1,
+                        'api/v1/agent/futuresOrdersList' => 1,
+                        'api/v1/agent/futuresPositionsList' => 1,
+                        'api/v1/agent/invite-commission-detail' => 1,
+                        'api/v1/agent/user/export' => 1,
+                        'api/v1/agent/export-list' => 1,
+                        'api/v1/agent/export-url' => 1,
                     ),
                     'post' => array(
                         'api/v1/spot/orderTest' => 1 * 1.67,
@@ -154,6 +178,11 @@ class toobit extends Exchange {
                         'api/v1/futures/batchOrders' => 2 * 1.67,
                         'api/v1/futures/position/trading-stop' => 3 * 1.67,
                         'api/v1/futures/positionMargin' => 1,
+                        'api/v1/futures/order/update' => 2 * 1.67,
+                        'api/v1/futures/autoAddMargin' => 1,
+                        'api/v1/futures/flashClose' => 1,
+                        'api/v1/futures/reversePosition' => 5,
+                        'api/v1/account/download/apply' => 1000,
                         'api/v1/userDataStream' => 1,
                         'api/v1/listenKey' => 1,
                     ),
@@ -161,12 +190,14 @@ class toobit extends Exchange {
                         'api/v1/spot/order' => 1 * 1.67,
                         'api/v1/futures/order' => 1 * 1.67,
                         'api/v1/spot/openOrders' => 5 * 1.67,
-                        'api/v1/futures/batchOrders' => 5 * 1.67,
+                        'api/v1/futures/batchOrders' => 3 * 1.67,
                         'api/v1/spot/cancelOrderByIds' => 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds' => 5 * 1.67,
+                        'api/v1/futures/cancelOrderByIds' => 3 * 1.67,
+                        'api/v1/userDataStream' => 1,
                         'api/v1/listenKey' => 1,
                     ),
                     'put' => array(
+                        'api/v1/userDataStream' => 1,
                         'api/v1/listenKey' => 1,
                     ),
                 ),
@@ -193,53 +224,76 @@ class toobit extends Exchange {
                     '-1000' => '\\ccxt\\OperationFailed', // An unknown error occurred while processing the request.
                     '-1001' => '\\ccxt\\OperationFailed', // Internal error; unable to process your request. Please try again.
                     '-1002' => '\\ccxt\\PermissionDenied', // You are not authorized to execute this request.
-                    '-1003' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUESTS
+                    '-1003' => '\\ccxt\\RateLimitExceeded', // Too many requests queued.
                     '-1004' => '\\ccxt\\BadRequest', // array("code":-1004,"msg":"Missing required parameter \u0027xyz\u0027") | array("code":-1004,"msg":"Bad request")
-                    '-1006' => '\\ccxt\\OperationFailed', // An unexpected response was received from the message bus. Execution status unknown
+                    '-1005' => '\\ccxt\\PermissionDenied', // No Permission
+                    '-1006' => '\\ccxt\\OperationFailed', // An unexpected response was received from the message bus. Execution status unknown.
                     '-1007' => '\\ccxt\\OperationFailed', // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
                     '-1014' => '\\ccxt\\OperationFailed', // Unsupported order combination.
-                    '-1015' => '\\ccxt\\RateLimitExceeded', // Too many new orders
+                    '-1015' => '\\ccxt\\RateLimitExceeded', // Reach the rate limit .Please slow down your request speed.
                     '-1016' => '\\ccxt\\OperationRejected', // This service is no longer available.
                     '-1020' => '\\ccxt\\OperationRejected', // This operation is not supported.
                     '-1021' => '\\ccxt\\OperationRejected', // Timestamp for this request is outside of the recvWindow.
                     '-1022' => '\\ccxt\\OperationRejected', // Signature for this request is not valid.
+                    '-1023' => '\\ccxt\\PermissionDenied', // Please set IP whitelist before using API
+                    '-1031' => '\\ccxt\\OperationRejected', // The feature has been suspended
                     '-1100' => '\\ccxt\\BadRequest', // Illegal characters found in a parameter.
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters sent for this endpoint.
-                    '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed
-                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent
-                    '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read
-                    '-1105' => '\\ccxt\\BadRequest', // A parameter was empty
-                    '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required
+                    '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed.
+                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
+                    '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read.
+                    '-1105' => '\\ccxt\\BadRequest', // A parameter was empty.
+                    '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required.
+                    '-1107' => '\\ccxt\\PermissionDenied', // The accessKey is missing from the request header or parameters, or the accessKey is not in the correct format.
                     '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
                     '-1112' => '\\ccxt\\OperationRejected', // No orders on book for symbol.
                     '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
-                    '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce
-                    '-1116' => '\\ccxt\\BadRequest', // Invalid orderType
-                    '-1117' => '\\ccxt\\BadRequest', // Invalid side
+                    '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
+                    '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
+                    '-1117' => '\\ccxt\\BadRequest', // Invalid side.
                     '-1118' => '\\ccxt\\InvalidOrder', // New client order ID was empty.
-                    '-1119' => '\\ccxt\\InvalidOrder', // Original client order ID was empty
-                    '-1120' => '\\ccxt\\BadRequest', // Invalid interval
-                    '-1121' => '\\ccxt\\BadRequest', // Invalid symbol
+                    '-1119' => '\\ccxt\\InvalidOrder', // Original client order ID was empty.
+                    '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
+                    '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
                     '-1125' => '\\ccxt\\OperationRejected', // This listenKey does not exist.
-                    '-1127' => '\\ccxt\\OperationRejected', // Lookup interval is too big
-                    '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid
-                    '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
-                    '-1132' => '\\ccxt\\OperationRejected', // Order price too high
-                    '-1133' => '\\ccxt\\OperationRejected', // Order price lower than the minimum,please check general broker info
-                    '-1134' => '\\ccxt\\OperationRejected', // Order price decimal too long,please check general broker info
-                    '-1135' => '\\ccxt\\OperationRejected', // Order quantity too large
-                    '-1136' => '\\ccxt\\OperationRejected', // Order quantity lower than the minimum
-                    '-1137' => '\\ccxt\\OperationRejected', // Order quantity decimal too long
-                    '-1138' => '\\ccxt\\OperationRejected', // Order price exceeds permissible range
-                    '-1139' => '\\ccxt\\OperationRejected', // Order has been filled
-                    '-1140' => '\\ccxt\\OperationRejected', // Transaction amount lower than the minimum
+                    '-1127' => '\\ccxt\\OperationRejected', // Lookup interval is too big.
+                    '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid.
+                    '-1129' => '\\ccxt\\BadRequest', // The time range cannot exceed one year.
+                    '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter.
+                    '-1131' => '\\ccxt\\InsufficientFunds', // Balance insufficient
+                    '-1132' => '\\ccxt\\OperationRejected', // Order price too high.
+                    '-1133' => '\\ccxt\\OperationRejected', // Order price lower than the minimum,please check general broker info.
+                    '-1134' => '\\ccxt\\OperationRejected', // Order price decimal too long,please check general broker info.
+                    '-1135' => '\\ccxt\\OperationRejected', // Order quantity too large.
+                    '-1136' => '\\ccxt\\OperationRejected', // Order quantity lower than the minimum.
+                    '-1137' => '\\ccxt\\OperationRejected', // Order quantity decimal too long.
+                    '-1138' => '\\ccxt\\OperationRejected', // Order price exceeds permissible range.
+                    '-1139' => '\\ccxt\\OperationRejected', // Order has been filled.
+                    '-1140' => '\\ccxt\\OperationRejected', // Transaction amount lower than the minimum.
                     '-1141' => '\\ccxt\\InvalidOrder', // Duplicate clientOrderId
                     '-1142' => '\\ccxt\\InvalidOrder', // Order has been canceled
-                    '-1143' => '\\ccxt\\InvalidOrder', // Cannot be found on order book
+                    '-1143' => '\\ccxt\\OrderNotFound', // Cannot be found on order book
                     '-1144' => '\\ccxt\\OperationRejected', // Order has been locked
                     '-1145' => '\\ccxt\\OperationRejected', // This order type does not support cancellation
                     '-1146' => '\\ccxt\\OperationFailed', // Order creation timeout
                     '-1147' => '\\ccxt\\OperationFailed', // Order cancellation timeout
+                    '-1148' => '\\ccxt\\InvalidOrder', // Market order amount decimal too long
+                    '-1149' => '\\ccxt\\OperationFailed', // Create order failed
+                    '-1150' => '\\ccxt\\OperationFailed', // Cancel order failed
+                    '-1151' => '\\ccxt\\OperationRejected', // The trading pair is not open yet
+                    '-1153' => '\\ccxt\\PermissionDenied', // User not exist
+                    '-1156' => '\\ccxt\\InvalidOrder', // Order quantity invalid
+                    '-1157' => '\\ccxt\\OperationRejected', // The trading pair is not available for api trading
+                    '-1158' => '\\ccxt\\InvalidOrder', // create limit maker order failed
+                    '-1161' => '\\ccxt\\OperationRejected', // Reduce margin forbidden
+                    '-1164' => '\\ccxt\\OperationRejected', // Auto add margin error
+                    '-1165' => '\\ccxt\\BadRequest', // Invalid stopType.
+                    '-1166' => '\\ccxt\\BadRequest', // Invalid callbackType.
+                    '-1170' => '\\ccxt\\OperationRejected', // finance account exist.
+                    '-1171' => '\\ccxt\\ExchangeError', // account not exist.
+                    '-1172' => '\\ccxt\\OperationFailed', // Balance transfer failed.
+                    '-1181' => '\\ccxt\\PermissionDenied', // Currently not allowed to withdraw.
+                    '-1182' => '\\ccxt\\PermissionDenied', // Currently not allowed to deposit.
                     '-1193' => '\\ccxt\\OperationRejected', // Create order count limit
                     '-1194' => '\\ccxt\\OperationRejected', // Create market order forbidden
                     '-1195' => '\\ccxt\\OperationRejected', // Create limit order price too small
@@ -251,34 +305,105 @@ class toobit extends Exchange {
                     '-1201' => '\\ccxt\\OperationRejected', // Create limit order sell price too big
                     '-1202' => '\\ccxt\\OperationRejected', // Create order sell quantity too small
                     '-1203' => '\\ccxt\\OperationRejected', // Create order sell quantity too big
+                    '-1204' => '\\ccxt\\PermissionDenied', // account not authorized
+                    '-1205' => '\\ccxt\\BadRequest', // same account not transfer
                     '-1206' => '\\ccxt\\OperationRejected', // Orders over the maximum transaction amount
+                    '-1207' => '\\ccxt\\InvalidOrder', // planOrder count limit.
+                    '-1208' => '\\ccxt\\InvalidOrder', // stopProfitLoss order count limit.
+                    '-1209' => '\\ccxt\\InvalidOrder', // stopProfitLoss order position limit.
+                    '-1210' => '\\ccxt\\InvalidOrder', // dynamic stop profit long fallQuantity high.
+                    '-1211' => '\\ccxt\\InvalidOrder', // dynamic stop profit activePrice low.
+                    '-1212' => '\\ccxt\\InvalidOrder', // dynamic stop profit activePrice high.
+                    '-1213' => '\\ccxt\\BadSymbol', // Account symbol does not match
+                    '-1214' => '\\ccxt\\PermissionDenied', // No opening trades
+                    '-1215' => '\\ccxt\\PermissionDenied', // No closing trades
+                    '-1216' => '\\ccxt\\OperationRejected', // Trigger transfer limit failed
+                    '-1217' => '\\ccxt\\InvalidOrder', // Create stop order buy price too big
+                    '-1300' => '\\ccxt\\BadRequest', // Duplicate transferId
+                    '-1400' => '\\ccxt\\BadRequest', // API voucher type is not allowed.
+                    '-1401' => '\\ccxt\\PermissionDenied', // You are not eligible to use API trial voucher.
+                    '-1402' => '\\ccxt\\OperationFailed', // API voucher query failed.
+                    '-1403' => '\\ccxt\\OperationFailed', // API voucher receive failed.
+                    '-1404' => '\\ccxt\\ExchangeError', // API voucher agent config failed.
+                    '-1405' => '\\ccxt\\ExchangeError', // API voucher not found.
+                    '-1406' => '\\ccxt\\OperationRejected', // API voucher is already in use.
+                    '-1407' => '\\ccxt\\OperationRejected', // API voucher threshold is not met.
+                    '-1408' => '\\ccxt\\InsufficientFunds', // Contract asset is less than zero.
+                    '-1409' => '\\ccxt\\OperationRejected', // API voucher status is invalid.
+                    '-1410' => '\\ccxt\\InsufficientFunds', // API voucher system account balance is insufficient.
+                    '-1411' => '\\ccxt\\OperationRejected', // API voucher transfer is processing.
+                    '-1412' => '\\ccxt\\OperationRejected', // API voucher can not be merged.
+                    '-1413' => '\\ccxt\\BadRequest', // API voucher trade rate does not match.
+                    '-1414' => '\\ccxt\\BadRequest', // API voucher fee rule does not match.
+                    '-1415' => '\\ccxt\\BadRequest', // API voucher token does not match.
+                    '-1416' => '\\ccxt\\InsufficientFunds', // Some API vouchers can not be received due to insufficient system balance.
+                    '-1417' => '\\ccxt\\OperationRejected', // Some API vouchers do not meet the receiving threshold.
                     '-2010' => '\\ccxt\\OperationFailed', // NEW_ORDER_REJECTED
                     '-2011' => '\\ccxt\\OperationFailed', // CANCEL_REJECTED
-                    '-2013' => '\\ccxt\\InvalidOrder', // Order does not exist.
+                    '-2013' => '\\ccxt\\OrderNotFound', // Order does not exist.
                     '-2014' => '\\ccxt\\PermissionDenied', // API-key format invalid.
                     '-2015' => '\\ccxt\\PermissionDenied', // Invalid API-key, IP, or permissions for action.
                     '-2016' => '\\ccxt\\BadRequest', // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                    '-2017' => '\\ccxt\\PermissionDenied', // The API key has expired. Please update your API key immediately.
+                    '-2018' => '\\ccxt\\PermissionDenied', // API triggered risk control restrictions have been suspended, if you have any questions, please contact support@toobit.com .
                     // errors above 3xxx are from swap API
-                    '-3050' => '\\ccxt\\ExchangeError', // CREATE_API_KEY_EXCEED_LIMIT
-                    '-3101' => '\\ccxt\\OperationRejected', // open margin account error
-                    '-3102' => '\\ccxt\\OperationRejected', // get margin safety error
-                    '-3103' => '\\ccxt\\BadRequest', // risk config is not exit
-                    '-3105' => '\\ccxt\\OperationRejected', // token can not borrow
-                    '-3107' => '\\ccxt\\OperationRejected', // token can not withdraw
-                    '-3108' => '\\ccxt\\OperationRejected', // get token avail withdraw error
-                    '-3109' => '\\ccxt\\OperationRejected', // margin withdraw failed
-                    '-3110' => '\\ccxt\\InsufficientFunds', // margin avail withdraw not enough failed
-                    '-3116' => '\\ccxt\\OperationRejected', // repay fail
-                    '-3117' => '\\ccxt\\OperationRejected', // get margin all position fail
-                    '-3120' => '\\ccxt\\OperationRejected', // get repay order fail
+                    '-3000' => '\\ccxt\\BadRequest', // Option not exist.
+                    '-3001' => '\\ccxt\\OperationRejected', // The option has expired.
+                    '-3002' => '\\ccxt\\InvalidOrder', // Order failed => position exceeded limit
+                    '-3050' => '\\ccxt\\ExchangeError', // The ApiKey corresponding to the account already exists
+                    '-3051' => '\\ccxt\\OperationRejected', // The sub-user has assets are not allowed to be deleted
+                    '-3052' => '\\ccxt\\BadRequest', // sub-user id error
+                    '-3101' => '\\ccxt\\OperationRejected', // Open margin account error
+                    '-3102' => '\\ccxt\\OperationRejected', // Get margin safety error
+                    '-3103' => '\\ccxt\\BadRequest', // Risk config is not exit
+                    '-3105' => '\\ccxt\\OperationRejected', // Token can not borrow
+                    '-3107' => '\\ccxt\\OperationRejected', // Token can not withdraw
+                    '-3108' => '\\ccxt\\OperationRejected', // Get token avail withdraw error
+                    '-3109' => '\\ccxt\\OperationRejected', // Margin withdraw failed
+                    '-3110' => '\\ccxt\\InsufficientFunds', // Margin avail withdraw not enough failed
+                    '-3116' => '\\ccxt\\OperationRejected', // Repay fail
+                    '-3117' => '\\ccxt\\OperationRejected', // Get margin all position fail
+                    '-3120' => '\\ccxt\\OperationRejected', // Get repay order fail
                     '-3124' => '\\ccxt\\OperationRejected', // Position and order data error
                     '-3125' => '\\ccxt\\OperationRejected', // Position size cannot meet target leverage
                     '-3126' => '\\ccxt\\OperationRejected', // Adjust leverage fail
                     '-3127' => '\\ccxt\\OperationFailed', // Adjust leverage timeout
                     '-3128' => '\\ccxt\\OperationRejected', // The margin mode cannot be changed while you have an open order/position
-                    '-3129' => '\\ccxt\\BadRequest', // cone futures change position type error
-                    '-3130' => '\\ccxt\\OperationRejected', // order margin insufficient
+                    '-3129' => '\\ccxt\\BadRequest', // Cone futures change position type error
+                    '-3130' => '\\ccxt\\OperationRejected', // Order margin insufficient
                     '-3131' => '\\ccxt\\NotSupported', // Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                    '-3132' => '\\ccxt\\InvalidOrder', // Maximum allowed leverage reached, please lower your leverage.
+                    '-3133' => '\\ccxt\\InvalidOrder', // The number of open orders exceeds the limit.
+                    '-3136' => '\\ccxt\\OperationRejected', // Quick symbol activity only limit/buy/ioc order is supported
+                    '-3137' => '\\ccxt\\OperationRejected', // Open countdown is not over
+                    '-3138' => '\\ccxt\\OperationRejected', // Open activity pre_hold is handling
+                    '-3139' => '\\ccxt\\OperationRejected', // Open activity max amount limit
+                    '-3140' => '\\ccxt\\OperationRejected', // Open activity min amount limit
+                    '-3141' => '\\ccxt\\InvalidOrder', // Invalid long stop profit price.
+                    '-3142' => '\\ccxt\\InvalidOrder', // Invalid long stop loss price.
+                    '-3143' => '\\ccxt\\InvalidOrder', // Invalid short stop profit price.
+                    '-3144' => '\\ccxt\\InvalidOrder', // Invalid short stop loss price.
+                    '-3145' => '\\ccxt\\InvalidOrder', // No position, Please confirm your position direction.
+                    '-3147' => '\\ccxt\\OperationRejected', // previous transfer is being processed. please try again later.
+                    '-3148' => '\\ccxt\\InvalidOrder', // create order exceeds max futures risk limit.
+                    '-3149' => '\\ccxt\\InvalidOrder', // The reduction in margin is unlawful.
+                    '-3150' => '\\ccxt\\NotSupported', // cross position margin adjustments are not supported.
+                    '-3151' => '\\ccxt\\NotSupported', // Separate position mode is not supported.
+                    '-3152' => '\\ccxt\\BadRequest', // Separate-position mismatch => position mode must be SEPARATE.
+                    '-3153' => '\\ccxt\\BadRequest', // Whole-position mismatch => position mode must be WHOLE.
+                    '-32045' => '\\ccxt\\ExchangeError', // Copy trading follower not found.
+                    '-32090' => '\\ccxt\\OperationRejected', // Trading pair change is not allowed.
+                    '-32093' => '\\ccxt\\OperationRejected', // Copy trading position type cannot be changed.
+                    '-120041' => '\\ccxt\\PermissionDenied', // Copy trading leader is not available.
+                    '-120047' => '\\ccxt\\ExchangeError', // Leader does not exist.
+                    '-120055' => '\\ccxt\\OperationRejected', // The follower currently has copy position, cannot be removed.
+                    '-120067' => '\\ccxt\\ExchangeError', // Copy trading level config not found.
+                    '-120072' => '\\ccxt\\BadRequest', // Copy trading leader config is invalid.
+                    '-120073' => '\\ccxt\\OperationRejected', // Unable to switch invite setting.
+                    '-120078' => '\\ccxt\\BadRequest', // unLeadStartTime or unLeadEndTime is invalid.
+                    '-120510' => '\\ccxt\\BadRequest', // Invite code already exists.
+                    '-120511' => '\\ccxt\\BadRequest', // Invite code contains sensitive content.
+                    '-120512' => '\\ccxt\\BadRequest', // Invite code is invalid.
                 ),
                 'broad' => array(
                     'Unknown order sent' => '\\ccxt\\OrderNotFound',
@@ -417,7 +542,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -426,7 +551,7 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $response = $this->commonGetApiV1Ping ($params);
+        $response = $this->commonGetApiV1Ping($params);
         return array(
             'status' => 'ok',
             'updated' => null,
@@ -436,16 +561,16 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+         * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->commonGetApiV1Time ($params);
+        $response = $this->commonGetApiV1Time($params);
         //
         //     {
         //         "serverTime" => 1699827319559
@@ -454,13 +579,16 @@ class toobit extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->commonGetApiV1ExchangeInfo ($params);
+        $response = $this->commonGetApiV1ExchangeInfo($params);
         $this->options['exchangeInfo'] = $response; // we store it in options for later use in fetchMarkets
         //
         //    {
@@ -567,7 +695,7 @@ class toobit extends Exchange {
         //                 )
         //            ),
         //        ),
-        //        "coins" => array(
+        //        "coins" => [
         //            {
         //                "orgId" => "9001",
         //                "coinId" => "TCOM",
@@ -575,7 +703,7 @@ class toobit extends Exchange {
         //                "coinFullName" => "TCOM",
         //                "allowWithdraw" => true,
         //                "allowDeposit" => true,
-        //                "chainTypes" => [
+        //                "chainTypes" => array(
         //                    array(
         //                        "chainType" => "BSC",
         //                        "withdrawFee" => "49.55478",
@@ -595,8 +723,10 @@ class toobit extends Exchange {
         for ($i = 0; $i < count($coins); $i++) {
             $coin = $coins[$i];
             $parsed = $this->parse_currency($coin);
-            $code = $parsed['code'];
-            $result[$code] = $parsed;
+            if ($parsed !== null) {
+                $code = $parsed['code'];
+                $result[$code] = $parsed;
+            }
         }
         return $result;
     }
@@ -605,11 +735,11 @@ class toobit extends Exchange {
         $id = $this->safe_string($rawCurrency, 'coinId');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes');
+        $rawNetworks = $this->safe_list($rawCurrency, 'chainTypes', array());
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -657,12 +787,12 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on $all markets for toobit
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#exchange-information
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#exchange-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
@@ -671,7 +801,7 @@ class toobit extends Exchange {
         if ($response !== null) {
             $this->options['exchangeInfo'] = null; // reset it to avoid using old cached data
         } else {
-            $response = $this->commonGetApiV1ExchangeInfo ($params);
+            $response = $this->commonGetApiV1ExchangeInfo($params);
         }
         //
         //    {
@@ -778,7 +908,7 @@ class toobit extends Exchange {
         //                 )
         //            ),
         //        ),
-        //        "coins" => array(
+        //        "coins" => [
         //            {
         //                "orgId" => "9001",
         //                "coinId" => "TCOM",
@@ -786,7 +916,7 @@ class toobit extends Exchange {
         //                "coinFullName" => "TCOM",
         //                "allowWithdraw" => true,
         //                "allowDeposit" => true,
-        //                "chainTypes" => [
+        //                "chainTypes" => array(
         //                    array(
         //                        "chainType" => "BSC",
         //                        "withdrawFee" => "49.55478",
@@ -808,14 +938,16 @@ class toobit extends Exchange {
         for ($i = 0; $i < count($all); $i++) {
             $market = $all[$i];
             $parsed = $this->parse_market($market);
-            $result[] = $parsed;
+            if ($parsed !== null) {
+                $result[] = $parsed;
+            }
         }
         return $result;
     }
 
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
-        $baseId = $this->safe_string($market, 'baseAsset');
+        $baseId = $this->safe_string($market, 'baseAsset', '');
         $quoteId = $this->safe_string($market, 'quoteAsset');
         $baseParts = explode('-', $baseId);
         $baseIdClean = $baseParts[0];
@@ -887,19 +1019,21 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#order-book
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -907,7 +1041,7 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->commonGetQuoteV1Depth ($this->extend($request, $params));
+        $response = $this->commonGetQuoteV1Depth($this->extend($request, $params));
         //
         //    {
         //        "t" => "1755593995237",
@@ -939,12 +1073,12 @@ class toobit extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'b', 'a');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get a list of the most recent trades for a particular $symbol
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#recent-trades-list
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#recent-trades-list
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -952,7 +1086,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -960,7 +1096,7 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->commonGetQuoteV1Trades ($this->extend($request, $params));
+        $response = $this->commonGetQuoteV1Trades($this->extend($request, $params));
         //
         //    array(
         //        array(
@@ -1074,12 +1210,14 @@ class toobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#index-price-kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#mark-price-kline-candlestick-data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1088,7 +1226,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1105,11 +1245,11 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
+        $response = array();
         $endpoint = null;
         list($endpoint, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
-            $response = $this->commonGetQuoteV1IndexKlines ($this->extend($request, $params));
+            $response = $this->commonGetQuoteV1IndexKlines($this->extend($request, $params));
             //
             //     {
             //         "code" => 200,
@@ -1138,7 +1278,7 @@ class toobit extends Exchange {
             //     }
             //
         } elseif ($endpoint === 'mark') {
-            $response = $this->commonGetQuoteV1MarkPriceKlines ($this->extend($request, $params));
+            $response = $this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $params));
             //
             //     {
             //         "code" => 200,
@@ -1157,10 +1297,10 @@ class toobit extends Exchange {
             //     }
             //
         } else {
-            $response = $this->commonGetQuoteV1Klines ($this->extend($request, $params));
+            $response = $this->commonGetQuoteV1Klines($this->extend($request, $params));
             //
-            //    array(
-            //        [
+            //    [
+            //        array(
             //            1755540660000,
             //            "116399.99",
             //            "116399.99",
@@ -1190,36 +1330,40 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-ticker-price-change-statistics
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $type = null;
         $market = null;
         $request = array();
         if ($symbols !== null) {
             $symbol = $this->safe_string($symbols, 0);
-            $market = $this->market($symbol);
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $length = count($symbols);
-            if ($length === 1) {
+            if (($length === 1) && ($market !== null)) {
                 $request['symbol'] = $market['id'];
             }
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->commonGetQuoteV1Ticker24hr ($this->extend($request, $params));
+            $response = $this->commonGetQuoteV1Ticker24hr($this->extend($request, $params));
         } else {
-            $response = $this->commonGetQuoteV1ContractTicker24hr ($this->extend($request, $params));
+            $response = $this->commonGetQuoteV1ContractTicker24hr($this->extend($request, $params));
         }
         //
         //    [
@@ -1269,18 +1413,20 @@ class toobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array()) {
         /**
          * fetches the last price for multiple markets
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-price-ticker
          * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of lastprices structures
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
@@ -1290,7 +1436,7 @@ class toobit extends Exchange {
                 $request['symbol'] = $market['id'];
             }
         }
-        $response = $this->commonGetQuoteV1TickerPrice ($this->extend($request, $params));
+        $response = $this->commonGetQuoteV1TickerPrice($this->extend($request, $params));
         //
         //    [
         //        array(
@@ -1315,18 +1461,20 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-order-book-ticker
          * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
@@ -1336,7 +1484,7 @@ class toobit extends Exchange {
                 $request['symbol'] = $market['id'];
             }
         }
-        $response = $this->commonGetQuoteV1TickerBookTicker ($this->extend($request, $params));
+        $response = $this->commonGetQuoteV1TickerBookTicker($this->extend($request, $params));
         //
         //    [
         //        array(
@@ -1351,7 +1499,7 @@ class toobit extends Exchange {
         return $this->parse_bids_asks_custom($response, $symbols);
     }
 
-    public function parse_bids_asks_custom($tickers, ?array $symbols = null, $params = array ()): array {
+    public function parse_bids_asks_custom($tickers, ?array $symbols = null, $params = array()): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);
@@ -1374,17 +1522,19 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate for multiple markets
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#funding-rate
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
@@ -1394,7 +1544,7 @@ class toobit extends Exchange {
                 $request['symbol'] = $market['id'];
             }
         }
-        $response = $this->commonGetApiV1FuturesFundingRate ($this->extend($request, $params));
+        $response = $this->commonGetApiV1FuturesFundingRate($this->extend($request, $params));
         //
         //    [
         //        array(
@@ -1433,11 +1583,11 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#get-funding-rate-history
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
@@ -1447,11 +1597,16 @@ class toobit extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1460,7 +1615,7 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->commonGetApiV1FuturesHistoryFundingRate ($this->extend($request, $params));
+        $response = $this->commonGetApiV1FuturesHistoryFundingRate($this->extend($request, $params));
         //
         //    [
         //        array(
@@ -1485,22 +1640,24 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
          *
-         * @param {array} [$params] extra parameters specific to the exchange API endpointinvalid
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = null;
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($this->in_array($marketType, array( 'swap', 'future' ))) {
-            $response = $this->privateGetApiV1FuturesBalance ();
+            $response = $this->privateGetApiV1FuturesBalance();
             //
             //     array(
             //         {
@@ -1514,7 +1671,7 @@ class toobit extends Exchange {
             //     )
             //
         } else {
-            $response = $this->privateGetApiV1Account ();
+            $response = $this->privateGetApiV1Account();
             //
             //    {
             //        "userId" => "912902020",
@@ -1553,12 +1710,12 @@ class toobit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market', 'limit'
@@ -1568,16 +1725,18 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
+        $response = array();
         if ($market['spot']) {
             list($request, $params) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = $this->privatePostApiV1SpotOrder ($this->extend($request, $params));
+            $response = $this->privatePostApiV1SpotOrder($this->extend($request, $params));
         } else {
             list($request, $params) = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = $this->privatePostApiV1FuturesOrder ($this->extend($request, $params));
+            $response = $this->privatePostApiV1FuturesOrder($this->extend($request, $params));
         }
         //
         //     {
@@ -1605,8 +1764,11 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $id = $market['id'];
         $request = array(
             'symbol' => $id,
@@ -1636,7 +1798,7 @@ class toobit extends Exchange {
         return array( $request, $params );
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1819,6 +1981,9 @@ class toobit extends Exchange {
             'CANCELED' => 'canceled',
             'REJECTED' => 'canceled',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1828,15 +1993,18 @@ class toobit extends Exchange {
             'LIMIT' => 'limit',
             'LIMIT_MAKER' => 'limit',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1857,11 +2025,11 @@ class toobit extends Exchange {
         if ($marketType === 'none') {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
         }
-        $response = null;
+        $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotOrder ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1SpotOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateDeleteApiV1FuturesOrder ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1FuturesOrder($this->extend($request, $params));
         }
         // $response same `createOrder`
         $status = $this->parse_order_status($this->safe_string($response, 'status'));
@@ -1871,18 +2039,20 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
          *
          * @param {string} $symbol unified $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1896,12 +2066,12 @@ class toobit extends Exchange {
         }
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotOpenOrders ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params));
             //
             // array("success":true)  // always same $response
             //
         } else {
-            $response = $this->privateDeleteApiV1FuturesBatchOrders ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params));
             //
             // array( "code" => 200, "message":"success", "timestamp":1541161088303 )
             //
@@ -1913,19 +2083,21 @@ class toobit extends Exchange {
         );
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $idsString = implode(',', $ids);
         $request = array(
             'ids' => $idsString,
@@ -1941,12 +2113,12 @@ class toobit extends Exchange {
         }
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateDeleteApiV1SpotCancelOrderByIds ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1SpotCancelOrderByIds($this->extend($request, $params));
             //
             // array("success":true)  // always same $response
             //
         } else {
-            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV1FuturesCancelOrderByIds($this->extend($request, $params));
             //
             // {
             //     "code":200,
@@ -1968,12 +2140,12 @@ class toobit extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
          *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1983,16 +2155,18 @@ class toobit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'orderId' => $id,
         );
         $market = $this->market($symbol);
-        $response = null;
+        $response = array();
         if ($market['spot']) {
-            $response = $this->privateGetApiV1SpotOrder ($this->extend($request, $params));
+            $response = $this->privateGetApiV1SpotOrder($this->extend($request, $params));
         } else {
-            $response = $this->privateGetApiV1FuturesOrder ($this->extend($request, $params));
+            $response = $this->privateGetApiV1FuturesOrder($this->extend($request, $params));
         }
         //
         //    {
@@ -2025,12 +2199,12 @@ class toobit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2038,7 +2212,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2050,9 +2226,9 @@ class toobit extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        $response = null;
+        $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1SpotOpenOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiV1SpotOpenOrders($this->extend($request, $params));
             //
             //    array(
             //        array(
@@ -2081,16 +2257,16 @@ class toobit extends Exchange {
             //    )
             //
         } else {
-            $response = $this->privateGetApiV1FuturesOpenOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiV1FuturesOpenOrders($this->extend($request, $params));
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2098,7 +2274,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2114,9 +2292,9 @@ class toobit extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        $response = null;
+        $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1SpotTradeOrders ($request);
+            $response = $this->privateGetApiV1SpotTradeOrders($request);
             //
             //    array(
             //        array(
@@ -2150,11 +2328,11 @@ class toobit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2163,7 +2341,9 @@ class toobit extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2176,11 +2356,11 @@ class toobit extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        $response = null;
+        $response = array();
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
         } else {
-            $response = $this->privateGetApiV1FuturesHistoryOrders ($request);
+            $response = $this->privateGetApiV1FuturesHistoryOrders($request);
             //
             //    array(
             //        {
@@ -2215,12 +2395,12 @@ class toobit extends Exchange {
         return $this->parse_orders($ordersList, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -2232,7 +2412,9 @@ class toobit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2245,11 +2427,11 @@ class toobit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = null;
+        $response = array();
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1AccountTrades ($this->extend($request, $params));
+            $response = $this->privateGetApiV1AccountTrades($this->extend($request, $params));
             //
-            //    array(
+            //    [
             //        array(
             //            "id" => "2024934575206059008",
             //            "symbol" => "ETHUSDT",
@@ -2274,9 +2456,9 @@ class toobit extends Exchange {
             //        ), ...
             //
         } else {
-            $response = $this->privateGetApiV1FuturesUserTrades ($request);
+            $response = $this->privateGetApiV1FuturesUserTrades($request);
             //
-            //    [
+            //    array(
             //        {
             //            "time" => "1756758426899",
             //            "id" => "2030231266499116032",
@@ -2299,11 +2481,11 @@ class toobit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
@@ -2312,7 +2494,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -2323,7 +2507,7 @@ class toobit extends Exchange {
             'fromAccountType' => $fromId,
             'toAccountType' => $toId,
         );
-        $response = $this->privatePostApiV1SubAccountTransfer ($this->extend($request, $params));
+        $response = $this->privatePostApiV1SubAccountTransfer($this->extend($request, $params));
         //
         //    {
         //     "code" => 200, // 200 = success
@@ -2353,12 +2537,12 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2367,7 +2551,9 @@ class toobit extends Exchange {
          * @param {int} [$params->until] end time in ms
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2385,9 +2571,9 @@ class toobit extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->privateGetApiV1AccountBalanceFlow ($this->extend($request, $params));
+            $response = $this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params));
         } else {
-            $response = $this->privateGetApiV1FuturesBalanceFlow ($this->extend($request, $params));
+            $response = $this->privateGetApiV1FuturesBalanceFlow($this->extend($request, $params));
         }
         //
         // both answers are same format
@@ -2415,7 +2601,7 @@ class toobit extends Exchange {
         $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'created');
         $after = $this->safe_number($item, 'total');
-        $amountRaw = $this->safe_string($item, 'change');
+        $amountRaw = $this->safe_string($item, 'change', '');
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
         if (str_starts_with($amountRaw, '-')) {
@@ -2448,16 +2634,18 @@ class toobit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-$fee-rate-user_data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-$fee-rate-user-data
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = null;
         $marketType = null;
         $market = null;
@@ -2474,7 +2662,7 @@ class toobit extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->privateGetApiV1FuturesCommissionRate ($this->extend($request, $params));
+            $response = $this->privateGetApiV1FuturesCommissionRate($this->extend($request, $params));
         }
         //
         // {
@@ -2505,11 +2693,11 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
          *
          * @param {string} [$code] unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2520,11 +2708,11 @@ class toobit extends Exchange {
         return $this->fetch_deposits_or_withdrawals_helper('deposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
          *
          * @param {string} [$code] unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2535,8 +2723,10 @@ class toobit extends Exchange {
         return $this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params) {
-        $this->load_markets();
+    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2550,9 +2740,9 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
+        $response = array();
         if ($type === 'deposits') {
-            $response = $this->privateGetApiV1AccountDepositOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiV1AccountDepositOrders($this->extend($request, $params));
             //
             // array(
             //     {
@@ -2575,7 +2765,7 @@ class toobit extends Exchange {
             // )
             //
         } elseif ($type === 'withdrawals') {
-            $response = $this->privateGetApiV1AccountWithdrawOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $params));
             //
             // array(
             //     {
@@ -2697,20 +2887,25 @@ class toobit extends Exchange {
             '11' => 'failed',
             '3' => 'ok',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -2719,8 +2914,8 @@ class toobit extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : param["network"] is required');
         }
-        $request['chainType'] = $this->network_code_to_id($networkCode);
-        $response = $this->privateGetApiV1AccountDepositAddress ($this->extend($request, $paramsOmitted));
+        $request['chainType'] = $this->network_code_to_id($networkCode, $code);
+        $response = $this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "canDeposit":false,//Is it possible to recharge
@@ -2747,17 +2942,18 @@ class toobit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
@@ -2766,7 +2962,9 @@ class toobit extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -2778,7 +2976,7 @@ class toobit extends Exchange {
         if ($tag !== null) {
             $request['addressExt'] = $tag;
         }
-        $response = $this->privatePostApiV1AccountWithdraw ($this->extend($request, $params));
+        $response = $this->privatePostApiV1AccountWithdraw($this->extend($request, $params));
         //
         // {
         //     "status" => 0,
@@ -2791,11 +2989,11 @@ class toobit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
          *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
@@ -2805,7 +3003,9 @@ class toobit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
@@ -2815,18 +3015,18 @@ class toobit extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginMode,
         );
-        $response = $this->privatePostApiV1FuturesMarginType ($this->extend($request, $params));
+        $response = $this->privatePostApiV1FuturesMarginType($this->extend($request, $params));
         //
         // array("code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED")
         //
         return $response;
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-$leverage-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-$leverage-trade
          *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
@@ -2836,35 +3036,39 @@ class toobit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        $response = $this->privatePostApiV1FuturesLeverage ($this->extend($request, $params));
+        $response = $this->privatePostApiV1FuturesLeverage($this->extend($request, $params));
         //
         // array("code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19")
         //
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-$data
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetApiV1FuturesAccountLeverage ($this->extend($request, $params));
+        $response = $this->privateGetApiV1FuturesAccountLeverage($this->extend($request, $params));
         //
         // array(
         //     {
@@ -2892,17 +3096,19 @@ class toobit extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
-         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbols !== null) {
@@ -2916,7 +3122,7 @@ class toobit extends Exchange {
                 $request['symbol'] = $market['id'];
             }
         }
-        $response = $this->privateGetApiV1FuturesPositions ($this->extend($request, $params));
+        $response = $this->privateGetApiV1FuturesPositions($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -2977,7 +3183,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';

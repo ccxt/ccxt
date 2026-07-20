@@ -352,8 +352,8 @@ public partial class hollaex : Exchange
             object market = getValue(pairs, key);
             object baseId = this.safeString(market, "pair_base");
             object quoteId = this.safeString(market, "pair_2");
-            object bs = this.commonCurrencyCode(((string)baseId).ToUpper());
-            object quote = this.commonCurrencyCode(((string)quoteId).ToUpper());
+            object bs = this.commonCurrencyCode(((string)((string)baseId)).ToUpper());
+            object quote = this.commonCurrencyCode(((string)((string)quoteId)).ToUpper());
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -486,68 +486,66 @@ public partial class hollaex : Exchange
         //     }
         //
         object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)coins).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object values = new List<object>(((IDictionary<string,object>)coins).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new List<object>() {});
+        object rawType = this.safeString(rawCurrency, "type");
+        object type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
+        object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
+        object networks = new Dictionary<string, object>() {};
+        object networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
-            object key = getValue(keys, i);
-            object currency = getValue(coins, key);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object withdrawalLimits = this.safeList(currency, "withdrawal_limits", new List<object>() {});
-            object rawType = this.safeString(currency, "type");
-            object type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
-            object rawNetworks = this.safeDict(currency, "withdrawal_fees", new Dictionary<string, object>() {});
-            object networks = new Dictionary<string, object>() {};
-            object networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(networkIds, j);
-                object networkEntry = this.safeDict(rawNetworks, networkId);
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", this.safeBool(networkEntry, "active") },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", this.safeNumber(networkEntry, "value") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                    { "info", networkEntry },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "numericId", this.safeInteger(currency, "id") },
-                { "code", code },
-                { "info", currency },
-                { "name", this.safeString(currency, "fullname") },
-                { "active", this.safeBool(currency, "active") },
-                { "deposit", this.safeBool(currency, "allow_deposit") },
-                { "withdraw", this.safeBool(currency, "allow_withdrawal") },
-                { "fee", this.safeNumber(currency, "withdrawal_fee") },
-                { "precision", this.safeNumber(currency, "increment_unit") },
+            object networkId = getValue(networkIds, j);
+            object networkEntry = this.safeDict(rawNetworks, networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", this.safeBool(networkEntry, "active") },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", this.safeNumber(networkEntry, "value") },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min") },
-                        { "max", this.safeNumber(currency, "max") },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", null },
-                        { "max", this.safeValue(withdrawalLimits, 0) },
+                        { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "type", type },
-            });
+                { "info", networkEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "numericId", this.safeInteger(rawCurrency, "id") },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", this.safeString(rawCurrency, "fullname") },
+            { "active", this.safeBool(rawCurrency, "active") },
+            { "deposit", this.safeBool(rawCurrency, "allow_deposit") },
+            { "withdraw", this.safeBool(rawCurrency, "allow_withdrawal") },
+            { "fee", this.safeNumber(rawCurrency, "withdrawal_fee") },
+            { "precision", this.safeNumber(rawCurrency, "increment_unit") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "min") },
+                    { "max", this.safeNumber(rawCurrency, "max") },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", this.safeValue(withdrawalLimits, 0) },
+                } },
+            } },
+            { "networks", networks },
+            { "type", type },
+        });
     }
 
     /**
@@ -563,7 +561,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetOrderbooks(parameters);
         object result = new Dictionary<string, object>() {};
         object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
@@ -586,12 +587,15 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -616,7 +620,7 @@ public partial class hollaex : Exchange
         //         // ...
         //     }
         //
-        object orderbook = this.safeValue(response, getValue(market, "id"));
+        object orderbook = this.safeValue(response, ((string)getValue(market, "id")));
         object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp);
     }
@@ -633,7 +637,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -665,7 +672,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTickers(parameters);
         //
@@ -774,7 +784,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -793,7 +806,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
+        object trades = this.safeList(response, ((string)getValue(market, "id")), new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -868,7 +881,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTiers(parameters);
         //
         //     {
@@ -903,12 +919,12 @@ public partial class hollaex : Exchange
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             object market = this.market(symbol);
-            object makerString = this.safeString(makerFees, getValue(market, "id"));
-            object takerString = this.safeString(takerFees, getValue(market, "id"));
+            object makerString = this.safeString(makerFees, ((string)getValue(market, "id")));
+            object takerString = this.safeString(takerFees, ((string)getValue(market, "id")));
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -938,7 +954,10 @@ public partial class hollaex : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1033,7 +1052,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetUserBalance(parameters);
         //
         //     {
@@ -1063,7 +1085,10 @@ public partial class hollaex : Exchange
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1148,7 +1173,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1197,7 +1225,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -1255,7 +1286,7 @@ public partial class hollaex : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1343,7 +1374,10 @@ public partial class hollaex : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1411,7 +1445,10 @@ public partial class hollaex : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1448,7 +1485,10 @@ public partial class hollaex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         market = this.market(symbol);
@@ -1486,7 +1526,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1567,7 +1610,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object network = this.safeString(parameters, "network");
         parameters = this.omit(parameters, "network");
         object response = await this.privateGetUser(parameters);
@@ -1635,7 +1681,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1692,7 +1741,10 @@ public partial class hollaex : Exchange
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "transaction_id", id },
         };
@@ -1745,7 +1797,10 @@ public partial class hollaex : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1914,7 +1969,10 @@ public partial class hollaex : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         if (isTrue(!isEqual(tag, null)))
         {

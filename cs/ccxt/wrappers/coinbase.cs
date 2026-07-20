@@ -10,7 +10,8 @@ public partial class coinbase
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/time"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -36,8 +37,8 @@ public partial class coinbase
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -73,7 +74,7 @@ public partial class coinbase
     /// fetch all the portfolios
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -93,7 +94,7 @@ public partial class coinbase
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -113,7 +114,7 @@ public partial class coinbase
     /// fetch sells
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -147,7 +148,7 @@ public partial class coinbase
     /// fetch buys
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -188,7 +189,8 @@ public partial class coinbase
     /// Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -228,7 +230,8 @@ public partial class coinbase
     /// Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -268,7 +271,7 @@ public partial class coinbase
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -308,9 +311,10 @@ public partial class coinbase
     /// retrieves data on all markets for coinbase
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -351,8 +355,9 @@ public partial class coinbase
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -388,10 +393,9 @@ public partial class coinbase
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -427,9 +431,9 @@ public partial class coinbase
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -467,7 +471,7 @@ public partial class coinbase
     /// Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -513,7 +517,7 @@ public partial class coinbase
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -533,7 +537,7 @@ public partial class coinbase
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -656,7 +660,7 @@ public partial class coinbase
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -676,7 +680,7 @@ public partial class coinbase
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -696,7 +700,7 @@ public partial class coinbase
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -730,7 +734,7 @@ public partial class coinbase
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -750,7 +754,7 @@ public partial class coinbase
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -802,7 +806,7 @@ public partial class coinbase
     /// fetches information on all currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -848,7 +852,7 @@ public partial class coinbase
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -894,7 +898,7 @@ public partial class coinbase
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -928,7 +932,8 @@ public partial class coinbase
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -980,7 +985,8 @@ public partial class coinbase
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1020,7 +1026,7 @@ public partial class coinbase
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1066,7 +1072,8 @@ public partial class coinbase
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -1088,7 +1095,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -1099,7 +1106,7 @@ public partial class coinbase
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1162,7 +1169,7 @@ public partial class coinbase
     /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1194,7 +1201,7 @@ public partial class coinbase
     /// fetch the deposit id for a fiat currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1214,7 +1221,7 @@ public partial class coinbase
     /// fetch the deposit id for a fiat currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1234,7 +1241,7 @@ public partial class coinbase
     /// fetch a quote for converting from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1267,7 +1274,7 @@ public partial class coinbase
     /// convert from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1294,7 +1301,7 @@ public partial class coinbase
     /// fetch the data for a conversion trade
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1314,8 +1321,8 @@ public partial class coinbase
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1341,8 +1348,8 @@ public partial class coinbase
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1374,7 +1381,7 @@ public partial class coinbase
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1400,7 +1407,7 @@ public partial class coinbase
     /// Fetch details for a specific portfolio by UUID
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1425,7 +1432,7 @@ public partial class coinbase
     /// fetch deposit addresses for multiple currencies (when available)
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

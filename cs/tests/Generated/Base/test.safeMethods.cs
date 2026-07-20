@@ -94,7 +94,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeList(inputDict, "dict"), null));
             Assert(isEqual(exchange.safeList(inputList, 1), null));
             object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts");
-            Assert(equals(getValue(arrayOfDicts, 0), new Dictionary<string, object>() {
+            Assert(equals(getValue((IList<object>)(arrayOfDicts), 0), new Dictionary<string, object>() {
                 { "a", 1 },
             }));
             // safeList2
@@ -276,6 +276,7 @@ public partial class BaseTest
             Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+            // init array cache tests
             // Test cache types - ArrayCache
             var arrayCache = new ArrayCache(100);
             arrayCache.append(new Dictionary<string, object>() {

@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchCurrencies(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchCurrencies(BaseExchange exchange, object skippedProperties)
     {
         object method = "fetchCurrencies";
-        object currencies = await exchange.fetchCurrencies();
+        object currencies = await ((dynamic)exchange).fetchCurrencies();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
@@ -42,12 +42,14 @@ public partial class testMainClass : BaseTest
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                object code = exchange.safeString(currency, "code", null);
+                object code = exchange.safeString(currency, "code");
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
-                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
+                object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
+                object skipUsdtForMica = isTrue(isMicaCompliant) && isTrue(isEqual(code, "USDT"));
+                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && !isTrue(skipUsdtForMica)))
                 {
-                    assert(isTrue(skipMajorCurrencyCheck) || isTrue((isTrue(withdraw) && isTrue(deposit))), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    assert(isTrue(withdraw) && isTrue(deposit), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
@@ -57,7 +59,7 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    public static object detectCurrencyConflicts(Exchange exchange, object currencyValues)
+    public static object detectCurrencyConflicts(BaseExchange exchange, object currencyValues)
     {
         // detect if there are currencies with different ids for the same code
         object ids = new Dictionary<string, object>() {};

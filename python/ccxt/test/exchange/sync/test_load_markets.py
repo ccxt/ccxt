@@ -17,7 +17,7 @@ from ccxt.test.exchange.base import test_market  # noqa E402
 def test_load_markets(exchange, skipped_properties):
     method = 'loadMarkets'
     markets = exchange.load_markets()
-    assert isinstance(exchange.markets, dict), '.markets is not an object'
+    assert exchange.is_dictionary(exchange.markets), '.markets is not a dict'
     assert isinstance(exchange.symbols, list), '.symbols is not an array'
     symbols_length = len(exchange.symbols)
     market_keys = list(exchange.markets.keys())

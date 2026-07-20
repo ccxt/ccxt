@@ -1,0 +1,159 @@
+name: Deploy Fumadocs
+
+# Builds the Fumadocs site as a container (arm64, matching the docs box) and deploys it
+# as a long-running Next.js server behind nginx at / (root). Automates the manual flow:
+# build image -> push to GHCR -> box pulls + restarts the container.
+#
+# Consumes the committed wiki/*.md (kept current by js.yml's build-docs).
+# The image is a root build (no NEXT_BASE_PATH); nginx proxies `location /` to it.
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [master]
+    paths:
+      # NB: deliberately NOT 'wiki/**'. Wiki content commits land many times a day; rebuilding
+      # + swapping the docs container that often churns connected clients (stale JS chunks and
+      # "Failed to find Server Action" after each new build) and adds deploy-window blips. Docs
+      # now redeploy on release (which bakes in the wiki as of that release) + docs-app changes
+      # + manual dispatch — not on every wiki commit.
+      - 'website/**'
+      - 'build/wiki-to-fumadocs.ts'
+      - '.github/workflows/docs-fumadocs.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: docs-fumadocs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: github.repository == 'ccxt/ccxt'
+    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    env:
+      IMAGE: ghcr.io/ccxt/ccxt-fumadocs
+      CONTAINER: ccxt-docs
+      PORT: '3005'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      # committed wiki/*.md -> website/content/docs (baked into the image at build)
+      - name: Convert wiki to Fumadocs content
+        run: npx -y tsx build/wiki-to-fumadocs.ts
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v7
+        with:
+          context: website
+          platforms: linux/arm64
+          push: true
+          # Consistent Server Actions encryption key across builds, so a client served by an
+          # earlier deploy doesn't hit "Failed to find Server Action" after a redeploy. If the
+          # secret is unset Next generates a random key per build (the bug); set it once with:
+          #   openssl rand -base64 32 | gh secret set NEXT_SERVER_ACTIONS_ENCRYPTION_KEY -R ccxt/ccxt
+          build-args: |
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+          # SHA tag enables canary validation + rollback; latest is moved only after smoke passes.
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+
+      - name: Configure SSH (pinned host key)
+        env:
+          SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DOCS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
+        env:
+          HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+            IMAGE="${IMAGE}" CONTAINER="${CONTAINER}" PORT="${PORT}" SHA="${SHA}" \
+            GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
+          set -e
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          docker pull "$IMAGE:$SHA"
+          # OpenRouter key + model live only on the box (root-only env-file, never in GitHub).
+          ENVFILE_ARG=""
+          [ -f /root/ccxt-docs.env ] && ENVFILE_ARG="--env-file /root/ccxt-docs.env"
+
+          # Validate the new image against actual rendered output before it goes live.
+          # curl/200 alone is NOT enough — today's blank-page bug returned 200 with the
+          # content present-but-covered, so we assert the article is NOT a duplicated
+          # grid cell, real content strings are there, no error boundary, and the homepage
+          # hero renders.
+          # Root build (no /v2): the app serves at /. nginx proxies `location / -> :3005`.
+          smoke() {
+            local port="$1" html n
+            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}/docs/install" 2>/dev/null && break; sleep 2; done
+            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${port}/docs/exchanges/binance") || { echo "smoke: binance not 200"; return 1; }
+            echo "$html" | grep -q "fetchTicker" || { echo "smoke: binance content missing"; return 1; }
+            n=$(echo "$html" | grep -o '\[grid-area:main\]' | wc -l)
+            [ "$n" -le 1 ] || { echo "smoke: content-overlap regression (grid-area:main x$n)"; return 1; }
+            echo "$html" | grep -qi "couldn.t load" && { echo "smoke: error boundary rendered"; return 1; }
+            curl -fsS --max-time 25 "http://127.0.0.1:${port}/" | grep -q "Connect to any exchange" || { echo "smoke: homepage hero missing"; return 1; }
+            echo "smoke: OK (grid-area:main x$n)"
+          }
+
+          # Zero-downtime blue/green swap. nginx proxies the docs to 127.0.0.1:<active port>; we
+          # bring the new build up on the *other* port, smoke-test it there, then repoint nginx with
+          # a graceful reload (in-flight requests drain) and only then drop the old container. This
+          # removes the rm->run gap of the old swap, which briefly 502'd on every deploy.
+          NGINX_CONF=/etc/nginx/sites-available/docs
+          CUR_PORT=$(grep -oE '127\.0\.0\.1:30(05|06)' "$NGINX_CONF" 2>/dev/null | grep -oE '30(05|06)' | head -1)
+          [ -n "$CUR_PORT" ] || CUR_PORT="$PORT"
+          NEW_PORT=$([ "$CUR_PORT" = 3005 ] && echo 3006 || echo 3005)
+          NEW_NAME="${CONTAINER}-${NEW_PORT}"
+
+          docker rm -f "$NEW_NAME" 2>/dev/null || true
+          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG --name "$NEW_NAME" "$IMAGE:$SHA"
+          if smoke "$NEW_PORT"; then
+            sed -i "s/127\.0\.0\.1:${CUR_PORT}/127.0.0.1:${NEW_PORT}/g" "$NGINX_CONF"
+            if nginx -t 2>/dev/null; then
+              nginx -s reload
+              sleep 3                                              # let in-flight requests on the old container finish
+              docker rm -f "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
+              docker tag "$IMAGE:$SHA" "$IMAGE:latest"
+              docker image prune -f
+              docker logout ghcr.io || true
+              echo "deployed $SHA on :${NEW_PORT} (zero-downtime; nginx ${CUR_PORT} -> ${NEW_PORT})"
+            else
+              sed -i "s/127\.0\.0\.1:${NEW_PORT}/127.0.0.1:${CUR_PORT}/g" "$NGINX_CONF"   # revert the port swap
+              docker rm -f "$NEW_NAME" || true
+              docker logout ghcr.io || true
+              echo "::error::nginx config invalid after port swap — reverted; live untouched on :${CUR_PORT}"
+              exit 1
+            fi
+          else
+            echo "::error::smoke test failed — NOT switching; live stays on :${CUR_PORT}"
+            docker logs "$NEW_NAME" 2>&1 | tail -40 || true
+            docker rm -f "$NEW_NAME" || true
+            docker logout ghcr.io || true
+            exit 1
+          fi
+          EOF

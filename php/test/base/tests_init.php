@@ -47,6 +47,7 @@ include_once __DIR__ . '/test_string_to_base64.php';
 include_once __DIR__ . '/test_urlencode.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_rawencode.php';
+include_once __DIR__ . '/test_fetch_history.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_urlencode_with_array_repeat.php';
@@ -130,8 +131,10 @@ function base_tests_init() {
         test_unique();
         test_urlencode_nested();
         \React\Async\await(test_sleep());
+        \React\Async\await(test_fetch_history());
         test_io();
         test_is_json_encoded_object();
         test_encode_decode();
+        return true;
     }) ();
 }

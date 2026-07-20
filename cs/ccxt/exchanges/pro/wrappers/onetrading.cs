@@ -104,7 +104,7 @@ public partial class onetrading
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.bitpanda.com/exchange/#market-ticker-channel"/>  <br/>
+    /// See <see href="https://docs.onetrading.com/websocket/orderbook/introduction"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -120,7 +120,7 @@ public partial class onetrading
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

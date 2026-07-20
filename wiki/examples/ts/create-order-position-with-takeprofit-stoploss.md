@@ -1,11 +1,6 @@
-- [Create Order Position With Takeprofit Stoploss](./examples/ts/)
-
-
- ```javascript
- // @ts-nocheck
+```javascript
+// @ts-nocheck
 import ccxt from '../../js/ccxt.js';
-
-// AUTO-TRANSPILE //
 
 console.log ('CCXT Version:', ccxt.version);
 
@@ -91,5 +86,5 @@ await example ();
 
 // NOTES:
 // - Sometimes you might experience, when their stop-loss/take-profit order might not become activated, even though on chart the price had crossed that "trigger-price"       order was not executed . That happens because some exchange might be using mark-price (instead of last-price) as a reference-price, so that mark-price might reach your trigger-price and it would activate your SL/TP order (even though on your symbol's chart you are viewing the "last-price" by default, which could have different movements than the mark-price).
- 
+
 ```

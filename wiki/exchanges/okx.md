@@ -48,6 +48,7 @@
 * [fetchPositions](#fetchpositions)
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
 * [transfer](#transfer)
+* [fetchTransfer](#fetchtransfer)
 * [fetchTransfers](#fetchtransfers)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
@@ -135,7 +136,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-okx.fetchStatus ([params])
+okx.fetchStatus (params?)
 ```
 
 
@@ -155,7 +156,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-okx.fetchTime ([params])
+okx.fetchTime (params?)
 ```
 
 
@@ -175,7 +176,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-okx.fetchAccounts ([params])
+okx.fetchAccounts (params?)
 ```
 
 
@@ -195,7 +196,7 @@ retrieves data on all markets for okx
 
 
 ```javascript
-okx.fetchMarkets ([params])
+okx.fetchMarkets (params?)
 ```
 
 
@@ -215,7 +216,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-okx.fetchCurrencies ([params])
+okx.fetchCurrencies (params?)
 ```
 
 
@@ -225,9 +226,13 @@ okx.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book  
+**See**
+
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -238,7 +243,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-okx.fetchOrderBook (symbol[, limit, params])
+okx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -259,7 +264,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-okx.fetchTicker (symbol[, params])
+okx.fetchTicker (symbol, params?)
 ```
 
 
@@ -280,7 +285,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-okx.fetchTickers ([symbols, params])
+okx.fetchTickers (symbols?, params?)
 ```
 
 
@@ -301,7 +306,7 @@ fetches mark price for the market
 
 
 ```javascript
-okx.fetchMarkPrice (symbol[, params])
+okx.fetchMarkPrice (symbol, params?)
 ```
 
 
@@ -322,7 +327,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-okx.fetchMarkPrices ([symbols, params])
+okx.fetchMarkPrices (symbols?, params?)
 ```
 
 
@@ -337,6 +342,7 @@ get the list of most recent trades for a particular symbol
 **See**
 
 - https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+- https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
 - https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
 
 
@@ -351,7 +357,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-okx.fetchTrades (symbol[, since, limit, params])
+okx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -388,7 +394,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+okx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -412,7 +418,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-okx.fetchFundingRateHistory (symbol[, since, limit, params])
+okx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -433,7 +439,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-okx.fetchTradingFee (symbol[, params])
+okx.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -458,7 +464,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-okx.fetchBalance ([params])
+okx.fetchBalance (params?)
 ```
 
 
@@ -480,7 +486,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-okx.createMarketBuyOrderWithCost (symbol, cost[, params])
+okx.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -502,7 +508,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-okx.createMarketSellOrderWithCost (symbol, cost[, params])
+okx.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -547,7 +553,7 @@ create a trade order
 
 
 ```javascript
-okx.createOrder (symbol, type, side, amount[, price, params])
+okx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -568,7 +574,7 @@ create a list of trade orders
 
 
 ```javascript
-okx.createOrders (orders[, params])
+okx.createOrders (orders, params?)
 ```
 
 
@@ -614,7 +620,7 @@ edit a trade order
 
 
 ```javascript
-okx.editOrder (id, symbol, type, side, amount[, price, params])
+okx.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -642,7 +648,7 @@ cancels an open order
 
 
 ```javascript
-okx.cancelOrder (id, symbol[, params])
+okx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -670,7 +676,7 @@ cancel multiple orders
 
 
 ```javascript
-okx.cancelOrders (ids, symbol[, params])
+okx.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -697,7 +703,7 @@ cancel multiple orders for multiple symbols
 
 
 ```javascript
-okx.cancelOrdersForSymbols (orders[, params])
+okx.cancelOrdersForSymbols (orders, params?)
 ```
 
 
@@ -718,7 +724,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-okx.cancelAllOrdersAfter (timeout[, params])
+okx.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -745,7 +751,7 @@ fetch an order by the id
 
 
 ```javascript
-okx.fetchOrder (id, symbol[, params])
+okx.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -777,7 +783,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-okx.fetchOpenOrders (symbol[, since, limit, params])
+okx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -809,7 +815,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-okx.fetchCanceledOrders (symbol[, since, limit, params])
+okx.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -844,7 +850,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-okx.fetchClosedOrders (symbol[, since, limit, params])
+okx.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -869,7 +875,7 @@ fetch all trades made by the user
 
 
 ```javascript
-okx.fetchMyTrades (symbol[, since, limit, params])
+okx.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -893,7 +899,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-okx.fetchOrderTrades (id, symbol[, since, limit, params])
+okx.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -924,7 +930,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-okx.fetchLedger ([code, since, limit, params])
+okx.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -945,7 +951,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-okx.fetchDepositAddressesByNetwork (code[, params])
+okx.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -967,7 +973,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-okx.fetchDepositAddress (code[, params])
+okx.fetchDepositAddress (code, params?)
 ```
 
 
@@ -991,7 +997,7 @@ make a withdrawal
 
 
 ```javascript
-okx.withdraw (code, amount, address, tag[, params])
+okx.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -1016,7 +1022,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-okx.fetchDeposits (code[, since, limit, params])
+okx.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -1038,7 +1044,7 @@ fetch data on a currency deposit via the deposit id
 
 
 ```javascript
-okx.fetchDeposit (id, code[, params])
+okx.fetchDeposit (id, code, params?)
 ```
 
 
@@ -1063,7 +1069,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-okx.fetchWithdrawals (code[, since, limit, params])
+okx.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -1085,7 +1091,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-okx.fetchWithdrawal (id, code[, params])
+okx.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -1107,7 +1113,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-okx.fetchLeverage (symbol[, params])
+okx.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1129,7 +1135,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-okx.fetchPosition (symbol[, params])
+okx.fetchPosition (symbol, params?)
 ```
 
 
@@ -1155,7 +1161,7 @@ fetch all open positions
 
 
 ```javascript
-okx.fetchPositions (symbols[, params])
+okx.fetchPositions (symbols, params?)
 ```
 
 
@@ -1177,7 +1183,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-okx.fetchPositionsForSymbol (symbol[, params])
+okx.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -1201,7 +1207,29 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-okx.transfer (code, amount, fromAccount, toAccount[, params])
+okx.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetch a transfer
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchTransfer (id, code?, params?)
 ```
 
 
@@ -1224,7 +1252,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-okx.fetchTransfers (code[, since, limit, params])
+okx.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1245,7 +1273,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-okx.fetchFundingInterval (symbol[, params])
+okx.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -1266,7 +1294,7 @@ fetch the current funding rate
 
 
 ```javascript
-okx.fetchFundingRate (symbol[, params])
+okx.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1287,7 +1315,7 @@ fetches the current funding rates for multiple symbols
 
 
 ```javascript
-okx.fetchFundingRates (symbols[, params])
+okx.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1310,7 +1338,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-okx.fetchFundingHistory (symbol[, since, limit, params])
+okx.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1334,7 +1362,7 @@ set the level of leverage for a market
 
 
 ```javascript
-okx.setLeverage (leverage, symbol[, params])
+okx.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1356,7 +1384,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-okx.fetchPositionMode (symbol[, params])
+okx.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1378,7 +1406,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-okx.setPositionMode (hedged, symbol[, params])
+okx.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1401,7 +1429,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-okx.setMarginMode (marginMode, symbol[, params])
+okx.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1421,7 +1449,7 @@ fetch the borrow interest rates of all currencies
 
 
 ```javascript
-okx.fetchCrossBorrowRates ([params])
+okx.fetchCrossBorrowRates (params?)
 ```
 
 
@@ -1442,7 +1470,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-okx.fetchCrossBorrowRate (code[, params])
+okx.fetchCrossBorrowRate (code, params?)
 ```
 
 
@@ -1465,7 +1493,7 @@ retrieves a history of a multiple currencies borrow interest rate at specific ti
 
 
 ```javascript
-okx.fetchBorrowRateHistories (codes[, since, limit, params])
+okx.fetchBorrowRateHistories (codes, since?, limit?, params?)
 ```
 
 
@@ -1488,7 +1516,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 
 
 ```javascript
-okx.fetchBorrowRateHistory (code[, since, limit, params])
+okx.fetchBorrowRateHistory (code, since?, limit?, params?)
 ```
 
 
@@ -1510,7 +1538,7 @@ remove margin from a position
 
 
 ```javascript
-okx.reduceMargin (symbol, amount[, params])
+okx.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1532,7 +1560,7 @@ add margin
 
 
 ```javascript
-okx.addMargin (symbol, amount[, params])
+okx.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1554,7 +1582,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-okx.fetchMarketLeverageTiers (symbol[, params])
+okx.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
@@ -1580,7 +1608,7 @@ fetch the interest owed b the user for borrowing currency for margin trading
 
 
 ```javascript
-okx.fetchBorrowInterest (code, symbol[, since, limit, params])
+okx.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1602,7 +1630,7 @@ create a loan to borrow margin (need to be VIP 5 and above)
 
 
 ```javascript
-okx.borrowCrossMargin (code, amount[, params])
+okx.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1625,7 +1653,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-okx.repayCrossMargin (code, amount[, params])
+okx.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1646,7 +1674,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-okx.fetchOpenInterest (symbol[, params])
+okx.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1670,7 +1698,7 @@ Retrieves the open interests of some currencies
 
 
 ```javascript
-okx.fetchOpenInterests (symbols[, params])
+okx.fetchOpenInterests (symbols, params?)
 ```
 
 
@@ -1699,7 +1727,7 @@ Retrieves the open interest history of a currency
 
 
 ```javascript
-okx.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+okx.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1720,7 +1748,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-okx.fetchDepositWithdrawFees (codes[, params])
+okx.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1743,7 +1771,7 @@ fetches historical settlement records
 
 
 ```javascript
-okx.fetchSettlementHistory (symbol[, since, limit, params])
+okx.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1764,7 +1792,7 @@ fetches the market ids of underlying assets for a specific contract market type
 
 
 ```javascript
-okx.fetchUnderlyingAssets ([params])
+okx.fetchUnderlyingAssets (params?)
 ```
 
 
@@ -1785,7 +1813,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-okx.fetchGreeks (symbol[, params])
+okx.fetchGreeks (symbol, params?)
 ```
 
 
@@ -1808,7 +1836,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 
 ```javascript
-okx.fetchAllGreeks ([symbols, params])
+okx.fetchAllGreeks (symbols?, params?)
 ```
 
 
@@ -1835,7 +1863,7 @@ closes open positions for a market
 
 
 ```javascript
-okx.closePosition (symbol[, side, params])
+okx.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1856,7 +1884,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-okx.fetchOption (symbol[, params])
+okx.fetchOption (symbol, params?)
 ```
 
 
@@ -1878,7 +1906,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 
 ```javascript
-okx.fetchOptionChain (code[, params])
+okx.fetchOptionChain (code, params?)
 ```
 
 
@@ -1901,7 +1929,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-okx.fetchConvertQuote (fromCode, toCode[, amount, params])
+okx.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1925,7 +1953,7 @@ convert from one currency to another
 
 
 ```javascript
-okx.createConvertTrade (id, fromCode, toCode[, amount, params])
+okx.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -1947,7 +1975,7 @@ fetch the data for a conversion trade
 
 
 ```javascript
-okx.fetchConvertTrade (id[, code, params])
+okx.fetchConvertTrade (id, code?, params?)
 ```
 
 
@@ -1971,7 +1999,7 @@ fetch the users history of conversion trades
 
 
 ```javascript
-okx.fetchConvertTradeHistory ([code, since, limit, params])
+okx.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
@@ -1991,7 +2019,7 @@ fetches all available currencies that can be converted
 
 
 ```javascript
-okx.fetchConvertCurrencies ([params])
+okx.fetchConvertCurrencies (params?)
 ```
 
 
@@ -2020,7 +2048,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-okx.fetchMarginAdjustmentHistory ([symbol, type, since, limit, params])
+okx.fetchMarginAdjustmentHistory (symbol?, type?, since?, limit?, params)
 ```
 
 
@@ -2049,7 +2077,7 @@ fetches historical positions
 
 
 ```javascript
-okx.fetchPositionsHistory ([symbols, since, limit, params])
+okx.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -2074,7 +2102,7 @@ fetches the long short ratio history for a unified market symbol
 
 
 ```javascript
-okx.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+okx.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
 ```
 
 
@@ -2101,7 +2129,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-okx.watchTrades (symbol[, since, limit, params])
+okx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -2129,7 +2157,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-okx.watchTradesForSymbols (symbols[, since, limit, params])
+okx.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2150,7 +2178,7 @@ unWatches from the stream channel
 
 
 ```javascript
-okx.unWatchTradesForSymbols (symbols[, params])
+okx.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -2170,7 +2198,7 @@ unWatches from the stream channel
 
 
 ```javascript
-okx.unWatchTrades (symbol[, params])
+okx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -2191,7 +2219,7 @@ watch the current funding rate
 
 
 ```javascript
-okx.watchFundingRate (symbol[, params])
+okx.watchFundingRate (symbol, params?)
 ```
 
 
@@ -2212,7 +2240,7 @@ watch the funding rate for multiple markets
 
 
 ```javascript
-okx.watchFundingRates (symbols[, params])
+okx.watchFundingRates (symbols, params?)
 ```
 
 
@@ -2234,7 +2262,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-okx.watchTicker (symbol[, params])
+okx.watchTicker (symbol, params?)
 ```
 
 
@@ -2256,7 +2284,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-okx.unWatchTicker (symbol[, params])
+okx.unWatchTicker (symbol, params?)
 ```
 
 
@@ -2278,7 +2306,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-okx.watchTickers ([symbols, params])
+okx.watchTickers (symbols?, params?)
 ```
 
 
@@ -2300,7 +2328,7 @@ watches a mark price
 
 
 ```javascript
-okx.watchMarkPrice (symbol[, params])
+okx.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -2322,7 +2350,7 @@ watches mark prices
 
 
 ```javascript
-okx.watchMarkPrices ([symbols, params])
+okx.watchMarkPrices (symbols?, params?)
 ```
 
 
@@ -2344,7 +2372,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-okx.unWatchTickers ([symbols, params])
+okx.unWatchTickers (symbols?, params?)
 ```
 
 
@@ -2365,7 +2393,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-okx.watchBidsAsks (symbols[, params])
+okx.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -2388,7 +2416,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-okx.watchLiquidationsForSymbols (symbols[, since, limit, params])
+okx.watchLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2411,7 +2439,7 @@ watch the private liquidations of a trading pair
 
 
 ```javascript
-okx.watchMyLiquidationsForSymbols (symbols[, since, limit, params])
+okx.watchMyLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -2423,6 +2451,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2434,7 +2463,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okx.watchOHLCV (symbol, timeframe[, since, limit, params])
+okx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -2446,6 +2475,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2455,7 +2485,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okx.unWatchOHLCV (symbol, timeframe[, params])
+okx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -2467,6 +2497,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2477,7 +2508,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okx.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+okx.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -2489,6 +2520,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2497,7 +2529,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-okx.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+okx.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -2507,7 +2539,7 @@ okx.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2520,7 +2552,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-okx.watchOrderBook (symbol[, limit, params])
+okx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -2530,7 +2562,7 @@ okx.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2543,7 +2575,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-okx.watchOrderBookForSymbols (symbols[, limit, params])
+okx.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -2553,7 +2585,7 @@ okx.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2566,7 +2598,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-okx.unWatchOrderBookForSymbols (symbols[, params])
+okx.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -2576,7 +2608,7 @@ okx.unWatchOrderBookForSymbols (symbols[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2589,7 +2621,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-okx.unWatchOrderBook (symbol[, params])
+okx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -2609,7 +2641,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-okx.watchBalance ([params])
+okx.watchBalance (params?)
 ```
 
 
@@ -2635,7 +2667,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-okx.watchMyTrades ([symbol, since, limit, params])
+okx.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -2649,16 +2681,16 @@ watch all open positions
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| since |  |  |
-| limit |  |  |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-okx.watchPositions (symbols, since, limit, params[])
+okx.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -2684,7 +2716,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-okx.watchOrders ([symbol, since, limit, params])
+okx.watchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -2710,7 +2742,7 @@ create a trade order
 
 
 ```javascript
-okx.createOrderWs (symbol, type, side, amount[, price, params])
+okx.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -2740,7 +2772,7 @@ edit a trade order
 
 
 ```javascript
-okx.editOrderWs (id, symbol, type, side, amount[, price, params])
+okx.editOrderWs (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -2752,7 +2784,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2763,7 +2795,7 @@ cancel multiple orders
 
 
 ```javascript
-okx.cancelOrderWs (id, symbol[, params])
+okx.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -2775,7 +2807,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2785,7 +2817,7 @@ cancel multiple orders
 
 
 ```javascript
-okx.cancelOrdersWs (ids, symbol[, params])
+okx.cancelOrdersWs (ids, symbol, params?)
 ```
 
 
@@ -2797,7 +2829,7 @@ cancel all open orders of a type. Only applicable to Option in Portfolio Margin 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.okx.com/websockets/#message-cancelAll  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2806,6 +2838,6 @@ cancel all open orders of a type. Only applicable to Option in Portfolio Margin 
 
 
 ```javascript
-okx.cancelAllOrdersWs (symbol[, params])
+okx.cancelAllOrdersWs (symbol, params?)
 ```
 

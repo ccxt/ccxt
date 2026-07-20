@@ -17,13 +17,13 @@ class bingx extends bingx$1["default"] {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBookForSymbols': false, // no longer supported
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': false, // no longer supported
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': false, // no longer supported
                 'watchBalance': true,
                 'watchPositions': true,
                 'unWatchOHLCV': true,
@@ -46,7 +46,7 @@ class bingx extends bingx$1["default"] {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },
@@ -79,7 +79,7 @@ class bingx extends bingx$1["default"] {
                     },
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true,
+                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {
@@ -148,7 +148,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         let subType = undefined;
@@ -189,7 +191,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const dataType = market['id'] + '@ticker';
         const subMessageHash = this.getMessageHash('ticker', market['symbol']);
@@ -358,7 +362,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         let marketType = undefined;
@@ -411,7 +417,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const dataType = market['id'] + '@trade';
         const subMessageHash = this.getMessageHash('trade', market['symbol']);
@@ -503,14 +511,14 @@ class bingx extends bingx$1["default"] {
         //     }
         //
         const data = this.safeValue(message, 'data', []);
-        const rawHash = this.safeString(message, 'dataType');
+        const rawHash = this.safeString(message, 'dataType', '');
         const marketId = rawHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
-        let trades = undefined;
+        let trades;
         if (Array.isArray(data)) {
             trades = this.parseTrades(data, market);
         }
@@ -538,10 +546,12 @@ class bingx extends bingx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         let subType = undefined;
@@ -595,10 +605,12 @@ class bingx extends bingx$1["default"] {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const depth = this.safeInteger(options, 'depth', 100);
@@ -682,7 +694,7 @@ class bingx extends bingx$1["default"] {
         //     }
         //
         const data = this.safeDict(message, 'data', {});
-        const dataType = this.safeString(message, 'dataType');
+        const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -696,11 +708,13 @@ class bingx extends bingx$1["default"] {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
+            // default to a reasonable depth instead of throwing NPE in the Java port.
+            const limit = this.safeInteger(subscription, 'limit', 100);
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         orderbook = this.orderbooks[symbol];
-        let snapshot = undefined;
+        let snapshot;
         let timestamp = this.safeInteger2(message, 'timestamp', 'ts');
         timestamp = this.safeInteger2(data, 'timestamp', 'ts', timestamp);
         if (market['inverse']) {
@@ -734,9 +748,9 @@ class bingx extends bingx$1["default"] {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = (market['spot']) ? 't' : 'T';
-        if (market['swap']) {
-            timestamp = (market['inverse']) ? 't' : 'T';
+        let timestamp = this.safeBool(market, 'spot') ? 't' : 'T';
+        if (this.safeBool(market, 'swap')) {
+            timestamp = this.safeBool(market, 'inverse') ? 't' : 'T';
         }
         return [
             this.safeInteger(ohlcv, timestamp),
@@ -813,7 +827,7 @@ class bingx extends bingx$1["default"] {
         //     }
         //
         const isSwap = client.url.indexOf('swap') >= 0;
-        const dataType = this.safeString(message, 'dataType');
+        const dataType = this.safeString(message, 'dataType', '');
         const parts = dataType.split('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -842,7 +856,10 @@ class bingx extends bingx$1["default"] {
         if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // subscription.limit is only set when watchOHLCV registers the subscription;
+            // when handleMessage routes a non-OHLCV-originated subscription here (or the
+            // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            const limit = this.safeInteger(subscription, 'limit', this.safeInteger(this.options, 'OHLCVLimit', 1000));
             this.ohlcvs[symbol][unifiedTimeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe];
@@ -875,7 +892,9 @@ class bingx extends bingx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         let subType = undefined;
@@ -930,7 +949,9 @@ class bingx extends bingx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeValue(this.options, market['type'], {});
         const timeframes = this.safeValue(options, 'timeframes', {});
@@ -957,7 +978,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let type = undefined;
         let subType = undefined;
@@ -1020,7 +1043,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let type = undefined;
         let subType = undefined;
@@ -1043,7 +1068,7 @@ class bingx extends bingx$1["default"] {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = undefined;
+        let request = {};
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new errors.NotSupported(this.id + ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1080,7 +1105,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let type = undefined;
         let subType = undefined;
@@ -1100,6 +1127,8 @@ class bingx extends bingx$1["default"] {
             if (subType === 'inverse') {
                 throw new errors.NotSupported(this.id + ' watchBalance is not supported for inverse swap markets yet');
             }
+            // swap balance updates are pushed automatically over the listenKey connection,
+            // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = this.safeString(this.urls['api']['ws'], subType);
         }
         else {
@@ -1163,12 +1192,14 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let market = undefined;
         let messageHash = '';
         symbols = this.marketSymbols(symbols);
-        if (!this.isEmpty(symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }

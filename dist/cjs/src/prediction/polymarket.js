@@ -1,0 +1,3249 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
+var polymarket$1 = require('../abstract/prediction/polymarket.js');
+var crypto = require('../base/functions/crypto.js');
+var number = require('../base/functions/number.js');
+var Precise = require('../base/Precise.js');
+var Cache = require('../base/ws/Cache.js');
+var errors = require('../base/errors.js');
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+/**
+ * @class polymarket
+ * @augments Exchange
+ */
+class polymarket extends polymarket$1["default"] {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'polymarket',
+            'name': 'Polymarket',
+            'countries': ['US'],
+            'rateLimit': 100,
+            'certified': false,
+            'pro': true,
+            'streaming': {
+                // Polymarket's CLOB ws (market + user channels) has no protocol-level ping-pong;
+                // it requires a text "PING" every 10s and replies "PONG" (see @see in describe)
+                'ping': this.ping,
+                'keepAlive': 10000,
+            },
+            'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
+                'createOrder': true,
+                'createOrders': true,
+                'fetchBalance': true,
+                'fetchCurrencies': false,
+                'fetchDeposits': false,
+                'fetchEvent': true, // Custom: fetch a single Polymarket event by id/slug
+                'fetchEvents': true, // Custom: fetch Polymarket events
+                'fetchLedger': false,
+                'fetchMarkets': true, // Each outcome token = one market
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderTrades': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchWithdrawals': false,
+                'prediction': true, // Prediction market support
+                'watchMyTrades': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchTicker': true,
+                'watchTrades': true,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '1h': '60',
+                '6h': '360',
+                '1d': '1440',
+            },
+            'urls': {
+                'logo': 'https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437',
+                'api': {
+                    'gamma': 'https://gamma-api.polymarket.com',
+                    'clob': 'https://clob.polymarket.com',
+                    'data': 'https://data-api.polymarket.com',
+                    'ws': 'wss://ws-subscriptions-clob.polymarket.com/ws/market',
+                    'wsUser': 'wss://ws-subscriptions-clob.polymarket.com/ws/user',
+                },
+                'www': 'https://polymarket.com',
+                'doc': ['https://docs.polymarket.com'],
+                'fees': 'https://docs.polymarket.com/#fees',
+            },
+            'api': {
+                'gamma': {
+                    'public': {
+                        'get': {
+                            'status': 1,
+                            'comments': 1,
+                            'comments/{id}': 1,
+                            'comments/user_address/{user_address}': 1,
+                            'events': 1,
+                            'events/creators': 1,
+                            'events/creators/{id}': 1,
+                            'events/keyset': 1,
+                            'events/pagination': 1,
+                            'events/results': 1,
+                            'events/slug/{slug}': 1,
+                            'events/{id}': 1,
+                            'events/{id}/comments/count': 1,
+                            'events/{id}/tags': 1,
+                            'events/{id}/tweet-count': 1,
+                            'markets': 1,
+                            'markets/keyset': 1,
+                            'markets/slug/{slug}': 1,
+                            'markets/{id}': 1,
+                            'markets/{id}/description': 1,
+                            'markets/{id}/tags': 1,
+                            'profiles/user_address/{user_address}': 1,
+                            'public-profile': 1,
+                            'public-search': 1,
+                            'series': 1,
+                            'series-summary/slug/{slug}': 1,
+                            'series-summary/{id}': 1,
+                            'series/{id}': 1,
+                            'series/{id}/comments/count': 1,
+                            'sports': 1,
+                            'sports/market-types': 1,
+                            'tags': 1,
+                            'tags/slug/{slug}': 1,
+                            'tags/slug/{slug}/related-tags': 1,
+                            'tags/slug/{slug}/related-tags/tags': 1,
+                            'tags/{id}': 1,
+                            'tags/{id}/related-tags': 1,
+                            'tags/{id}/related-tags/tags': 1,
+                            'teams': 1,
+                            'teams/{id}': 1,
+                        },
+                        'post': {
+                            'markets/abridged': 1,
+                            'markets/information': 1,
+                        },
+                    },
+                },
+                'clob': {
+                    'public': {
+                        'get': {
+                            'book': 1,
+                            'books': 1,
+                            'builder/trades': 1,
+                            'clob-markets/{condition_id}': 1,
+                            'fee-rate': 1,
+                            'fee-rate/{token_id}': 1,
+                            'last-trade-price': 1,
+                            'last-trades-prices': 1,
+                            'markets-by-token/{token_id}': 1,
+                            'markets/live-activity/{condition_id}': 1,
+                            'midpoint': 1,
+                            'midpoints': 1,
+                            'neg-risk': 1,
+                            'neg-risk/{token_id}': 1,
+                            'price': 1,
+                            'prices': 1,
+                            'prices-history': 1,
+                            'rebates/current': 1,
+                            'rewards/markets/current': 1,
+                            'rewards/markets/multi': 1,
+                            'rewards/markets/{condition_id}': 1,
+                            'sampling-markets': 1,
+                            'sampling-simplified-markets': 1,
+                            'simplified-markets': 1,
+                            'spread': 1,
+                            'tick-size': 1,
+                            'tick-size/{token_id}': 1,
+                            'time': 1,
+                        },
+                        'post': {
+                            'batch-prices-history': 1,
+                            'books': 1,
+                            'last-trades-prices': 1,
+                            'markets/live-activity': 1,
+                            'midpoints': 1,
+                            'prices': 1,
+                            'spreads': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'auth/api-keys': 1,
+                            'auth/ban-status/closed-only': 1,
+                            'auth/builder-api-key': 1,
+                            'auth/derive-api-key': 1,
+                            'balance-allowance': 1,
+                            'balance-allowance/update': 1,
+                            'data/order/{id}': 1,
+                            'data/orders': 1,
+                            'data/trades': 1,
+                            'notifications': 1,
+                            'order-scoring': 1,
+                            'orders-scoring': 1,
+                            'rewards/user': 1,
+                            'rewards/user/markets': 1,
+                            'rewards/user/percentages': 1,
+                            'rewards/user/total': 1,
+                        },
+                        'post': {
+                            'auth/api-key': 1,
+                            'auth/builder-api-key': 1,
+                            'heartbeats': 1,
+                            'order': 1,
+                            'orders': 1,
+                            'v1/heartbeats': 1,
+                        },
+                        'delete': {
+                            'auth/api-key': 1,
+                            'auth/builder-api-key': 1,
+                            'cancel-all': 1,
+                            'cancel-market-orders': 1,
+                            'notifications': 1,
+                            'order': 1,
+                            'orders': 1,
+                        },
+                    },
+                },
+                'data': {
+                    'public': {
+                        'get': {
+                            'activity': 1,
+                            'closed-positions': 1,
+                            'holders': 1,
+                            'live-volume': 1,
+                            'oi': 1,
+                            'other': 1,
+                            'positions': 1,
+                            'revisions': 1,
+                            'traded': 1,
+                            'trades': 1,
+                            'v1/accounting/snapshot': 1,
+                            'v1/activity/combos': 1,
+                            'v1/builders/leaderboard': 1,
+                            'v1/builders/volume': 1,
+                            'v1/leaderboard': 1,
+                            'v1/market-positions': 1,
+                            'v1/positions/combos': 1,
+                            'value': 1,
+                        },
+                    },
+                },
+                'combos': {
+                    'public': {
+                        'get': {
+                            'v1/rfq/combo-markets': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'v1/maker/confirmations': 1,
+                            'v1/maker/quotes': 1,
+                            'v1/maker/quotes/cancel': 1,
+                        },
+                    },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'not enough balance / allowance': errors.InsufficientFunds,
+                    'invalid signature': errors.AuthenticationError,
+                    'api key not found': errors.AuthenticationError,
+                },
+                'broad': {
+                    'No orderbook exists': errors.BadSymbol,
+                    // gamma rejects non-token-id values in clob_token_ids with a 422
+                    'invalid clob token ids': errors.BadSymbol,
+                    'not enough balance': errors.InsufficientFunds,
+                    'allowance': errors.InsufficientFunds,
+                    'invalid amount': errors.InvalidOrder,
+                    'invalid price': errors.InvalidOrder,
+                    'minimum tick size': errors.InvalidOrder,
+                    // a FAK/FOK order that finds no match is killed (a normal order outcome, not a
+                    // transport outage) — map it to OrderNotFillable so callers don't retry as if down
+                    'no orders found to match': errors.OrderNotFillable,
+                    'could not be fully filled': errors.OrderNotFillable,
+                    'geoblocked': errors.PermissionDenied,
+                    'restricted jurisdiction': errors.PermissionDenied,
+                    'Unauthorized': errors.AuthenticationError,
+                },
+            },
+            'requiredCredentials': {
+                // dual auth: either pass the L2 api credentials directly
+                // apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
+                // or a privateKey to derive them (see loadApiCredentials); none are
+                // individually required, so validation happens in loadApiCredentials
+                'apiKey': false,
+                'secret': false,
+                'password': false,
+                'privateKey': false, // EOA private key, used to derive L2 creds + sign orders
+                'walletAddress': false, // Ethereum wallet address (POLY_ADDRESS)
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0,
+                    'taker': 0.0,
+                },
+            },
+            'options': {
+                'defaultFetchEventsLimit': 100,
+                // gamma caps each /events response at 100, so paginate at that page size
+                'eventsPageSize': 100,
+                // cap the cold-start listing: each gamma event is heavy (~90 KB with the HTML
+                // description), so 200 events (2 pages, volume-ordered) is ~18 MB; raise via
+                // params.limit or this option when you need a wider set
+                'fetchMarketsLimit': 200,
+                'maxFetchEventsLimit': 500,
+                'defaultEventStatus': 'active', // 'active' | 'closed' | 'all'
+                // prices-history rejects startTs/endTs spans over 15 days regardless of fidelity
+                'maxPricesHistoryWindow': 1296000,
+                // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
+                // mainnet (137) and Amoy (80002), see @polymarket/clob-client config.ts
+                'chainId': 137,
+                'ctfExchangeName': 'Polymarket CTF Exchange',
+                'ctfExchangeVersion': '2',
+                'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
+                'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
+            },
+        });
+    }
+    /**
+     * @method
+     * @name polymarket#fetchMarkets
+     * @description retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single search term used to filter the fetched events
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
+     * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets(params = {}) {
+        const queries = this.parseSearchQueries(params);
+        const rest = this.omit(params, ['query', 'queries']);
+        const queriesLength = queries.length;
+        let rawEvents = [];
+        if (queriesLength > 0) {
+            rawEvents = await this.fetchRawEventsBySearch(queries, rest);
+        }
+        else {
+            rawEvents = await this.fetchRawEventsList(rest);
+        }
+        const flatMarkets = [];
+        const eventsDict = {};
+        for (let rei = 0; rei < rawEvents.length; rei++) {
+            const rawEvent = rawEvents[rei];
+            const ccxtMarkets = this.parseEventToMarkets(rawEvent);
+            for (let mi = 0; mi < ccxtMarkets.length; mi++) {
+                flatMarkets.push(ccxtMarkets[mi]);
+            }
+            const parsedEvent = this.parseEvent(rawEvent);
+            const eventSlug = this.safeString(rawEvent, 'slug');
+            if (eventSlug) {
+                const eventKey = this.shortenSlug(eventSlug);
+                eventsDict[eventKey] = parsedEvent;
+            }
+        }
+        this.events = eventsDict;
+        return flatMarkets;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsBySearch
+     * @description fetches raw gamma event objects matching the given search terms, paginating through all result pages
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {string[]} queries search terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] page size per search query, defaults to 50
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    async fetchRawEventsBySearch(queries, params = {}) {
+        const resultLimit = this.safeInteger(params, 'limit');
+        // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+        // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
+        // tunable per-call via params.searchPageSize, else the exchange option, else 100
+        const optionPageSize = this.safeInteger(this.options, 'searchPageSize', 100);
+        const pageSize = this.safeInteger(params, 'searchPageSize', optionPageSize);
+        // map the unified sort/status onto the gamma search params
+        const sort = this.safeString(params, 'sort');
+        let sortParam = 'volume';
+        if (sort === 'liquidity') {
+            sortParam = 'liquidity';
+        }
+        else if (sort === 'newest') {
+            sortParam = 'startDate';
+        }
+        const status = this.safeString(params, 'status', 'active');
+        let eventsStatus = 'active';
+        if ((status === 'closed') || (status === 'inactive')) {
+            eventsStatus = 'closed';
+        }
+        else if (status === 'all') {
+            eventsStatus = undefined;
+        }
+        const rest = this.omit(params, ['limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'searchPageSize', 'maxSearchPages']);
+        const seen = {};
+        const rawEvents = [];
+        for (let qi = 0; qi < queries.length; qi++) {
+            const q = queries[qi];
+            const baseRequest = { 'q': q, 'limit_per_type': pageSize, 'sort': sortParam, 'ascending': false };
+            if (eventsStatus !== undefined) {
+                baseRequest['events_status'] = eventsStatus;
+            }
+            let firstRequest = { 'page': 1 };
+            firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
+            const first = await this.gammaPublicGetPublicSearch(firstRequest);
+            const firstEvents = this.safeList(first, 'events', []);
+            const firstEventsLength = firstEvents.length;
+            const pagination = this.safeDict(first, 'pagination', {});
+            const totalResults = this.safeInteger(pagination, 'totalResults', firstEventsLength);
+            let totalPages = Math.ceil(totalResults / pageSize);
+            // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
+            // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
+            if (resultLimit !== undefined) {
+                const limitPages = Math.ceil(resultLimit / pageSize);
+                if (limitPages < totalPages) {
+                    totalPages = limitPages;
+                }
+            }
+            else {
+                const optionMaxPages = this.safeInteger(this.options, 'maxSearchPages', 5);
+                const maxSearchPages = this.safeInteger(params, 'maxSearchPages', optionMaxPages);
+                if (maxSearchPages < totalPages) {
+                    totalPages = maxSearchPages;
+                }
+            }
+            const remainingPages = [];
+            for (let p = 2; p <= totalPages; p++) {
+                remainingPages.push(p);
+            }
+            const restPromises = [];
+            for (let pi = 0; pi < remainingPages.length; pi++) {
+                let pageRequest = { 'page': remainingPages[pi] };
+                pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
+                restPromises.push(this.gammaPublicGetPublicSearch(pageRequest));
+            }
+            const restResponses = await Promise.all(restPromises);
+            const allEvents = [];
+            for (let fi = 0; fi < firstEvents.length; fi++) {
+                allEvents.push(firstEvents[fi]);
+            }
+            for (let ri = 0; ri < restResponses.length; ri++) {
+                const pageEvents = this.safeList(restResponses[ri], 'events', []);
+                for (let ei = 0; ei < pageEvents.length; ei++) {
+                    allEvents.push(pageEvents[ei]);
+                }
+            }
+            for (let ei = 0; ei < allEvents.length; ei++) {
+                const rawEvent = allEvents[ei];
+                const eventId = this.safeString(rawEvent, 'id');
+                if (eventId && !(eventId in seen)) {
+                    seen[eventId] = true;
+                    rawEvents.push(rawEvent);
+                }
+            }
+        }
+        return rawEvents;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    tagToSlug(tag) {
+        const lower = tag.toLowerCase();
+        const allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        const chars = this.stringToCharsArray(lower);
+        let slug = '';
+        let pendingSep = false;
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf(ch) >= 0) {
+                if (pendingSep && (slug !== '')) {
+                    slug = slug + '-';
+                }
+                slug = slug + ch;
+                pendingSep = false;
+            }
+            else {
+                pendingSep = true;
+            }
+        }
+        if (slug === '') {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsList
+     * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.status] 'active', 'closed' or 'all', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    async fetchRawEventsList(params = {}) {
+        // gamma hard-caps each response at 100 events regardless of the requested limit, so the
+        // page size must be that cap or pagination never advances (the > check below stays false)
+        const pageSize = this.safeInteger(this.options, 'eventsPageSize', 100);
+        // scope the listing: without a search query loadMarkets would otherwise dump every
+        // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
+        const limit = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'fetchMarketsLimit', 200));
+        const maxPages = Math.ceil(limit / pageSize);
+        const status = this.safeString(params, 'status', this.safeString(this.options, 'defaultEventStatus', 'active'));
+        // sort maps to the gamma `order` field; 'volume' is the default ranking
+        const sort = this.safeString(params, 'sort');
+        let order = 'volume';
+        if (sort === 'liquidity') {
+            order = 'liquidity';
+        }
+        else if (sort === 'newest') {
+            order = 'startDate';
+        }
+        const rest = this.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags']);
+        let baseRequest = { 'limit': pageSize, 'order': order, 'ascending': false };
+        baseRequest = this.extend(baseRequest, rest);
+        // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
+        // fetchEvents returns the tagged events rather than filtering the top-volume listing down
+        // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
+        const requestedTags = this.safeList(params, 'tags', []);
+        const requestedTagsLength = requestedTags.length;
+        if (requestedTagsLength > 1) {
+            const seen = {};
+            const unioned = [];
+            for (let ti = 0; ti < requestedTagsLength; ti++) {
+                const singleTagParams = this.extend({}, params);
+                singleTagParams['tags'] = [requestedTags[ti]];
+                const tagEvents = await this.fetchRawEventsList(singleTagParams);
+                for (let ei = 0; ei < tagEvents.length; ei++) {
+                    const rawEvent = tagEvents[ei];
+                    const eventId = this.safeString(rawEvent, 'id');
+                    if ((eventId !== undefined) && !(eventId in seen)) {
+                        seen[eventId] = true;
+                        unioned.push(rawEvent);
+                    }
+                }
+            }
+            return unioned;
+        }
+        if (requestedTagsLength > 0) {
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            baseRequest['tag_slug'] = this.tagToSlug(this.safeString(requestedTags, 0));
+        }
+        if (status === 'active') {
+            baseRequest['active'] = true;
+            baseRequest['closed'] = false;
+        }
+        else if ((status === 'closed') || (status === 'inactive')) {
+            baseRequest['active'] = false;
+            baseRequest['closed'] = true;
+        }
+        // 'all' — no active/closed filter
+        // fetch page 1 first; if full, fire remaining pages in parallel
+        let firstPageRequest = { 'offset': 0 };
+        firstPageRequest = this.extend(firstPageRequest, baseRequest);
+        const firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
+        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageLength = firstPage.length;
+        const allRawEvents = [];
+        for (let fi = 0; fi < firstPageLength; fi++) {
+            allRawEvents.push(firstPage[fi]);
+        }
+        if (firstPageLength >= pageSize) {
+            const offsets = [];
+            for (let p = 1; p < maxPages; p++) {
+                offsets.push(p * pageSize);
+            }
+            const restPromises = [];
+            for (let oi = 0; oi < offsets.length; oi++) {
+                let pageRequest = { 'offset': offsets[oi] };
+                pageRequest = this.extend(pageRequest, baseRequest);
+                restPromises.push(this.gammaPublicGetEvents(pageRequest));
+            }
+            const restPages = await Promise.all(restPromises);
+            for (let ri = 0; ri < restPages.length; ri++) {
+                const page = (restPages[ri] !== undefined) ? restPages[ri] : [];
+                const pageLength = page.length;
+                for (let pi = 0; pi < pageLength; pi++) {
+                    allRawEvents.push(page[pi]);
+                }
+            }
+        }
+        const allRawEventsLength = allRawEvents.length;
+        if (allRawEventsLength > limit) {
+            return this.arraySlice(allRawEvents, 0, limit);
+        }
+        return allRawEvents;
+    }
+    parseEventToMarkets(event) {
+        const eventSlug = this.safeString(event, 'slug', this.safeString(event, 'id'));
+        const rawMarkets = this.safeList(event, 'markets', []);
+        const result = [];
+        //
+        // {
+        //    "id":"604489",
+        //    "question":"Will Trump visit China by October 31?",
+        //    "conditionId":"0x3d69cc559693ee46ba58da16e43c4e75b8da67b99c2e9a9d2f72bb0222d0f137",
+        //    "slug":"will-trump-visit-china-by-october-31",
+        //    "resolutionSource":"",
+        //    "endDate":"2025-10-31T00:00:00Z",
+        //    "startDate":"2025-09-19T21:22:54.912576Z",
+        //    "image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-visit-china-by-october-31-ujqWMja0Uizt.png",
+        //    "icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-visit-china-by-october-31-ujqWMja0Uizt.png",
+        //    "description":"If U.S. President Donald Trump visits China by October 31, 2025, 11:59 PM ET, this market will resolve to \\""Yes\\"". Otherwise, this market will resolve to \\""No\\"".\\n\\nFor the purpose of this market, a \\""visit\\"" is defined as Trump physically entering the terrestrial or maritime territory of the listed country. Whether or not Trump enters the country's airspace during the timeframe of this market will have no bearing on a positive resolution.\\n\\nThe primary resolution source for this information will be official information from government of the United States of America, official information from Trump or released by his verified social media accounts (e.g. https://twitter.com/POTUS), however, a consensus of credible reporting will also be used.",
+        //    "outcomes":"[\\""Yes\\"", \\""No\\""]",
+        //    "outcomePrices":"[\\"0\\", \\"1\\"]",
+        //    "volume":"549414.493468",
+        //    "active":true,
+        //    "closed":true,
+        //    "marketMakerAddress":"",
+        //    "createdAt":"2025-09-19T19:32:28.841694Z",
+        //    "updatedAt":"2026-03-09T22:44:28.896812Z",
+        //    "closedTime":"2025-11-01 06:28:08+00",
+        //    "new":false,
+        //    "featured":false,
+        //    "submitted_by":"0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+        //    "archived":false,
+        //    "resolvedBy":"0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7",
+        //    "restricted":true,
+        //    "groupItemTitle":"October 31, 2025",
+        //    "groupItemThreshold":"0",
+        //    "questionID":"0x2dd49c70f01a5e7c687a9820d606ff0d85fb50199735928d52d98b3a57586969",
+        //    "umaEndDate":"2025-11-01T06:28:08Z",
+        //    "enableOrderBook":true,
+        //    "orderPriceMinTickSize":"0.001",
+        //    "orderMinSize":"5",
+        //    "umaResolutionStatus":"resolved",
+        //    "volumeNum":"549414.493468",
+        //    "endDateIso":"2025-10-31",
+        //    "startDateIso":"2025-09-19",
+        //    "hasReviewedDates":true,
+        //    "volume1wk":"121949.66579699998",
+        //    "volume1mo":"535231.3545640002",
+        //    "volume1yr":"549414.4934680002",
+        //    "clobTokenIds":"[\\"45601394554497090173642354630373884477724604907691447337031201817815960365378\\", \\"102652665954921241745169157447280060113772926009745753029489061659654862632571\\"]",
+        //    "umaBond":"500",
+        //    "umaReward":"5",
+        //    "volume1wkClob":"121949.66579699998",
+        //    "volume1moClob":"535231.3545640002",
+        //    "volume1yrClob":"549414.4934680002",
+        //    "volumeClob":"549414.493468",
+        //    "customLiveness":"0",
+        //    "acceptingOrders":false,
+        //    "negRisk":false,
+        //    "negRiskRequestID":"",
+        //    "ready":false,
+        //    "funded":false,
+        //    "acceptingOrdersTimestamp":"2025-09-19T21:22:32Z",
+        //    "cyom":false,
+        //    "pagerDutyNotificationEnabled":false,
+        //    "approved":true,
+        //    "rewardsMinSize":"100",
+        //    "rewardsMaxSpread":"3.5",
+        //    "spread":"0.001",
+        //    "automaticallyResolved":true,
+        //    "oneDayPriceChange":"-0.0005",
+        //    "oneWeekPriceChange":"-0.007",
+        //    "oneMonthPriceChange":"-0.011",
+        //    "lastTradePrice":"1",
+        //    "bestAsk":"0.001",
+        //    "automaticallyActive":true,
+        //    "clearBookOnStart":true,
+        //    "seriesColor":"",
+        //    "showGmpSeries":false,
+        //    "showGmpOutcome":false,
+        //    "manualActivation":false,
+        //    "negRiskOther":false,
+        //    "umaResolutionStatuses":"[\\""proposed\\""]",
+        //    "pendingDeployment":false,
+        //    "deploying":false,
+        //    "deployingTimestamp":"2025-09-19T21:22:01.979023Z",
+        //    "rfqEnabled":false,
+        //    "holdingRewardsEnabled":false,
+        //    "feesEnabled":false,
+        //    "requiresTranslation":false,
+        //    "feeType":null
+        // }
+        //
+        for (let mi = 0; mi < rawMarkets.length; mi++) {
+            const market = rawMarkets[mi];
+            const conditionId = this.safeString(market, 'conditionId');
+            const marketId = this.safeString(market, 'id');
+            const marketSlug = this.safeString(market, 'slug', conditionId);
+            const active = this.safeBool(market, 'active', false);
+            const closed = this.safeBool(market, 'closed', false);
+            // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
+            const marketResolved = closed || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
+            let resolvedOutcome = undefined;
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
+            const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
+            // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
+            const orderMinSize = this.safeNumber(market, 'orderMinSize', 1);
+            const priceMax = this.parseNumber(Precise["default"].stringSub('1', this.numberToString(tickSize)));
+            const negRisk = this.safeBool(market, 'negRisk', false);
+            const endDate = this.safeString(market, 'endDate', this.safeString(market, 'end_date_iso'));
+            // Gamma API returns these arrays as JSON-encoded strings
+            let outcomeLabels = [];
+            let clobTokenIds = [];
+            let outcomePrices = [];
+            const parsedOutcomes = this.parseJson(this.safeString(market, 'outcomes', '[]'));
+            const parsedTokenIds = this.parseJson(this.safeString(market, 'clobTokenIds', '[]'));
+            const parsedPrices = this.parseJson(this.safeString(market, 'outcomePrices', '[]'));
+            let parsedOutcomesLength = undefined;
+            if (parsedOutcomes !== undefined) {
+                parsedOutcomesLength = parsedOutcomes.length;
+            }
+            let parsedTokenIdsLength = undefined;
+            if (parsedTokenIds !== undefined) {
+                parsedTokenIdsLength = parsedTokenIds.length;
+            }
+            let parsedPricesLength = undefined;
+            if (parsedPrices !== undefined) {
+                parsedPricesLength = parsedPrices.length;
+            }
+            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+                outcomeLabels = parsedOutcomes;
+            }
+            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+                clobTokenIds = parsedTokenIds;
+            }
+            if (parsedPrices && (parsedPricesLength !== undefined)) {
+                outcomePrices = parsedPrices;
+            }
+            const outcomeLabelsLength = outcomeLabels.length;
+            const clobTokenIdsLength = clobTokenIds.length;
+            if (outcomeLabelsLength === 0 || clobTokenIdsLength === 0) {
+                continue;
+            }
+            // Market outcome (no outcome suffix)
+            const marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
+            // Build outcomes array
+            const outcomes = [];
+            for (let oi = 0; oi < outcomeLabels.length; oi++) {
+                const outcomeLabel = outcomeLabels[oi];
+                const clobTokenId = clobTokenIds[oi];
+                const outcomePrice = this.safeNumber(outcomePrices, oi);
+                if (!clobTokenId) {
+                    continue;
+                }
+                const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
+                let winnerRaw = undefined;
+                let settleFractionRaw = undefined;
+                if (marketResolved && (outcomePrice !== undefined)) {
+                    // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
+                    // that is only closed-for-trading (not yet UMA-resolved) still has fractional
+                    // prices — don't report a fractional mid as a final settleFraction; leave the
+                    // outcome-level fields undefined until a decisive price exists
+                    if (outcomePrice >= 0.99) {
+                        winnerRaw = true;
+                        settleFractionRaw = 1;
+                        resolvedOutcome = outcomeHandle;
+                    }
+                    else if (outcomePrice <= 0.01) {
+                        winnerRaw = false;
+                        settleFractionRaw = 0;
+                    }
+                }
+                // effectively-final copies: Java emits the object literal below as an anonymous
+                // inner class, which cannot capture a reassigned local
+                const winner = winnerRaw;
+                const settleFraction = settleFractionRaw;
+                outcomes.push({
+                    'outcome': outcomeHandle,
+                    'outcomeId': clobTokenId,
+                    'market': marketSymbol,
+                    'label': outcomeLabel,
+                    'price': outcomePrice,
+                    'active': active && !closed,
+                    'winner': winner,
+                    'settleFraction': settleFraction,
+                    // carry the order precision so createOrder needs no extra request
+                    'precision': {
+                        'amount': tickSize,
+                        'price': tickSize,
+                    },
+                    'negRisk': negRisk,
+                    'info': market,
+                });
+            }
+            const baseId = (conditionId !== undefined) ? conditionId : marketId;
+            const marketType = (outcomeLabelsLength > 2) ? 'categorical' : 'binary';
+            // effectively-final copy for the market object literal below (reassigned in the loop)
+            const marketResolvedOutcome = resolvedOutcome;
+            result.push({
+                'id': conditionId,
+                'market': marketSymbol,
+                'marketType': marketType,
+                'executionModel': 'clob',
+                'collateral': 'USDC',
+                'base': 'USDC',
+                'quote': 'USDC',
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': 'USDC',
+                'settleId': undefined,
+                'type': 'prediction',
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'prediction': true,
+                'active': active && !closed,
+                'resolved': marketResolved,
+                'resolvedOutcome': marketResolvedOutcome,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': endDate ? this.parse8601(endDate) : undefined,
+                'expiryDatetime': endDate,
+                'strike': undefined,
+                'optionType': undefined,
+                'taker': 0.0,
+                'maker': 0.0,
+                'percentage': true,
+                'tierBased': false,
+                'feeSide': 'get',
+                'precision': {
+                    'amount': tickSize,
+                    'price': tickSize,
+                },
+                'limits': {
+                    'leverage': { 'min': 1, 'max': 1 },
+                    'amount': { 'min': orderMinSize, 'max': undefined },
+                    'price': { 'min': tickSize, 'max': priceMax },
+                    'cost': { 'min': undefined, 'max': undefined },
+                },
+                'outcomes': outcomes,
+                'info': market,
+                'created': undefined,
+            });
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcome
+     * @description resolves a single outcome by its CLOB token id in one request, so a cache miss
+     * (a bare token id, or a valid outcome on a market outside the top-volume cold cache) recovers
+     * instead of throwing BadSymbol. an outcome HANDLE ("MARKET:LABEL") carries no token id, so it
+     * falls back to the base bulk load
+     * @param {string} outcomeSymbol the outcome token id or handle
+     * @returns {object} the resolved outcome object
+     */
+    async fetchOutcome(outcomeSymbol) {
+        // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
+        // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
+        // word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
+        // non-ids) and falls through to the search path and its local BadSymbol below.
+        // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
+        // `=== -1` passes through and never matches mb_strpos's false return
+        if ((outcomeSymbol.indexOf(':') < 0) && (this.outcomeSearchQuery(outcomeSymbol) === undefined)) {
+            const response = await this.gammaPublicGetMarkets({ 'clob_token_ids': outcomeSymbol });
+            const rawMarkets = (response !== undefined) ? response : [];
+            const rawMarketsLength = rawMarkets.length;
+            if (rawMarketsLength > 0) {
+                if (this.markets === undefined) {
+                    this.markets = this.createSafeDictionary();
+                }
+                const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
+                const ccxtMarketsLength = ccxtMarkets.length;
+                for (let i = 0; i < ccxtMarketsLength; i++) {
+                    const mkt = ccxtMarkets[i];
+                    this.markets[mkt['market']] = mkt;
+                }
+                this.populateOutcomes();
+                const byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
+                if (byId !== undefined) {
+                    return byId;
+                }
+            }
+        }
+        return await super.fetchOutcome(outcomeSymbol);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcomes
+     * @description resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests (repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
+     * @see https://docs.polymarket.com/api-reference/markets/list-markets
+     * @param {string[]} outcomeSymbols outcome token ids or handles
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes(outcomeSymbols) {
+        const tokenIds = [];
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            const outcomeSymbol = outcomeSymbols[i];
+            // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
+            // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
+            // maps that to `=== false`, while a literal `=== -1` passes through and never
+            // matches mb_strpos's false return
+            if ((outcomeSymbol.indexOf(':') < 0) && (this.outcomeSearchQuery(outcomeSymbol) === undefined)) {
+                tokenIds.push(outcomeSymbol);
+            }
+        }
+        const tokenIdsLength = tokenIds.length;
+        if (tokenIdsLength > 0) {
+            if (this.markets === undefined) {
+                this.markets = this.createSafeDictionary();
+            }
+            // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
+            const chunkSize = this.safeInteger(this.options, 'fetchOutcomesBatchSize', 50);
+            let startIndex = 0;
+            while (startIndex < tokenIdsLength) {
+                let endIndex = this.sum(startIndex, chunkSize);
+                if (endIndex > tokenIdsLength) {
+                    endIndex = tokenIdsLength;
+                }
+                const chunk = [];
+                for (let i = startIndex; i < endIndex; i++) {
+                    chunk.push(tokenIds[i]);
+                }
+                // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
+                // with a validation error, so the list rides through urlencodeWithArrayRepeat
+                const response = await this.gammaPublicGetMarkets({ 'clob_token_ids': chunk, 'limit': chunkSize });
+                const rawMarkets = (response !== undefined) ? response : [];
+                const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
+                for (let i = 0; i < ccxtMarkets.length; i++) {
+                    const mkt = ccxtMarkets[i];
+                    this.markets[mkt['market']] = mkt;
+                }
+                startIndex = this.sum(startIndex, chunkSize);
+            }
+            this.populateOutcomes();
+        }
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            if (!this.hasOutcome(outcomeSymbols[i])) {
+                await this.fetchOutcome(outcomeSymbols[i]);
+            }
+        }
+        return this.outcomes;
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTicker
+     * @description fetches the current mid-price and best bid/ask for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
+     * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    async fetchTicker(outcome, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = outcomeObj['outcomeId'];
+        const promises = [
+            this.clobPublicGetMidpoint({ 'token_id': tokenId }),
+            this.clobPublicGetBook({ 'token_id': tokenId }),
+            this.clobPublicGetLastTradePrice({ 'token_id': tokenId }),
+        ];
+        const [midpointResponse, bookResponse, lastTradeResponse] = await Promise.all(promises);
+        const response = { 'midpoint': midpointResponse, 'book': bookResponse, 'lastTrade': lastTradeResponse };
+        //
+        //     {
+        //         "midpoint": {
+        //             "mid": "0.9985"
+        //         },
+        //         "book": {
+        //             "market": "0x2d55f622bc12e23dc1f1bb4db8360c28c92155f9376bf73953c0756ee1387b2f",
+        //             "asset_id": "16718041887881762329859205887704087070587186248220606272297433440108449709696",
+        //             "timestamp": "1777344471023",
+        //             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
+        //             "bids": [
+        //                 {
+        //                     "price": "0.45",
+        //                     "size": "100"
+        //                 },
+        //             ],
+        //             "asks": [
+        //                 {
+        //                     "price": "0.46",
+        //                     "size": "150"
+        //                 },
+        //             ],
+        //             "min_order_size": "5",
+        //             "tick_size": "0.001",
+        //             "neg_risk": false,
+        //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
+        //         }
+        //     }
+        //
+        return this.parsePredictionTicker(response, outcomeObj);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTickers
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
+     * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
+     * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    async fetchTickers(outcomes = undefined, params = {}) {
+        if (outcomes === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+        }
+        // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
+        await this.loadOutcomes(outcomes);
+        const targets = [];
+        for (let oi = 0; oi < outcomes.length; oi++) {
+            targets.push(outcomes[oi]);
+        }
+        const outcomesByTokenId = {};
+        const tokenIds = [];
+        for (let i = 0; i < targets.length; i++) {
+            const outcomeObj = this.outcome(targets[i]);
+            const tokenId = this.safeString(outcomeObj, 'outcomeId');
+            if ((tokenId !== undefined) && !(tokenId in outcomesByTokenId)) {
+                outcomesByTokenId[tokenId] = outcomeObj;
+                tokenIds.push(tokenId);
+            }
+        }
+        const chunkSize = this.safeInteger(this.options, 'fetchTickersBatchSize', 200);
+        const result = {};
+        const tokenIdsLength = tokenIds.length;
+        let startIndex = 0;
+        while (startIndex < tokenIdsLength) {
+            let endIndex = this.sum(startIndex, chunkSize);
+            if (endIndex > tokenIdsLength) {
+                endIndex = tokenIdsLength;
+            }
+            const bookParams = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                bookParams.push({ 'token_id': tokenIds[i] });
+            }
+            const promises = [
+                this.clobPublicPostBooks(bookParams),
+                this.clobPublicPostMidpoints(bookParams),
+                this.clobPublicPostLastTradesPrices(bookParams),
+            ];
+            const responses = await Promise.all(promises);
+            const books = responses[0];
+            const midpoints = responses[1];
+            const lastTrades = responses[2];
+            const lastTradesByTokenId = {};
+            const lastTradesLength = lastTrades.length;
+            for (let li = 0; li < lastTradesLength; li++) {
+                const lastTradeEntry = lastTrades[li];
+                const lastTradeTokenId = this.safeString(lastTradeEntry, 'token_id');
+                if (lastTradeTokenId !== undefined) {
+                    lastTradesByTokenId[lastTradeTokenId] = lastTradeEntry;
+                }
+            }
+            const booksLength = books.length;
+            for (let i = 0; i < booksLength; i++) {
+                const book = books[i];
+                const tokenId = this.safeString(book, 'asset_id');
+                if ((tokenId === undefined) || !(tokenId in outcomesByTokenId)) {
+                    continue;
+                }
+                const outcomeObj = outcomesByTokenId[tokenId];
+                const mid = this.safeString(midpoints, tokenId);
+                const tickerInput = { 'midpoint': { 'mid': mid }, 'book': book, 'lastTrade': this.safeDict(lastTradesByTokenId, tokenId, {}) };
+                const ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
+                const symbolKey = this.safeString(ticker, 'outcome', tokenId);
+                result[symbolKey] = ticker;
+            }
+            startIndex = this.sum(startIndex, chunkSize);
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionTicker
+     * @description parses a combined midpoint + order book response into a unified ticker object
+     * @param {object} ticker a dict with midpoint and book entries
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    parsePredictionTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "midpoint": {
+        //             "mid": "0.9985"
+        //         },
+        //         "book": {
+        //             "market": "0x2d55f622bc12e23dc1f1bb4db8360c28c92155f9376bf73953c0756ee1387b2f",
+        //             "asset_id": "16718041887881762329859205887704087070587186248220606272297433440108449709696",
+        //             "timestamp": "1777344471023",
+        //             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
+        //             "bids": [
+        //                 {
+        //                     "price": "0.45",
+        //                     "size": "100"
+        //                 },
+        //             ],
+        //             "asks": [
+        //                 {
+        //                     "price": "0.46",
+        //                     "size": "150"
+        //                 },
+        //             ],
+        //             "min_order_size": "5",
+        //             "tick_size": "0.001",
+        //             "neg_risk": false,
+        //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
+        //         }
+        //     }
+        //
+        const midpointData = this.safeDict(ticker, 'midpoint', {});
+        const bookData = this.safeDict(ticker, 'book', {});
+        const mid = this.safeNumber(midpointData, 'mid');
+        const bids = this.safeList(bookData, 'bids', []);
+        const asks = this.safeList(bookData, 'asks', []);
+        const bidsLength = bids.length;
+        const asksLength = asks.length;
+        // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
+        const bestBid = (bidsLength > 0) ? bids[bidsLength - 1] : undefined;
+        const bestAsk = (asksLength > 0) ? asks[asksLength - 1] : undefined;
+        // book.last_trade_price is market-level and denominated in whichever token traded last —
+        // on the complementary token it is the OTHER side's price, so only the per-token
+        // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
+        // never-traded token, which also falls back to the mid
+        const lastTradeData = this.safeDict(ticker, 'lastTrade', {});
+        let last = this.safeNumber(lastTradeData, 'price');
+        if ((last === undefined) || (last === 0)) {
+            last = mid;
+        }
+        const outcome = this.safeOutcomeSymbol(undefined, market);
+        const timestamp = this.safeInteger(bookData, 'timestamp', this.milliseconds());
+        let quoteVolume = undefined;
+        if (market !== undefined) {
+            quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
+        }
+        return this.safePredictionTicker({
+            'outcome': outcome,
+            'outcomeId': this.safeString(market, 'outcomeId'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'market'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeNumber(bestBid, 'price'),
+            'bidVolume': this.safeNumber(bestBid, 'size'),
+            'ask': this.safeNumber(bestAsk, 'price'),
+            'askVolume': this.safeNumber(bestAsk, 'size'),
+            'vwap': undefined,
+            'open': undefined,
+            // close must be the last TRADE price, not the midpoint — base safeTicker derives `last`
+            // from `close` (safeString2('close','last')), so close:mid would clobber last with the mid.
+            // the midpoint lives in `average`
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': mid,
+            'baseVolume': undefined,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOrderBook
+     * @description fetches the CLOB order book for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [limit] not used by polymarket fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    async fetchOrderBook(outcome, limit = undefined, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = outcomeObj['outcomeId'];
+        const request = {
+            'token_id': tokenId,
+        };
+        const response = await this.clobPublicGetBook(this.extend(request, params));
+        //
+        //     {
+        //         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
+        //         "asset_id": "53471586309106256293075593293890793127405137223521910882276033765569397092350",
+        //         "timestamp": "1777541385018",
+        //         "hash": "bfb61f58dab4055d956eb5e758dbc9101c9a4e6c",
+        //         "bids": [
+        //             { "price": "0.001", "size": "3147.19" },
+        //             { "price": "0.002", "size": "1432.11" }
+        //         ],
+        //         "asks": [
+        //             { "price": "0.999", "size": "73.68" },
+        //             { "price": "0.998", "size": "7" }
+        //         ],
+        //         "min_order_size": "5",
+        //         "tick_size": "0.001",
+        //         "neg_risk": false,
+        //         "last_trade_price": "0.002"
+        //     }
+        //
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size');
+        return this.safePredictionOrderBook(orderbook, outcomeObj);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOHLCV
+     * @description fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
+     * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV(outcome, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!(timeframe in this.timeframes)) {
+            // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
+            const supportedKeys = Object.keys(this.timeframes);
+            throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
+        }
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = outcomeObj['outcomeId'];
+        const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
+        const nowS = this.seconds();
+        let startS;
+        let endS = nowS;
+        if (since !== undefined) {
+            startS = this.parseToInt(since / 1000);
+            if (limit !== undefined) {
+                const endBound = this.sum(startS, limit * fidelityMin * 60);
+                endS = (endBound < nowS) ? endBound : nowS;
+            }
+        }
+        else {
+            const barCount = (limit !== undefined) ? limit : 100;
+            startS = nowS - (barCount * fidelityMin * 60);
+        }
+        // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
+        // regardless of fidelity, so clamp the window to the cap: keep the requested
+        // `since` anchor (oldest chunk first, consistent with since/limit paging),
+        // or the most recent window when no `since` was given
+        const maxWindow = this.safeInteger(this.options, 'maxPricesHistoryWindow', 1296000);
+        if ((endS - startS) > maxWindow) {
+            if (since !== undefined) {
+                endS = this.sum(startS, maxWindow);
+            }
+            else {
+                startS = endS - maxWindow;
+            }
+        }
+        const request = {
+            'market': tokenId,
+            'fidelity': fidelityMin,
+            'startTs': startS,
+            'endTs': endS,
+        };
+        const response = await this.clobPublicGetPricesHistory(this.extend(request, params));
+        //
+        //     {
+        //         "history": [
+        //             { "t": "1776043119", "p": "0.265" },
+        //         ]
+        //     }
+        //
+        const history = this.safeList(response, 'history', []);
+        // Client-side bucket aggregation: snap each tick to its candle boundary and
+        // build open/high/low/close/volume. Assumes history is sorted ascending by time.
+        const resolutionMs = fidelityMin * 60 * 1000;
+        const buckets = {};
+        for (let i = 0; i < history.length; i++) {
+            const item = history[i];
+            const t = this.safeInteger(item, 't');
+            const price = this.safeNumber(item, 'p');
+            if ((t === undefined) || (price === undefined)) {
+                continue;
+            }
+            const rawMs = t * 1000;
+            const snappedMs = Math.floor(rawMs / resolutionMs) * resolutionMs;
+            // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
+            // rather than fabricating a 0, probing s/v in case the field ever appears
+            let vol = this.safeNumber(item, 's');
+            if (vol === undefined) {
+                vol = this.safeNumber(item, 'v');
+            }
+            const bucketKey = snappedMs.toString();
+            if (!(bucketKey in buckets)) {
+                buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
+            }
+            else {
+                const candle = buckets[bucketKey];
+                candle[2] = Math.max(candle[2], price); // high
+                candle[3] = Math.min(candle[3], price); // low
+                candle[4] = price; // close (last tick wins)
+                if (vol !== undefined) {
+                    const prevVol = candle[5];
+                    candle[5] = (prevVol === undefined) ? vol : this.sum(prevVol, vol); // volume
+                }
+                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
+            }
+        }
+        const bucketKeys = Object.keys(buckets);
+        const unsortedCandles = [];
+        for (let i = 0; i < bucketKeys.length; i++) {
+            unsortedCandles.push(buckets[bucketKeys[i]]);
+        }
+        const candles = this.sortBy(unsortedCandles, 0);
+        const candlesLength = candles.length;
+        if ((limit !== undefined) && (candlesLength > limit)) {
+            return this.arraySlice(candles, -limit);
+        }
+        return candles;
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        // Unused: fetchOHLCV performs client-side bucket aggregation directly.
+        //
+        //     {
+        //         "t": "1776043119",
+        //         "p": "0.265"
+        //     }
+        //
+        const price = this.safeNumber(ohlcv, 'p');
+        return [this.safeTimestamp(ohlcv, 't'), price, price, price, price, undefined];
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTime
+     * @description fetches the current timestamp from the CLOB server
+     * @see https://docs.polymarket.com/api-reference/data/get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current server time in milliseconds
+     */
+    async fetchTime(params = {}) {
+        const response = await this.clobPublicGetTime(params);
+        //
+        //     1781273248
+        //
+        return this.parseToInt(response) * 1000;
+    }
+    /**
+     * @method
+     * @name polymarket#fetchStatus
+     * @description fetches the gamma API health status
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus(params = {}) {
+        const response = await this.gammaPublicGetStatus(params);
+        //
+        //     OK
+        //
+        const ok = (response === 'OK') || (response === 'ok');
+        return {
+            'status': ok ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOpenInterest
+     * @description fetches the open interest of a prediction market outcome
+     * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    async fetchOpenInterest(outcome, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
+        const conditionId = this.safeString(outcomeInfo, 'conditionId');
+        if (conditionId === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterest() requires outcome.info.conditionId for ' + outcome);
+        }
+        const request = { 'market': conditionId };
+        const response = await this.dataPublicGetOi(this.extend(request, params));
+        //
+        //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
+        //
+        const first = this.safeDict(response, 0, {});
+        return this.parsePredictionOpenInterest(first, outcomeObj);
+    }
+    parsePredictionOpenInterest(interest, market = undefined) {
+        //
+        //     { "market": "0x7976b8...92", "value": 4925662.470476 }
+        //
+        const timestamp = this.milliseconds();
+        const openInterest = this.safeOpenInterest({
+            'symbol': this.safeOutcomeSymbol(undefined, market),
+            'openInterestAmount': undefined,
+            'openInterestValue': this.safeNumber(interest, 'value'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, market);
+        openInterest['outcome'] = this.safeOutcomeSymbol(undefined, market);
+        openInterest['outcomeId'] = this.safeString(market, 'outcomeId');
+        openInterest['market'] = this.safeString(market, 'market');
+        delete openInterest['symbol'];
+        return openInterest;
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTradingFee
+     * @description fetches the base fee rate for a prediction market outcome token
+     * @see https://docs.polymarket.com/api-reference/market-data/get-fee-rate
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    async fetchTradingFee(outcome, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        const request = { 'token_id': tokenId };
+        const response = await this.clobPublicGetFeeRate(this.extend(request, params));
+        //
+        //     { "base_fee": 30 }   // base fee in basis points
+        //
+        const baseFeeBps = this.safeString(response, 'base_fee');
+        const rate = (baseFeeBps !== undefined) ? this.parseNumber(Precise["default"].stringDiv(baseFeeBps, '10000')) : undefined;
+        return {
+            'info': response,
+            'outcome': this.safeOutcomeSymbol(undefined, outcomeObj),
+            'outcomeId': this.safeString(outcomeObj, 'outcomeId'),
+            'market': this.safeString(outcomeObj, 'market'),
+            'maker': rate,
+            'taker': rate,
+            'percentage': true,
+            'tierBased': false,
+        };
+    }
+    /**
+     * @method
+     * @name polymarket#fetchTrades
+     * @description fetches public trade history for a single outcome token from the data API
+     * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [since] not used by polymarket fetchTrades
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = outcomeObj['outcomeId'];
+        const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
+        const conditionId = this.safeString(outcomeInfo, 'conditionId');
+        if (conditionId === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchTrades() requires outcome.info.conditionId for an outcome ' + tokenId);
+        }
+        // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+        // to the requested token client-side below. applying the user's `limit` to this request and
+        // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
+        // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
+        // token filter by parsePredictionTrades
+        const request = { 'market': conditionId };
+        request['limit'] = this.safeInteger(this.options, 'tradesPageSize', 500);
+        const response = await this.dataPublicGetTrades(this.extend(request, params));
+        const rawTrades = Array.isArray(response) ? response : this.safeList(response, 'data', []);
+        const filteredTrades = [];
+        for (let i = 0; i < rawTrades.length; i++) {
+            const trade = rawTrades[i];
+            const tradeAsset = this.safeString(trade, 'asset');
+            if (tradeAsset === tokenId) {
+                filteredTrades.push(trade);
+            }
+        }
+        // the trades are already narrowed to this outcome by asset id above;
+        // parsePredictionTrade resolves the outcome from each trade's asset id
+        return this.parsePredictionTrades(filteredTrades, undefined, since, limit);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchMyTrades
+     * @description fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/get-trades
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadApiCredentials();
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome(outcome);
+            request['asset_id'] = outcomeObj['outcomeId'];
+        }
+        const response = await this.clobPrivateGetDataTrades(this.extend(request, params));
+        const rawTrades = Array.isArray(response) ? response : this.safeList(response, 'data', []);
+        return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOrderTrades
+     * @description fetches all the trades made from a single order
+     * @see https://docs.polymarket.com/api-reference/trade/get-trades
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id to narrow the lookup
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchOrderTrades(id, outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
+        // the ones where this order was the taker or one of the matched makers
+        const trades = await this.fetchMyTrades(outcome, undefined, undefined, params);
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const info = this.safeDict(trade, 'info', {});
+            let belongs = (this.safeString(trade, 'order') === id) || (this.safeString(info, 'taker_order_id') === id);
+            const makerOrders = this.safeList(info, 'maker_orders', []);
+            for (let j = 0; j < makerOrders.length; j++) {
+                if (this.safeString(makerOrders[j], 'order_id') === id) {
+                    belongs = true;
+                }
+            }
+            if (belongs) {
+                result.push(trade);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionTrade
+     * @description parses a raw data API trade object into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parsePredictionTrade(trade, market = undefined) {
+        // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
+        // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
+        const id = this.safeStringN(trade, ['transactionHash', 'transaction_hash', 'id']);
+        let timestamp = this.safeIntegerProduct(trade, 'timestamp', 1000);
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct(trade, 'match_time', 1000);
+        }
+        const price = this.safeNumber(trade, 'price');
+        const amount = this.safeNumber(trade, 'size');
+        const rawSide = this.safeStringLower(trade, 'side');
+        const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
+        const assetId = this.safeString2(trade, 'asset', 'asset_id');
+        const mkt = (market !== undefined) ? market : this.safeOutcome(assetId);
+        const outcome = this.safeOutcomeSymbol(undefined, mkt);
+        const rawTakerOrMaker = this.safeStringLower(trade, 'trader_side');
+        const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
+        const feeRateBps = this.safeString(trade, 'fee_rate_bps');
+        let fee = undefined;
+        if (feeRateBps !== undefined) {
+            fee = {
+                'currency': 'USDC',
+                'rate': this.parseNumber(Precise["default"].stringDiv(feeRateBps, '10000')),
+            };
+        }
+        return this.safePredictionTrade({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'outcome': outcome,
+            'outcomeId': assetId,
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString(mkt, 'market'),
+            'order': this.safeString2(trade, 'orderId', 'taker_order_id'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, mkt);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchBalance
+     * @description fetches the USDC collateral balance available for trading on the CLOB
+     * @see https://docs.polymarket.com/api-reference/trade/get-balance-allowance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    async fetchBalance(params = {}) {
+        await this.loadApiCredentials();
+        // the collateral balance is tied to the signature type / funder that holds the USDC
+        const signatureType = this.safeInteger2(params, 'signatureType', 'signature_type', this.safeInteger(this.options, 'signatureType', 3));
+        const rest = this.omit(params, ['signatureType', 'signature_type']);
+        const request = {
+            'asset_type': 'COLLATERAL',
+            'signature_type': signatureType,
+        };
+        const response = await this.clobPrivateGetBalanceAllowance(this.extend(request, rest));
+        return this.parseBalance(response);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parseBalance
+     * @description parses a balance-allowance response into a balances object with a USDC entry
+     * @param {object} response the raw balance-allowance response
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    parseBalance(response) {
+        const result = { 'info': response };
+        // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
+        const raw = this.safeString(response, 'balance');
+        let total = undefined;
+        if (raw !== undefined) {
+            total = this.parseNumber(Precise["default"].stringDiv(raw, '1000000'));
+        }
+        result['USDC'] = {
+            'free': total,
+            'used': undefined,
+            'total': total,
+        };
+        return this.safeBalance(result);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchPositions
+     * @description fetches open outcome token positions for the wallet from the data API
+     * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+     * @param {string[]} [outcomes] unified outcomes to filter by
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPositions(outcomes = undefined, params = {}) {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+            await this.loadOutcomes(outcomes);
+        }
+        // no bulk warm-up on the unfiltered path: the positions request is self-contained and
+        // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
+        if (this.walletAddress === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' walletAddress is required to fetchPositions');
+        }
+        const request = {
+            'user': this.walletAddress,
+        };
+        const response = await this.dataPublicGetPositions(this.extend(request, params));
+        const positions = this.safeList(response, 'data', []);
+        // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
+        // then filter by the requested outcomes' token ids ourselves
+        const parsed = this.parsePredictionPositions(positions);
+        if (outcomesLength === 0) {
+            return parsed;
+        }
+        const wantedIds = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome(outcomes[i]);
+            wantedIds[outcomeObj['outcomeId']] = true;
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const info = this.safeDict(position, 'info', {});
+            const assetId = this.safeString(info, 'asset');
+            if ((assetId !== undefined) && (assetId in wantedIds)) {
+                result.push(position);
+            }
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name polymarket#fetchPosition
+     * @description fetches the open position for a single outcome token
+     * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPosition(outcome, params = {}) {
+        const positions = await this.fetchPositions([outcome], params);
+        return this.safeDict(positions, 0);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionPosition
+     * @description parses a raw data API position object into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    parsePredictionPosition(position, market = undefined) {
+        const tokenId = this.safeString(position, 'asset');
+        const marketData = this.safeOutcome(tokenId, market);
+        const size = this.safeNumber(position, 'size');
+        const entryPrice = this.safeNumber(position, 'avgPrice');
+        const curPrice = this.safeNumber(position, 'currentPrice');
+        let notional = undefined;
+        if ((size !== undefined) && (curPrice !== undefined)) {
+            notional = size * curPrice;
+        }
+        return this.safePredictionPosition({
+            'id': this.safeString(position, 'id'),
+            // safe access: safeOutcome stubs (unknown assets) carry no 'event' key, and raw
+            // bracket access on a missing key raises in Python/PHP
+            'outcome': this.safeString(marketData, 'outcome'),
+            'outcomeId': this.safeString(marketData, 'outcomeId'),
+            'market': this.safeString(marketData, 'market'),
+            'label': this.safeString(marketData, 'label'),
+            'event': this.safeString(marketData, 'event'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': size,
+            'contractSize': 1,
+            'side': 'long',
+            'notional': notional,
+            'leverage': 1,
+            'unrealizedPnl': undefined,
+            'realizedPnl': this.safeNumber(position, 'realizedPnl'),
+            'collateral': undefined,
+            'entryPrice': entryPrice,
+            'markPrice': curPrice,
+            'liquidationPrice': undefined,
+            'hedged': false,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'marginMode': 'cross',
+            'marginType': 'cross',
+            'percentage': undefined,
+            'info': position,
+        });
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOpenOrders
+     * @description fetches open resting orders for the authenticated user, optionally filtered by outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {int} [since] not used by polymarket fetchOpenOrders
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadApiCredentials();
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome(outcome);
+            request['asset_id'] = outcomeObj['outcomeId'];
+        }
+        const response = await this.clobPrivateGetDataOrders(this.extend(request, params));
+        const orders = this.safeList(response, 'data', []);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchOrder
+     * @description fetches a single order by id from the CLOB private data endpoint
+     * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrder(id, outcome = undefined, params = {}) {
+        // the request only needs the order id; the outcome is a labelling hint, so resolve it from
+        // cache (no network) — fetchOrder stays a single request even on a cold cache.
+        await this.loadApiCredentials();
+        const request = { 'id': id };
+        const response = await this.clobPrivateGetDataOrderId(this.extend(request, params));
+        return this.parsePredictionOrder(response);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parsePredictionOrder
+     * @description parses a raw CLOB order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parsePredictionOrder(order, market = undefined) {
+        //
+        // {
+        //     "errorMsg":"",
+        //     "orderID":"0xdf6c53273ad44ab208323c8dde43f04304852c89d55df57efaca8e40caf2f363",
+        //     "takingAmount":"",
+        //     "makingAmount":"",
+        //     "status":"live",
+        //     "success":true
+        // }
+        // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
+        const id = this.safeString2(order, 'id', 'orderID');
+        const tokenId = this.safeString(order, 'asset_id');
+        const mkt = this.safeOutcome(tokenId, market);
+        // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
+        const status = this.parseOrderStatus(this.safeString2(order, 'status', 'type'));
+        const side = this.safeStringLower(order, 'side');
+        const price = this.safeNumber(order, 'price');
+        const amount = this.safeNumber(order, 'original_size');
+        const filled = this.safeNumber(order, 'size_matched', 0);
+        const ts = this.safeIntegerProduct(order, 'created_at', 1000);
+        return this.safePredictionOrder({
+            'id': id,
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'outcome': mkt['outcome'],
+            'outcomeId': this.safeString(mkt, 'outcomeId'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString(mkt, 'market'),
+            'type': 'limit', // polymarket CLOB orders are limit orders (the user-ws 'type' field is the lifecycle, used for status)
+            'timeInForce': this.safeString(order, 'time_in_force', 'GTC'),
+            'postOnly': this.safeBool(order, 'postOnly'),
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'fee': undefined,
+            'trades': [],
+        }, mkt);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parseOrderStatus
+     * @description maps a polymarket order status string to the unified status vocabulary
+     * @param {string} status the raw polymarket order status
+     * @returns {string} a unified order status
+     */
+    parseOrderStatus(status) {
+        const statuses = {
+            'live': 'open',
+            'matched': 'closed',
+            'cancelled': 'canceled',
+            'delayed': 'open',
+            // user-websocket order lifecycle ('type' field)
+            'placement': 'open',
+            'update': 'open',
+            'cancellation': 'canceled',
+        };
+        // the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
+        // user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
+        const normalized = this.safeStringLower({ 'status': status }, 'status');
+        return this.safeString(statuses, normalized, normalized);
+    }
+    /**
+     * @method
+     * @name polymarket#createOrder
+     * @description places a limit or market order on the CLOB for the given outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many outcome tokens to trade
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
+     * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
+     * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
+     * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
+     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
+     * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
+        await this.loadApiCredentials();
+        await this.loadOutcome(outcome);
+        const built = this.buildClobOrderBody(outcome, type, side, amount, price, params);
+        const response = await this.clobPrivatePostOrder(this.safeDict(built, 'body'));
+        // request echo first so the response's real orderID/status/success win on overlap
+        const enriched = this.extend(this.safeDict(built, 'request'), response);
+        const order = this.parsePredictionOrder(enriched, this.safeDict(built, 'outcome'));
+        order['info'] = response; // keep info the raw exchange response, not the request echo
+        return order;
+    }
+    /**
+     * @method
+     * @name polymarket#createOrders
+     * @description places multiple orders on the CLOB in a single batched request
+     * @see https://docs.polymarket.com/api-reference/trade/post-orders
+     * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrders(orders, params = {}) {
+        await this.loadApiCredentials();
+        // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
+        // requested outcomes first (one gamma request for all uncached token ids)
+        const orderOutcomes = [];
+        for (let i = 0; i < orders.length; i++) {
+            const o = orders[i];
+            orderOutcomes.push(this.safeString(o, 'outcome'));
+        }
+        await this.loadOutcomes(orderOutcomes);
+        const bodies = [];
+        const outcomes = [];
+        const requests = [];
+        const batchSalt = this.milliseconds();
+        for (let i = 0; i < orders.length; i++) {
+            const o = orders[i];
+            let orderParams = this.safeDict(o, 'params', {});
+            if (this.safeString(orderParams, 'salt') === undefined) {
+                // a distinct salt per order so two identical orders in one batch don't collide
+                orderParams = this.extend(orderParams, { 'salt': this.numberToString(this.sum(batchSalt, i)) });
+            }
+            const built = this.buildClobOrderBody(this.safeString(o, 'outcome'), this.safeString(o, 'type'), this.safeString(o, 'side'), this.safeNumber(o, 'amount'), this.safeNumber(o, 'price'), orderParams);
+            bodies.push(this.safeDict(built, 'body'));
+            outcomes.push(this.safeDict(built, 'outcome'));
+            requests.push(this.safeDict(built, 'request'));
+        }
+        const response = await this.clobPrivatePostOrders(bodies);
+        const result = [];
+        if (Array.isArray(response)) {
+            for (let i = 0; i < response.length; i++) {
+                // request echo first so the response's real orderID/status win on overlap
+                const enriched = this.extend(requests[i], response[i]);
+                const parsedItem = this.parsePredictionOrder(enriched, outcomes[i]);
+                parsedItem['info'] = response[i]; // keep info the raw exchange response
+                result.push(parsedItem);
+            }
+        }
+        else {
+            result.push(this.parsePredictionOrder(response));
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#buildClobOrderBody
+     * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
+     * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
+     */
+    buildClobOrderBody(outcome, type, side, amount, price = undefined, params = {}) {
+        // pure builder, no network I/O — intentionally synchronous. a no-op async method
+        // transpiles in php to a promise-typed wrapper around a body that returns a plain
+        // dict, which throws a TypeError
+        // outcome () validates the outcome against the loaded outcomes (built from events or markets)
+        const outcomeObj = this.outcome(outcome);
+        const tokenId = outcomeObj['outcomeId'];
+        const sideStr = side.toUpperCase();
+        const isMarket = (type === 'market');
+        // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
+        // native override: params.orderType (GTC, GTD, FOK or FAK)
+        let orderTypeStr = this.safeStringUpper(params, 'orderType');
+        if (orderTypeStr === undefined) {
+            // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
+            const unifiedTif = this.safeStringUpper(params, 'timeInForce');
+            if (unifiedTif === 'GTC') {
+                orderTypeStr = 'GTC';
+            }
+            else if (unifiedTif === 'FOK') {
+                orderTypeStr = 'FOK';
+            }
+            else if (unifiedTif === 'IOC') {
+                orderTypeStr = 'FAK'; // fill-and-kill == immediate-or-cancel
+            }
+            else if (unifiedTif === 'GTD') {
+                orderTypeStr = 'GTD';
+            }
+        }
+        if (orderTypeStr === undefined) {
+            orderTypeStr = isMarket ? 'FOK' : 'GTC';
+        }
+        if (price === undefined) {
+            if (!isMarket) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
+            }
+            // market order without an explicit price: use the outcome's current price as the marketable reference
+            price = this.safeNumber(outcomeObj, 'price');
+            if (price === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine a price from the outcome, pass an explicit price');
+            }
+        }
+        // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
+        // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
+        const outcomePrecision = this.safeDict(outcomeObj, 'precision', {});
+        const tickSize = this.safeString(params, 'tickSize', this.numberToString(this.safeNumber(outcomePrecision, 'price', 0.01)));
+        const negRisk = this.safeBool(params, 'negRisk', this.safeBool(outcomeObj, 'negRisk', false));
+        // maker-only: the CLOB rejects the order if it would immediately take
+        const postOnly = this.safeBool(params, 'postOnly', false);
+        // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
+        const signatureType = this.safeInteger2(params, 'signatureType', 'signature_type', this.safeInteger(this.options, 'signatureType', 3));
+        // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
+        const eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+        const funder = this.ethChecksumAddress(this.safeString2(params, 'funder', 'maker', this.safeString(this.options, 'funder', this.walletAddress)));
+        // salt and timestamp default to the current time but can be pinned via params for idempotency
+        const salt = this.safeString(params, 'salt', this.numberToString(this.milliseconds()));
+        const timestamp = this.safeString(params, 'timestamp', this.numberToString(this.milliseconds()));
+        // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
+        const expiration = this.safeString(params, 'expiration', '0');
+        // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
+        const cost = this.safeNumber(params, 'cost');
+        const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost']);
+        const amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
+        const makerAmount = this.safeString(amounts, 'makerAmount');
+        const takerAmount = this.safeString(amounts, 'takerAmount');
+        const sideInt = (sideStr === 'BUY') ? 0 : 1;
+        const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
+        // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
+        // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
+        const maker = funder;
+        const signer = (signatureType === 3) ? funder : eoa;
+        const message = {
+            'salt': salt,
+            'maker': maker,
+            'signer': signer,
+            'tokenId': tokenId,
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+            'side': sideInt,
+            'signatureType': signatureType,
+            'timestamp': timestamp,
+            'metadata': bytes32Zero,
+            'builder': bytes32Zero,
+        };
+        const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
+        const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
+        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        const domainVersion = this.safeString(this.options, 'ctfExchangeVersion', '2');
+        const signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
+        const owner = this.safeString(this.options, 'l2ApiKey', this.apiKey);
+        const orderBody = {
+            'deferExec': false,
+            'postOnly': postOnly,
+            'order': {
+                'salt': this.parseToInt(salt),
+                'maker': maker,
+                'signer': signer,
+                'taker': '0x0000000000000000000000000000000000000000',
+                'tokenId': tokenId,
+                'makerAmount': makerAmount,
+                'takerAmount': takerAmount,
+                'side': sideStr,
+                'signatureType': signatureType,
+                'timestamp': timestamp,
+                'expiration': expiration,
+                'metadata': bytes32Zero,
+                'builder': bytes32Zero,
+                'signature': signature,
+            },
+            'owner': owner,
+            'orderType': orderTypeStr,
+        };
+        // the CLOB create response only echoes {orderID, status}; carry the submitted terms
+        // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
+        // them and return a fully-populated order instead of undefined side/price/amount
+        const requestEcho = {
+            'side': sideStr,
+            'price': price,
+            'asset_id': tokenId,
+            'time_in_force': orderTypeStr,
+            'postOnly': postOnly,
+        };
+        if (cost === undefined) {
+            // a cost-sized market buy specifies spend, not shares — leave size to the fill
+            requestEcho['original_size'] = amount;
+        }
+        return {
+            // orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
+            // can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
+            // silently override the signed intent
+            'body': this.extend(rest, orderBody),
+            'outcome': outcomeObj,
+            'request': requestEcho,
+        };
+    }
+    /**
+     * @method
+     * @name polymarket#createMarketBuyOrderWithCost
+     * @description places a market buy order sized by USDC cost (how much to spend) rather than shares
+     * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {float} cost the amount of USDC to spend
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createMarketBuyOrderWithCost(outcome, cost, params = {}) {
+        const request = this.extend(params, { 'cost': cost });
+        return await this.createOrder(outcome, 'market', 'buy', cost, undefined, request);
+    }
+    polymarketOrderRawAmounts(side, size, price, tickSize, cost = undefined) {
+        const configs = {
+            '0.1': { 'price': 1, 'size': 2, 'amount': 3 },
+            '0.01': { 'price': 2, 'size': 2, 'amount': 4 },
+            '0.001': { 'price': 3, 'size': 2, 'amount': 5 },
+            '0.0001': { 'price': 4, 'size': 2, 'amount': 6 },
+        };
+        const cfg = this.safeDict(configs, tickSize, this.safeDict(configs, '0.01'));
+        const priceDecimals = this.safeInteger(cfg, 'price');
+        const sizeDecimals = this.safeInteger(cfg, 'size');
+        const amountDecimals = this.safeInteger(cfg, 'amount');
+        const priceStr = this.numberToString(price);
+        const rawPrice = this.decimalToPrecision(priceStr, number.ROUND, priceDecimals, number.DECIMAL_PLACES);
+        let makerRaw = undefined;
+        let takerRaw = undefined;
+        if ((cost !== undefined) && (side === 'BUY')) {
+            // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
+            // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
+            // a marketable FOK would round just under the ask and fail to cross
+            const costStr = this.numberToString(cost);
+            makerRaw = this.decimalToPrecision(costStr, number.TRUNCATE, sizeDecimals, number.DECIMAL_PLACES);
+            takerRaw = this.decimalToPrecision(Precise["default"].stringDiv(makerRaw, rawPrice), number.TRUNCATE, amountDecimals, number.DECIMAL_PLACES);
+        }
+        else if (side === 'BUY') {
+            const sizeStr = this.numberToString(size);
+            takerRaw = this.decimalToPrecision(sizeStr, number.TRUNCATE, sizeDecimals, number.DECIMAL_PLACES);
+            makerRaw = this.decimalToPrecision(Precise["default"].stringMul(takerRaw, rawPrice), number.ROUND, amountDecimals, number.DECIMAL_PLACES);
+        }
+        else {
+            const sizeStr = this.numberToString(size);
+            makerRaw = this.decimalToPrecision(sizeStr, number.TRUNCATE, sizeDecimals, number.DECIMAL_PLACES);
+            takerRaw = this.decimalToPrecision(Precise["default"].stringMul(makerRaw, rawPrice), number.ROUND, amountDecimals, number.DECIMAL_PLACES);
+        }
+        // scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
+        const makerAmount = this.decimalToPrecision(Precise["default"].stringMul(makerRaw, '1000000'), number.TRUNCATE, 0, number.DECIMAL_PLACES);
+        const takerAmount = this.decimalToPrecision(Precise["default"].stringMul(takerRaw, '1000000'), number.TRUNCATE, 0, number.DECIMAL_PLACES);
+        return {
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+        };
+    }
+    signClobOrder(message, exchangeAddress, domainVersion, sigType) {
+        // param is sigType, not signatureType: the php regex transpiler would rewrite the
+        // substring "signatureType" inside the orderTypeString literal below into the local
+        // var '$signatureType', corrupting the EIP-712 type hash
+        // chainIdValue, not chainId: the php regex transpiler would rewrite the substring "chainId"
+        // inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local var '$chainId',
+        // corrupting the domain type hash
+        const chainIdValue = this.safeInteger(this.options, 'chainId', 137);
+        const domainName = this.safeString(this.options, 'ctfExchangeName', 'Polymarket CTF Exchange');
+        const orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
+        const orderStruct = [
+            { 'name': 'salt', 'type': 'uint256' },
+            { 'name': 'maker', 'type': 'address' },
+            { 'name': 'signer', 'type': 'address' },
+            { 'name': 'tokenId', 'type': 'uint256' },
+            { 'name': 'makerAmount', 'type': 'uint256' },
+            { 'name': 'takerAmount', 'type': 'uint256' },
+            { 'name': 'side', 'type': 'uint8' },
+            { 'name': 'signatureType', 'type': 'uint8' },
+            { 'name': 'timestamp', 'type': 'uint256' },
+            { 'name': 'metadata', 'type': 'bytes32' },
+            { 'name': 'builder', 'type': 'bytes32' },
+        ];
+        const orderDomain = { 'name': domainName, 'version': domainVersion, 'chainId': chainIdValue, 'verifyingContract': exchangeAddress };
+        // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
+        // strict comparison, which would always wrongly select the EOA path
+        if (this.parseToInt(sigType) !== 3) {
+            // standard EOA EIP-712 order signature
+            const encoded = this.ethEncodeStructuredData(orderDomain, { 'Order': orderStruct }, message);
+            const eoaSig = this.signMessage(encoded, this.privateKey);
+            // lowercase: intToBase16 emits uppercase hex in some target languages, but the
+            // signature is case-insensitive bytes and the rest of the hex is lowercase
+            const eoaSignature = '0x' + this.remove0xPrefix(eoaSig['r']) + this.remove0xPrefix(eoaSig['s']) + this.intToBase16(eoaSig['v']);
+            return eoaSignature.toLowerCase();
+        }
+        // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
+        // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
+        // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
+        const orderTypeHash = this.hash(this.encode(orderTypeString), sha3_js.keccak_256, 'binary');
+        const contentsData = this.ethAbiEncode(['bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32'], [orderTypeHash, this.convertToBigInt(message['salt']), message['maker'], message['signer'], this.convertToBigInt(message['tokenId']), this.convertToBigInt(message['makerAmount']), this.convertToBigInt(message['takerAmount']), message['side'], message['signatureType'], this.convertToBigInt(message['timestamp']), this.base16ToBinary(this.remove0xPrefix(message['metadata'])), this.base16ToBinary(this.remove0xPrefix(message['builder']))]);
+        const contentsHash = '0x' + this.hash(contentsData, sha3_js.keccak_256, 'hex');
+        const domainTypeHash = this.hash(this.encode('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), sha3_js.keccak_256, 'binary');
+        const nameHash = this.hash(this.encode(domainName), sha3_js.keccak_256, 'binary');
+        const versionHash = this.hash(this.encode(domainVersion), sha3_js.keccak_256, 'binary');
+        const appDomainData = this.ethAbiEncode(['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'], [domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress]);
+        const appDomainSep = '0x' + this.hash(appDomainData, sha3_js.keccak_256, 'hex');
+        const typedDataSignStruct = [
+            { 'name': 'contents', 'type': 'Order' },
+            { 'name': 'name', 'type': 'string' },
+            { 'name': 'version', 'type': 'string' },
+            { 'name': 'chainId', 'type': 'uint256' },
+            { 'name': 'verifyingContract', 'type': 'address' },
+            { 'name': 'salt', 'type': 'bytes32' },
+        ];
+        const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        const innerValue = {
+            'contents': message,
+            'name': 'DepositWallet',
+            'version': '1',
+            'chainId': chainIdValue,
+            'verifyingContract': message['signer'],
+            'salt': bytes32Zero,
+        };
+        const innerEncoded = this.ethEncodeStructuredData(orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
+        const innerSigObj = this.signMessage(innerEncoded, this.privateKey);
+        const innerSig = this.remove0xPrefix(innerSigObj['r']) + this.remove0xPrefix(innerSigObj['s']) + this.intToBase16(innerSigObj['v']);
+        // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
+        // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
+        // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
+        const ctLenHex = this.intToBase16(orderTypeString.length);
+        // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
+        // simple identifier) picks it up instead of leaking a padStart() function call
+        const lenHex = ctLenHex.padStart(4, '0');
+        const orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
+        const wrappedSignature = '0x' + innerSig + this.remove0xPrefix(appDomainSep) + this.remove0xPrefix(contentsHash) + orderTypeStringHex + lenHex;
+        // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
+        // uppercase hex in some targets); the signature is case-insensitive bytes
+        return wrappedSignature.toLowerCase();
+    }
+    /**
+     * @method
+     * @name polymarket#cancelOrder
+     * @description cancels a single open order by id on the CLOB
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrder(id, outcome = undefined, params = {}) {
+        await this.loadApiCredentials();
+        // cancelling by id needs no market data, so events do not have to be loaded first
+        const request = { 'orderID': id };
+        const response = await this.clobPrivateDeleteOrder(this.extend(request, params));
+        // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
+        // fields, so report the cancellation outcome explicitly rather than parsing an empty order
+        const notCanceled = this.safeDict(response, 'not_canceled', {});
+        const failureReason = this.safeString(notCanceled, id);
+        const status = (failureReason === undefined) ? 'canceled' : 'open';
+        return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
+    }
+    /**
+     * @method
+     * @name polymarket#cancelOrders
+     * @description cancels multiple open orders by id on the CLOB in a single request
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-orders
+     * @param {string[]} ids the order ids to cancel
+     * @param {string} [outcome] not used by polymarket cancelOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrders(ids, outcome = undefined, params = {}) {
+        await this.loadApiCredentials();
+        // the request body is the bare array of order ids (DELETE /orders), so params are not merged
+        const response = await this.clobPrivateDeleteOrders(ids);
+        const canceled = this.safeList(response, 'canceled', []);
+        const orders = [];
+        for (let i = 0; i < canceled.length; i++) {
+            orders.push(this.safePredictionOrder({ 'id': this.safeString(canceled, i), 'status': 'canceled', 'info': response }));
+        }
+        return orders;
+    }
+    /**
+     * @method
+     * @name polymarket#cancelAllOrders
+     * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
+     * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelAllOrders(outcome = undefined, params = {}) {
+        await this.loadApiCredentials();
+        let response = undefined;
+        if (outcome !== undefined) {
+            // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
+            const outcomeObj = await this.loadOutcome(outcome);
+            const request = { 'asset_id': outcomeObj['outcomeId'] };
+            response = await this.clobPrivateDeleteCancelMarketOrders(this.extend(request, params));
+        }
+        else {
+            // cancel every open order via DELETE /cancel-all (no body, no market data needed)
+            response = await this.clobPrivateDeleteCancelAll(params);
+        }
+        const canceled = this.safeList(response, 'canceled', []);
+        const orders = [];
+        for (let i = 0; i < canceled.length; i++) {
+            orders.push(this.safePredictionOrder({ 'id': this.safeString(canceled, i), 'status': 'canceled', 'info': response }));
+        }
+        return orders;
+    }
+    /**
+     * @method
+     * @name polymarket#fetchEvents
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single keyword search term
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
+     * @param {int} [params.limit] max number of events to return
+     * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
+     * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
+     * @param {string} [params.searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
+     * @param {string} [params.eventId] direct lookup by event id (short-circuits the listing/search)
+     * @param {string} [params.slug] direct lookup by event slug
+     * @param {int} [params.searchPageSize] search page size (gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering
+     * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
+     * @returns {object[]} an array of event structures
+     */
+    async fetchEvents(params = {}) {
+        this.requireEventQuery(params);
+        const requestedEventId = this.safeString(params, 'eventId');
+        const requestedSlug = this.safeString(params, 'slug');
+        const queries = this.parseSearchQueries(params);
+        const rest = this.omit(params, ['query', 'queries', 'eventId', 'slug']);
+        const queriesLength = queries.length;
+        let rawEvents = [];
+        if ((requestedEventId !== undefined) || (requestedSlug !== undefined)) {
+            // direct lookup by event id or slug via the events endpoint (returns a list)
+            const lookup = {};
+            if (requestedEventId !== undefined) {
+                lookup['id'] = requestedEventId;
+            }
+            else {
+                lookup['slug'] = requestedSlug;
+            }
+            const response = await this.gammaPublicGetEvents(lookup);
+            rawEvents = (response !== undefined) ? response : [];
+        }
+        else if (queriesLength > 0) {
+            rawEvents = await this.fetchRawEventsBySearch(queries, rest);
+        }
+        else {
+            rawEvents = await this.fetchRawEventsList(rest);
+        }
+        // Parse and merge into class-level caches
+        if (!this.events) {
+            this.events = {};
+        }
+        if (!this.markets) {
+            this.markets = this.createSafeDictionary();
+        }
+        const result = [];
+        for (let rei = 0; rei < rawEvents.length; rei++) {
+            const rawEvent = rawEvents[rei];
+            let eventForParsing = rawEvent;
+            let ccxtMarkets = this.parseEventToMarkets(eventForParsing);
+            const ccxtMarketsLength = ccxtMarkets.length;
+            if (ccxtMarketsLength === 0) {
+                // search results may omit the nested markets, fall back to the detail endpoint
+                const eventId = this.safeString(rawEvent, 'id');
+                const rawEventSlug = this.safeString(rawEvent, 'slug');
+                let detailedEvent = undefined;
+                if (eventId !== undefined) {
+                    detailedEvent = await this.gammaPublicGetEventsId({ 'id': eventId });
+                }
+                else if (rawEventSlug !== undefined) {
+                    detailedEvent = await this.gammaPublicGetEventsSlugSlug({ 'slug': rawEventSlug });
+                }
+                if (detailedEvent !== undefined) {
+                    eventForParsing = this.safeValue(detailedEvent, 'event', detailedEvent);
+                    ccxtMarkets = this.parseEventToMarkets(eventForParsing);
+                }
+            }
+            for (let mi = 0; mi < ccxtMarkets.length; mi++) {
+                const m = ccxtMarkets[mi];
+                this.markets[m['market']] = m;
+            }
+            const parsedEvent = this.parseEvent(eventForParsing);
+            result.push(parsedEvent);
+        }
+        // populateOutcomes rebuilds the outcome cache from the markets registered above; the
+        // shared applyEventFetchParams then caches (setEvents) and applies the unified
+        // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
+        this.populateOutcomes();
+        let effectiveParams = params;
+        if (queriesLength > 0) {
+            // the gamma search endpoint is fuzzy, so default to refining by active status and a
+            // title match (the caller can override); the other venues search exactly and need no
+            // such default. inject the defaults as explicit params so the shared pipeline stays
+            // the single behaviour definition
+            effectiveParams = this.extend({}, params);
+            effectiveParams['status'] = this.safeString(params, 'status', 'active');
+            effectiveParams['searchIn'] = this.safeString(params, 'searchIn', 'title');
+        }
+        return this.applyEventFetchParams(result, effectiveParams, queries);
+    }
+    /**
+     * @method
+     * @name polymarket#fetchEvent
+     * @description fetches a single prediction-market event by its id or slug
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-id
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-slug
+     * @param {string} id the event id (numeric) or slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent(id, params = {}) {
+        let response = undefined;
+        if (id.indexOf('-') >= 0) {
+            response = await this.gammaPublicGetEventsSlugSlug(this.extend({ 'slug': id }, params));
+        }
+        else {
+            response = await this.gammaPublicGetEventsId(this.extend({ 'id': id }, params));
+        }
+        const eventForParsing = this.safeDict(response, 'event', response);
+        const event = this.parseEvent(eventForParsing);
+        this.indexEventOutcomes(event);
+        return event;
+    }
+    parseEvent(rawEvent) {
+        // {
+        //     "id": "73113",
+        //     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",
+        //     "slug": "ukraine-agrees-not-to-join-nato-before-2027",
+        //     "title": "Ukraine agrees not to join NATO before 2027? ",
+        //     "description": "This market will resolve to \\"Yes\\" if Ukraine publicly agrees not to join NATO by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.\\n\\nAn official pledge by Ukraine not to join NATO will qualify for a “Yes” resolution whether as a unilateral announcement or part of an agreement with the Russian Federation.\\n\\nAny agreement or pledge made before the resolution date of this market will qualify, regardless of if/when the agreement goes into effect.\\n\\nAn agreement by Ukraine not to join NATO for any amount of time will count (e.g. If Ukraine not to join NATO for 10 years this will qualify).\\n\\nAn agreement by Ukraine not to join NATO as a precondition of a more comprehensive peace process or deal will qualify, even if the agreement is not finalized or part of a formalized peace deal. The September 8, 1995 “Agreed Basic Principles” between Bosnia and Yugoslavia which recognized the borders and sovereignty of Bosnia and Herzegovina, and was later formalized through the Dayton Peace Agreement is an example of a qualifying agreement. \\n\\nThe primary resolution source for this market will be an official announcement by the Ukraine, however an overwhelming consensus of credible reporting confirming a qualifying agreement has been reached will also count.",
+        //     "resolutionSource": "",
+        //     "startDate": "2025-11-05T17:00:57.200353Z",
+        //     "creationDate": "2025-11-05T17:00:57.20035Z",
+        //     "endDate": "2026-12-31T00:00:00Z",
+        //     "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ukraine-agrees-not-to-join-nato-before-july-vKEDpScXuAtt.jpg",
+        //     "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ukraine-agrees-not-to-join-nato-before-july-vKEDpScXuAtt.jpg",
+        //     "active": true,
+        //     "closed": false,
+        //     "archived": false,
+        //     "new": false,
+        //     "featured": false,
+        //     "restricted": true,
+        //     "liquidity": "22010.6659",
+        //     "openInterest": "0",
+        //     "createdAt": "2025-11-04T19:27:23.246129Z",
+        //     "updatedAt": "2026-03-14T14:38:21.25643Z",
+        //     "competitive": "0.9538344143456696",
+        //     "enableOrderBook": true,
+        //     "liquidityClob": "22010.6659",
+        //     "commentCount": "0",
+        //     "markets": [],
+        //     "tags": [
+        //         {
+        //             "id": "101970",
+        //             "label": "World",
+        //             "slug": "world",
+        //             "forceShow": false,
+        //             "createdAt": "2025-03-19T23:36:08.498099Z",
+        //             "updatedAt": "2026-03-09T22:25:02.420693Z",
+        //             "requiresTranslation": false
+        //         },
+        //         {
+        //             "id": "270",
+        //             "label": "putin",
+        //             "slug": "putin",
+        //             "publishedAt": "2023-11-02 21:46:19.507+00",
+        //             "createdAt": "2023-11-02T21:46:19.528Z",
+        //             "updatedAt": "2026-03-09T22:29:44.08742Z",
+        //             "requiresTranslation": false
+        //         }
+        //     ],
+        //     "cyom": false,
+        //     "showAllOutcomes": true,
+        //     "showMarketImages": true,
+        //     "enableNegRisk": false,
+        //     "automaticallyActive": true,
+        //     "seriesSlug": "ukraine-not-nato",
+        //     "negRiskAugmented": false,
+        //     "cumulativeMarkets": false,
+        //     "pendingDeployment": false,
+        //     "deploying": false,
+        //     "requiresTranslation": false
+        // }
+        const marketsList = this.parseEventToMarkets(rawEvent);
+        const slug = this.safeString(rawEvent, 'slug');
+        // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
+        // the snake_case fallbacks cover older payload shapes
+        const createdAt = this.safeString2(rawEvent, 'createdAt', 'created_date_iso');
+        const endDate = this.safeString2(rawEvent, 'endDate', 'end_date_iso');
+        const updatedAt = this.safeString2(rawEvent, 'updatedAt', 'last_updated_date_iso');
+        const rawActive = this.safeBool(rawEvent, 'active');
+        const closed = this.safeBool(rawEvent, 'closed', false);
+        let active = undefined;
+        if (rawActive !== undefined) {
+            active = rawActive && !closed;
+        }
+        // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
+        const rawTags = this.safeList(rawEvent, 'tags', []);
+        const rawTagsLength = rawTags.length;
+        const parsedTags = [];
+        for (let ti = 0; ti < rawTagsLength; ti++) {
+            const tagLabel = this.safeString2(rawTags[ti], 'label', 'slug');
+            if (tagLabel !== undefined) {
+                parsedTags.push(tagLabel);
+            }
+        }
+        return this.extend({
+            'id': this.safeString(rawEvent, 'id'),
+            'slug': slug,
+            'event': slug ? this.shortenSlug(slug) : undefined,
+            'title': this.safeString(rawEvent, 'title'),
+            'tags': parsedTags,
+            'markets': marketsList,
+            'active': active,
+            'url': this.safeString(rawEvent, 'url'),
+            'image': this.safeString2(rawEvent, 'image', 'image_url'),
+            'created': this.parse8601(createdAt),
+            'createdDatetime': createdAt,
+            'end': this.parse8601(endDate),
+            'endDatetime': endDate,
+            'category': this.safeString(rawEvent, 'category'),
+            'lastUpdatedAt': this.parse8601(updatedAt),
+            'lastUpdatedAtDatetime': updatedAt,
+            'resolutionSource': this.safeString2(rawEvent, 'resolutionSource', 'resolution_source'),
+            'resolved': this.safeBool2(rawEvent, 'closed', 'resolved'),
+            'info': rawEvent,
+        });
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#parseEvents
+     * @description parses an array of raw gamma event objects into unified event objects
+     * @param {object[]} rawEvents the raw gamma event objects
+     * @returns {object[]} a list of event structures
+     */
+    parseEvents(rawEvents) {
+        const result = [];
+        for (let i = 0; i < rawEvents.length; i++) {
+            const rawEvent = rawEvents[i];
+            result.push(this.parseEvent(rawEvent));
+        }
+        return result;
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
+        // map the known messages so callers can distinguish a dead book or a rejected order
+        // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if (!response) {
+            return undefined;
+        }
+        const errorMessage = this.safeString2(response, 'error', 'errorMsg');
+        if (errorMessage !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+        }
+        return undefined;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#sign
+     * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} api the api group and access level
+     * @param {string} method the http method
+     * @param {object} params the request parameters
+     * @param {object} [headers] request headers
+     * @param {string} [body] the request body
+     * @returns {object} a dict with url, method, body and headers
+     */
+    sign(path, api = 'gamma', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // api is either a string ('gamma') or array (['gamma', 'public'])
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
+        const baseUrls = this.urls['api'];
+        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['gamma']);
+        let url = baseUrl + '/' + this.implodeParams(path, params);
+        // an empty params container must not become a body: in PHP an empty array is
+        // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
+        let isArrayBody = false;
+        if (Array.isArray(params)) {
+            const paramsList = params;
+            const paramsListLength = paramsList.length;
+            isArrayBody = paramsListLength > 0;
+        }
+        let query = {};
+        if (!isArrayBody) {
+            query = this.omit(params, this.extractParams(path));
+        }
+        if (method === 'GET') {
+            // array-valued params must repeat the key (gamma's clob_token_ids rejects
+            // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
+            // encoder capitalizes booleans ("False") under the C# base
+            let hasArrayParam = false;
+            const queryKeys = Object.keys(query);
+            for (let i = 0; i < queryKeys.length; i++) {
+                if (Array.isArray(query[queryKeys[i]])) {
+                    hasArrayParam = true;
+                }
+            }
+            const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            if (querystring) {
+                url += '?' + querystring;
+            }
+        }
+        else if (isArrayBody) {
+            body = this.json(params);
+        }
+        else {
+            const queryKeys = Object.keys(query);
+            const queryKeysLength = queryKeys.length;
+            if (queryKeysLength > 0) {
+                body = this.json(query);
+            }
+        }
+        const headerDefaults = (headers !== undefined) ? headers : {};
+        headers = this.extend({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }, headerDefaults);
+        if (access === 'private') {
+            // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
+            // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
+            // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
+            // would corrupt the literal to 'auth/derive-$api-key' and break this check
+            const deriveApiKeyPath = 'auth/derive-' + 'api-key';
+            const isL1Auth = (path === 'auth/api-key') || (path === deriveApiKeyPath) || (path === 'auth/api-keys');
+            if (isL1Auth) {
+                // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
+                if (this.privateKey === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' ' + path + ' requires a privateKey');
+                }
+                // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
+                const address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                const timestamp = this.seconds().toString();
+                const nonce = this.safeInteger(params, 'nonce', 0);
+                const l1signature = this.signClobAuth(address, timestamp, nonce);
+                headers = this.extend(headers, {
+                    'POLY_ADDRESS': address,
+                    'POLY_SIGNATURE': l1signature,
+                    'POLY_TIMESTAMP': timestamp,
+                    'POLY_NONCE': this.numberToString(nonce),
+                });
+            }
+            else {
+                // L2 credentials: provided directly (apiKey/secret/password) or derived from
+                // the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
+                // prefer the derived creds (owned by the privateKey's EOA) over any externally supplied ones
+                const apiKey = this.safeString(this.options, 'l2ApiKey', this.apiKey);
+                const secret = this.safeString(this.options, 'l2Secret', this.secret);
+                const passphrase = this.safeString(this.options, 'l2Passphrase', this.password);
+                // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
+                const address = (this.privateKey !== undefined) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                const timestamp = this.seconds().toString();
+                // the L2 HMAC signs only the request path (no query string), matching
+                // @polymarket/clob-client — query params are sent separately, not signed
+                const requestPath = '/' + this.implodeParams(path, params);
+                let auth = timestamp + method + requestPath;
+                if (body !== undefined) {
+                    auth = auth + body;
+                }
+                // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
+                // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
+                // in a chain, leaving the inner call as an (invalid) method call
+                let normalizedSecret = secret;
+                normalizedSecret = normalizedSecret.replaceAll('-', '+');
+                normalizedSecret = normalizedSecret.replaceAll('_', '/');
+                const secretBytes = this.base64ToBinary(normalizedSecret);
+                let signature = this.hmac(this.encode(auth), secretBytes, sha2_js.sha256, 'base64');
+                // url-safe base64, preserving '=' padding (matches the reference client)
+                signature = signature.replaceAll('+', '-');
+                signature = signature.replaceAll('/', '_');
+                headers = this.extend(headers, {
+                    'POLY_ADDRESS': address,
+                    'POLY_API_KEY': apiKey,
+                    'POLY_PASSPHRASE': passphrase,
+                    'POLY_SIGNATURE': signature,
+                    'POLY_TIMESTAMP': timestamp,
+                });
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    hashMessage(message) {
+        return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
+    }
+    ethChecksumAddress(address) {
+        // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
+        // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
+        const cleaned = this.remove0xPrefix(address).toLowerCase();
+        const hashHex = this.hash(this.encode(cleaned), sha3_js.keccak_256, 'hex');
+        const addrChars = this.stringToCharsArray(cleaned);
+        const hashChars = this.stringToCharsArray(hashHex);
+        const upperNibbles = '89abcdef';
+        let result = '';
+        for (let i = 0; i < addrChars.length; i++) {
+            const ch = addrChars[i];
+            if (upperNibbles.indexOf(hashChars[i]) >= 0) {
+                result = result + ch.toUpperCase();
+            }
+            else {
+                result = result + ch;
+            }
+        }
+        return '0x' + result;
+    }
+    signHash(hash, privateKey) {
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
+        // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart(64, '0');
+        const s = sRaw.padStart(64, '0');
+        return {
+            'r': '0x' + r,
+            's': '0x' + s,
+            'v': this.sum(27, signature['v']), // ecrecover needs v in {27,28}, ecdsa returns the raw {0,1} recovery id
+        };
+    }
+    signMessage(message, privateKey) {
+        return this.signHash(this.hashMessage(message), privateKey.slice(-64));
+    }
+    signClobAuth(address, timestamp, nonce) {
+        // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
+        const domain = {
+            'name': 'ClobAuthDomain',
+            'version': '1',
+            'chainId': 137,
+        };
+        const messageTypes = {
+            'ClobAuth': [
+                { 'name': 'address', 'type': 'address' },
+                { 'name': 'timestamp', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'message', 'type': 'string' },
+            ],
+        };
+        const messageData = {
+            'address': address,
+            'timestamp': timestamp,
+            'nonce': nonce,
+            'message': 'This message attests that I control the given wallet',
+        };
+        const encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+        const sig = this.signMessage(encoded, this.privateKey);
+        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+    }
+    /**
+     * @method
+     * @name polymarket#deriveApiKey
+     * @description derives the L2 api credentials (apiKey, secret, passphrase) deterministically from the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async deriveApiKey(params = {}) {
+        const response = await this.clobPrivateGetAuthDeriveApiKey(params);
+        return this.setApiCredentials(response);
+    }
+    /**
+     * @method
+     * @name polymarket#createApiKey
+     * @description creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async createApiKey(params = {}) {
+        const response = await this.clobPrivatePostAuthApiKey(params);
+        return this.setApiCredentials(response);
+    }
+    /**
+     * @method
+     * @name polymarket#createOrDeriveApiKey
+     * @description derives the existing L2 api credentials for the wallet private key, creating them if none exist yet
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async createOrDeriveApiKey(params = {}) {
+        let creds = undefined;
+        try {
+            creds = await this.deriveApiKey(params);
+        }
+        catch (e) {
+            creds = await this.createApiKey(params);
+        }
+        return creds;
+    }
+    setApiCredentials(response) {
+        //
+        //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
+        //
+        const creds = {
+            'apiKey': this.safeString2(response, 'apiKey', 'key'),
+            'secret': this.safeString(response, 'secret'),
+            'passphrase': this.safeString(response, 'passphrase'),
+        };
+        // cache in options rather than the typed apiKey/secret/password fields so the
+        // assignment is valid in the struct-based languages (C#/Go/Java)
+        this.options['l2ApiKey'] = creds['apiKey'];
+        this.options['l2Secret'] = creds['secret'];
+        this.options['l2Passphrase'] = creds['passphrase'];
+        return creds;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#loadApiCredentials
+     * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
+     */
+    async loadApiCredentials() {
+        // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
+        // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
+        // creds that may have been issued to a different wallet
+        if (this.privateKey !== undefined) {
+            const alreadyDerived = this.safeString(this.options, 'l2ApiKey');
+            if (alreadyDerived === undefined) {
+                await this.createOrDeriveApiKey();
+            }
+            return;
+        }
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
+        const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
+        if (hasL2) {
+            return;
+        }
+        throw new errors.AuthenticationError(this.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
+    }
+    ping(client) {
+        // Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
+        // keepAlive interval set in describe.streaming sends it on both the market and user channels
+        return 'PING';
+    }
+    handleMessage(client, message) {
+        // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
+        // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
+        // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
+        if (typeof message === 'string') {
+            client.lastPong = this.milliseconds();
+            return;
+        }
+        const events = Array.isArray(message) ? message : [message];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            if (!event || typeof event !== 'object') {
+                continue;
+            }
+            const eventType = this.safeString(event, 'event_type');
+            if (eventType === 'book') {
+                this.handleOrderBookSnapshot(client, event);
+            }
+            else if (eventType === 'price_change') {
+                this.handleOrderBookDelta(client, event);
+            }
+            else if (eventType === 'last_trade_price') {
+                this.handleTrade(client, event);
+            }
+            else if (eventType === 'order') {
+                this.handleOrder(client, event);
+            }
+            else if (eventType === 'trade') {
+                this.handleMyTrade(client, event);
+            }
+            // tick_size_change events are silently ignored for now
+        }
+    }
+    handleOrderBookSnapshot(client, event) {
+        const tokenId = this.safeString(event, 'asset_id');
+        const outcome = this.tokenIdToSymbol(tokenId);
+        if (outcome === undefined) {
+            return;
+        }
+        if (!(outcome in this.orderbooks)) {
+            const seededBook = this.orderBook({});
+            this.orderbooks[outcome] = seededBook;
+        }
+        const orderbook = this.orderbooks[outcome];
+        const timestamp = this.parsePolyTimestamp(this.safeString(event, 'timestamp'));
+        const rawBids = this.safeList(event, 'bids', []);
+        const rawAsks = this.safeList(event, 'asks', []);
+        const bids = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const b = rawBids[i];
+            bids.push([this.safeNumber(b, 'price'), this.safeNumber(b, 'size')]);
+        }
+        const asks = [];
+        for (let j = 0; j < rawAsks.length; j++) {
+            const a = rawAsks[j];
+            asks.push([this.safeNumber(a, 'price'), this.safeNumber(a, 'size')]);
+        }
+        const outcomeObj = this.safeOutcome(outcome);
+        orderbook.reset({
+            'bids': bids,
+            'asks': asks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'outcome': outcome,
+            'outcomeId': tokenId,
+            'market': this.safeString(outcomeObj, 'market'),
+        });
+        client.resolve(orderbook, 'orderbook::' + outcome);
+        client.resolve(orderbook, 'ticker::' + outcome);
+    }
+    handleOrderBookDelta(client, event) {
+        const timestamp = this.parsePolyTimestamp(this.safeString(event, 'timestamp'));
+        const changes = this.safeList(event, 'price_changes', []);
+        const updated = {};
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const tokenId = this.safeString(change, 'asset_id');
+            const outcome = this.tokenIdToSymbol(tokenId);
+            if ((outcome === undefined) || !(outcome in this.orderbooks)) {
+                continue; // no snapshot yet — discard delta
+            }
+            const orderbook = this.orderbooks[outcome];
+            const price = this.safeNumber(change, 'price');
+            const size = this.safeNumber(change, 'size');
+            const isBuy = this.safeStringUpper(change, 'side', '') === 'BUY';
+            const side = isBuy ? orderbook['bids'] : orderbook['asks'];
+            // storeArray([price, size]) inserts/updates or removes (size=0) the level
+            const sideRef = side;
+            sideRef.storeArray([price, size]);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601(timestamp);
+            updated[outcome] = true;
+        }
+        const updatedSymbols = Object.keys(updated);
+        for (let k = 0; k < updatedSymbols.length; k++) {
+            const outcome = updatedSymbols[k];
+            const orderbook = this.orderbooks[outcome];
+            client.resolve(orderbook, 'orderbook::' + outcome);
+            client.resolve(orderbook, 'ticker::' + outcome);
+        }
+    }
+    handleTrade(client, event) {
+        const tokenId = this.safeString(event, 'asset_id');
+        const outcome = this.tokenIdToSymbol(tokenId);
+        if (outcome === undefined) {
+            return;
+        }
+        const timestamp = this.parsePolyTimestamp(this.safeString(event, 'timestamp'));
+        const price = this.safeNumber(event, 'price');
+        const amount = this.safeNumber(event, 'size');
+        const market = this.safeOutcome(tokenId);
+        const trade = this.safePredictionTrade({
+            'id': this.safeString(event, 'transaction_hash'),
+            'info': event,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'outcome': outcome,
+            'outcomeId': this.safeString(market, 'outcomeId'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'market'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeStringLower(event, 'side'),
+            'takerOrMaker': 'taker',
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+        if (!this.trades) {
+            this.trades = {};
+        }
+        let stored = this.safeValue(this.trades, outcome);
+        if (stored === undefined) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            stored = new Cache.ArrayCache(limit);
+            this.trades[outcome] = stored;
+        }
+        stored.append(trade);
+        client.resolve(stored, 'trades::' + outcome);
+    }
+    /**
+     * @method
+     * @name polymarket#watchOrderBook
+     * @description streams live order-book updates for a single Polymarket outcome token
+     * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
+     * @param {int} [limit] optional depth limit applied after resolving
+     * @param {object} [params] extra params (currently unused)
+     * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
+     */
+    async watchOrderBook(outcome, limit = undefined, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        outcome = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'orderbook::' + outcome;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
+        return orderbook.limit();
+    }
+    /**
+     * @method
+     * @name polymarket#watchTrades
+     * @description streams live fills for a single Polymarket outcome token
+     * @param {string} outcome unified outcome
+     * @param {int} [since] optional unix timestamp (ms) lower bound
+     * @param {int} [limit] optional max number of trades to return
+     * @param {object} [params] extra params (unused)
+     * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
+     */
+    async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        outcome = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'trades::' + outcome;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
+        const url = this.urls['api']['ws'];
+        const trades = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name polymarket#watchTicker
+     * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
+     * @param {string} outcome unified outcome
+     * @param {object} [params] extra params (unused)
+     * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
+     */
+    async watchTicker(outcome, params = {}) {
+        const outcomeObj = await this.loadOutcome(outcome);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        outcome = this.safeString(outcomeObj, 'outcome');
+        const messageHash = 'ticker::' + outcome;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
+        if (!(outcome in this.orderbooks)) {
+            const seededBook = this.orderBook({});
+            this.orderbooks[outcome] = seededBook;
+        }
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
+        let bestBid = undefined;
+        let bestBidVolume = undefined;
+        let bidsLength = 0;
+        if (bids !== undefined) {
+            bidsLength = bids.length;
+        }
+        if ((bids !== undefined) && (bidsLength > 0)) {
+            bestBid = bids[0][0];
+            bestBidVolume = bids[0][1];
+        }
+        let bestAsk = undefined;
+        let bestAskVolume = undefined;
+        let asksLength = 0;
+        if (asks !== undefined) {
+            asksLength = asks.length;
+        }
+        if ((asks !== undefined) && (asksLength > 0)) {
+            bestAsk = asks[0][0];
+            bestAskVolume = asks[0][1];
+        }
+        let mid = undefined;
+        if ((bestBid !== undefined) && (bestAsk !== undefined)) {
+            const sum = Precise["default"].stringAdd(this.numberToString(bestBid), this.numberToString(bestAsk));
+            mid = this.parseNumber(Precise["default"].stringDiv(sum, '2'));
+        }
+        else if (bestBid !== undefined) {
+            mid = bestBid;
+        }
+        else {
+            mid = bestAsk;
+        }
+        const market = this.safeOutcome(outcome);
+        return this.safePredictionTicker({
+            'outcome': outcome,
+            'outcomeId': this.safeString(market, 'outcomeId'),
+            'label': this.safeString(market, 'label'),
+            'market': this.safeString(market, 'market'),
+            'timestamp': orderbook['timestamp'],
+            'datetime': orderbook['datetime'],
+            'high': undefined,
+            'low': undefined,
+            'bid': bestBid,
+            'bidVolume': bestBidVolume,
+            'ask': bestAsk,
+            'askVolume': bestAskVolume,
+            'vwap': undefined,
+            'open': undefined,
+            'close': mid,
+            'last': mid,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': mid,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': orderbook,
+        }, market);
+    }
+    /**
+     * @method
+     * @name polymarket#watchOrders
+     * @description watches the authenticated user's order updates over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [outcome] unified outcome to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return orders for
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async watchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadApiCredentials();
+        let messageHash = 'orders';
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcome);
+            outcome = this.safeString(outcomeObj, 'outcome');
+            messageHash = 'orders::' + outcome;
+        }
+        const orders = await this.subscribeUserChannel(messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit(outcome, limit);
+        }
+        return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
+    }
+    /**
+     * @method
+     * @name polymarket#watchMyTrades
+     * @description watches the authenticated user's trade fills over the CLOB user websocket channel
+     * @see https://docs.polymarket.com/developers/CLOB/websocket/user-channel
+     * @param {string} [outcome] unified outcome to filter the stream to one market
+     * @param {int} [since] the earliest time in ms to return trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async watchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadApiCredentials();
+        let messageHash = 'myTrades';
+        if (outcome !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcome);
+            outcome = this.safeString(outcomeObj, 'outcome');
+            messageHash = 'myTrades::' + outcome;
+        }
+        const trades = await this.subscribeUserChannel(messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit(outcome, limit);
+        }
+        return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
+    }
+    async subscribeUserChannel(messageHash, params = {}) {
+        // the user channel authenticates inside the subscribe frame, not via HMAC headers
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
+        const auth = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
+        // an empty markets list subscribes to every market the user is active in
+        const subscribeMsg = { 'auth': auth, 'markets': [], 'type': 'user' };
+        const url = this.urls['api']['wsUser'];
+        const subscribeHash = 'user';
+        return await this.watch(url, messageHash, this.extend(subscribeMsg, params), subscribeHash);
+    }
+    handleOrder(client, event) {
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new Cache.ArrayCacheByOutcomeById(limit);
+        }
+        const stored = this.orders;
+        const parsed = this.parsePredictionOrder(event);
+        stored.append(parsed);
+        client.resolve(stored, 'orders');
+        const outcome = this.safeString(parsed, 'outcome');
+        if (outcome !== undefined) {
+            client.resolve(stored, 'orders::' + outcome);
+        }
+    }
+    handleMyTrade(client, event) {
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+            this.myTrades = new Cache.ArrayCacheByOutcomeById(limit);
+        }
+        const stored = this.myTrades;
+        const parsed = this.parsePredictionTrade(event);
+        stored.append(parsed);
+        client.resolve(stored, 'myTrades');
+        const outcome = this.safeString(parsed, 'outcome');
+        if (outcome !== undefined) {
+            client.resolve(stored, 'myTrades::' + outcome);
+        }
+    }
+    tokenIdToSymbol(tokenId) {
+        if (!tokenId) {
+            return undefined;
+        }
+        // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
+        // fall back to markets_by_id for the standard market lookup
+        const outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
+        if (outcomeObj !== undefined) {
+            return this.safeString(outcomeObj, 'outcome');
+        }
+        // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
+        // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
+        const market = this.safeDict(this.markets_by_id, tokenId);
+        return this.safeString2(market, 'market', 'symbol');
+    }
+    parsePolyTimestamp(raw) {
+        if (raw === undefined) {
+            return this.milliseconds();
+        }
+        const n = this.parseToInt(raw);
+        if (n === undefined) {
+            return this.milliseconds();
+        }
+        return n;
+    }
+}
+
+exports["default"] = polymarket;

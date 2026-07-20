@@ -1,9 +1,10 @@
-- [Exchange Capabitities](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 
-// AUTO-TRANSPILE //
+// This example uses Node-only libraries (ololog, as-table, ansicolor)
+// and ansi-color property chains (str.red.dim, str.green) that can't
+// be transpiled meaningfully to Python or PHP. Kept as a JS-only
+// developer tool — the auto-transpile flag is intentionally omitted.
 
 'use strict';
 
@@ -11,7 +12,7 @@ import asTable from 'as-table';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import ccxt from '../../js/ccxt.js';
-
+// @ts-expect-error
 ansi.nice; // eslint-disable-line no-unused-expressions
 
 // @ts-expect-error
@@ -79,5 +80,5 @@ async function test () {
 }
 
 test ();
- 
+
 ```

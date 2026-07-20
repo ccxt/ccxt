@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.mexc.com/api/v3/capital/config/getall?timestamp=1780312477164&recvWindow=5000&signature=cf1f8a11e21c847264b68f4cf6fe6a87bd12558a16c515b47710e06ae6ca2da3",
+                "input": [],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from swap to spot",
@@ -44,6 +53,18 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "place swap order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1}"
+            },
             {
                 "description": "tif FOK",
                 "method": "createOrder",
@@ -220,6 +241,7 @@
                 "description": "Spot create multiple buy orders at once",
                 "method": "createOrders",
                 "disabledGO": true,
+                "disabledJava": true,
                 "url": "https://api.mexc.com/api/v3/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221000%22%2C%22price%22%3A%220.005%22%7D%2C%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221100%22%2C%22price%22%3A%220.0054%22%7D%5D&timestamp=1701304049492&recvWindow=5000&signature=2b277d28ccda099ffe176604ab3e87f27fb151180a6d7a35d3ad1640ae6839f3",
                 "input": [
                     [
@@ -366,6 +388,16 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open orders",
+                "options": {
+                    "defaultType": "swap"
+                },
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v1/private/order/list/open_orders?page_size=100",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "spot orders no symbol",
                 "method": "fetchOpenOrders",
                 "url": "https://api.mexc.com/api/v3/openOrders?timestamp=1763377014861&recvWindow=5000&signature=d4ab06a30c313ed081606309119306439861b1f6aad77d17fe68dfda798a332d",
@@ -379,14 +411,6 @@
                 "input": [
                     "LTC/USDT"
                 ]
-            },
-            {
-                "description": "Swap open orders",
-                "method": "fetchOpenOrders",
-                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?states=2&symbol=LTC_USDT",
-                "input": [
-                    "LTC/USDT:USDT"
-                ]
             }
         ],
         "fetchClosedOrders": [
@@ -399,7 +423,22 @@
                 ]
             }
         ],
+        "closeAllPositions": [
+            {
+                "description": "Close all swap positions",
+                "method": "closeAllPositions",
+                "url": "https://api.mexc.com/api/v1/private/position/close_all",
+                "input": [],
+                "output": "{}"
+            }
+        ],
         "cancelAllOrders": [
+            {
+                "description": "Cancel all spot orders without a symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.mexc.com/api/v3/order/all?timestamp=1778744778528&recvWindow=5000&signature=5ca1ab1e33db4b85afac529a3da095c0055e5ff9275288e2b4f776f19c94763d",
+                "input": []
+            },
             {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",

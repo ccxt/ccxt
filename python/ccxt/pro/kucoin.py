@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -27,10 +27,12 @@ class kucoin(ccxt.async_support.kucoin):
                 'cancelOrdersWs': False,
                 'cancelAllOrdersWs': False,
                 'watchBidsAsks': True,
+                'watchFundingRate': True,
+                'watchMarkPrice': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchPosition': True,
-                'watchPositions': False,
+                'watchPositions': True,
                 'watchMyTrades': True,
                 'watchTickers': True,
                 'watchTicker': True,
@@ -39,11 +41,13 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBookForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'unWatchFundingRate': True,
+                'unWatchMarkPrice': True,
                 'unWatchTicker': True,
                 'unWatchOHLCV': True,
                 'unWatchOrderBook': True,
                 'unWatchTrades': True,
-                'unWatchhTradesForSymbols': True,
+                'unWatchTradesForSymbols': True,
             },
             'urls': {
                 # only for pro(uta) accounts
@@ -111,7 +115,7 @@ class kucoin(ccxt.async_support.kucoin):
         return await future
 
     async def negotiate_helper(self, privateChannel, connectId, params={}):
-        response = None
+        response: dict
         try:
             if connectId == 'private':
                 response = await self.privatePostBulletPrivate(params)
@@ -167,7 +171,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
         requestId = str(self.request_id())
-        request: dict = {
+        request = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
@@ -179,7 +183,7 @@ class kucoin(ccxt.async_support.kucoin):
             client.subscriptions[requestId] = subscriptionHash
         return await self.watch(url, messageHash, message, subscriptionHash, subscription)
 
-    async def subscribe_public_uta(self, messageHash, channel, symbol, params={}, subscription=None):
+    async def subscribe_public_uta(self, messageHash, channel, symbol, params={}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.market(symbol)
         urlType = 'futures' if market['contract'] else 'spot'
@@ -188,7 +192,7 @@ class kucoin(ccxt.async_support.kucoin):
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
             action = 'unsubscribe' if unsubscribe else action
-        request: dict = {
+        request = {
             'id': requestId,
             'action': action,
             'channel': channel,
@@ -202,14 +206,14 @@ class kucoin(ccxt.async_support.kucoin):
             client.subscriptions[requestId] = messageHash
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
-    async def subscribe_private_uta(self, messageHashes, subscribeHash, channel, symbol=None, params={}, subscription=None):
+    async def subscribe_private_uta(self, messageHashes, subscribeHash, channel, symbol: Str = None, params={}, subscription: dict = None):
         self.check_required_credentials()
         requestId = str(self.request_id())
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
             action = 'unsubscribe' if unsubscribe else action
-        request: dict = {
+        request = {
             'id': requestId,
             'action': action,
             'channel': channel,
@@ -258,12 +262,12 @@ class kucoin(ccxt.async_support.kucoin):
                     client.reject(e, messageHash)
         return self.safe_string(self.options, 'utaToken')
 
-    async def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None):
-        return await self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
+    def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None) -> Any:
+        return self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
 
-    async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription=None):
+    async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
         requestId = str(self.request_id())
-        request: dict = {
+        request = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
@@ -279,7 +283,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def un_subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
         requestId = str(self.request_id())
-        request: dict = {
+        request = {
             'id': requestId,
             'type': 'unsubscribe',
             'topic': topic,
@@ -308,7 +312,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
@@ -341,13 +346,14 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         isFuturesMethod = market['contract']
         uta = False
         uta, params = self.handle_option_and_params(params, 'unWatchTicker', 'uta', uta)
-        subscription: dict = {
+        subscription = {
             'symbols': [symbol],
             'topic': 'ticker',
             'unsubscribe': True,
@@ -390,7 +396,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         firstMarket = self.get_market_from_symbols(symbols)
         marketType = None
@@ -415,7 +422,7 @@ class kucoin(ccxt.async_support.kucoin):
                 market = self.market(symbol)
                 topics.append(method + ':' + market['id'])
         url = await self.negotiate(False, isFuturesMethod)
-        tickers = None
+        tickers: Tickers
         if symbols is None:
             allTopic = method + ':all'
             tickers = await self.subscribe(url, messageHash, allTopic, params)
@@ -426,7 +433,7 @@ class kucoin(ccxt.async_support.kucoin):
             symbolsTopic = method + ':' + ','.join(marketIds)
             tickers = await self.subscribe_multiple(url, messageHashes, symbolsTopic, topics, params)
             if self.newUpdates:
-                newDict: dict = {}
+                newDict = {}
                 newDict[tickers['symbol']] = tickers
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -440,7 +447,7 @@ class kucoin(ccxt.async_support.kucoin):
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
             action = 'unsubscribe' if unsubscribe else action
-        request: dict = {
+        request = {
             'id': requestId,
             'action': action,
             'channel': channel,
@@ -456,11 +463,12 @@ class kucoin(ccxt.async_support.kucoin):
         return await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
 
     async def watch_uta_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         messageHash = 'uta:ticker'
         messageHashes = []
-        for i in range(0, len(symbols)):
+        for i in range(0, len((symbols))):
             symbol = self.safe_string(symbols, i)
             market = self.market(symbol)
             subMessageHash = messageHash + ':' + market['symbol']
@@ -564,7 +572,7 @@ class kucoin(ccxt.async_support.kucoin):
             messageHash = 'ticker:' + symbol
             client.resolve(ticker, messageHash)
             # watchTickers
-            allTickers: dict = {}
+            allTickers = {}
             allTickers[symbol] = ticker
             client.resolve(allTickers, 'tickers')
         else:
@@ -602,6 +610,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_uta_ticker(self, client: Client, message):
         #
+        # watchTicker
         #     {
         #         "T": "ticker.SPOT",
         #         "P": "1774100940787520626",
@@ -619,6 +628,19 @@ class kucoin(ccxt.async_support.kucoin):
         #         }
         #     }
         #
+        # watchMarkPrice
+        #     {
+        #         "T": "mark-price",
+        #         "P": "1782834987171570181",
+        #         "d": {
+        #             "s": "ETHUSDTM",
+        #             "mp": "1569.15",
+        #             "ip": "1569.87",
+        #             "oi": "50541824",
+        #             "ts": 1782834987000
+        #         }
+        #     }
+        #
         data = self.safe_dict(message, 'd', {})
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId)
@@ -627,10 +649,12 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'uta:ticker:' + market['symbol']
         client.resolve(ticker, messageHash)
 
-    def parse_ws_uta_ticker(self, ticker, market=None):
+    def parse_ws_uta_ticker(self, ticker, market: Market = None):
         symbol = self.safe_string(market, 'symbol')
         market = self.safe_market(symbol, market)
-        timestamp = self.safe_integer_product(ticker, 'M', 0.000001)
+        timestamp = self.safe_integer(ticker, 'ts')
+        if timestamp is None:
+            timestamp = self.safe_integer_product(ticker, 'M', 0.000001)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -651,7 +675,8 @@ class kucoin(ccxt.async_support.kucoin):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
-            'markPrice': None,
+            'markPrice': self.safe_string(ticker, 'mp'),
+            'indexPrice': self.safe_string(ticker, 'ip'),
             'info': ticker,
         }, market)
 
@@ -666,7 +691,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, False)
         firstMarket = self.get_market_from_symbols(symbols)
         isFuturesMethod = firstMarket['contract']
@@ -675,27 +701,28 @@ class kucoin(ccxt.async_support.kucoin):
             channelName = '/contractMarket/tickerV2:'
         ticker = await self.watch_multi_helper('watchBidsAsks', channelName, isFuturesMethod, symbols, params)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
     async def watch_multi_helper(self, methodName, channelName: str, isFuturesChannel: bool, symbols: Strings = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, False)
-        length = len(symbols)
+        length = (len(symbols))
         if length > 100:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() accepts a maximum of 100 symbols')
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len((symbols))):
+            symbol = (symbols)[i]
             market = self.market(symbol)
             messageHashes.append('bidask@' + market['symbol'])
         url = await self.negotiate(False, isFuturesChannel)
         marketIds = self.market_ids(symbols)
-        joined = ','.join(marketIds)
+        joined = ','.join((marketIds))
         requestId = str(self.request_id())
-        request: dict = {
+        request = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
@@ -739,7 +766,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'bidask@' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         topic = self.safe_string(ticker, 'topic')
         if topic.find('contractMarket') < 0:
             parts = topic.split(':')
@@ -794,7 +821,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         period = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -805,7 +833,7 @@ class kucoin(ccxt.async_support.kucoin):
         if uta:
             channel = 'kline'
             messageHash = 'uta:' + messageHash
-            extendedParams: dict = {
+            extendedParams = {
                 'interval': period,
             }
             params = self.extend(extendedParams, params)
@@ -836,14 +864,15 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         uta = False
         uta, params = self.handle_option_and_params(params, 'unWatchOHLCV', 'uta', uta)
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         symbolAndTimeframe = [symbol, timeframe]
-        subscription: dict = {
+        subscription = {
             'symbols': [symbol],
             'symbolsAndTimeframes': [symbolAndTimeframe],
             'topic': 'ohlcv',
@@ -855,7 +884,7 @@ class kucoin(ccxt.async_support.kucoin):
             subscription['subMessageHashes'] = [subMessageHash]
             utaMessageHash = 'unsubscribe:' + subMessageHash
             subscription['messageHashes'] = [utaMessageHash]
-            extendedParams: dict = {
+            extendedParams = {
                 'interval': period,
             }
             return await self.subscribe_public_uta(utaMessageHash, 'kline', symbol, self.extend(extendedParams, params), subscription)
@@ -1036,7 +1065,8 @@ class kucoin(ccxt.async_support.kucoin):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isFuturesMethod = firstMarket['contract']
@@ -1071,7 +1101,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
@@ -1197,7 +1228,7 @@ class kucoin(ccxt.async_support.kucoin):
         cache.append(trade)
         client.resolve(cache, messageHash)
 
-    def parse_ws_uta_trade(self, trade, market=None):
+    def parse_ws_uta_trade(self, trade, market: Market = None):
         # trades
         #     {
         #         "E": "20745928670070784",
@@ -1267,7 +1298,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
         # https://docs.kucoin.com/#level-2-market-data
@@ -1294,7 +1325,7 @@ class kucoin(ccxt.async_support.kucoin):
             depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'utaDepth', depth)
             messageHash = 'uta:orderbook:' + symbol + ':depth:' + depth
             channel = 'obu'
-            subscription: dict = {}
+            subscription = {}
             if (depth == 'increment'):  # other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
                 subscription = {
                     'method': self.handle_order_book_subscription,
@@ -1311,17 +1342,20 @@ class kucoin(ccxt.async_support.kucoin):
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
 
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        https://www.kucoin.com/docs-new/3470069w0  # spot level 5
+        https://www.kucoin.com/docs-new/3470070w0  # spot level 50
+        https://www.kucoin.com/docs-new/3470068w0  # spot incremental
+        https://www.kucoin.com/docs-new/3470083w0  # futures level 5
+        https://www.kucoin.com/docs-new/3470097w0  # futures level 50
+        https://www.kucoin.com/docs-new/3470082w0  # futures incremental
+        https://www.kucoin.com/docs-new/3470221w0  # uta
 
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         uta = False
         uta, params = self.handle_option_and_params(params, 'unWatchOrderBook', 'uta', uta)
@@ -1362,7 +1396,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -1370,7 +1404,8 @@ class kucoin(ccxt.async_support.kucoin):
         if limit is not None:
             if (limit != 20) and (limit != 100) and (limit != 50) and (limit != 5):
                 raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 5, 20, 50 or 100")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
@@ -1392,7 +1427,7 @@ class kucoin(ccxt.async_support.kucoin):
             messageHashes.append('orderbook:' + symbol)
             marketId = marketIds[i]
             subscriptionHashes.append(method + ':' + marketId)
-        subscription: dict = {}
+        subscription = {}
         if (method == '/market/level2') or (method == '/contractMarket/level2'):  # other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
             subscription = {
                 'method': self.handle_order_book_subscription,
@@ -1416,11 +1451,12 @@ class kucoin(ccxt.async_support.kucoin):
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         limit = self.safe_integer(params, 'limit')
         params = self.omit(params, 'limit')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
@@ -1531,7 +1567,7 @@ class kucoin(ccxt.async_support.kucoin):
                 snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
-                orderbook.cache.append(data)
+                (orderbook.cache).append(data)
                 return
             elif nonce >= deltaEnd:
                 return
@@ -1580,12 +1616,12 @@ class kucoin(ccxt.async_support.kucoin):
                 subscription = self.safe_value(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
                 snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
-                utaParams: dict = {
+                utaParams = {
                     'uta': True,
                 }
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, utaParams)
-                orderbook.cache.append(data)
+                (orderbook.cache).append(data)
                 return
             elif nonce >= deltaEnd:
                 return
@@ -1642,7 +1678,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
-            bidAsk = self.parse_bid_ask(bidAsks[i])
+            bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
@@ -1691,7 +1727,16 @@ class kucoin(ccxt.async_support.kucoin):
                 messageHash = messageHashes[i]
                 subHash = subMessageHashes[i]
                 self.clean_unsubscription(client, subHash, messageHash)
-            self.clean_cache(subscription)
+            topic = self.safe_string(subscription, 'topic')
+            if topic == 'fundingRate':
+                # todo: add fundingRate topic to cleanCache
+                symbols = self.safe_list(subscription, 'symbols', [])
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    if symbol in self.fundingRates:
+                        del self.fundingRates[symbol]
+            else:
+                self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1735,7 +1780,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param str [params.type]: 'spot' or 'swap'(default is 'spot' if symbol is not provided)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         uta = await self.is_uta_enabled()
         uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', uta)
         market = None
@@ -1767,7 +1813,7 @@ class kucoin(ccxt.async_support.kucoin):
             if symbol is None:
                 suffix = self.get_orders_message_hash_suffix(topic)
                 messageHash += suffix
-            request: dict = {
+            request = {
                 'privateChannel': True,
             }
             orders = await self.subscribe(url, messageHash, topic, self.extend(request, params))
@@ -1786,7 +1832,7 @@ class kucoin(ccxt.async_support.kucoin):
         return suffix
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -1797,7 +1843,7 @@ class kucoin(ccxt.async_support.kucoin):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # /spotMarket/tradeOrders
         #
@@ -1898,7 +1944,7 @@ class kucoin(ccxt.async_support.kucoin):
             'trades': None,
         }, market)
 
-    def parse_ws_uta_order(self, order, market=None):
+    def parse_ws_uta_order(self, order, market: Market = None):
         #
         #     {
         #         "tT": "FUTURES",
@@ -2108,7 +2154,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param str [params.method]: *classic(non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         market = None
         if symbol is not None:
@@ -2133,7 +2180,7 @@ class kucoin(ccxt.async_support.kucoin):
             topic = '/contractMarket/tradeOrders' if isFuturesMethod else '/spotMarket/tradeOrders'
             optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
             topic, params = self.handle_option_and_params_2(params, 'watchMyTrades', optionName, 'method', topic)
-            request: dict = {
+            request = {
                 'privateChannel': True,
             }
             if symbol is None:
@@ -2227,7 +2274,7 @@ class kucoin(ccxt.async_support.kucoin):
         client.resolve(self.myTrades, messageHash)
         client.resolve(cache, symbolMessageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # /spotMarket/tradeOrders
         #
@@ -2318,7 +2365,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param str [params.type]: *classic(non-uta) account only* 'spot' or 'swap'(default is 'spot')
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         uta = await self.is_uta_enabled()
         uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', uta)
         defaultType = 'unified' if uta else 'spot'
@@ -2346,14 +2394,14 @@ class kucoin(ccxt.async_support.kucoin):
             await client.future(uniformType + ':fetchBalanceSnapshot')
         messageHash = uniformType + ':balance'
         if uta:
-            extendedParams: dict = {
+            extendedParams = {
                 'accountType': uniformType,
             }
             channel = 'balance'
             return await self.subscribe_private_uta([messageHash], subscriptionHash, channel, None, self.extend(extendedParams, params))
         else:
             requestId = str(self.request_id())
-            request: dict = {
+            request = {
                 'id': requestId,
                 'type': 'subscribe',
                 'topic': subscriptionHash,
@@ -2380,7 +2428,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def load_balance_snapshot(self, client, messageHash, type):
         uta = (type == 'unified')
-        params: dict = {
+        params = {
             'type': type,
             'uta': uta,
         }
@@ -2539,11 +2587,12 @@ class kucoin(ccxt.async_support.kucoin):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchPosition() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = await self.negotiate(True)
         market = self.market(symbol)
         topic = '/contract/position:' + market['id']
-        request: dict = {
+        request = {
             'privateChannel': True,
         }
         messageHash = 'position:' + market['symbol']
@@ -2570,7 +2619,8 @@ class kucoin(ccxt.async_support.kucoin):
         :param boolean [params.uta]: set to True for the unified trading account(uta)
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         uta = await self.is_uta_enabled()
         uta, params = self.handle_option_and_params(params, 'watchPositions', 'uta', uta)
         tradeType = 'UNIFIED' if uta else 'TRADE'
@@ -2812,7 +2862,7 @@ class kucoin(ccxt.async_support.kucoin):
         client.resolve(self.positions, messageHash)
         client.resolve(self.positions, symbolMessageHash)
 
-    def parse_ws_uta_position(self, position, market=None):
+    def parse_ws_uta_position(self, position, market: Market = None):
         #
         #     {
         #         "pi": "30000000000084845",
@@ -2871,6 +2921,150 @@ class kucoin(ccxt.async_support.kucoin):
             'takeProfitPrice': None,
         })
 
+    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        watch the current funding rate
+
+        https://www.kucoin.com/docs-new/3470270w0
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'funding-fee'
+        messageHash = 'fundingRate:' + symbol
+        return await self.subscribe_public_uta(messageHash, channel, symbol, params)
+
+    async def un_watch_funding_rate(self, symbol: str, params={}) -> Any:
+        """
+        unWatches the current funding rate for a symbol
+
+        https://www.kucoin.com/docs-new/3470270w0
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'funding-fee'
+        subMessageHash = 'fundingRate:' + symbol
+        unSubMessageHash = 'unsubscribe:' + subMessageHash
+        subscription = {
+            'symbols': [symbol],
+            'topic': 'fundingRate',
+            'unsubscribe': True,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        }
+        return await self.subscribe_public_uta(unSubMessageHash, channel, symbol, params, subscription)
+
+    def handle_uta_funding_rate(self, client: Client, message):
+        #
+        #     {
+        #         "T": "funding-fee",
+        #         "P": "1782831961172694254",
+        #         "d": {
+        #             "s": "ETHUSDTM",
+        #             "fr": "0.000035",
+        #             "ft": 1782806400000,
+        #             "nt": 1782835200000,
+        #             "gl": 28800000,
+        #             "fc": "0.00375",
+        #             "ff": "-0.00375"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(message, 'd', {})
+        fundingRate = self.parse_ws_funding_rate(data)
+        symbol = fundingRate['symbol']
+        self.fundingRates[symbol] = fundingRate
+        messageHash = 'fundingRate:' + symbol
+        client.resolve(fundingRate, messageHash)
+
+    def parse_ws_funding_rate(self, data, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "s": "ETHUSDTM",
+        #         "fr": "0.000035",
+        #         "ft": 1782806400000,
+        #         "nt": 1782835200000,
+        #         "gl": 28800000,
+        #         "fc": "0.00375",
+        #         "ff": "-0.00375"
+        #     }
+        #
+        fundingTimestamp = self.safe_integer(data, 'ft')
+        nextFundingTimestamp = self.safe_integer(data, 'nt')
+        marketId = self.safe_string(data, 's')
+        granularity = self.safe_string(data, 'gl')
+        return {
+            'info': data,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(data, 'fr'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': self.parseFundingInterval(granularity),
+        }
+
+    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        watches a mark price for a specific market
+
+        https://www.kucoin.com/docs-new/3470272w0
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'mark-price'
+        messageHash = 'uta:ticker:' + symbol
+        return await self.subscribe_public_uta(messageHash, channel, symbol, params)
+
+    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a mark price for a specific market
+
+        https://www.kucoin.com/docs-new/3470272w0
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbol = self.safe_symbol(symbol)
+        channel = 'mark-price'
+        subMessageHash = 'uta:ticker:' + symbol
+        unSubMessageHash = 'unsubscribe:' + subMessageHash
+        subscription = {
+            'symbols': [symbol],
+            'topic': 'ticker',
+            'unsubscribe': True,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [unSubMessageHash],
+        }
+        return await self.subscribe_public_uta(unSubMessageHash, channel, symbol, params, subscription)
+
     def handle_subject(self, client: Client, message):
         #
         #     {
@@ -2893,7 +3087,7 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_ticker(client, message)
             return
         subject = self.safe_string_2(message, 'subject', 'T')
-        methods: dict = {
+        methods = {
             'level1': self.handle_bid_ask,
             'level2': self.handle_order_book,
             'trade.l2update': self.handle_order_book,
@@ -2951,6 +3145,8 @@ class kucoin(ccxt.async_support.kucoin):
             'positionAll.UNIFIED': self.handle_uta_position,
             'positionAll.FUTURES': self.handle_uta_position,
             'balance.UNIFIED': self.handle_uta_balance,
+            'funding-fee': self.handle_uta_funding_rate,
+            'mark-price': self.handle_uta_ticker,
         }
         method = self.safe_value(methods, subject)
         if method is not None:
@@ -2997,7 +3193,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string_2(message, 'type', 'message')
-        methods: dict = {
+        methods = {
             # 'heartbeat': self.handleHeartbeat,
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,

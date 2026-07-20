@@ -8,19 +8,19 @@
     "methods": {
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "ethereum",
                 "method": "withdraw",
-                "url": "https://api.poloniex.com/wallets/withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
                 "input": [
                     "USDT",
                     5,
-                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
                     null,
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
-                "output": "{\"currency\":\"USDTETH\",\"amount\":\"5\",\"address\":\"0x2a1cd2a93eac9403203ab118a4e7d90916ae3356\"}"
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
             }
         ],
         "fetchDepositAddress": [

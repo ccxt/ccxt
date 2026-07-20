@@ -1,5 +1,8 @@
 name: PHP
 
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -33,7 +36,7 @@ jobs:
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
@@ -54,7 +57,7 @@ jobs:
     - name: Composer install
       run: composer install
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-php
     - name: Transpile to PHP
@@ -71,8 +74,13 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileWs -- --php $exchange
         done
+    - name: Transpile prediction to PHP
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-php
     - name: Post-transpile (syntax check)
       run: npm run check-php-syntax
+    - name: Post-transpile (style check)
+      run: npm run check-php-style
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-php
@@ -104,6 +112,12 @@ jobs:
           npm run response-php-sync -- $exchange
           npm run response-php-async -- $exchange
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-php-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-php-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
@@ -123,7 +137,9 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add php/
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+          git pull origin master
+          git add php/ examples/php
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
@@ -145,7 +161,7 @@ jobs:
           name: php-files
           path: php/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:

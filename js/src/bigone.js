@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -23,13 +23,13 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': undefined,
+                'future': undefined, // has but unimplemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -107,7 +107,7 @@ export default class bigone extends Exchange {
                 '1w': 'week1',
                 '1M': 'month1',
             },
-            'hostname': 'big.one',
+            'hostname': 'big.one', // or 'bigone.com'
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
@@ -203,7 +203,9 @@ export default class bigone extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -216,7 +218,7 @@ export default class bigone extends Exchange {
                 },
                 'exchangeMillisecondsCorrection': -100,
                 'fetchCurrencies': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
@@ -329,9 +331,9 @@ export default class bigone extends Exchange {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
-                        'triggerDirection': true,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerDirection': true, // todo implement
+                        'stopLossPrice': false, // todo by trigger
+                        'takeProfitPrice': false, // todo by trigger
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -347,7 +349,7 @@ export default class bigone extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': undefined, // todo: implement
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 200,
@@ -429,28 +431,28 @@ export default class bigone extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '10001': BadRequest,
-                    '10005': ExchangeError,
+                    '10001': BadRequest, // syntax error
+                    '10005': ExchangeError, // internal error
                     "Amount's scale must greater than AssetPair's base scale": InvalidOrder,
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
-                    '10007': BadRequest,
-                    '10011': ExchangeError,
-                    '10013': BadSymbol,
-                    '10014': InsufficientFunds,
-                    '10403': PermissionDenied,
-                    '10429': RateLimitExceeded,
-                    '40004': AuthenticationError,
-                    '40103': AuthenticationError,
-                    '40104': AuthenticationError,
-                    '40301': PermissionDenied,
-                    '40302': ExchangeError,
-                    '40601': ExchangeError,
-                    '40602': ExchangeError,
-                    '40603': InsufficientFunds,
-                    '40604': InvalidOrder,
-                    '40605': InvalidOrder,
-                    '40120': InvalidOrder,
-                    '40121': InvalidOrder,
+                    '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
+                    '10011': ExchangeError, // system error
+                    '10013': BadSymbol, // {"code":10013,"message":"Resource not found"}
+                    '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
+                    '10403': PermissionDenied, // permission denied
+                    '10429': RateLimitExceeded, // too many requests
+                    '40004': AuthenticationError, // {"code":40004,"message":"invalid jwt"}
+                    '40103': AuthenticationError, // invalid otp code
+                    '40104': AuthenticationError, // invalid asset pin code
+                    '40301': PermissionDenied, // {"code":40301,"message":"Permission denied withdrawal create"}
+                    '40302': ExchangeError, // already requested
+                    '40601': ExchangeError, // resource is locked
+                    '40602': ExchangeError, // resource is depleted
+                    '40603': InsufficientFunds, // insufficient resource
+                    '40604': InvalidOrder, // {"code":40604,"message":"Price exceed the maximum order price"}
+                    '40605': InvalidOrder, // {"code":40605,"message":"Price less than the minimum order price"}
+                    '40120': InvalidOrder, // Order is in trading
+                    '40121': InvalidOrder, // Order is already cancelled or filled
                     '60100': BadSymbol, // {"code":60100,"message":"Asset pair is suspended"}
                 },
                 'broad': {},
@@ -522,88 +524,86 @@ export default class bigone extends Exchange {
         // }
         //
         const currenciesData = this.safeList(data, 'data', []);
-        const result = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const currency = currenciesData[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            const networks = {};
-            const chains = this.safeList(currency, 'binding_gateways', []);
-            const currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'gateway_name');
-                const networkCode = this.networkIdToCode(networkId);
-                const deposit = this.safeBool(chain, 'is_deposit_enabled');
-                const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
-                const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
-                const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
-                const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
-                const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': undefined,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': undefined,
-                    'fee': this.parseNumber(withdrawalFee),
-                    'precision': this.parseNumber(precision),
-                    'limits': {
-                        'deposit': {
-                            'min': minDepositAmount,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': minWithdrawalAmount,
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-            }
-            const chainLength = chains.length;
-            let type = undefined;
-            if (this.safeBool(currency, 'is_fiat')) {
-                type = 'fiat';
-            }
-            else if (chainLength === 0) {
-                if (this.isLeveragedCurrency(id)) {
-                    type = 'leveraged';
-                }
-                else {
-                    type = 'other';
-                }
-            }
-            else {
-                type = 'crypto';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'type': type,
+        return this.parseCurrencies(currenciesData);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const name = this.safeString(rawCurrency, 'name');
+        const networks = {};
+        const chains = this.safeList(rawCurrency, 'binding_gateways', []);
+        const currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, 'withdrawal_scale', 'scale'));
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'gateway_name');
+            const networkCode = this.networkIdToCode(networkId, code);
+            const deposit = this.safeBool(chain, 'is_deposit_enabled');
+            const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
+            const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
+            const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
+            const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
+            const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(currencyMaxPrecision),
+                'fee': this.parseNumber(withdrawalFee),
+                'precision': this.parseNumber(precision),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'deposit': {
+                        'min': minDepositAmount,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': minWithdrawalAmount,
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+                'info': chain,
+            };
         }
-        return result;
+        const chainLength = chains.length;
+        let type = undefined;
+        if (this.safeBool(rawCurrency, 'is_fiat')) {
+            type = 'fiat';
+        }
+        else if (chainLength === 0) {
+            if (this.isLeveragedCurrency(id)) {
+                type = 'leveraged';
+            }
+            else {
+                type = 'other';
+            }
+        }
+        else {
+            type = 'crypto';
+        }
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(currencyMaxPrecision),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -856,11 +856,11 @@ export default class bigone extends Exchange {
             'ask': this.safeString(ask, 'price'),
             'askVolume': this.safeString(ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString(ticker, 'open'), // openValue is a broken number, we don't use it
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'daily_change'),
+            'change': this.safeString(ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),
@@ -880,7 +880,9 @@ export default class bigone extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTicker', market, params);
@@ -923,7 +925,9 @@ export default class bigone extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const symbol = this.safeString(symbols, 0);
         if (symbol !== undefined) {
@@ -1030,12 +1034,14 @@ export default class bigone extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let response = undefined;
+        let response;
         if (market['contract']) {
             const request = {
                 'symbol': market['id'],
@@ -1210,8 +1216,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode;
-        let takerCurrencyCode;
+        let makerCurrencyCode = undefined;
+        let takerCurrencyCode = undefined;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1247,18 +1253,21 @@ export default class bigone extends Exchange {
         const makerFeeCost = this.safeString(trade, 'maker_fee');
         const takerFeeCost = this.safeString(trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
+            const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
+                const takerCode = takerCurrencyCode;
                 result['fees'] = [
-                    { 'cost': makerFeeCost, 'currency': makerCurrencyCode },
-                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
+                    { 'cost': makerFeeCost, 'currency': makerCode },
+                    { 'cost': takerFeeCost, 'currency': takerCode },
                 ];
             }
             else {
-                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCurrencyCode };
+                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCode };
             }
         }
         else if (takerFeeCost !== undefined) {
-            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
+            const takerCode2 = takerCurrencyCode;
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCode2 };
         }
         else {
             result['fee'] = undefined;
@@ -1277,7 +1286,9 @@ export default class bigone extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['contract']) {
             throw new NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
@@ -1344,7 +1355,9 @@ export default class bigone extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['contract']) {
             throw new NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
@@ -1430,10 +1443,12 @@ export default class bigone extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = this.safeString(params, 'type', '');
         params = this.omit(params, 'type');
-        let response = undefined;
+        let response;
         if (type === 'funding' || type === 'fund') {
             response = await this.privateGetFundAccounts(params);
         }
@@ -1548,7 +1563,9 @@ export default class bigone extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1578,7 +1595,9 @@ export default class bigone extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isBuy = (side === 'buy');
         const requestSide = isBuy ? 'BID' : 'ASK';
@@ -1589,8 +1608,8 @@ export default class bigone extends Exchange {
         [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
-            'asset_pair_name': market['id'],
-            'side': requestSide,
+            'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
+            'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision(symbol, amount), // order amount, string, required
             // "price": this.priceToPrecision (symbol, price), // order price, string, required
             // "operator": "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
@@ -1612,7 +1631,7 @@ export default class bigone extends Exchange {
         }
         else {
             if (isBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
+                let createMarketBuyOrderRequiresPrice = undefined;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');
@@ -1681,7 +1700,9 @@ export default class bigone extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = { 'id': id };
         const response = await this.privatePostOrdersIdCancel(this.extend(request, params));
         //    {
@@ -1709,7 +1730,9 @@ export default class bigone extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1760,7 +1783,9 @@ export default class bigone extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = { 'id': id };
         const response = await this.privateGetOrdersId(this.extend(request, params));
         const order = this.safeDict(response, 'data', {});
@@ -1781,7 +1806,9 @@ export default class bigone extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1832,7 +1859,9 @@ export default class bigone extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1969,7 +1998,9 @@ export default class bigone extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset_symbol': currency['id'],
@@ -2007,7 +2038,7 @@ export default class bigone extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.networkIdToCode(selectedNetworkId),
+            'network': this.networkIdToCode(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         };
@@ -2015,9 +2046,9 @@ export default class bigone extends Exchange {
     parseTransactionStatus(status) {
         const statuses = {
             // what are other statuses here?
-            'WITHHOLD': 'ok',
+            'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
-            'CONFIRMED': 'ok',
+            'CONFIRMED': 'ok', // withdrawals
             'COMPLETED': 'ok',
             'PENDING': 'pending',
         };
@@ -2122,7 +2153,9 @@ export default class bigone extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'page_token': 'dxzef', // request page after this page token
         // 'limit': 50, // optional, default 50
@@ -2174,7 +2207,9 @@ export default class bigone extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'page_token': 'dxzef', // request page after this page token
         // 'limit': 50, // optional, default 50
@@ -2227,7 +2262,9 @@ export default class bigone extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2300,7 +2337,9 @@ export default class bigone extends Exchange {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'symbol': currency['id'],
@@ -2313,7 +2352,7 @@ export default class bigone extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['gateway_name'] = this.networkCodeToId(networkCode);
+            request['gateway_name'] = this.networkCodeToId(networkCode, currency['code']);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals(this.extend(request, params));

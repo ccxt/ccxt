@@ -46,7 +46,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -387,6 +387,12 @@ public partial class blofin
     /// <term>params.stopLoss</term>
     /// <description>
     /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tpsl</term>
+    /// <description>
+    /// float : whether to force to send the order to the combined TPSL oco order endpoint
     /// </description>
     /// </item>
     /// </list>

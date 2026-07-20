@@ -133,7 +133,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.bitget.com/api/v2/spot/public/coins",
                 "input": [],

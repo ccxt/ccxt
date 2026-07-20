@@ -13,11 +13,12 @@ use ccxt\BadRequest;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class coinsph extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
@@ -254,6 +255,7 @@ class coinsph extends Exchange {
                         'openapi/wallet/v1/withdraw/apply' => 600,
                         'openapi/v1/order/test' => 1,
                         'openapi/v1/order' => 1,
+                        'openapi/v1/order/cancelReplace' => 1,
                         'openapi/v1/capital/withdraw/apply' => 1,
                         'openapi/v1/capital/deposit/apply' => 1,
                         'openapi/v3/payment-request/payment-requests' => 1,
@@ -264,14 +266,20 @@ class coinsph extends Exchange {
                         'merchant-api/v1/invoices-cancel' => 1,
                         'openapi/convert/v1/get-supported-trading-pairs' => 1,
                         'openapi/convert/v1/get-quote' => 1,
-                        'openapi/convert/v1/accpet-quote' => 1,
+                        'openapi/convert/v1/accept-quote' => 1,
                         'openapi/convert/v1/query-order-history' => 1,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs' => 1,
+                        'openapi/otc-trade/v1/create-rfq' => 1,
+                        'openapi/otc-trade/v1/accept-rfq' => 1,
+                        'openapi/otc-trade/v1/manual-settle' => 1,
+                        'openapi/otc-trade/v1/query-order-history' => 1,
                         'openapi/fiat/v1/support-channel' => 1,
                         'openapi/fiat/v1/cash-out' => 1,
                         'openapi/fiat/v1/history' => 1,
                         'openapi/migration/v4/sellorder' => 1,
                         'openapi/migration/v4/validate-field' => 1,
                         'openapi/transfer/v3/transfers' => 1,
+                        'openapi/transfer/v4/transfers' => 1,
                         'openapi/v1/sub-account/create' => 30,
                         'openapi/v1/sub-account/transfer/universal-transfer' => 100,
                         'openapi/v1/sub-account/transfer/sub-to-master' => 100,
@@ -549,7 +557,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -562,9 +570,9 @@ class coinsph extends Exchange {
             if (!$this->check_required_credentials(false)) {
                 return array();
             }
-            $response = Async\await($this->privateGetOpenapiWalletV1ConfigGetall ($params));
+            $response = Async\await($this->privateGetOpenapiWalletV1ConfigGetall($params));
             //
-            //    [
+            //    array(
             //        array(
             //            "coin" => "PHP",
             //            "name" => "PHP",
@@ -586,7 +594,7 @@ class coinsph extends Exchange {
             //            "locked" => "0",
             //            "transferPrecision" => "8",
             //            "transferMinQuantity" => "0",
-            //            "networkList" => [
+            //            "networkList" => array(
             //                array(
             //                    "addressRegex" => "^0x[0-9a-fA-F]{40}$",
             //                    "memoRegex" => " ",
@@ -619,65 +627,64 @@ class coinsph extends Exchange {
             //                    "withdrawMin" => "20",
             //                    "sameAddress" => false
             //                }
-            //            ],
+            //            ),
             //            "legalMoney" => false
             //        }
-            //    ]
+            //    )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $id = $this->safe_string($entry, 'coin');
-                $code = $this->safe_currency_code($id);
-                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
-                $networkList = $this->safe_list($entry, 'networkList', array());
-                $networks = array();
-                for ($j = 0; $j < count($networkList); $j++) {
-                    $networkItem = $networkList[$j];
-                    $network = $this->safe_string($networkItem, 'network');
-                    $networkCode = $this->network_id_to_code($network);
-                    $networks[$networkCode] = array(
-                        'info' => $networkItem,
-                        'id' => $network,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
-                        'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
-                        'fee' => $this->safe_number($networkItem, 'withdrawFee'),
-                        'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkItem, 'withdrawMin'),
-                                'max' => $this->safe_number($networkItem, 'withdrawMax'),
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $this->safe_string($entry, 'name'),
-                    'code' => $code,
-                    'type' => $isFiat ? 'fiat' : 'crypto',
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'transferPrecision'))),
-                    'info' => $entry,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($entry, 'depositAllEnable'),
-                    'withdraw' => $this->safe_bool($entry, 'withdrawAllEnable'),
-                    'networks' => $networks,
-                    'fee' => null,
-                    'fees' => null,
-                    'limits' => array(),
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($response);
+        })();
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->safe_bool($rawCurrency, 'isLegalMoney');
+        $networkList = $this->safe_list($rawCurrency, 'networkList', array());
+        $networks = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkItem = $networkList[$j];
+            $network = $this->safe_string($networkItem, 'network');
+            $networkCode = $this->network_id_to_code($network, $code);
+            $networks[$networkCode] = array(
+                'info' => $networkItem,
+                'id' => $network,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
+                'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
+                'fee' => $this->safe_number($networkItem, 'withdrawFee'),
+                'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                        'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'code' => $code,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
+            'info' => $rawCurrency,
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'depositAllEnable'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'withdrawAllEnable'),
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => null,
+            'limits' => array(),
+        ));
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols', $config)) && !(is_array($params) && array_key_exists('symbol', $params)) && !(is_array($params) && array_key_exists('symbols', $params))) {
@@ -705,17 +712,17 @@ class coinsph extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
              *
-             * @see https://coins-docs.github.io/rest-api/#test-connectivity
+             * @see https://docs.coins.ph/rest-api/#test-connectivity
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
-            $response = Async\await($this->publicGetOpenapiV1Ping ($params));
+            $response = Async\await($this->publicGetOpenapiV1Ping($params));
             return array(
                 'status' => 'ok', // if there's no Errors, status = 'ok'
                 'updated' => null,
@@ -723,38 +730,38 @@ class coinsph extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              *
-             * @see https://coins-docs.github.io/rest-api/#check-server-time
+             * @see https://docs.coins.ph/rest-api/#check-server-time
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetOpenapiV1Time ($params));
+            $response = Async\await($this->publicGetOpenapiV1Time($params));
             //
             //     array("serverTime":1677705408268)
             //
             return $this->safe_integer($response, 'serverTime');
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for coinsph
              *
-             * @see https://coins-docs.github.io/rest-api/#exchange-information
+             * @see https://docs.coins.ph/rest-api/#exchange-information
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetOpenapiV1ExchangeInfo ($params));
+            $response = Async\await($this->publicGetOpenapiV1ExchangeInfo($params));
             //
             //     {
             //         "timezone" => "UTC",
@@ -881,23 +888,25 @@ class coinsph extends Exchange {
             }
             $this->set_markets($result);
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              *
-             * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-             * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-             * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+             * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+             * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+             * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
              *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($symbols !== null) {
                 $ids = array();
@@ -911,32 +920,34 @@ class coinsph extends Exchange {
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
             $options = $this->safe_dict($this->options, 'fetchTickers', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
-            $tickers = null;
+            $tickers = array();
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerPrice($this->extend($request, $params)));
             } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker($this->extend($request, $params)));
             } else {
-                $tickers = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params)));
+                $tickers = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr($this->extend($request, $params)));
             }
             return $this->parse_tickers($tickers, $symbols, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://coins-docs.github.io/rest-api/#24hr-$ticker-price-change-statistics
-             * @see https://coins-docs.github.io/rest-api/#$symbol-price-$ticker
-             * @see https://coins-docs.github.io/rest-api/#$symbol-order-book-$ticker
+             * @see https://docs.coins.ph/rest-api/#24hr-$ticker-price-change-statistics
+             * @see https://docs.coins.ph/rest-api/#$symbol-price-$ticker
+             * @see https://docs.coins.ph/rest-api/#$symbol-order-book-$ticker
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -944,16 +955,16 @@ class coinsph extends Exchange {
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
             $options = $this->safe_dict($this->options, 'fetchTicker', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
-            $ticker = null;
+            $ticker = array();
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerPrice($this->extend($request, $params)));
             } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1TickerBookTicker($this->extend($request, $params)));
             } else {
-                $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params)));
+                $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr($this->extend($request, $params)));
             }
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1035,19 +1046,21 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://coins-docs.github.io/rest-api/#order-book
+             * @see https://docs.coins.ph/rest-api/#order-book
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1055,7 +1068,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetOpenapiQuoteV1Depth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Depth($this->extend($request, $params)));
             //
             //     {
             //         "lastUpdateId" => "1667022157000699400",
@@ -1072,15 +1085,15 @@ class coinsph extends Exchange {
             $orderbook = $this->parse_order_book($response, $symbol);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+             * @see https://docs.coins.ph/rest-api/#klinecandlestick-data
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1090,7 +1103,9 @@ class coinsph extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $interval = $this->safe_string($this->timeframes, $timeframe);
             $until = $this->safe_integer($params, 'until');
@@ -1110,7 +1125,7 @@ class coinsph extends Exchange {
                     $duration = $this->parse_timeframe($timeframe) * 1000;
                     $endTimeByLimit = $this->sum($since, $duration * ($limit - 1));
                     $now = $this->milliseconds();
-                    $request['endTime'] = min ($endTimeByLimit, $now);
+                    $request['endTime'] = min($endTimeByLimit, $now);
                 }
             } elseif ($until !== null) {
                 $request['endTime'] = $until;
@@ -1120,7 +1135,7 @@ class coinsph extends Exchange {
             }
             $request['limit'] = $limit;
             $params = $this->omit($params, 'until');
-            $response = Async\await($this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Klines($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1139,7 +1154,7 @@ class coinsph extends Exchange {
             //     )
             //
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1153,12 +1168,12 @@ class coinsph extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+             * @see https://docs.coins.ph/rest-api/#recent-trades-list
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1166,7 +1181,9 @@ class coinsph extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1179,7 +1196,7 @@ class coinsph extends Exchange {
                     $request['limit'] = $limit;
                 }
             }
-            $response = Async\await($this->publicGetOpenapiQuoteV1Trades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenapiQuoteV1Trades($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1194,15 +1211,15 @@ class coinsph extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
              *
-             * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+             * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1213,7 +1230,9 @@ class coinsph extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1225,17 +1244,17 @@ class coinsph extends Exchange {
             } elseif ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiV1MyTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1MyTrades($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
              *
-             * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+             * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol
@@ -1251,7 +1270,7 @@ class coinsph extends Exchange {
                 'orderId' => $id,
             );
             return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1301,7 +1320,7 @@ class coinsph extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
         $type = null;
-        $fee = null;
+        $fee = array();
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionAsset');
@@ -1310,12 +1329,12 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker');
         $side = null;
         if ($isBuyer !== null) {
             $side = ($isBuyer === true) ? 'buy' : 'sell';
         }
-        $isMaker = $this->safe_string_2($trade, 'isMaker', null);
+        $isMaker = $this->safe_string($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = ($isMaker === 'true') ? 'maker' : 'taker';
@@ -1341,18 +1360,20 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+             * @see https://docs.coins.ph/rest-api/#accept-the-quote
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetOpenapiV1Account ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetOpenapiV1Account($params));
             //
             //     {
             //         "accountType" => "SPOT",
@@ -1375,7 +1396,7 @@ class coinsph extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1397,12 +1418,12 @@ class coinsph extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
              *
-             * @see https://coins-docs.github.io/rest-api/#new-order--trade
+             * @see https://docs.coins.ph/rest-api/#new-order--trade
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
@@ -1415,7 +1436,9 @@ class coinsph extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             // todo => add test order low priority
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
@@ -1478,11 +1501,11 @@ class coinsph extends Exchange {
             }
             $request['newOrderRespType'] = $newOrderRespType;
             $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-            $response = null;
+            $response = array();
             if ($testOrder) {
-                $response = Async\await($this->privatePostOpenapiV1OrderTest ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostOpenapiV1Order ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostOpenapiV1Order($this->extend($request, $params)));
             }
             //
             //     {
@@ -1512,22 +1535,24 @@ class coinsph extends Exchange {
             //     ),
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
              *
-             * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+             * @see https://docs.coins.ph/rest-api/#query-order-user_data
              *
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by coinsph fetchOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -1536,17 +1561,17 @@ class coinsph extends Exchange {
                 $request['orderId'] = $id;
             }
             $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-            $response = Async\await($this->privateGetOpenapiV1Order ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1Order($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+             * @see https://docs.coins.ph/rest-api/#current-open-orders-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1554,24 +1579,26 @@ class coinsph extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOpenapiV1OpenOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1OpenOrders($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+             * @see https://docs.coins.ph/rest-api/#history-orders-user_data
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1582,7 +1609,9 @@ class coinsph extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1594,24 +1623,26 @@ class coinsph extends Exchange {
             } elseif ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiV1HistoryOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1HistoryOrders($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
              *
-             * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+             * @see https://docs.coins.ph/rest-api/#cancel-order-trade
              *
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinsph cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -1620,17 +1651,17 @@ class coinsph extends Exchange {
                 $request['orderId'] = $id;
             }
             $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-            $response = Async\await($this->privateDeleteOpenapiV1Order ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOpenapiV1Order($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel open orders of $market
              *
-             * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-$symbol-trade
+             * @see https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-$symbol-trade
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1639,16 +1670,18 @@ class coinsph extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteOpenapiV1OpenOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOpenapiV1OpenOrders($this->extend($request, $params)));
             return $this->parse_orders($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1724,7 +1757,7 @@ class coinsph extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
-        $trades = $this->safe_value($order, 'fills', null);
+        $trades = $this->safe_value($order, 'fills');
         $triggerPrice = $this->safe_string($order, 'stopPrice');
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;
@@ -1759,6 +1792,9 @@ class coinsph extends Exchange {
             'BUY' => 'buy',
             'SELL' => 'sell',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1767,6 +1803,9 @@ class coinsph extends Exchange {
             'buy' => 'BUY',
             'sell' => 'SELL',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1780,6 +1819,9 @@ class coinsph extends Exchange {
             'TAKE_PROFIT' => 'market',
             'TAKE_PROFIT_LIMIT' => 'limit',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1793,6 +1835,9 @@ class coinsph extends Exchange {
             'take_profit' => 'TAKE_PROFIT',
             'take_profit_limit' => 'TAKE_PROFIT_LIMIT',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1805,6 +1850,9 @@ class coinsph extends Exchange {
             'PARTIALLY_CANCELED' => 'canceled',
             'REJECTED' => 'rejected',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1814,26 +1862,31 @@ class coinsph extends Exchange {
             'FOK' => 'FOK',
             'IOC' => 'IOC',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
              *
-             * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+             * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee($this->extend($request, $params)));
             //
             //     array(
             //       {
@@ -1845,21 +1898,23 @@ class coinsph extends Exchange {
             //
             $tradingFee = $this->safe_dict($response, 0, array());
             return $this->parse_trading_fee($tradingFee, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
              *
-             * @see https://coins-docs.github.io/rest-api/#trade-$fee-user_data
+             * @see https://docs.coins.ph/rest-api/#trade-$fee-user_data
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetOpenapiV1AssetTradeFee($params));
             //
             //     array(
             //         array(
@@ -1878,10 +1933,12 @@ class coinsph extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $fee = $this->parse_trading_fee($response[$i]);
                 $symbol = $fee['symbol'];
-                $result[$symbol] = $fee;
+                if ($symbol !== null) {
+                    $result[$symbol] = $fee;
+                }
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -1905,12 +1962,12 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal to coins_ph account
              *
-             * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+             * @see https://docs.coins.ph/rest-api/#withdrawuser_data
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -1925,11 +1982,13 @@ class coinsph extends Exchange {
                 throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
             }
             $networkCode = $this->safe_string($params, 'network');
-            $networkId = $this->network_code_to_id($networkCode, $code);
+            $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' withdraw() require network parameter');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
@@ -1941,17 +2000,17 @@ class coinsph extends Exchange {
                 $request['withdrawOrderId'] = $tag;
             }
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOpenapiWalletV1WithdrawApply($this->extend($request, $params)));
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
              *
-             * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+             * @see https://docs.coins.ph/rest-api/#deposit-history-user_data
              *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -1960,7 +2019,9 @@ class coinsph extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             // todo => returns an empty array - find out why
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1973,7 +2034,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiWalletV1DepositHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1DepositHistory($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -2003,15 +2064,15 @@ class coinsph extends Exchange {
             // )
             //
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
              *
-             * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+             * @see https://docs.coins.ph/rest-api/#withdraw-history-user_data
              *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2020,7 +2081,9 @@ class coinsph extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             // todo => returns an empty array - find out why
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -2033,7 +2096,7 @@ class coinsph extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenapiWalletV1WithdrawHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1WithdrawHistory($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -2069,7 +2132,7 @@ class coinsph extends Exchange {
             // )
             //
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2171,15 +2234,18 @@ class coinsph extends Exchange {
             '2' => 'failed',
             '3' => 'pending',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
              *
-             * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+             * @see https://docs.coins.ph/rest-api/#deposit-address-user_data
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2187,18 +2253,20 @@ class coinsph extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             $networkCode = $this->safe_string($params, 'network');
-            $networkId = $this->network_code_to_id($networkCode, $code);
+            $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' fetchDepositAddress() require network parameter');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
                 'network' => $networkId,
             );
             $params = $this->omit($params, 'network');
-            $response = Async\await($this->privateGetOpenapiWalletV1DepositAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenapiWalletV1DepositAddress($this->extend($request, $params)));
             //
             //     {
             //         "coin" => "ETH",
@@ -2207,7 +2275,7 @@ class coinsph extends Exchange {
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -2229,7 +2297,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function url_encode_query($query = array ()) {
+    public function url_encode_query($query = array()) {
         $encodedArrayParams = '';
         $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -2260,7 +2328,7 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
@@ -2294,7 +2362,7 @@ class coinsph extends Exchange {
         if ($response === null) {
             return null;
         }
-        $responseCode = $this->safe_string($response, 'code', null);
+        $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

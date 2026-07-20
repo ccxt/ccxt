@@ -25,7 +25,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://whitebit.com/api/v4/public/assets",
                 "input": [],

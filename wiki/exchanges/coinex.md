@@ -85,7 +85,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinex.fetchCurrencies ([params])
+coinex.fetchCurrencies (params?)
 ```
 
 
@@ -109,7 +109,7 @@ retrieves data on all markets for coinex
 
 
 ```javascript
-coinex.fetchMarkets ([params])
+coinex.fetchMarkets (params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.fetchTicker (symbol[, params])
+coinex.fetchTicker (symbol, params?)
 ```
 
 
@@ -159,7 +159,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinex.fetchTickers (symbols[, params])
+coinex.fetchTickers (symbols, params?)
 ```
 
 
@@ -179,7 +179,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinex.fetchTime ([params])
+coinex.fetchTime (params?)
 ```
 
 
@@ -189,7 +189,7 @@ coinex.fetchTime ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -205,7 +205,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.fetchOrderBook (symbol[, limit, params])
+coinex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -232,7 +232,7 @@ get the list of the most recent trades for a particular symbol
 
 
 ```javascript
-coinex.fetchTrades (symbol[, since, limit, params])
+coinex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -257,7 +257,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-coinex.fetchTradingFee (symbol[, params])
+coinex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -281,7 +281,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinex.fetchTradingFees ([params])
+coinex.fetchTradingFees (params?)
 ```
 
 
@@ -309,7 +309,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -336,7 +336,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinex.fetchBalance ([params])
+coinex.fetchBalance (params?)
 ```
 
 
@@ -362,7 +362,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-coinex.createMarketBuyOrderWithCost (symbol, cost[, params])
+coinex.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -402,7 +402,7 @@ create a trade order
 
 
 ```javascript
-coinex.createOrder (symbol, type, side, amount[, price, params])
+coinex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -429,7 +429,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-coinex.createOrders (orders[, params])
+coinex.createOrders (orders, params?)
 ```
 
 
@@ -458,7 +458,7 @@ cancel multiple orders
 
 
 ```javascript
-coinex.cancelOrders (ids, symbol[, params])
+coinex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -491,7 +491,7 @@ edit a trade order
 
 
 ```javascript
-coinex.editOrder (id, symbol, type, side, amount[, price, params])
+coinex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -516,7 +516,7 @@ edit a list of trade orders
 
 
 ```javascript
-coinex.editOrders (orders[, params])
+coinex.editOrders (orders, params?)
 ```
 
 
@@ -550,7 +550,7 @@ cancels an open order
 
 
 ```javascript
-coinex.cancelOrder (id, symbol[, params])
+coinex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -576,7 +576,7 @@ cancel all open orders in a market
 
 
 ```javascript
-coinex.cancelAllOrders (symbol[, params])
+coinex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -602,7 +602,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinex.fetchOrder (id, symbol[, params])
+coinex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -634,7 +634,7 @@ fetch a list of orders
 
 
 ```javascript
-coinex.fetchOrdersByStatus (status, symbol[, since, limit, params])
+coinex.fetchOrdersByStatus (status, symbol, since?, limit?, params?)
 ```
 
 
@@ -665,7 +665,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-coinex.fetchOpenOrders (symbol[, since, limit, params])
+coinex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -696,7 +696,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinex.fetchClosedOrders (symbol[, since, limit, params])
+coinex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -718,7 +718,7 @@ create a currency deposit address
 
 
 ```javascript
-coinex.createDepositAddress (code[, params])
+coinex.createDepositAddress (code, params?)
 ```
 
 
@@ -740,7 +740,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-coinex.fetchDepositAddress (code[, params])
+coinex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -769,7 +769,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinex.fetchMyTrades (symbol[, since, limit, params])
+coinex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -795,7 +795,7 @@ fetch all open positions
 
 
 ```javascript
-coinex.fetchPositions ([symbols, params])
+coinex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -816,7 +816,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-coinex.fetchPosition (symbol[, params])
+coinex.fetchPosition (symbol, params?)
 ```
 
 
@@ -839,7 +839,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-coinex.setMarginMode (marginMode, symbol[, params])
+coinex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -862,7 +862,7 @@ set the level of leverage for a market
 
 
 ```javascript
-coinex.setLeverage (leverage, symbol[, params])
+coinex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -883,7 +883,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-coinex.fetchLeverageTiers (symbols[, params])
+coinex.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -905,7 +905,7 @@ add margin
 
 
 ```javascript
-coinex.addMargin (symbol, amount[, params])
+coinex.addMargin (symbol, amount, params?)
 ```
 
 
@@ -927,7 +927,7 @@ remove margin from a position
 
 
 ```javascript
-coinex.reduceMargin (symbol, amount[, params])
+coinex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -950,7 +950,7 @@ fetch the history of funding fee payments paid and received on this account
 
 
 ```javascript
-coinex.fetchFundingHistory (symbol[, since, limit, params])
+coinex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -971,7 +971,7 @@ fetch the current funding rate
 
 
 ```javascript
-coinex.fetchFundingRate (symbol[, params])
+coinex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -992,7 +992,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-coinex.fetchFundingInterval (symbol[, params])
+coinex.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -1013,7 +1013,7 @@ fetch the current funding rates for multiple markets
 
 
 ```javascript
-coinex.fetchFundingRates (symbols[, params])
+coinex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1038,7 +1038,7 @@ make a withdrawal
 
 
 ```javascript
-coinex.withdraw (code, amount, address[, tag, params])
+coinex.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -1063,7 +1063,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-coinex.fetchFundingRateHistory (symbol[, since, limit, params])
+coinex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1088,7 +1088,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-coinex.transfer (code, amount, fromAccount, toAccount[, params])
+coinex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1112,7 +1112,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-coinex.fetchTransfers (code[, since, limit, params])
+coinex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -1135,7 +1135,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coinex.fetchWithdrawals ([code, since, limit, params])
+coinex.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -1158,7 +1158,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coinex.fetchDeposits ([code, since, limit, params])
+coinex.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -1180,7 +1180,7 @@ fetch the rate of interest to borrow a currency for margin trading
 
 
 ```javascript
-coinex.fetchIsolatedBorrowRate (symbol[, params])
+coinex.fetchIsolatedBorrowRate (symbol, params?)
 ```
 
 
@@ -1204,7 +1204,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-coinex.fetchBorrowInterest ([code, symbol, since, limit, params])
+coinex.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
 ```
 
 
@@ -1228,7 +1228,7 @@ create a loan to borrow margin
 
 
 ```javascript
-coinex.borrowIsolatedMargin (symbol, code, amount[, params])
+coinex.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1252,7 +1252,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-coinex.repayIsolatedMargin (symbol, code, amount[, params])
+coinex.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1273,7 +1273,7 @@ fetch the fee for deposits and withdrawals
 
 
 ```javascript
-coinex.fetchDepositWithdrawFee (code[, params])
+coinex.fetchDepositWithdrawFee (code, params?)
 ```
 
 
@@ -1289,12 +1289,12 @@ fetch the fees for deposits and withdrawals
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes |  | Yes |  |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinex.fetchDepositWithdrawFees (codes[, params])
+coinex.fetchDepositWithdrawFees (codes?, params?)
 ```
 
 
@@ -1316,7 +1316,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-coinex.fetchLeverage (symbol[, params])
+coinex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1340,7 +1340,7 @@ fetches historical positions
 
 
 ```javascript
-coinex.fetchPositionHistory (symbol[, since, limit, params])
+coinex.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1366,7 +1366,7 @@ closes an open position for a market
 
 
 ```javascript
-coinex.closePosition (symbol[, side, params])
+coinex.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1392,7 +1392,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-coinex.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
+coinex.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -1416,7 +1416,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-coinex.watchBalance ([params])
+coinex.watchBalance (params?)
 ```
 
 
@@ -1443,7 +1443,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-coinex.watchMyTrades ([symbol, since, limit, params])
+coinex.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1468,7 +1468,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.watchTicker (symbol[, params])
+coinex.watchTicker (symbol, params?)
 ```
 
 
@@ -1493,7 +1493,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinex.watchTickers (symbols[, params])
+coinex.watchTickers (symbols, params?)
 ```
 
 
@@ -1520,7 +1520,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinex.watchTrades (symbol[, since, limit, params])
+coinex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1547,7 +1547,7 @@ watch the most recent trades for a list of symbols
 
 
 ```javascript
-coinex.watchTradesForSymbols (symbols[, since, limit, params])
+coinex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1557,7 +1557,7 @@ coinex.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1573,7 +1573,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.watchOrderBookForSymbols (symbols[, limit, params])
+coinex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1583,7 +1583,7 @@ coinex.watchOrderBookForSymbols (symbols[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1599,7 +1599,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinex.watchOrderBook (symbol[, limit, params])
+coinex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1627,7 +1627,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-coinex.watchOrders (symbol[, since, limit, params])
+coinex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1652,6 +1652,6 @@ watches best bid & ask for symbols
 
 
 ```javascript
-coinex.watchBidsAsks ([symbols, params])
+coinex.watchBidsAsks (symbols?, params?)
 ```
 

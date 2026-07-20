@@ -8,16 +8,19 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 function testMarket(exchange, skippedProperties, method, market) {
+    if (market === undefined) {
+        return;
+    }
     const format = {
-        'id': 'btcusd',
-        'symbol': 'BTC/USD',
-        'base': 'BTC',
-        'quote': 'USD',
-        'taker': exchange.parseNumber('0.0011'),
-        'maker': exchange.parseNumber('0.0009'),
-        'baseId': 'btc',
-        'quoteId': 'usd',
-        'active': false,
+        'id': 'btcusd', // string literal for referencing within an exchange
+        'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
+        'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
+        'quote': 'USD', // unified uppercase string, quote currency, 3 or more letters
+        'taker': exchange.parseNumber('0.0011'), // taker fee, for example, 0.0011 = 0.11%
+        'maker': exchange.parseNumber('0.0009'), // maker fee, for example, 0.0009 = 0.09%
+        'baseId': 'btc', // exchange-specific base currency id
+        'quoteId': 'usd', // exchange-specific quote currency id
+        'active': false, // boolean, market status
         'type': 'spot',
         'linear': false,
         'inverse': false,
@@ -36,23 +39,23 @@ function testMarket(exchange, skippedProperties, method, market) {
         'settleId': 'Xyz',
         'precision': {
             // todo : handle precision types after another PR is merged
-            'price': exchange.parseNumber('0.001'),
-            'amount': exchange.parseNumber('0.001'),
+            'price': exchange.parseNumber('0.001'), // integer or fraction
+            'amount': exchange.parseNumber('0.001'), // integer or fraction
             'cost': exchange.parseNumber('0.001'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
             'amount': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order amount should be > min
                 'max': exchange.parseNumber('1000'), // order amount should be < max
             },
             'price': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order price should be > min
                 'max': exchange.parseNumber('1000'), // order price should be < max
             },
             // order cost = price * amount
             'cost': {
-                'min': exchange.parseNumber('0.01'),
+                'min': exchange.parseNumber('0.01'), // order cost should be > min
                 'max': exchange.parseNumber('1000'), // order cost should be < max
             },
         },
@@ -115,8 +118,8 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'maker', '-100');
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'maker', '100');
-    // validate type
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
+    // validate type ('prediction' for prediction-market exchanges)
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     // validate subTypes
     const validSubTypes = ['linear', 'inverse', 'quanto', undefined];
@@ -149,7 +152,12 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'margin', [false, undefined]);
     }
     // check mutually exclusive fields
-    if (spot) {
+    const isPrediction = (market['type'] === 'prediction');
+    if (isPrediction) {
+        // prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert(!spot && !contract && !future && !swap && !option, 'for prediction market, none of spot/contract/future/swap/option should be set' + logText);
+    }
+    else if (spot) {
         assert(!contract && linear === undefined && inverse === undefined && !option && !swap && !future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
     }
     else {
@@ -262,8 +270,9 @@ function testMarket(exchange, skippedProperties, method, market) {
             }
         }
     }
-    // check currencies
-    if (!isInactiveMarket) {
+    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if (!isInactiveMarket && !isPrediction) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);
@@ -272,7 +281,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {
-        const marginModes = exchange.safeDict(market, 'marginModes'); // in future, remove safeDict
+        const marginModes = exchange.safeDict(market, 'marginModes', {}); // in future, remove safeDict
         assert('cross' in marginModes, 'marginModes should have "cross" key' + logText);
         assert('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
         testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, 'cross', [true, false, undefined]);

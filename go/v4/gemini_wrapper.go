@@ -49,12 +49,12 @@ func (this *Gemini) FetchCurrencies(params ...any) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (map[string]any, error) {
+func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrenciesFromWeb(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return Currencies{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewCurrencies(res), nil
 }
 
 /**
@@ -77,21 +77,21 @@ func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]map[string]any, error)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gemini) FetchUSDTMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchUSDTMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsFromAPI(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -102,7 +102,7 @@ func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]map[string]any, error)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Gemini) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

@@ -29,9 +29,9 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if (($success === true) && ($response !== null)) {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dictionary. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
             }

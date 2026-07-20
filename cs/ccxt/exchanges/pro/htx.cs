@@ -48,6 +48,7 @@ public partial class htx : ccxt.htx
                                 { "linear", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/linear-swap-ws" },
                                     { "private", "wss://api.hbdm.vn/linear-swap-notification" },
+                                    { "privateV5", "wss://api.hbdm.vn/ws/v5/notification" },
                                 } },
                                 { "inverse", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/ws" },
@@ -62,6 +63,7 @@ public partial class htx : ccxt.htx
                                 { "linear", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/linear-swap-ws" },
                                     { "private", "wss://api.hbdm.vn/linear-swap-notification" },
+                                    { "privateV5", "wss://api.hbdm.vn/ws/v5/notification" },
                                 } },
                             } },
                         } },
@@ -75,6 +77,7 @@ public partial class htx : ccxt.htx
                                 { "linear", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/linear-swap-ws" },
                                     { "private", "wss://api.hbdm.vn/linear-swap-notification" },
+                                    { "privateV5", "wss://api.hbdm.vn/ws/v5/notification" },
                                 } },
                                 { "inverse", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/ws" },
@@ -85,6 +88,7 @@ public partial class htx : ccxt.htx
                                 { "linear", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/linear-swap-ws" },
                                     { "private", "wss://api.hbdm.vn/linear-swap-notification" },
+                                    { "privateV5", "wss://api.hbdm.vn/ws/v5/notification" },
                                 } },
                                 { "inverse", new Dictionary<string, object>() {
                                     { "public", "wss://api.hbdm.vn/swap-ws" },
@@ -149,7 +153,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
@@ -178,7 +185,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "ticker";
         object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
@@ -258,7 +268,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("market.", getValue(market, "id")), ".trade.detail");
@@ -285,7 +298,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "trades";
         object options = this.safeDict(this.options, "watchTrades", new Dictionary<string, object>() {});
@@ -359,7 +375,10 @@ public partial class htx : ccxt.htx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -390,7 +409,10 @@ public partial class htx : ccxt.htx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
         object subMessageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
@@ -448,12 +470,15 @@ public partial class htx : ccxt.htx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object allowedLimits = new List<object>() {5, 20, 150, 400};
@@ -500,12 +525,15 @@ public partial class htx : ccxt.htx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = "orderbook";
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
@@ -748,7 +776,7 @@ public partial class htx : ccxt.htx
             (orderbook as IOrderBook).reset(snapshot);
             ((IDictionary<string,object>)orderbook)["nonce"] = version;
         }
-        if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
+        if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))))
         {
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))
@@ -859,6 +887,7 @@ public partial class htx : ccxt.htx
      * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -869,7 +898,10 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         object marketId = "*"; // wildcard
         object market = null;
@@ -892,6 +924,10 @@ public partial class htx : ccxt.htx
             subType = this.safeString(parameters, "subType", subType);
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
+        object linear = (isEqual(subType, "linear"));
+        object swap = (isEqual(type, "swap"));
+        var future = (isEqual(type, "future"));
+        object isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         if (isTrue(isEqual(type, "spot")))
         {
             object mode = null;
@@ -903,6 +939,12 @@ public partial class htx : ccxt.htx
             }
             messageHash = add(add(add(add("trade.clearing", "#"), marketId), "#"), mode);
             channel = messageHash;
+        } else if (isTrue(isV5Linear))
+        {
+            object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, parameters);
+            channel = this.safeString(channelAndMessageHashAndParams, 0);
+            messageHash = this.safeString(channelAndMessageHashAndParams, 1);
+            parameters = this.safeValue(channelAndMessageHashAndParams, 2, new Dictionary<string, object>() {});
         } else
         {
             object channelAndMessageHash = this.getOrderChannelAndMessageHash(type, subType, market, parameters);
@@ -912,7 +954,10 @@ public partial class htx : ccxt.htx
             // like symbol/margin/subtype/type variations
             messageHash = add(add(orderMessageHash, ":"), "trade");
         }
-        trades = await this.subscribePrivate(channel, messageHash, type, subType, parameters);
+        object subscriptionParams = new Dictionary<string, object>() {
+            { "isV5", isV5Linear },
+        };
+        trades = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -972,11 +1017,25 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
+    public virtual object getV5LinearChannelAndMessageHash(object topic, object market = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object contractCode = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "id") : this.safeString(parameters, "contract_code", "*");
+        object channel = topic;
+        object messageHash = ((bool) isTrue((isEqual(contractCode, "*")))) ? topic : (add(add(topic, "."), ((string)contractCode).ToLower()));
+        parameters = this.omit(parameters, "contract_code");
+        object requestParams = this.extend(new Dictionary<string, object>() {
+            { "contract_code", contractCode },
+        }, parameters);
+        return new List<object>() {channel, messageHash, requestParams};
+    }
+
     /**
      * @method
      * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -986,7 +1045,10 @@ public partial class htx : ccxt.htx
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         object subType = null;
         object market = null;
@@ -1006,19 +1068,32 @@ public partial class htx : ccxt.htx
             subType = this.safeString(parameters, "subType", subType);
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
+        object linear = (isEqual(subType, "linear"));
+        object swap = (isEqual(type, "swap"));
+        var future = (isEqual(type, "future"));
+        object isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         object messageHash = null;
         object channel = null;
         if (isTrue(isEqual(type, "spot")))
         {
             messageHash = add(add("orders", "#"), suffix);
             channel = messageHash;
+        } else if (isTrue(isV5Linear))
+        {
+            object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, parameters);
+            channel = this.safeString(channelAndMessageHashAndParams, 0);
+            messageHash = this.safeString(channelAndMessageHashAndParams, 1);
+            parameters = this.safeValue(channelAndMessageHashAndParams, 2, new Dictionary<string, object>() {});
         } else
         {
             object channelAndMessageHash = this.getOrderChannelAndMessageHash(type, subType, market, parameters);
             channel = this.safeString(channelAndMessageHash, 0);
             messageHash = this.safeString(channelAndMessageHash, 1);
         }
-        object orders = await this.subscribePrivate(channel, messageHash, type, subType, parameters);
+        object subscriptionParams = new Dictionary<string, object>() {
+            { "isV5", isV5Linear },
+        };
+        object orders = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
@@ -1148,12 +1223,61 @@ public partial class htx : ccxt.htx
         //   }
         //
         //
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "orders",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367563267,
+        //         "uid": "359305390",
+        //         "data": {
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "40000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": "0",
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "both",
+        //             "price_match": null,
+        //             "order_id": "1519705236917489664",
+        //             "client_order_id": "1519705236917489664",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 10,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": null,
+        //             "fee": "0",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "",
+        //             "sl_trigger_price_type": "",
+        //             "contract_type": "swap",
+        //             "cancel_reason": "",
+        //             "created_time": "1782367563239",
+        //             "updated_time": "1782367563239",
+        //             "self_match_prevent": "cancel_taker",
+        //             "amend_origin_volume": "",
+        //             "amend_source": "",
+        //             "amend_result": ""
+        //         }
+        //     }
+        //
         object messageHash = this.safeString2(message, "ch", "topic");
         object data = this.safeValue(message, "data");
         object marketId = this.safeString(message, "contract_code");
         if (isTrue(isEqual(marketId, null)))
         {
-            marketId = this.safeString(data, "symbol");
+            marketId = this.safeString2(data, "contract_code", "symbol");
         }
         object market = this.safeMarket(marketId);
         object parsedOrder = null;
@@ -1221,6 +1345,11 @@ public partial class htx : ccxt.htx
         object cachedOrders = this.orders;
         callDynamically(cachedOrders, "append", new object[] {parsedOrder});
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
+        if (isTrue(isTrue((isEqual(messageHash, "orders"))) && isTrue((!isEqual(marketId, null)))))
+        {
+            object specificMessageHash = add(add(messageHash, "."), ((string)marketId).ToLower());
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, specificMessageHash});
+        }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         object genericMessageHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
@@ -1344,23 +1473,65 @@ public partial class htx : ccxt.htx
         //         "real_profit": 0
         //     }
         //
-        object lastTradeTimestamp = this.safeInteger2(order, "lastActTime", "ts");
-        object created = this.safeInteger(order, "orderCreateTime");
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "40000",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": "0",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "both",
+        //         "price_match": null,
+        //         "order_id": "1519705236917489664",
+        //         "client_order_id": "1519705236917489664",
+        //         "margin_mode": "cross",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": null,
+        //         "fee": "0",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "",
+        //         "sl_trigger_price_type": "",
+        //         "contract_type": "swap",
+        //         "cancel_reason": "",
+        //         "created_time": "1782367563239",
+        //         "updated_time": "1782367563239",
+        //         "self_match_prevent": "cancel_taker",
+        //         "amend_origin_volume": "",
+        //         "amend_source": "",
+        //         "amend_result": ""
+        //     }
+        //
+        object lastTradeTimestamp = this.safeIntegerN(order, new List<object>() {"lastActTime", "updated_time", "ts"});
+        object created = this.safeInteger2(order, "orderCreateTime", "created_time");
         object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeString2(order, "orderSize", "volume");
-        object status = this.parseOrderStatus(this.safeString2(order, "orderStatus", "status"));
+        object status = this.parseOrderStatus(this.safeStringN(order, new List<object>() {"orderStatus", "state", "status"}));
         object id = this.safeString2(order, "orderId", "order_id");
         object clientOrderId = this.safeString2(order, "clientOrderId", "client_order_id");
         object price = this.safeString2(order, "orderPrice", "price");
-        object filled = this.safeString(order, "execAmt");
+        object filled = this.safeString2(order, "execAmt", "trade_volume");
         object typeSide = this.safeString(order, "type");
         object feeCost = this.safeString(order, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurrencyId = this.safeString(order, "fee_asset");
+            object feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
@@ -1369,11 +1540,18 @@ public partial class htx : ccxt.htx
         object avgPrice = this.safeString(order, "trade_avg_price");
         object rawTrades = this.safeValue(order, "trade");
         object typeSideParts = new List<object>() {};
+        object type = null;
         if (isTrue(!isEqual(typeSide, null)))
         {
-            typeSideParts = ((string)typeSide).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(typeSide, "-"), 0)))
+            {
+                typeSideParts = ((string)typeSide).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                type = this.safeStringLower(typeSideParts, 1);
+            } else
+            {
+                type = typeSide;
+            }
         }
-        object type = this.safeStringLower(typeSideParts, 1);
         if (isTrue(isEqual(type, null)))
         {
             type = this.safeString(order, "order_price_type");
@@ -1381,9 +1559,9 @@ public partial class htx : ccxt.htx
         object side = this.safeStringLower(typeSideParts, 0);
         if (isTrue(isEqual(side, null)))
         {
-            side = this.safeString(order, "direction");
+            side = this.safeString2(order, "direction", "side");
         }
-        object cost = this.safeString(order, "orderValue");
+        object cost = this.safeString2(order, "orderValue", "trade_turnover");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1394,7 +1572,7 @@ public partial class htx : ccxt.htx
             { "status", status },
             { "symbol", symbol },
             { "type", type },
-            { "timeInForce", null },
+            { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },
             { "side", side },
             { "price", price },
@@ -1405,6 +1583,11 @@ public partial class htx : ccxt.htx
             { "fee", fee },
             { "average", avgPrice },
             { "trades", rawTrades },
+            { "reduceOnly", this.safeBool(order, "reduce_only") },
+            { "stopPrice", null },
+            { "triggerPrice", null },
+            { "takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price") },
+            { "stopLossPrice", this.safeString2(order, "sl_trigger_price", "sl_order_price") },
         }, market);
     }
 
@@ -1471,21 +1654,23 @@ public partial class htx : ccxt.htx
     /**
      * @method
      * @name htx#watchPositions
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))
@@ -1517,11 +1702,27 @@ public partial class htx : ccxt.htx
         var marginModeparametersVariable = this.handleMarginModeAndParams("watchPositions", parameters, "cross");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object linear = (isEqual(subType, "linear"));
+        object swap = (isEqual(type, "swap"));
+        var future = (isEqual(type, "future"));
+        object isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         object isLinear = (isEqual(subType, "linear"));
-        object url = this.getUrlByMarketType(type, isLinear, true);
+        object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = add(add(marginMode, ":positions"), messageHash);
         object channel = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "positions_cross.*" : "positions.*";
-        object newPositions = await this.subscribePrivate(channel, messageHash, type, subType, parameters);
+        if (isTrue(isV5Linear))
+        {
+            object isOneMarket = (!isTrue(this.isEmpty(symbols)) && isTrue((isEqual(getArrayLength(symbols), 1))));
+            object v5Market = ((bool) isTrue(isOneMarket)) ? market : null;
+            object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, parameters);
+            channel = this.safeString(channelAndMessageHashAndParams, 0);
+            parameters = this.safeValue(channelAndMessageHashAndParams, 2, new Dictionary<string, object>() {});
+        }
+        object subscriptionParams = new Dictionary<string, object>() {
+            { "isV5", isV5Linear },
+            { "margin", marginMode },
+        };
+        object newPositions = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
         if (isTrue(this.newUpdates))
         {
             return newPositions;
@@ -1566,9 +1767,53 @@ public partial class htx : ccxt.htx
         //        ]
         //    }
         //
+        // watchPositions linear v5
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "positions",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782460576073,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": [
+        //             {
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "position_mode": "single_side",
+        //                 "position_side": "both",
+        //                 "direction": "buy",
+        //                 "margin_mode": "cross",
+        //                 "open_avg_price": "60547.9",
+        //                 "volume": "1",
+        //                 "available": "1",
+        //                 "fee": "0.03632874",
+        //                 "break_even_price": "60620.55748",
+        //                 "total_trade_fee": "0.03632874",
+        //                 "lever_rate": 10,
+        //                 "adl_risk_percent": 4,
+        //                 "liquidation_price": "-102094.847680676304309652",
+        //                 "initial_margin": "6.05807",
+        //                 "maintenance_margin": "0.20597438",
+        //                 "profit_unreal": "0.0328",
+        //                 "profit": "0",
+        //                 "profit_rate": "0.0054",
+        //                 "margin_rate": "0.0012",
+        //                 "state": "normal",
+        //                 "funding_fee": "0",
+        //                 "mark_price": "60580.7",
+        //                 "last_price": "60591.4",
+        //                 "contract_type": "swap",
+        //                 "version": 7,
+        //                 "created_time": "1782460515119",
+        //                 "updated_time": "1782460515119"
+        //             }
+        //         ]
+        //     }
+        //
         object url = client.url;
         object topic = this.safeString(message, "topic", "");
-        object marginMode = ((bool) isTrue((isEqual(topic, "positions_cross")))) ? "cross" : "isolated";
+        object defaultMarginMode = ((bool) isTrue((isEqual(topic, "positions_cross")))) ? "cross" : "isolated";
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -1578,14 +1823,22 @@ public partial class htx : ccxt.htx
         {
             ((IDictionary<string,object>)this.positions)[(string)url] = new Dictionary<string, object>() {};
         }
-        object clientMarginModePositions = this.safeValue(clientPositions, marginMode);
-        if (isTrue(isEqual(clientMarginModePositions, null)))
-        {
-            ((IDictionary<string,object>)getValue(this.positions, url))[(string)marginMode] = new ArrayCacheBySymbolBySide();
-        }
-        object cache = getValue(getValue(this.positions, url), marginMode);
         object rawPositions = this.safeValue(message, "data", new List<object>() {});
+        if (isTrue(this.isEmpty(rawPositions)))
+        {
+            object prefixes = new List<object>() {"cross:positions", "isolated:positions"};
+            for (object i = 0; isLessThan(i, getArrayLength(prefixes)); postFixIncrement(ref i))
+            {
+                object messageHashes = this.findMessageHashes(client as WebSocketClient, getValue(prefixes, i));
+                for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {}, getValue(messageHashes, j)});
+                }
+            }
+            return;
+        }
         object newPositions = new List<object>() {};
+        object positionsByMarginMode = new Dictionary<string, object>() {};
         object timestamp = this.safeInteger(message, "ts");
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -1593,23 +1846,42 @@ public partial class htx : ccxt.htx
             object position = this.parsePosition(rawPosition);
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
             ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
+            object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
+            if (isTrue(isTrue((!isEqual(marginMode, "cross"))) && isTrue((!isEqual(marginMode, "isolated")))))
+            {
+                marginMode = defaultMarginMode;
+            }
+            object cache = this.safeValue(getValue(this.positions, url), marginMode);
+            if (isTrue(isEqual(cache, null)))
+            {
+                cache = new ArrayCacheBySymbolBySide();
+                ((IDictionary<string,object>)getValue(this.positions, url))[(string)marginMode] = cache;
+            }
             ((IList<object>)newPositions).Add(position);
+            ((IDictionary<string,object>)positionsByMarginMode)[(string)marginMode] = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
+            ((IList<object>)getValue(positionsByMarginMode, marginMode)).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(marginMode, ":positions::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        object marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marginModes)); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
+            object marginMode = getValue(marginModes, i);
+            object marginModePositions = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
+            object messageHashes = this.findMessageHashes(client as WebSocketClient, add(marginMode, ":positions::"));
+            for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
             {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+                object messageHash = getValue(messageHashes, j);
+                object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+                object symbolsString = getValue(parts, 1);
+                object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+                object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
+                if (!isTrue(this.isEmpty(positions)))
+                {
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+                }
             }
+            callDynamically(client as WebSocketClient, "resolve", new object[] {marginModePositions, add(marginMode, ":positions")});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, add(marginMode, ":positions")});
     }
 
     /**
@@ -1617,9 +1889,8 @@ public partial class htx : ccxt.htx
      * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1636,16 +1907,29 @@ public partial class htx : ccxt.htx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
         parameters = this.omit(parameters, new List<object>() {"isUnifiedAccount", "unified"});
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = null;
         object channel = null;
         object marginMode = null;
+        object linear = (isEqual(subType, "linear"));
+        object swap = (isEqual(type, "swap"));
+        var future = (isEqual(type, "future"));
+        object isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         if (isTrue(isEqual(type, "spot")))
         {
             object mode = this.safeString2(this.options, "watchBalance", "mode", "2");
             mode = this.safeString(parameters, "mode", mode);
             messageHash = add(add("accounts.update", "#"), mode);
             channel = messageHash;
+        } else if (isTrue(isV5Linear))
+        {
+            marginMode = this.safeString(parameters, "margin", "cross");
+            parameters = this.omit(parameters, new List<object>() {"currency", "symbol", "margin"});
+            channel = "account";
+            messageHash = "account";
         } else
         {
             object symbol = this.safeString(parameters, "symbol");
@@ -1725,6 +2009,7 @@ public partial class htx : ccxt.htx
             { "type", type },
             { "subType", subType },
             { "margin", marginMode },
+            { "isV5", isV5Linear },
         };
         // we are differentiating the channel from the messageHash for global subscriptions (*)
         // because huobi returns a different topic than the topic sent. Example: we send
@@ -1779,47 +2064,47 @@ public partial class htx : ccxt.htx
         //         "uid":"123456789"
         //     }
         //
-        // usdt / linear future, swap
+        // watchBalance linear v5
         //
         //     {
-        //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
-        //         "ts":1603711370689,
-        //         "event":"order.open",
-        //         "data":[
-        //             {
-        //                 "margin_mode":"cross",
-        //                 "margin_account":"USDT",
-        //                 "margin_asset":"USDT",
-        //                 "margin_balance":30.959342395,
-        //                 "margin_static":30.959342395,
-        //                 "margin_position":0,
-        //                 "margin_frozen":10,
-        //                 "profit_real":0,
-        //                 "profit_unreal":0,
-        //                 "withdraw_available":20.959342395,
-        //                 "risk_rate":153.796711975,
-        //                 "position_mode":"dual_side",
-        //                 "contract_detail":[
-        //                     {
-        //                         "symbol":"LTC",
-        //                         "contract_code":"LTC-USDT",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":20.959342395,
-        //                         "profit_unreal":0,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":1,
-        //                         "adjust_factor":0.01,
-        //                         "contract_type":"swap",
-        //                         "pair":"LTC-USDT",
-        //                         "business_type":"swap",
-        //                         "trade_partition":"USDT"
-        //                     },
-        //                 ],
-        //                 "futures_contract_detail":[],
-        //             }
-        //         ]
+        //         "op": "notify",
+        //         "topic": "account",
+        //         "contract_code": "",
+        //         "ts": 1782459963509,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": {
+        //             "equity": "0",
+        //             "state": "normal",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "162.331953938562004875",
+        //                     "available": "162.331953938562004875",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "created_time": "1770293270932",
+        //                     "updated_time": "1780329743956",
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0",
+        //                     "withdraw_available": "162.331953938562004875"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "0",
+        //             "created_time": "1770293268881",
+        //             "updated_time": "1780329743956",
+        //             "version": 5659,
+        //             "voucher_value": "0"
+        //         }
         //     }
         //
         // inverse future
@@ -1869,13 +2154,36 @@ public partial class htx : ccxt.htx
         } else
         {
             // contract balance
+            object topic = this.safeString(message, "topic");
+            if (isTrue(isEqual(topic, "account")))
+            {
+                object accountData = this.safeDict(message, "data", new Dictionary<string, object>() {});
+                object details = this.safeList(accountData, "details", new List<object>() {});
+                object detailsLength = getArrayLength(details);
+                for (object i = 0; isLessThan(i, detailsLength); postFixIncrement(ref i))
+                {
+                    object detail = getValue(details, i);
+                    object currencyId = this.safeString(detail, "currency");
+                    object code = this.safeCurrencyCode(currencyId);
+                    if (isTrue(isEqual(code, null)))
+                    {
+                        continue;
+                    }
+                    object account = this.account();
+                    ((IDictionary<string,object>)account)["free"] = this.safeString(detail, "withdraw_available");
+                    ((IDictionary<string,object>)account)["total"] = this.safeString(detail, "equity");
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
+                this.balance = this.safeBalance(this.balance);
+                callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "account"});
+                return;
+            }
             object dataLength = getArrayLength(data);
             if (isTrue(isEqual(dataLength, 0)))
             {
                 return;
             }
             object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
-            object topic = this.safeString(message, "topic");
             object splitTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object messageHash = this.safeString(splitTopic, 0);
             object subscription = this.safeValue2(((WebSocketClient)client).subscriptions, messageHash, add(messageHash, ".*"));
@@ -2179,6 +2487,10 @@ public partial class htx : ccxt.htx
             if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "orders"), 0)))
             {
                 this.handleOrder(client as WebSocketClient, message);
+            }
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "trade"), 0)))
+            {
+                this.handleMyTrade(client as WebSocketClient, message);
             }
             if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "account"), 0)))
             {
@@ -2514,6 +2826,34 @@ public partial class htx : ccxt.htx
         //         ],
         //     }
         //
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "trade",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367694387,
+        //         "uid": "359305390",
+        //         "data": [
+        //             {
+        //                 "direction": "buy",
+        //                 "id": "100121555172810-1519705786942156810-1",
+        //                 "contract_code": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "order_id": "1519705786942156810",
+        //                 "trade_id": "155233460",
+        //                 "position_side": "both",
+        //                 "trade_volume": "1",
+        //                 "trade_price": "61629",
+        //                 "trade_turnover": "61.629",
+        //                 "role": "taker",
+        //                 "client_order_id": "1519705786942156810",
+        //                 "created_time": "1782367694375",
+        //                 "updated_time": "1782367694385"
+        //             }
+        //         ]
+        //     }
+        //
         extendParams ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -2521,18 +2861,39 @@ public partial class htx : ccxt.htx
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         object cachedTrades = this.myTrades;
-        object messageHash = this.safeString(message, "ch");
+        object messageHash = this.safeString2(message, "ch", "topic");
         if (isTrue(!isEqual(messageHash, null)))
         {
             object data = this.safeValue(message, "data");
             if (isTrue(!isEqual(data, null)))
             {
-                object parsed = this.parseWsTrade(data);
-                object symbol = this.safeString(parsed, "symbol");
-                if (isTrue(!isEqual(symbol, null)))
+                object contractCode = this.safeString(message, "contract_code");
+                object market = ((bool) isTrue((!isEqual(contractCode, null)))) ? this.safeMarket(contractCode) : null;
+                if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
-                    callDynamically(cachedTrades, "append", new object[] {parsed});
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
+                    for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                    {
+                        object parsed = this.parseWsTrade(getValue(data, i), market);
+                        object symbol = this.safeString(parsed, "symbol");
+                        if (isTrue(!isEqual(symbol, null)))
+                        {
+                            callDynamically(cachedTrades, "append", new object[] {parsed});
+                        }
+                    }
+                } else
+                {
+                    object parsed = this.parseWsTrade(data, market);
+                    object symbol = this.safeString(parsed, "symbol");
+                    if (isTrue(!isEqual(symbol, null)))
+                    {
+                        callDynamically(cachedTrades, "append", new object[] {parsed});
+                    }
+                }
+                callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
+                if (isTrue(isTrue((isEqual(messageHash, "trade"))) && isTrue((!isEqual(contractCode, null)))))
+                {
+                    object specificMessageHash = add(add(messageHash, "."), ((string)contractCode).ToLower());
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, specificMessageHash});
                 }
             } else
             {
@@ -2593,34 +2954,57 @@ public partial class htx : ccxt.htx
         //         "feeDeductType":""
         //     }
         //
-        object symbol = this.safeSymbol(this.safeString(trade, "symbol"));
-        object side = this.safeString2(trade, "side", "orderSide");
-        object tradeId = this.safeString(trade, "tradeId");
-        object price = this.safeString(trade, "tradePrice");
-        object amount = this.safeString(trade, "tradeVolume");
-        object order = this.safeString(trade, "orderId");
-        object timestamp = this.safeInteger(trade, "tradeTime");
-        market = this.market(symbol);
-        object orderType = this.safeString(trade, "orderType");
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "direction": "buy",
+        //         "id": "100121555172810-1519705786942156810-1",
+        //         "contract_code": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "order_id": "1519705786942156810",
+        //         "trade_id": "155233460",
+        //         "position_side": "both",
+        //         "trade_volume": "1",
+        //         "trade_price": "61629",
+        //         "trade_turnover": "61.629",
+        //         "role": "taker",
+        //         "client_order_id": "1519705786942156810",
+        //         "created_time": "1782367694375",
+        //         "updated_time": "1782367694385"
+        //     }
+        //
+        object marketId = this.safeString2(trade, "symbol", "contract_code");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object side = this.safeStringN(trade, new List<object>() {"side", "orderSide", "direction"});
+        object tradeId = this.safeStringN(trade, new List<object>() {"tradeId", "trade_id", "id"});
+        object price = this.safeString2(trade, "tradePrice", "trade_price");
+        object amount = this.safeString2(trade, "tradeVolume", "trade_volume");
+        object order = this.safeString2(trade, "orderId", "order_id");
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"tradeTime", "updated_time", "created_time"});
+        object orderType = this.safeString2(trade, "orderType", "type");
         object aggressor = this.safeValue(trade, "aggressor");
         object takerOrMaker = null;
         if (isTrue(!isEqual(aggressor, null)))
         {
             takerOrMaker = ((bool) isTrue(aggressor)) ? "taker" : "maker";
+        } else
+        {
+            takerOrMaker = this.safeStringLower(trade, "role");
         }
         object type = null;
         object orderTypeParts = new List<object>() {};
         if (isTrue(!isEqual(orderType, null)))
         {
             orderTypeParts = ((string)orderType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            type = this.safeString(orderTypeParts, 1);
+            type = this.safeString(orderTypeParts, 1, orderType);
         }
         object fee = null;
-        object feeCurrency = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
+        object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new List<object>() {"feeCurrency", "fee_currency", "fee_asset"}));
         if (isTrue(!isEqual(feeCurrency, null)))
         {
             fee = new Dictionary<string, object>() {
-                { "cost", this.safeString(trade, "transactFee") },
+                { "cost", this.safeStringN(trade, new List<object>() {"transactFee", "fee", "trade_fee"}) },
                 { "currency", feeCurrency },
             };
         }
@@ -2641,11 +3025,12 @@ public partial class htx : ccxt.htx
         }, market);
     }
 
-    public virtual object getUrlByMarketType(object type, object isLinear = null, object isPrivate = null, object isFeed = null)
+    public virtual object getUrlByMarketType(object type, object isLinear = null, object isPrivate = null, object isFeed = null, object isV5 = null)
     {
         isLinear ??= true;
         isPrivate ??= false;
         isFeed ??= false;
+        isV5 ??= false;
         object api = this.safeString(this.options, "api", "api");
         object hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -2672,7 +3057,19 @@ public partial class htx : ccxt.htx
         {
             object baseUrl = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), type);
             object subTypeUrl = ((bool) isTrue(isLinear)) ? getValue(baseUrl, "linear") : getValue(baseUrl, "inverse");
-            url = ((bool) isTrue(isPrivate)) ? getValue(subTypeUrl, "private") : getValue(subTypeUrl, "public");
+            if (isTrue(isPrivate))
+            {
+                if (isTrue(isTrue(isV5) && isTrue(isLinear)))
+                {
+                    url = this.safeString(subTypeUrl, "privateV5", getValue(subTypeUrl, "private"));
+                } else
+                {
+                    url = getValue(subTypeUrl, "private");
+                }
+            } else
+            {
+                url = getValue(subTypeUrl, "public");
+            }
         }
         return url;
     }
@@ -2753,7 +3150,8 @@ public partial class htx : ccxt.htx
             };
         }
         object isLinear = isEqual(subtype, "linear");
-        object url = this.getUrlByMarketType(type, isLinear, true);
+        object isV5 = this.safeBool(subscriptionParams, "isV5", false);
+        object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         object hostname = ((bool) isTrue((isEqual(type, "spot")))) ? getValue(getValue(this.urls, "hostnames"), "spot") : getValue(getValue(this.urls, "hostnames"), "contract");
         object authParams = new Dictionary<string, object>() {
             { "type", type },

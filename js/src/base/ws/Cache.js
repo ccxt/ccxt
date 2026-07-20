@@ -4,13 +4,11 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-/* eslint-disable max-classes-per-file */
-// @ts-nocheck
 class BaseCache extends Array {
     constructor(maxSize = undefined) {
         super();
         Object.defineProperty(this, 'maxSize', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: maxSize,
             writable: true,
         });
@@ -24,32 +22,32 @@ class ArrayCache extends BaseCache {
         super(maxSize);
         this.hashmap = {};
         Object.defineProperty(this, 'nestedNewUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
         Object.defineProperty(this, 'newUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'clearUpdatesBySymbol', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'allNewUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: 0,
             writable: true,
         });
         Object.defineProperty(this, 'clearAllUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
             enumerable: false,
@@ -102,22 +100,22 @@ class ArrayCacheByTimestamp extends BaseCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
         Object.defineProperty(this, 'sizeTracker', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Set(),
             writable: true,
         });
         Object.defineProperty(this, 'newUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: 0,
             writable: true,
         });
         Object.defineProperty(this, 'clearUpdates', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: false,
             writable: true,
         });
@@ -159,14 +157,17 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         this.nestedNewUpdatesBySymbol = true;
-        // Object.defineProperty (this, 'hashmap', {
-        //     __proto__: null, // make it invisible
-        //     value: {},
-        //     writable: true,
-        // })
+        // non-enumerable so it stays invisible to array equality/iteration (this extends Array);
+        // the item field used as the first nesting level, overridden by ArrayCacheByOutcomeById
+        Object.defineProperty(this, 'keyField', {
+            __proto__: null, // make it invisible
+            value: 'symbol',
+            writable: true,
+        });
     }
     append(item) {
-        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};
+        const key = item[this.keyField];
+        const byId = this.hashmap[key] = this.hashmap[key] || {};
         if (item.id in byId) {
             const reference = byId[item.id];
             if (reference !== item) {
@@ -184,7 +185,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift();
-            delete this.hashmap[deleteReference.symbol][deleteReference.id];
+            delete this.hashmap[deleteReference[this.keyField]][deleteReference.id];
         }
         this.push(item);
         if (this.clearAllUpdates) {
@@ -193,19 +194,25 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.allNewUpdates = 0;
             this.newUpdatesBySymbol = {};
         }
-        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
-            this.newUpdatesBySymbol[item.symbol] = new Set();
+        if (this.newUpdatesBySymbol[key] === undefined) {
+            this.newUpdatesBySymbol[key] = new Set();
         }
-        if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.clearUpdatesBySymbol[item.symbol] = false;
-            this.newUpdatesBySymbol[item.symbol].clear();
+        if (this.clearUpdatesBySymbol[key]) {
+            this.clearUpdatesBySymbol[key] = false;
+            this.newUpdatesBySymbol[key].clear();
         }
         // in case an exchange updates the same order id twice
-        const idSet = this.newUpdatesBySymbol[item.symbol];
+        const idSet = this.newUpdatesBySymbol[key];
         const beforeLength = idSet.size;
         idSet.add(item.id);
         const afterLength = idSet.size;
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
+    }
+}
+class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
+    constructor(maxSize = undefined) {
+        super(maxSize);
+        this.keyField = 'outcome';
     }
 }
 class ArrayCacheBySymbolBySide extends ArrayCache {
@@ -213,7 +220,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         super();
         this.nestedNewUpdatesBySymbol = true;
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: {},
             writable: true,
         });
@@ -257,4 +264,4 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
     }
 }
-export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, };
+export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide, };

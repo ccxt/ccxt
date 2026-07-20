@@ -7,11 +7,11 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchMarkets(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchMarkets(BaseExchange exchange, object skippedProperties)
     {
         object method = "fetchMarkets";
-        object markets = await exchange.fetchMarkets();
-        assert((markets is IDictionary<string, object>), add(add(add(add(exchange.id, " "), method), " must return an object. "), exchange.json(markets)));
+        object markets = await ((dynamic)exchange).fetchMarkets();
+        assert(exchange.isDictionary(markets), add(add(add(add(exchange.id, " "), method), " must return a dict. "), exchange.json(markets)));
         object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         detectMarketConflicts(exchange, markets);
         return true;
     }
-    public static object detectMarketConflicts(Exchange exchange, object marketValues)
+    public static object detectMarketConflicts(BaseExchange exchange, object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
         object ids = new Dictionary<string, object>() {};

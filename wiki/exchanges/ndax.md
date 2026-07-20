@@ -5,10 +5,12 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
 * [signIn](#signin)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -16,6 +18,7 @@
 * [fetchBalance](#fetchbalance)
 * [fetchLedger](#fetchledger)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
 * [fetchMyTrades](#fetchmytrades)
 * [cancelAllOrders](#cancelallorders)
 * [cancelOrder](#cancelorder)
@@ -33,6 +36,26 @@
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://apidoc.ndax.io/#ping  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.fetchStatus (params?)
+```
+
+
 <a name="signIn" id="signin"></a>
 
 ### signIn{docsify-ignore}
@@ -49,7 +72,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-ndax.signIn ([params])
+ndax.signIn (params?)
 ```
 
 
@@ -61,7 +84,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://apidoc.ndax.io/#getproduct  
+**See**: https://apidoc.ndax.io/#getproducts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -69,7 +92,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-ndax.fetchCurrencies ([params])
+ndax.fetchCurrencies (params?)
 ```
 
 
@@ -89,7 +112,7 @@ retrieves data on all markets for ndax
 
 
 ```javascript
-ndax.fetchMarkets ([params])
+ndax.fetchMarkets (params?)
 ```
 
 
@@ -99,7 +122,7 @@ ndax.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#getl2snapshot  
 
@@ -111,7 +134,28 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ndax.fetchOrderBook (symbol[, limit, params])
+ndax.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://apidoc.ndax.io/#cmc-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.fetchTickers (symbols?, params?)
 ```
 
 
@@ -132,7 +176,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-ndax.fetchTicker (symbol[, params])
+ndax.fetchTicker (symbol, params?)
 ```
 
 
@@ -156,7 +200,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ndax.fetchOHLCV (symbol, timeframe[, since, limit, params])
+ndax.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -178,7 +222,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ndax.fetchTrades (symbol[, since, limit, params])
+ndax.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -198,7 +242,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-ndax.fetchAccounts ([params])
+ndax.fetchAccounts (params?)
 ```
 
 
@@ -218,7 +262,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-ndax.fetchBalance ([params])
+ndax.fetchBalance (params?)
 ```
 
 
@@ -241,7 +285,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-ndax.fetchLedger ([code, since, limit, params])
+ndax.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -268,7 +312,33 @@ create a trade order
 
 
 ```javascript
-ndax.createOrder (symbol, type, side, amount[, price, params])
+ndax.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+cancels an open order and places a new order
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidoc.ndax.io/#cancelreplaceorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -291,7 +361,7 @@ fetch all trades made by the user
 
 
 ```javascript
-ndax.fetchMyTrades (symbol[, since, limit, params])
+ndax.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -312,7 +382,7 @@ cancel all open orders
 
 
 ```javascript
-ndax.cancelAllOrders (symbol[, params])
+ndax.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -335,7 +405,7 @@ cancels an open order
 
 
 ```javascript
-ndax.cancelOrder (id, symbol[, params])
+ndax.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -358,7 +428,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-ndax.fetchOpenOrders (symbol[, since, limit, params])
+ndax.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -381,7 +451,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-ndax.fetchOrders (symbol[, since, limit, params])
+ndax.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -403,7 +473,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-ndax.fetchOrder (id, symbol[, params])
+ndax.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -427,7 +497,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-ndax.fetchOrderTrades (id, symbol[, since, limit, params])
+ndax.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -447,7 +517,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-ndax.fetchDepositAddress (code[, params])
+ndax.fetchDepositAddress (code, params?)
 ```
 
 
@@ -467,7 +537,7 @@ create a currency deposit address
 
 
 ```javascript
-ndax.createDepositAddress (code[, params])
+ndax.createDepositAddress (code, params?)
 ```
 
 
@@ -490,7 +560,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-ndax.fetchDeposits (code[, since, limit, params])
+ndax.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -513,7 +583,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-ndax.fetchWithdrawals (code[, since, limit, params])
+ndax.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -536,7 +606,7 @@ make a withdrawal
 
 
 ```javascript
-ndax.withdraw (code, amount, address, tag[, params])
+ndax.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -557,7 +627,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-ndax.watchTicker (symbol[, params])
+ndax.watchTicker (symbol, params?)
 ```
 
 
@@ -580,7 +650,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-ndax.watchTrades (symbol[, since, limit, params])
+ndax.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -604,7 +674,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-ndax.watchOHLCV (symbol, timeframe[, since, limit, params])
+ndax.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -614,7 +684,7 @@ ndax.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#subscribelevel2  
 
@@ -626,6 +696,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-ndax.watchOrderBook (symbol[, limit, params])
+ndax.watchOrderBook (symbol, limit?, params?)
 ```
 

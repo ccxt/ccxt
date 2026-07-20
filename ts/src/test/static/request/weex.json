@@ -8,6 +8,15 @@
     ],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api-spot.weex.com/api/v3/coins",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create swap order with take profit and stop loss",
@@ -710,13 +719,13 @@
                 "output": null
             },
             {
-                "description": "fetch spot trades",
+                "description": "spot +since +limit",
                 "method": "fetchTrades",
-                "url": "https://api-spot.weex.com/api/v3/market/trades?symbol=ETHUSDT&limit=1",
+                "url": "https://api-spot.weex.com/api/v3/market/trades?symbol=ETHUSDT&limit=5",
                 "input": [
                     "ETH/USDT",
-                    null,
-                    1
+                    1770000000000,
+                    5
                 ],
                 "output": null
             }

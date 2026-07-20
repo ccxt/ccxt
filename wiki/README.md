@@ -13,6 +13,9 @@ Welcome to the ccxt wiki!
   - [Node.js](https://github.com/ccxt/ccxt/wiki/Install#nodejs)
   - [Python](https://github.com/ccxt/ccxt/wiki/Install#python)
   - [PHP](https://github.com/ccxt/ccxt/wiki/Install#php)
+  - [C#](https://github.com/ccxt/ccxt/wiki/Install#netc)
+  - [Go](https://github.com/ccxt/ccxt/wiki/Install#go)
+  - [Java](https://github.com/ccxt/ccxt/wiki/Install#java)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
   - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
@@ -27,7 +30,7 @@ Welcome to the ccxt wiki!
   - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
   - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
   - [Markets](https://github.com/ccxt/ccxt/wiki/Manual#markets)
-  - [Symbols And Market Ids](https://github.com/ccxt-dev/ccxt/wiki/Manual#symbols-and-market-ids)
+  - [Symbols And Market Ids](https://github.com/ccxt/ccxt/wiki/Manual##symbols-and-market-ids)
   - [API Methods / Endpoints](https://github.com/ccxt/ccxt/wiki/Manual#api-methods--endpoints)
     - [Implicit API Methods](https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods)
     - [Public/Private API](https://github.com/ccxt/ccxt/wiki/Manual#publicprivate-api)
@@ -48,17 +51,17 @@ Welcome to the ccxt wiki!
     - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#account-balance)
     - [Orders](https://github.com/ccxt/ccxt/wiki/Manual#orders)
       - [Querying Orders](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders)
-        - [By Order Id](https://github.com/ccxt-dev/ccxt/wiki/Manual#by-order-id)
-        - [All Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#all-orders)
-        - [Open Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#open-orders)
-        - [Closed Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#closed-orders)
+        - [By Order Id](https://github.com/ccxt/ccxt/wiki/Manual#by-order-id)
+        - [All Orders](https://github.com/ccxt/ccxt/wiki/Manual#all-orders)
+        - [Open Orders](https://github.com/ccxt/ccxt/wiki/Manual#open-orders)
+        - [Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#closed-orders)
       - [Order Structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
       - [Placing Orders](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders)
         - [Market Orders](https://github.com/ccxt/ccxt/wiki/Manual#market-orders)
         - [Limit Orders](https://github.com/ccxt/ccxt/wiki/Manual#limit-orders)
         - [Custom Params](https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params)
       - [Canceling Orders](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
-    - [Personal Trades](https://github.com/ccxt-dev/ccxt/wiki/Manual#personal-trades)
+    - [Personal Trades](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades)
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#ledger)
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
@@ -73,6 +76,10 @@ Welcome to the ccxt wiki!
 ## WebSocket Support
 
 - [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
+
+## AI Agents
+
+- [AI Skills](https://github.com/ccxt/ccxt/wiki/AI-Skills)
 
 ## Troubleshooting
 

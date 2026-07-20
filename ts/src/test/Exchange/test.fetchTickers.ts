@@ -1,22 +1,31 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Str } from '../../base/types.js';
+
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
-    const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
-    const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        const predictionResult = await fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
+        return [ predictionResult ];
+    }
+    const withoutSymbol = fetchTickersHelperTest (exchange, skippedProperties, undefined);
+    const withSymbol = fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
     const results = await Promise.all ([ withoutSymbol, withSymbol ]);
-    testFetchTickersAmounts (exchange, skippedProperties, results[0]);
+    fetchTickersAmountsTest (exchange, skippedProperties, results[0]);
     return results;
 }
 
-async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
+async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
-    assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+    assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
     const values = Object.values (response);
-    let checkedSymbol = undefined;
+    let checkedSymbol: Str = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
         checkedSymbol = argSymbols[0];
     }
@@ -24,12 +33,16 @@ async function testFetchTickersHelper (exchange: Exchange, skippedProperties: ob
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
-        testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        try {
+            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        } catch (ex) {
+            await testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker);
+        }
     }
     return response;
 }
 
-function testFetchTickersAmounts (exchange: Exchange, skippedProperties: object, tickers: any) {
+function fetchTickersAmountsTest (exchange: Exchange, skippedProperties: object, tickers: any) {
     const tickersValues = Object.values (tickers);
     if (!('checkActiveSymbols' in skippedProperties)) {
         //

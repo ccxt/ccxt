@@ -23,7 +23,7 @@ jobs:
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: ~1.24
+          go-version: ~1.25
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
@@ -32,15 +32,13 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
-        run: ./utils/init_actions.sh
+        run: ./build/utils/init_actions.sh
       - name: Check tsc version
         run: tsc --version
       - name: Install tsx
         run: npm install -g tsx
-      - name: export exchanges
-        run: npm run export-exchanges
-      - name: Generate implicit API
-        run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
+      - name: Pre Transpile GO
+        run: npm run pre-transpile-go
       - name: Transpile To Go
         if: env.important_modified == 'true'
         run: tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws
@@ -78,18 +76,18 @@ jobs:
           tsx build/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
+      - name: Transpile prediction to Go
+        if: env.prediction_modified == 'true'
+        run: npm run transpile-prediction-go
       - name: Build
         run: go build -C go ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
+      - name: Build prediction
+        if: env.prediction_modified == 'true'
+        run: go build -C go ./v4/prediction
       - name: Build tests
         run: go -C go build ./tests/main.go
-      - name: Format go files
-        run: go fmt .
-        working-directory: go/v4
-      - name: Format go tests
-        run: go fmt .
-        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -122,6 +120,12 @@ jobs:
           for exchange in $cleaned_rest_files; do
             npm run response-go -- $exchange
           done
+      - name: Prediction request tests
+        if: env.prediction_modified == 'true'
+        run: npm run request-go-prediction
+      - name: Prediction response tests
+        if: env.prediction_modified == 'true'
+        run: npm run response-go-prediction
 
       # - name: Upload Go Files
       #   uses: actions/upload-artifact@v4
@@ -146,6 +150,8 @@ jobs:
         run: |
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git checkout HEAD README.md wiki  # only JS does wiki pushback
+            git pull origin master
             rm -f ./go/tests/main
             rm -f ./go/v4/ccxt
             rm -f ./go/main
@@ -177,7 +183,7 @@ jobs:
           name: go-files
           path: go/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - name: Build tests
         run: go build -C go ./tests/main.go
       - name: Install npm dependencies

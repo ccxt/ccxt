@@ -115,13 +115,13 @@ class xt extends xt$1["default"] {
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDelta = this.safeValue(cache, 0);
         const firstDeltaNonce = this.safeInteger2(firstDelta, 'i', 'u');
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             const deltaNonce = this.safeInteger2(delta, 'i', 'u');
-            if (deltaNonce >= nonce) {
+            if ((deltaNonce !== undefined) && (nonce !== undefined) && (deltaNonce >= nonce)) {
                 return i;
             }
         }
@@ -279,7 +279,9 @@ class xt extends xt$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'watchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
@@ -300,7 +302,9 @@ class xt extends xt$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const options = this.safeDict(this.options, 'unWatchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker');
@@ -322,7 +326,9 @@ class xt extends xt$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'watchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
@@ -349,7 +355,9 @@ class xt extends xt$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const options = this.safeDict(this.options, 'unWatchTickers');
         const defaultMethod = this.safeString(options, 'method', 'tickers');
         const name = this.safeString(params, 'method', defaultMethod);
@@ -377,7 +385,9 @@ class xt extends xt$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const ohlcv = await this.subscribe(name, 'public', 'watchOHLCV', market, undefined, params);
@@ -398,7 +408,9 @@ class xt extends xt$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
@@ -418,7 +430,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'trade@' + market['id'];
         const trades = await this.subscribe(name, 'public', 'watchTrades', market, undefined, params);
@@ -438,7 +452,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'trade@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
@@ -459,7 +475,9 @@ class xt extends xt$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         params = this.omit(params, 'levels');
@@ -484,7 +502,9 @@ class xt extends xt$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const levels = this.safeString(params, 'levels');
         params = this.omit(params, 'levels');
@@ -508,7 +528,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'order';
         let market = undefined;
         if (symbol !== undefined) {
@@ -533,7 +555,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'trade';
         let market = undefined;
         if (symbol !== undefined) {
@@ -555,7 +579,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'balance';
         return await this.subscribe(name, 'private', 'watchBalance', undefined, undefined, params);
     }
@@ -571,7 +597,9 @@ class xt extends xt$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['contract'] + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
@@ -603,13 +631,13 @@ class xt extends xt$1["default"] {
         }
     }
     async loadPositionsSnapshot(client, messageHash) {
-        const positions = await this.fetchPositions(undefined);
+        const positions = await this.fetchPositions();
         this.positions = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -739,7 +767,9 @@ class xt extends xt$1["default"] {
             const isSpot = cv !== undefined;
             const ticker = this.parseTicker(data);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const event = this.safeString(message, 'event');
             const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
@@ -824,7 +854,9 @@ class xt extends xt$1["default"] {
             const tickerData = data[i];
             const ticker = this.parseTicker(tickerData);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             newTickers.push(ticker);
         }
         const messageHashStart = this.safeString(message, 'topic') + '::' + tradeType;
@@ -885,7 +917,7 @@ class xt extends xt$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
-            const timeframe = this.safeString(data, 'i');
+            const timeframe = this.safeString(data, 'i', '');
             const tradeType = ('q' in data) ? 'spot' : 'contract';
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
@@ -1019,10 +1051,13 @@ class xt extends xt$1["default"] {
         const data = this.safeDict(message, 'data');
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
-            let event = this.safeString(message, 'event');
+            let event = this.safeString(message, 'event', '');
             const splitEvent = event.split(',');
-            event = this.safeString(splitEvent, 0);
-            const tradeType = ('fu' in data) ? 'contract' : 'spot';
+            event = this.safeString(splitEvent, 0, '');
+            let tradeType = 'spot';
+            if ((data !== undefined) && ('fu' in data)) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket(marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const obAsks = this.safeList(data, 'a');
@@ -1353,7 +1388,11 @@ class xt extends xt$1["default"] {
             this.myTrades = stored;
         }
         const parsedTrade = this.parseTrade(data);
-        const market = this.market(parsedTrade['symbol']);
+        const tradeSymbol = parsedTrade['symbol'];
+        if (tradeSymbol === undefined) {
+            return;
+        }
+        const market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         const tradeType = market['contract'] ? 'contract' : 'spot';
         client.resolve(stored, 'trade::' + tradeType);
@@ -1377,10 +1416,10 @@ class xt extends xt$1["default"] {
                 'order': this.handleOrder,
                 'position': this.handlePosition,
             };
-            let method = this.safeValue(methods, topic);
+            let method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
             if (topic === 'trade') {
                 const data = this.safeDict(message, 'data');
-                if (('oi' in data) || ('orderId' in data)) {
+                if ((data !== undefined) && (('oi' in data) || ('orderId' in data))) {
                     method = this.handleMyTrades;
                 }
                 else {

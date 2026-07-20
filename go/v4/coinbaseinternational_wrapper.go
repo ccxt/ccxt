@@ -285,6 +285,23 @@ func (this *Coinbaseinternational) SetMargin(symbol string, amount float64, opti
 	}
 	return NewMarginModification(res), nil
 }
+
+/**
+ * @method
+ * @name coinbaseinternational#fetchDepositsWithdrawals
+ * @description fetch history of deposits and withdrawals
+ * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
+ * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+ * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
+ * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
+ * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
+ * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
 func (this *Coinbaseinternational) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsWithdrawalsOptionsStruct{}

@@ -156,7 +156,7 @@ public partial class woo
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -176,7 +176,7 @@ public partial class woo
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -196,7 +196,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -225,7 +225,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -715,7 +715,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -861,7 +861,7 @@ public partial class woo
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-current-holding-get-balance-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1049,7 +1049,7 @@ public partial class woo
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1109,7 +1109,7 @@ public partial class woo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#token-withdraw-v3"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1559,7 +1559,7 @@ public partial class woo
     /// fetches the auto deleveraging rank and risk percentage for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-all-position-info-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

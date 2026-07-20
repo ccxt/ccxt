@@ -65,7 +65,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-poloniex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+poloniex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -89,7 +89,7 @@ retrieves data on all markets for poloniex
 
 
 ```javascript
-poloniex.fetchMarkets ([params])
+poloniex.fetchMarkets (params?)
 ```
 
 
@@ -109,7 +109,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-poloniex.fetchTime ([params])
+poloniex.fetchTime (params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-poloniex.fetchTickers (symbols[, params])
+poloniex.fetchTickers (symbols, params?)
 ```
 
 
@@ -154,7 +154,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-poloniex.fetchCurrencies ([params])
+poloniex.fetchCurrencies (params?)
 ```
 
 
@@ -179,7 +179,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-poloniex.fetchTicker (symbol[, params])
+poloniex.fetchTicker (symbol, params?)
 ```
 
 
@@ -206,7 +206,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-poloniex.fetchTrades (symbol[, since, limit, params])
+poloniex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,7 +235,7 @@ fetch all trades made by the user
 
 
 ```javascript
-poloniex.fetchMyTrades (symbol[, since, limit, params])
+poloniex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -264,7 +264,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-poloniex.fetchOpenOrders (symbol[, since, limit, params])
+poloniex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -288,7 +288,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-poloniex.fetchClosedOrders (symbol[, since, limit, params])
+poloniex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -319,7 +319,7 @@ create a trade order
 
 
 ```javascript
-poloniex.createOrder (symbol, type, side, amount[, price, params])
+poloniex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -350,7 +350,7 @@ edit a trade order
 
 
 ```javascript
-poloniex.editOrder (id, symbol, type, side[, amount, price, params])
+poloniex.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -377,7 +377,7 @@ cancel all open orders
 
 
 ```javascript
-poloniex.cancelAllOrders (symbol[, params])
+poloniex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -404,7 +404,7 @@ fetch an order by it's id
 
 
 ```javascript
-poloniex.fetchOrder (id, symbol[, params])
+poloniex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -428,7 +428,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-poloniex.fetchOrderTrades (id, symbol[, since, limit, params])
+poloniex.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -452,7 +452,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-poloniex.fetchBalance ([params])
+poloniex.fetchBalance (params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-poloniex.fetchTradingFees ([params])
+poloniex.fetchTradingFees (params?)
 ```
 
 
@@ -482,7 +482,7 @@ poloniex.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -498,7 +498,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-poloniex.fetchOrderBook (symbol[, limit, params])
+poloniex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -519,7 +519,7 @@ create a currency deposit address
 
 
 ```javascript
-poloniex.createDepositAddress (code[, params])
+poloniex.createDepositAddress (code, params?)
 ```
 
 
@@ -540,7 +540,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-poloniex.fetchDepositAddress (code[, params])
+poloniex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -564,7 +564,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-poloniex.transfer (code, amount, fromAccount, toAccount[, params])
+poloniex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -588,7 +588,7 @@ make a withdrawal
 
 
 ```javascript
-poloniex.withdraw (code, amount, address, tag[, params])
+poloniex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -611,7 +611,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-poloniex.fetchDepositsWithdrawals ([code, since, limit, params])
+poloniex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -634,7 +634,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-poloniex.fetchWithdrawals (code[, since, limit, params])
+poloniex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -655,7 +655,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-poloniex.fetchDepositWithdrawFees (codes[, params])
+poloniex.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -678,7 +678,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-poloniex.fetchDeposits (code[, since, limit, params])
+poloniex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -701,7 +701,7 @@ set the level of leverage for a market
 
 
 ```javascript
-poloniex.setLeverage (leverage, symbol[, params])
+poloniex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -722,7 +722,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-poloniex.fetchLeverage (symbol[, params])
+poloniex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -743,7 +743,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 
 
 ```javascript
-poloniex.fetchPositionMode (symbol[, params])
+poloniex.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -765,7 +765,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-poloniex.setPositionMode (hedged, symbol[, params])
+poloniex.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -787,7 +787,7 @@ fetch all open positions
 
 
 ```javascript
-poloniex.fetchPositions (symbols[, params])
+poloniex.fetchPositions (symbols, params?)
 ```
 
 
@@ -808,7 +808,7 @@ remove margin from a position
 
 
 ```javascript
-poloniex.reduceMargin (symbol, amount[, params])
+poloniex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -829,6 +829,6 @@ add margin
 
 
 ```javascript
-poloniex.addMargin (symbol, amount[, params])
+poloniex.addMargin (symbol, amount, params?)
 ```
 

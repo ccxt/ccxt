@@ -20,10 +20,10 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('symbol/offline', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spot_public_get_exchangeinfo($params = array()) {
-        return $this->request('exchangeInfo', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('exchangeInfo', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
     }
     public function spot_public_get_depth($params = array()) {
-        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function spot_public_get_trades($params = array()) {
         return $this->request('trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 5));
@@ -41,13 +41,13 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('avgPrice', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spot_public_get_ticker_24hr($params = array()) {
-        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
     }
     public function spot_public_get_ticker_price($params = array()) {
-        return $this->request('ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spot_public_get_ticker_bookticker($params = array()) {
-        return $this->request('ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spot_public_get_etf_info($params = array()) {
         return $this->request('etf/info', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -80,7 +80,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('strategy/group/uid', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function spot_private_get_tradefee($params = array()) {
-        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function spot_private_get_sub_account_list($params = array()) {
         return $this->request('sub-account/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -95,7 +95,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('capital/config/getall', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spot_private_get_capital_deposit_hisrec($params = array()) {
-        return $this->request('capital/deposit/hisrec', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('capital/deposit/hisrec', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spot_private_get_capital_withdraw_history($params = array()) {
         return $this->request('capital/withdraw/history', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -196,6 +196,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot_private_get_rebate_affiliate_subaffiliates($params = array()) {
         return $this->request('rebate/affiliate/subaffiliates', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_rebate_affiliate_list($params = array()) {
+        return $this->request('rebate/affiliate/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_private_get_mxdeduct_enable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -213,6 +216,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot_private_post_order_test($params = array()) {
         return $this->request('order/test', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_post_apikeyinfo($params = array()) {
+        return $this->request('apiKeyInfo', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spot_private_post_sub_account_virtualsubaccount($params = array()) {
         return $this->request('sub-account/virtualSubAccount', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -239,7 +245,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('capital/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spot_private_post_capital_transfer($params = array()) {
-        return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 50));
     }
     public function spot_private_post_capital_transfer_internal($params = array()) {
         return $this->request('capital/transfer/internal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -267,6 +273,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot_private_delete_openorders($params = array()) {
         return $this->request('openOrders', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_delete_order_all($params = array()) {
+        return $this->request('order/all', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function spot_private_delete_sub_account_apikey($params = array()) {
         return $this->request('sub-account/apiKey', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -397,6 +406,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function contract_private_get_order_list_open_orders_symbol($params = array()) {
         return $this->request('order/list/open_orders/{symbol}', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function contract_private_get_order_list_open_orders($params = array()) {
+        return $this->request('order/list/open_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function contract_private_get_order_list_history_orders($params = array()) {
         return $this->request('order/list/history_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -482,7 +494,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('position/reverse', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function contract_private_post_position_close_all($params = array()) {
-        return $this->request('position/close_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('position/close_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function contract_private_post_order_create($params = array()) {
         return $this->request('order/create', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -719,10 +731,10 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('symbol/offline', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPublicGetExchangeInfo($params = array()) {
-        return $this->request('exchangeInfo', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('exchangeInfo', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
     }
     public function spotPublicGetDepth($params = array()) {
-        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function spotPublicGetTrades($params = array()) {
         return $this->request('trades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 5));
@@ -740,13 +752,13 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('avgPrice', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotPublicGetTicker24hr($params = array()) {
-        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
     }
     public function spotPublicGetTickerPrice($params = array()) {
-        return $this->request('ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/price', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPublicGetTickerBookTicker($params = array()) {
-        return $this->request('ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker/bookTicker', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPublicGetEtfInfo($params = array()) {
         return $this->request('etf/info', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -779,7 +791,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('strategy/group/uid', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function spotPrivateGetTradeFee($params = array()) {
-        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('tradeFee', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function spotPrivateGetSubAccountList($params = array()) {
         return $this->request('sub-account/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -794,7 +806,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('capital/config/getall', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPrivateGetCapitalDepositHisrec($params = array()) {
-        return $this->request('capital/deposit/hisrec', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('capital/deposit/hisrec', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPrivateGetCapitalWithdrawHistory($params = array()) {
         return $this->request('capital/withdraw/history', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -895,6 +907,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spotPrivateGetRebateAffiliateSubaffiliates($params = array()) {
         return $this->request('rebate/affiliate/subaffiliates', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spotPrivateGetRebateAffiliateList($params = array()) {
+        return $this->request('rebate/affiliate/list', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotPrivateGetMxDeductEnable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -912,6 +927,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivatePostOrderTest($params = array()) {
         return $this->request('order/test', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivatePostApiKeyInfo($params = array()) {
+        return $this->request('apiKeyInfo', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostSubAccountVirtualSubAccount($params = array()) {
         return $this->request('sub-account/virtualSubAccount', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -938,7 +956,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('capital/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostCapitalTransfer($params = array()) {
-        return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 50));
     }
     public function spotPrivatePostCapitalTransferInternal($params = array()) {
         return $this->request('capital/transfer/internal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -966,6 +984,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivateDeleteOpenOrders($params = array()) {
         return $this->request('openOrders', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateDeleteOrderAll($params = array()) {
+        return $this->request('order/all', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function spotPrivateDeleteSubAccountApiKey($params = array()) {
         return $this->request('sub-account/apiKey', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -1096,6 +1117,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function contractPrivateGetOrderListOpenOrdersSymbol($params = array()) {
         return $this->request('order/list/open_orders/{symbol}', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function contractPrivateGetOrderListOpenOrders($params = array()) {
+        return $this->request('order/list/open_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function contractPrivateGetOrderListHistoryOrders($params = array()) {
         return $this->request('order/list/history_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1181,7 +1205,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('position/reverse', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function contractPrivatePostPositionCloseAll($params = array()) {
-        return $this->request('position/close_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('position/close_all', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function contractPrivatePostOrderCreate($params = array()) {
         return $this->request('order/create', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 2));
