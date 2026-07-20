@@ -1300,6 +1300,7 @@ public partial class htx : ccxt.htx
                     { "id", orderId },
                     { "trades", trades },
                     { "status", status },
+                    { "lastTradeTimestamp", this.safeInteger(data, "tradeTime") },
                     { "symbol", getValue(market, "symbol") },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
