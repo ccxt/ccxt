@@ -3829,6 +3829,11 @@ class binance extends Exchange {
             }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
+                // skip stale/uninitialized $assets, whose $updateTime is 0, their $balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                $updateTime = $this->safe_integer($balance, 'updateTime');
+                if ($updateTime === 0) {
+                    continue;
+                }
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
