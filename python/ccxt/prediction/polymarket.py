@@ -923,7 +923,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
         #             "bids": [
         #                 {
-        #                     "price": "0.45",
+        #                     "price": "0.46",
         #                     "size": "100"
         #                 },
         #             ],
