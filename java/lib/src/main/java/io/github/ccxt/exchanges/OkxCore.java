@@ -1224,9 +1224,11 @@ public class OkxCore extends OkxApi
                 }} );
                 put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersHistory" );
+                    put( "paginationDirection", "forward" );
                 }} );
                 put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersHistory" );
+                    put( "paginationDirection", "forward" );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
                     put( "password", null );
