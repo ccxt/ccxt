@@ -35,6 +35,17 @@ impl KrakenfuturesCore {
         self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
         self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
         self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
+        // rateLimit drives the throttle spacing. describe() usually declares a
+        // venue-specific value (binance 50ms, …); new() ran apply_config before
+        // init(), so a config-supplied rateLimit is already in place. Only fall
+        // back to describe()'s value when the field is still the base 2000ms
+        // default, so caller config keeps precedence (review #8 — init() used
+        // to drop describe().rateLimit, leaving every venue at 2000ms).
+        let __described_rate_limit = crate::get_value(&described, &crate::Value::Str("rateLimit".to_string()));
+        if matches!(__described_rate_limit, crate::Value::Int(_) | crate::Value::Float(_))
+            && matches!(self.exchange.rateLimit, crate::Value::Int(2000)) {
+            self.exchange.rateLimit = __described_rate_limit;
+        }
         // Merge describe() options INTO whatever apply_config (or
         // earlier setup) already populated. Caller-supplied options
         // (e.g. portfolioMargin via fixture) take precedence, then

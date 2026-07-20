@@ -1487,6 +1487,13 @@ impl Exchange {
         if !matches!(self.mock_response, Value::Null) {
             return self.fetch_typed("", verb, HashMap::new(), None).await;
         }
+        // Route every live request through the configured leaky-bucket limiter.
+        // `request_typed` is the single choke point all implicit-API methods
+        // funnel through (`<venue>_api.rs` → request_typed → fetch_typed), so
+        // throttling here spaces every venue request by `rateLimit` ms. It is a
+        // no-op when `enableRateLimit` is false (offline static suites) or the
+        // rate is effectively unlimited (review #8).
+        self.throttle(&[]).await;
         // Each exchange's TS `sign` declares `api` differently:
         //   binance/hyperliquid/okx/kucoin: a string like "public"
         //   bitget/gate/htx/...:           an array like ["public","spot"]
@@ -1810,6 +1817,34 @@ mod throttle_tests {
         let start = std::time::Instant::now();
         for _ in 0..5 { ex.throttle(&[]).await; }
         assert!(start.elapsed().as_millis() < 50, "disabled throttle slept");
+    }
+}
+
+#[cfg(all(test, feature = "transpiled-base"))]
+mod rate_limit_config_tests {
+    use crate::Value;
+
+    // init() must apply describe().rateLimit so the limiter spaces requests at
+    // the venue rate instead of the base 2000ms default (review #8). binance
+    // declares rateLimit: 50.
+    #[test]
+    fn binance_init_applies_describe_rate_limit() {
+        let b = crate::exchanges::binance::BinanceCore::new(None);
+        assert_eq!(
+            b.exchange.rateLimit,
+            Value::Int(50),
+            "init() dropped describe().rateLimit; got {:?}",
+            b.exchange.rateLimit
+        );
+    }
+
+    // A caller-supplied rateLimit must win over describe()'s value.
+    #[test]
+    fn config_rate_limit_overrides_describe() {
+        let mut cfg = crate::value::HashMap::new();
+        cfg.insert("rateLimit".to_string(), Value::Int(123));
+        let b = crate::exchanges::binance::BinanceCore::new(Some(Value::Map(cfg)));
+        assert_eq!(b.exchange.rateLimit, Value::Int(123), "config rateLimit was clobbered by describe()");
     }
 }
 
