@@ -372,7 +372,7 @@ class delta extends Exchange {
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
@@ -415,12 +415,12 @@ class delta extends Exchange {
                 ),
             ),
             'info' => null,
-        );
+        ));
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -580,7 +580,7 @@ class delta extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'symbol');
         $numericId = $this->safe_integer($rawCurrency, 'id');
         $code = $this->safe_currency_code($id);
@@ -590,26 +590,28 @@ class delta extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'name' => $this->safe_string($chain, 'name'),
-                'info' => $chain,
-                'active' => $this->safe_string($chain, 'status') === 'enabled',
-                'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
-                'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
-                'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($chain, 'name'),
+                    'info' => $chain,
+                    'active' => $this->safe_string($chain, 'status') === 'enabled',
+                    'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                    'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -922,7 +924,7 @@ class delta extends Exchange {
                     }
                 }
                 $state = $this->safe_string($market, 'state');
-                $result[] = array(
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'numericId' => $numericId,
                     'symbol' => $symbol,
@@ -973,7 +975,7 @@ class delta extends Exchange {
                     ),
                     'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         })();
@@ -1421,7 +1423,7 @@ class delta extends Exchange {
             for ($i = 0; $i < count($tickers); $i++) {
                 $ticker = $this->parse_ticker($tickers[$i]);
                 $symbol = $ticker['symbol'];
-                $result[$symbol] = $ticker;
+                $this->store_by_key($result, $symbol, $ticker);
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         })();
@@ -1661,6 +1663,9 @@ class delta extends Exchange {
             if ($since === null) {
                 $end = $untilIsDefined ? $until : $this->seconds();
                 $request['end'] = $end;
+                if ($end === null) {
+                    throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
+                }
                 $request['start'] = $end - $limit * $duration;
             } else {
                 $start = $this->parse_to_int($since / 1000);
@@ -2126,7 +2131,7 @@ class delta extends Exchange {
                 // "size" => $this->amount_to_precision($symbol, $amount),
             );
             if ($amount !== null) {
-                $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+                $request['size'] = intval($this->amount_to_precision($symbol, $amount) || '0');
             }
             if ($price !== null) {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
@@ -2149,7 +2154,7 @@ class delta extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         })();
     }
@@ -2212,7 +2217,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         })();
     }

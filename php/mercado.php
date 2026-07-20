@@ -298,6 +298,9 @@ class mercado extends Exchange {
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $id = $quote . $base;
             $result[] = array(
                 'id' => $id,
@@ -519,7 +522,7 @@ class mercado extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['total'] = $this->safe_string($balance, 'total');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
         }
         return $this->safe_balance($result);

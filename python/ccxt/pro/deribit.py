@@ -159,7 +159,7 @@ class deribit(ccxt.async_support.deribit):
         currencyId = self.safe_string(data, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         balance = self.parse_balance(data)
-        self.balance[currencyCode] = balance
+        self.store_by_key(self.balance, currencyCode, balance)
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
@@ -856,7 +856,7 @@ class deribit(ccxt.async_support.deribit):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray=None, params={}):
+    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray: Any = None, params={}):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']
@@ -865,7 +865,11 @@ class deribit(ccxt.async_support.deribit):
         isOHLCV = (channelName == 'chart.trades')
         symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
         self.market_symbols(symbols, None, False)
+        if symbolsArray is None:
+            raise ArgumentsRequired(self.id + ' watchMultipleWrapper() symbolsArray is required')
         for i in range(0, len(symbolsArray)):
+            if symbolsArray is None:
+                raise ArgumentsRequired(self.id + ' watchMultipleWrapper() symbolsArray is required')
             current = symbolsArray[i]
             market = None
             if isOHLCV:

@@ -841,7 +841,7 @@ class poloniex extends Exchange {
         $active = $state === 'NORMAL';
         $symbolTradeLimit = $this->safe_value($market, 'symbolTradeLimit');
         // these are known defaults
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -885,7 +885,7 @@ class poloniex extends Exchange {
             ),
             'created' => $this->safe_integer($market, 'tradableStartTime'),
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_swap_market(array $market): array {
@@ -946,7 +946,7 @@ class poloniex extends Exchange {
             $type = 'future';
         }
         $marketType = ($type === 'future') ? 'future' : 'swap';
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -996,7 +996,7 @@ class poloniex extends Exchange {
             ),
             'created' => $this->safe_integer($market, 'oDate'),
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -1224,7 +1224,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $entry = $currency;
         $id = $this->safe_string($entry, 'coin');
         $code = $this->safe_currency_code($id);
@@ -1235,27 +1235,29 @@ class poloniex extends Exchange {
             $chain = $chains[$j];
             $chainId = $this->safe_string($chain, 'blockchain');
             $networkCode = $this->network_id_to_code($chainId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $chainId,
-                'name' => null,
-                'code' => $networkCode,
-                'active' => null,
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                'withdraw' => $this->safe_bool($chain, 'withdrawalEnable'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'decimals'))),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'withdrawMin'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $chainId,
+                    'name' => null,
+                    'code' => $networkCode,
+                    'active' => null,
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawalEnable'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'decimals'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdrawMin'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -2472,7 +2474,7 @@ class poloniex extends Exchange {
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'avail');
                 $account['used'] = $this->safe_string($balance, 'im');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             return $this->safe_balance($result);
         }
@@ -2487,7 +2489,7 @@ class poloniex extends Exchange {
                 $newAccount = $this->account();
                 $newAccount['free'] = $this->safe_string($balance, 'available');
                 $newAccount['used'] = $this->safe_string($balance, 'hold');
-                $result[$code] = $newAccount;
+                $this->store_by_key($result, $code, $newAccount);
             }
         }
         return $this->safe_balance($result);
@@ -2581,7 +2583,7 @@ class poloniex extends Exchange {
              * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetFeeinfo($params));
@@ -2594,8 +2596,9 @@ class poloniex extends Exchange {
             //     }
             //
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->require_symbols();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
@@ -2757,7 +2760,7 @@ class poloniex extends Exchange {
         }
         $exchangeNetworkId = null;
         $networkCode = $this->network_id_to_code($networkCode, $code);
-        $networkEntry = $this->safe_dict($currency['networks'], $networkCode);
+        $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry !== null) {
             $exchangeNetworkId = $networkEntry['id'];
         } else {
@@ -3075,7 +3078,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
         //
         //         {
         //             "1CR" => array(
@@ -3104,7 +3107,7 @@ class poloniex extends Exchange {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
             $feeInfo = $response[$currencyId];
-            if (($codes === null) || ($this->in_array($code, $codes))) {
+            if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
                 $childChains = $this->safe_value($feeInfo, 'childChains');
@@ -3117,16 +3120,18 @@ class poloniex extends Exchange {
                         $networkInfo = $this->safe_value($response, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
-                        $networkObject[$networkCode] = array(
-                            'withdraw' => array(
-                                'fee' => $withdrawFee,
-                                'percentage' => ($withdrawFee !== null) ? false : null,
-                            ),
-                            'deposit' => array(
-                                'fee' => null,
-                                'percentage' => null,
-                            ),
-                        );
+                        if ($networkCode !== null) {
+                            $networkObject[$networkCode] = array(
+                                'withdraw' => array(
+                                    'fee' => $withdrawFee,
+                                    'percentage' => ($withdrawFee !== null) ? false : null,
+                                ),
+                                'deposit' => array(
+                                    'fee' => null,
+                                    'percentage' => null,
+                                ),
+                            );
+                        }
                         $depositWithdrawFees[$code]['networks'] = $this->extend($depositWithdrawFees[$code]['networks'], $networkObject);
                     }
                 }
@@ -3152,10 +3157,12 @@ class poloniex extends Exchange {
         $depositWithdrawFee['withdraw'] = $withdrawResult;
         $depositWithdrawFee['deposit'] = $depositResult;
         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
-        $depositWithdrawFee['networks'][$networkCode] = array(
-            'withdraw' => $withdrawResult,
-            'deposit' => $depositResult,
-        );
+        if ($networkCode !== null) {
+            $depositWithdrawFee['networks'][$networkCode] = array(
+                'withdraw' => $withdrawResult,
+                'deposit' => $depositResult,
+            );
+        }
         return $depositWithdrawFee;
     }
 

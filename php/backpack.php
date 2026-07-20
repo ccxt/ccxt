@@ -528,7 +528,7 @@ class backpack extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($currencyId);
         $networks = $this->safe_list($rawCurrency, 'tokens', array());
@@ -538,26 +538,28 @@ class backpack extends Exchange {
             $networkId = $this->safe_string($network, 'blockchain');
             $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
             $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
-            $parsedNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'minimumWithdrawal'),
-                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'minimumWithdrawal'),
+                            'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($network, 'minimumDeposit'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($network, 'minimumDeposit'),
-                        'max' => null,
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($network, 'depositEnabled'),
-                'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
-                'fee' => $this->safe_number($network, 'withdrawalFee'),
-                'precision' => null,
-                'info' => $network,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($network, 'depositEnabled'),
+                    'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
+                    'fee' => $this->safe_number($network, 'withdrawalFee'),
+                    'precision' => null,
+                    'info' => $network,
+                );
+            }
         }
         $active = null;
         $deposit = null;
@@ -931,6 +933,9 @@ class backpack extends Exchange {
         //     }
         //
         $microseconds = $this->safe_integer($response, 'timestamp');
+        if ($microseconds === null) {
+            throw new ExchangeError($this->id . ' fetchOrderBook() missing microseconds');
+        }
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
@@ -1120,7 +1125,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding $rate prices
          *
@@ -1203,7 +1208,7 @@ class backpack extends Exchange {
         } else {
             $response = $this->publicGetApiV1Trades($this->extend($request, $params));
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($response || array(), $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1342,6 +1347,9 @@ class backpack extends Exchange {
         //     }
         //
         $status = $this->safe_string($response, 'status');
+        if ($status === null) {
+            throw new ExchangeError($this->id . ' fetchStatus() missing status');
+        }
         return array(
             'status' => strtolower($status),
             'updated' => null,
@@ -1405,7 +1413,7 @@ class backpack extends Exchange {
             $used = Precise::string_add($locked, $staked);
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $used;
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1766,7 +1774,13 @@ class backpack extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],

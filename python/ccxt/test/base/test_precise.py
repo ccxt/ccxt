@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.base.precise import Precise  # noqa E402
 
+
 def test_precise():
     w = '-1.123e-6'
     x = '0.00000002'

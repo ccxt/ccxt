@@ -884,7 +884,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($currencyId);
         $name = $this->safe_string($rawCurrency, 'name');
@@ -905,17 +905,19 @@ class bingx extends Exchange {
                 ),
             );
             $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
-            $networks[$networkCode] = array(
-                'info' => $rawNetwork,
-                'id' => $network,
-                'network' => $networkCode,
-                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
-                'active' => null,
-                'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
-                'precision' => $precision,
-                'limits' => $limits,
-            );
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawNetwork,
+                    'id' => $network,
+                    'network' => $networkCode,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                    'active' => null,
+                    'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
+                    'precision' => $precision,
+                    'limits' => $limits,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -2640,7 +2642,7 @@ class bingx extends Exchange {
                 $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
                 $account['used'] = $this->safe_string($balance, 'usedMargin');
                 $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
         } else {
             for ($i = 0; $i < count($spotBalances); $i++) {
@@ -2650,7 +2652,7 @@ class bingx extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
         }
         return $this->safe_balance($result);
@@ -3081,7 +3083,13 @@ class bingx extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build $request
@@ -3459,7 +3467,7 @@ class bingx extends Exchange {
             if (($takeProfit !== null) && (mb_strpos($takeProfit, '{') === 0)) {
                 $result['takeProfit'] = $this->parse_json($takeProfit);
             }
-            return $this->parse_order($result, $market);
+            return $this->parse_order($result || array(), $market);
         })();
     }
 
@@ -5635,7 +5643,7 @@ class bingx extends Exchange {
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if (($code !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
+        if (($code !== null) && ($network !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
             if ($network !== null) {
                 $code = str_replace($network, '', $code);
             }
@@ -5670,7 +5678,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transaction_status(string $status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -6492,7 +6500,7 @@ class bingx extends Exchange {
                     //
                 }
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         })();
     }
@@ -6764,7 +6772,7 @@ class bingx extends Exchange {
                 //    }
                 //
             }
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         })();
     }
@@ -6820,7 +6828,7 @@ class bingx extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
@@ -7087,7 +7095,7 @@ class bingx extends Exchange {
                 $parsedParams = $this->parse_params($params);
                 $encodeRequest = $this->rawencode($parsedParams, true);
             }
-            $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
+            $signature = $this->hmac($this->encode($encodeRequest || ''), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),

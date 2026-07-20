@@ -14,6 +14,7 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
+
 def test_rawencode():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',

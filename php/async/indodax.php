@@ -453,7 +453,7 @@ class indodax extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($free, $currencyId);
             $account['used'] = $this->safe_string($used, $currencyId);
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1463,24 +1463,38 @@ class indodax extends Exchange {
                     $network = null;
                     if (is_array($networks) && array_key_exists($marketId, $networks)) {
                         $networkId = $this->safe_string($networks, $marketId);
+                        if ($networkId === null) {
+                            throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
+                        }
                         if (mb_strpos($networkId, ',') !== false) {
                             $network = array();
+                            if ($networkId === null) {
+                                throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
+                            }
                             $networkIds = explode(',', $networkId);
                             for ($j = 0; $j < count($networkIds); $j++) {
-                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j], $code));
+                                $_netIdTmp = $this->network_id_to_code($networkIds[$j], $code);
+                                if ($_netIdTmp !== null) {
+                                    $network[] = strtoupper($_netIdTmp);
+                                }
                             }
                         } else {
-                            $network = strtoupper($this->network_id_to_code($networkId, $code));
+                            $_netIdTmp = $this->network_id_to_code($networkId, $code);
+                            if ($_netIdTmp !== null) {
+                                $network = strtoupper($_netIdTmp);
+                            }
                         }
                     }
                     $finalNetwork = $network; // java req
-                    $result[$code] = array(
-                        'info' => array(),
-                        'currency' => $code,
-                        'network' => $finalNetwork,
-                        'address' => $address,
-                        'tag' => null,
-                    );
+                    if ($code !== null) {
+                        $result[$code] = array(
+                            'info' => array(),
+                            'currency' => $code,
+                            'network' => $finalNetwork,
+                            'address' => $address,
+                            'tag' => null,
+                        );
+                    }
                 }
             }
             return $result;

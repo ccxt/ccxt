@@ -15,6 +15,7 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.base.precise import Precise  # noqa E402
 
+
 def precise_equal_str(exchange, result, key, expected):
     return Precise.string_eq(exchange.safe_string(result, key), expected)
 

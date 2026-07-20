@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
     # prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
     # books where bid==ask and a stale `last` far from the median are normal — skip the

@@ -153,7 +153,7 @@ class bitmart extends \ccxt\async\bitmart {
         })();
     }
 
-    public function subscribe_multiple(string $unifiedName, string $channel, string $type, ?array $symbols = null, $params = array()) {
+    public function subscribe_multiple(string $unifiedName, ?string $channel, ?string $type, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channel, $type, $symbols, $params) {
             $symbols = $this->market_symbols($symbols, $type, false, true);
             if ($symbols === null) {
@@ -325,7 +325,9 @@ class bitmart extends \ccxt\async\bitmart {
                     $code = $this->safe_currency_code($currencyId);
                     $account['free'] = $this->safe_string($rawBalance, 'av_bal');
                     $account['used'] = $this->safe_string($rawBalance, 'fz_bal');
-                    $this->balance[$type][$code] = $account;
+                    if (($type !== null) && ($code !== null)) {
+                        $this->balance[$type][$code] = $account;
+                    }
                 }
             }
         } else {
@@ -334,7 +336,9 @@ class bitmart extends \ccxt\async\bitmart {
             $account = $this->account();
             $account['free'] = $this->safe_string($data, 'available_balance');
             $account['used'] = $this->safe_string($data, 'frozen_balance');
-            $this->balance[$type][$code] = $account;
+            if (($type !== null) && ($code !== null)) {
+                $this->balance[$type][$code] = $account;
+            }
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $messageHash = 'balance:' . $type;
@@ -793,6 +797,9 @@ class bitmart extends \ccxt\async\bitmart {
             $stored = $this->orders;
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $this->parse_ws_order($orders[$i]);
+                if ($order === null) {
+                    continue;
+                }
                 $stored->append($order);
                 $newOrders[] = $order;
                 $symbol = $order['symbol'];
@@ -811,7 +818,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve($newOrders, $messageHash);
     }
 
-    public function parse_ws_order(array $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //    {
@@ -904,11 +911,13 @@ class bitmart extends \ccxt\async\bitmart {
             $updatedTimestamp = $this->safe_integer($orderInfo, 'update_time');
             $lastTrade = $this->safe_dict($orderInfo, 'last_trade');
             $cachedOrders = $this->orders;
-            $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-            $cachedOrder = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
             $trades = null;
-            if ($cachedOrder !== null) {
-                $trades = $this->safe_value($order, 'trades');
+            if ($cachedOrders !== null) {
+                $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
+                $cachedOrder = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
+                if ($cachedOrder !== null) {
+                    $trades = $this->safe_value($order, 'trades');
+                }
             }
             if ($lastTrade !== null) {
                 if ($trades === null) {
@@ -1520,7 +1529,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $parsed = $this->parse_ohlcv($rawOHLCV, $market);
                 $parsed[0] = $this->parse_to_int($this->parse_to_int($parsed[0]) / $durationInMs) * $durationInMs;
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+                $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
                 if ($stored === null) {
                     $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                     $stored = new ArrayCacheByTimestamp($limit);
@@ -1536,7 +1545,7 @@ class bitmart extends \ccxt\async\bitmart {
             $symbol = $market['symbol'];
             $items = $this->safe_list($data, 'items', array());
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);

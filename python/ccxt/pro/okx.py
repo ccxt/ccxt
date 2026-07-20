@@ -116,8 +116,10 @@ class okx(ccxt.async_support.okx):
             },
         })
 
-    def get_url(self, channel: str, access='public'):
+    def get_url(self, channel: Str, access='public'):
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        if channel is None:
+            raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
         sandboxSuffix = '?brokerId=9999' if isSandbox else ''
         isBusiness = (access == 'business')
@@ -138,13 +140,19 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(channel, access)
         messageHashes = []
         args = []
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
         for i in range(0, len(symbols)):
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
             marketId = self.market_id(symbols[i])
             arg = {
                 'channel': channel,
                 'instId': marketId,
             }
             args.append(self.extend(arg, params))
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribeMultiple() symbols is required')
             messageHashes.append(channel + '::' + symbols[i])
         request = {
             'op': 'subscribe',
@@ -378,7 +386,7 @@ class okx(ccxt.async_support.okx):
         if self.newUpdates:
             symbol = self.safe_string(fundingRate, 'symbol')
             result = {}
-            result[symbol] = fundingRate
+            self.store_by_key(result, symbol, fundingRate)
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
@@ -407,7 +415,7 @@ class okx(ccxt.async_support.okx):
             rawfr = data[i]
             fundingRate = self.parse_funding_rate(rawfr)
             symbol = fundingRate['symbol']
-            self.fundingRates[symbol] = fundingRate
+            self.store_by_key(self.fundingRates, symbol, fundingRate)
             client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol'])
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -645,7 +653,7 @@ class okx(ccxt.async_support.okx):
         ticker = self.safe_dict(data, 0, {})
         parsedTicker = self.parse_ws_bid_ask(ticker)
         symbol = parsedTicker['symbol']
-        self.bidsasks[symbol] = parsedTicker
+        self.store_by_key(self.bidsasks, symbol, parsedTicker)
         messageHash = 'bidask::' + symbol
         client.resolve(parsedTicker, messageHash)
 
@@ -696,6 +704,8 @@ class okx(ccxt.async_support.okx):
             type = 'SWAP'
         elif type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchLiquidationsForSymbols() type is required')
         uppercaseType = type.upper()
         request = {
             'op': 'subscribe',
@@ -1065,6 +1075,8 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
+        if channel is None:
+            return
         data = self.safe_value(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
@@ -1075,11 +1087,12 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             parsed = self.parse_ohlcv(data[i], market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                if symbol is not None and timeframe is not None:
+                    self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             messageHash = channel + ':' + market['id']
             client.resolve(stored, messageHash)
@@ -1253,7 +1266,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook, messageHash, market=None):
+    def handle_order_book_message(self, client: Client, message, orderbook, messageHash, market: Market = None):
         #
         #     {
         #         "asks": [
@@ -1574,7 +1587,7 @@ class okx(ccxt.async_support.okx):
         self.balance = self.safe_balance(newBalance)
         client.resolve(self.balance, channel)
 
-    def order_to_trade(self, order, market=None):
+    def order_to_trade(self, order, market: Market = None):
         info = self.safe_value(order, 'info', {})
         timestamp = self.safe_integer(info, 'fillTime')
         feeMarketId = self.safe_string(info, 'fillFeeCcy')
@@ -1631,6 +1644,8 @@ class okx(ccxt.async_support.okx):
             messageHash = messageHash + '::' + symbol
         if type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() type is required')
         uppercaseType = type.upper()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchMyTrades', params)
@@ -1681,7 +1696,7 @@ class okx(ccxt.async_support.okx):
         else:
             newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
         if self.newUpdates:
-            return newPositions
+            return [] if (newPositions is None) else newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
     def handle_positions(self, client, message):
@@ -1807,6 +1822,8 @@ class okx(ccxt.async_support.okx):
             type = market['type']
         if type == 'future':
             type = 'futures'
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchOrders() type is required')
         uppercaseType = type.upper()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
@@ -1980,7 +1997,7 @@ class okx(ccxt.async_support.okx):
             trade = self.order_to_trade(rawTrade)
             myTrades.append(trade)
             symbol = trade['symbol']
-            symbols[symbol] = True
+            self.store_by_key(symbols, symbol, True)
         messageHash = channel + '::myTrades'
         client.resolve(self.myTrades, messageHash)
         tradeSymbols = list(symbols.keys())
@@ -2362,6 +2379,8 @@ class okx(ccxt.async_support.okx):
         else:
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
+            if channel is None:
+                return
             methods = {
                 'bbo-tbt': self.handle_order_book,  # newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
@@ -2408,10 +2427,12 @@ class okx(ccxt.async_support.okx):
     def handle_unsubscription_ohlcv(self, client: Client, symbol: str, channel: str):
         tf = channel.replace('candle', '')
         timeframe = self.find_timeframe(tf)
+        if timeframe is None:
+            return
         subMessageHash = 'multi:' + channel + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
-        if timeframe in self.ohlcvs[symbol]:
+        if (symbol is not None) and (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
             del self.ohlcvs[symbol][timeframe]
 
     def handle_unsubscription_ticker(self, client: Client, symbol: str, channel):

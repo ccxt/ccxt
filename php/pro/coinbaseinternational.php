@@ -255,7 +255,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $output = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $this->markets[$symbol];
+            $market = $this->market($symbol);
             if ($market['active']) {
                 $output[] = $symbol;
             }
@@ -322,7 +322,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
     }
 
-    public function parse_ws_instrument(array $ticker, $market = null) {
+    public function parse_ws_instrument(array $ticker, ?array $market = null) {
         //
         //    {
         //        "sequence" => 1,
@@ -610,7 +610,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //    {
         //       "sequence" => 0,

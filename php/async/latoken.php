@@ -427,6 +427,9 @@ class latoken extends Exchange {
                 if ($baseCurrencyInfo !== null && $quoteCurrencyInfo !== null) {
                     $base = $this->safe_currency_code($this->safe_string($baseCurrencyInfo, 'tag'));
                     $quote = $this->safe_currency_code($this->safe_string($quoteCurrencyInfo, 'tag'));
+                    if (($base === null) || ($quote === null)) {
+                        continue;
+                    }
                     $lowercaseQuote = strtolower($quote);
                     $capitalizedQuote = $this->capitalize($lowercaseQuote);
                     $status = $this->safe_string($market, 'status');
@@ -529,7 +532,7 @@ class latoken extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $id = $this->safe_string($currency, 'id');
         $tag = $this->safe_string($currency, 'tag');
         $code = $this->safe_currency_code($tag);
@@ -623,7 +626,7 @@ class latoken extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['used'] = $this->safe_string($balance, 'blocked');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             $result['timestamp'] = $maxTimestamp;
             $result['datetime'] = $this->iso8601($maxTimestamp);
@@ -864,7 +867,7 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+        if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
             $market = $this->market($symbol);
         }
         $id = $this->safe_string($trade, 'id');
@@ -1154,7 +1157,7 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
                 $market = $this->market($symbol);
             }
         }
@@ -1417,6 +1420,9 @@ class latoken extends Exchange {
             }
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $request = array(
                 'baseCurrency' => $market['baseId'],
                 'quoteCurrency' => $market['quoteId'],

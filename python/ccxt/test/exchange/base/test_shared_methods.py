@@ -19,6 +19,7 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.base.errors import OnMaintenance  # noqa E402
 from ccxt.base.errors import OperationFailed  # noqa E402
 
+
 def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'

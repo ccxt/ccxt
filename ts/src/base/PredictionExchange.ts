@@ -579,7 +579,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    setMarkets (markets, currencies: Currencies | undefined = undefined) {
+    setMarkets (markets, currencies = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free

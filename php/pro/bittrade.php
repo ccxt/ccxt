@@ -107,6 +107,9 @@ class bittrade extends \ccxt\async\bittrade {
         //
         $tick = $this->safe_value($message, 'tick', array());
         $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return $message;
+        }
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
@@ -183,6 +186,9 @@ class bittrade extends \ccxt\async\bittrade {
         $tick = $this->safe_value($message, 'tick', array());
         $data = $this->safe_value($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return $message;
+        }
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
@@ -260,6 +266,9 @@ class bittrade extends \ccxt\async\bittrade {
         //     }
         //
         $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return;
+        }
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
@@ -432,6 +441,9 @@ class bittrade extends \ccxt\async\bittrade {
         $tick = $this->safe_value($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
+        if (($prevSeqNum === null) || ($seqNum === null)) {
+            return $orderbook;
+        }
         if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
@@ -484,6 +496,9 @@ class bittrade extends \ccxt\async\bittrade {
 
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
@@ -503,6 +518,9 @@ class bittrade extends \ccxt\async\bittrade {
         //     }
         //
         $id = $this->safe_string($message, 'id');
+        if ($id === null) {
+            return $message;
+        }
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {
@@ -598,6 +616,9 @@ class bittrade extends \ccxt\async\bittrade {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
             $id = $this->safe_string($message, 'id');
+            if ($id === null) {
+                return false;
+            }
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
             $subscription = $this->safe_value($subscriptionsById, $id);
             if ($subscription !== null) {

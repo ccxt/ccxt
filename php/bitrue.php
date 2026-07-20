@@ -765,7 +765,7 @@ class bitrue extends Exchange {
         return $this->parse_currencies($coins);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'coin');
         $name = $this->safe_string($rawCurrency, 'coinFulName');
         $code = $this->safe_currency_code($id);
@@ -775,22 +775,24 @@ class bitrue extends Exchange {
             $entry = $networkDetails[$j];
             $networkId = $this->safe_string($entry, 'chain');
             $network = $this->network_id_to_code($networkId, $code);
-            $networks[$network] = array(
-                'info' => $entry,
-                'id' => $networkId,
-                'network' => $network,
-                'deposit' => $this->safe_bool($entry, 'enableDeposit'),
-                'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
-                'active' => null,
-                'fee' => $this->safe_number($entry, 'withdrawFee'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($entry, 'minWithdraw'),
-                        'max' => $this->safe_number($entry, 'maxWithdraw'),
+            if ($network !== null) {
+                $networks[$network] = array(
+                    'info' => $entry,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                    'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
+                    'active' => null,
+                    'fee' => $this->safe_number($entry, 'withdrawFee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($entry, 'minWithdraw'),
+                            'max' => $this->safe_number($entry, 'maxWithdraw'),
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -979,7 +981,7 @@ class bitrue extends Exchange {
             $minCost = $this->safe_number($market, 'minOrderMoney');
         }
         $isSpot = ($type === 'spot');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
             'symbol' => $symbol,
@@ -1028,7 +1030,7 @@ class bitrue extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_balance($response): array {
@@ -1090,7 +1092,7 @@ class bitrue extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string_2($balance, 'free', 'accountNormal');
             $account['used'] = $this->safe_string_2($balance, 'locked', 'accountLock');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
@@ -2971,10 +2973,12 @@ class bitrue extends Exchange {
                 $networkId = $this->safe_string($chainDetail, 'chain');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'deposit' => array( 'fee' => null, 'percentage' => null ),
+                        'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
+                    );
+                }
                 if ($chainDetailLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($chainDetail, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;

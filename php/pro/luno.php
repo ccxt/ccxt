@@ -114,7 +114,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // watchTrades (public)
         //
@@ -126,12 +126,13 @@ class luno extends \ccxt\async\luno {
         //       "order_id" => "BXEEU4S2BWF5WRB"
         //     }
         //
+        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => null,
@@ -232,7 +233,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+    public function custom_parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
         $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(

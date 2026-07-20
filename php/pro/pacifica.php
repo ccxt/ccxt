@@ -796,7 +796,7 @@ class pacifica extends \ccxt\async\pacifica {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade);
             $symbol = $parsed['symbol'];
-            $symbols[$symbol] = true;
+            $this->store_by_key($symbols, $symbol, true);
             $trades->append($parsed);
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
@@ -910,7 +910,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $trades = $this->trades[$symbol];
         for ($i = 0; $i < count($entry); $i++) {
-            $data = $this->safe_dict($entry, $i);
+            $data = $this->safe_dict($entry, $i, array());
             $trade = $this->parse_ws_trade($data);
             $trades->append($trade);
         }
@@ -1097,15 +1097,20 @@ class pacifica extends \ccxt\async\pacifica {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timeframe = $this->safe_string($data, 'i');
+        if ($timeframe === null) {
+            return;
+        }
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (($symbol === null) || ($timeframe === null) || !(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if ($symbol !== null && $timeframe !== null) {
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
         }
-        $ohlcv = $this->ohlcvs[$symbol][$timeframe];
+        $ohlcv = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         $parsed = $this->parse_ohlcv($data);
         $ohlcv->append($parsed);
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
@@ -1238,7 +1243,7 @@ class pacifica extends \ccxt\async\pacifica {
             $order = $this->parse_order($rawOrder);
             $stored->append($order);
             $symbol = $this->safe_string($order, 'symbol');
-            $marketSymbols[$symbol] = true;
+            $this->store_by_key($marketSymbols, $symbol, true);
         }
         $keys = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1310,11 +1315,14 @@ class pacifica extends \ccxt\async\pacifica {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($subscription, 'interval');
         $timeframe = $this->find_timeframe($interval);
+        if ($timeframe === null) {
+            return;
+        }
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            if (($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1451,7 +1459,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->uuid(); // uuid v4
     }
 
-    public function wrap_as_post_action(string $operationType, array $request): array {
+    public function wrap_as_post_action(?string $operationType, array $request): array {
         if ($operationType === null) {
             throw new ArgumentsRequired($this->id . 'postAction() requires a "operationType" argument!');
         }

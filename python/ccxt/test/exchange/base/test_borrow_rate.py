@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 def test_borrow_rate(exchange, skipped_properties, method, entry, requested_code):
     format = {
         'info': {},

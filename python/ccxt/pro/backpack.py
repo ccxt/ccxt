@@ -117,7 +117,7 @@ class backpack(ccxt.async_support.backpack):
                 splitHashes = messageHash.split(':')
                 symbol = self.safe_string(splitHashes, 2)
                 timeframe = self.safe_string(splitHashes, 3)
-                if symbol in self.ohlcvs:
+                if (symbol is not None) and (timeframe is not None) and (symbol in self.ohlcvs):
                     if timeframe in self.ohlcvs[symbol]:
                         del self.ohlcvs[symbol][timeframe]
             elif messageHash.find('orderbook') >= 0:
@@ -131,13 +131,14 @@ class backpack(ccxt.async_support.backpack):
             elif messageHash.find('orders') >= 0:
                 if messageHash == 'unsubscribe:orders':
                     cache = self.orders
-                    keys = list(cache.keys())
-                    for j in range(0, len(keys)):
-                        symbol = keys[j]
-                        del self.orders[symbol]
+                    if cache is not None:
+                        keys = list(cache.keys())
+                        for j in range(0, len(keys)):
+                            symbol = keys[j]
+                            del cache[symbol]
                 else:
                     symbol = messageHash.replace('unsubscribe:orders:', '')
-                    if symbol in self.orders:
+                    if (self.orders is not None) and (symbol in self.orders):
                         del self.orders[symbol]
             elif messageHash.find('positions') >= 0:
                 if messageHash == 'unsubscribe:positions':
@@ -268,7 +269,7 @@ class backpack(ccxt.async_support.backpack):
         #         v: '5542.3911'
         #     }
         #
-        microseconds = self.safe_integer(ticker, 'E')
+        microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
@@ -382,7 +383,7 @@ class backpack(ccxt.async_support.backpack):
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
-        microseconds = self.safe_integer(ticker, 'E')
+        microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         ask = self.safe_string(ticker, 'a')
         askVolume = self.safe_string(ticker, 'A')
@@ -512,9 +513,9 @@ class backpack(ccxt.async_support.backpack):
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
         symbol = market['symbol']
-        stream = self.safe_string(message, 'stream')
+        stream = self.safe_string(message, 'stream', '')
         parts = stream.split('.')
-        timeframe = self.safe_string(parts, 1)
+        timeframe = self.safe_string(parts, 1, '')
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         if not (timeframe in self.ohlcvs[symbol]):
@@ -527,7 +528,7 @@ class backpack(ccxt.async_support.backpack):
         messageHash = 'candles:' + symbol + ':' + timeframe
         client.resolve([symbol, timeframe, ohlcv], messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         E: '1754519557526056',
@@ -670,7 +671,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(cache, messageHash)
         client.resolve(cache, 'trades')
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         #     {
         #         E: '1754601477746429',
@@ -685,7 +686,7 @@ class backpack(ccxt.async_support.backpack):
         #         t: 10782547
         #     }
         #
-        microseconds = self.safe_integer(trade, 'E')
+        microseconds = self.safe_integer(trade, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         id = self.safe_string(trade, 't')
         marketId = self.safe_string(trade, 's')
@@ -833,7 +834,7 @@ class backpack(ccxt.async_support.backpack):
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(data)
             return
-        elif nonce > deltaNonce:
+        elif (deltaNonce is not None) and (nonce > deltaNonce):
             return
         self.handle_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
@@ -861,12 +862,18 @@ class backpack(ccxt.async_support.backpack):
         firstDelta = self.safe_dict(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDeltaStart = self.safe_integer(firstDelta, 'U')
+        if nonce is None:
+            return len(cache)
+        if firstDeltaStart is None:
+            return -1
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaStart = self.safe_integer(delta, 'U')
             deltaEnd = self.safe_integer(delta, 'u')
+            if (deltaStart is None) or (deltaEnd is None):
+                return len(cache)
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)
@@ -963,7 +970,7 @@ class backpack(ccxt.async_support.backpack):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         E: '1754939110175879',
@@ -992,7 +999,7 @@ class backpack(ccxt.async_support.backpack):
         #
         id = self.safe_string(order, 'i')
         clientOrderId = self.safe_string(order, 'c')
-        microseconds = self.safe_integer(order, 'E')
+        microseconds = self.safe_integer(order, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         status = self.parse_ws_order_status(self.safe_string(order, 'X'), market)
         marketId = self.safe_string(order, 's')
@@ -1037,7 +1044,7 @@ class backpack(ccxt.async_support.backpack):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status, market=None):
+    def parse_ws_order_status(self, status: Str, market: Market = None):
         statuses = {
             'New': 'open',
             'Filled': 'closed',
@@ -1141,7 +1148,7 @@ class backpack(ccxt.async_support.backpack):
             self.positions = ArrayCacheBySymbolById()
         cache = self.positions
         parsedPosition = self.parse_ws_position(data)
-        microseconds = self.safe_integer(data, 'E')
+        microseconds = self.safe_integer(data, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         parsedPosition['timestamp'] = timestamp
         parsedPosition['datetime'] = self.iso8601(timestamp)
@@ -1150,7 +1157,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolSpecificMessageHash)
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         B: '4236.36',
@@ -1173,8 +1180,9 @@ class backpack(ccxt.async_support.backpack):
         #
         id = self.safe_string(position, 'i')
         marketId = self.safe_string(position, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         notional = self.safe_string(position, 'n')
         liquidationPrice = self.safe_string(position, 'l')
         entryPrice = self.safe_string(position, 'b')
@@ -1185,12 +1193,13 @@ class backpack(ccxt.async_support.backpack):
         netQuantity = self.safe_number(position, 'q')
         hedged = False
         side = 'long'
-        if netQuantity < 0:
-            side = 'short'
-        if netQuantity is None:
+        if netQuantity is not None:
+            if netQuantity < 0:
+                side = 'short'
+        else:
             hedged = None
             side = None
-        microseconds = self.safe_integer(position, 'E')
+        microseconds = self.safe_integer(position, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         maintenanceMarginPercentage = self.safe_number(position, 'm')
         initialMarginPercentage = self.safe_number(position, 'f')

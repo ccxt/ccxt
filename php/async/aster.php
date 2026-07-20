@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -683,7 +684,7 @@ class aster extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'asset');
         $code = $this->safe_currency_code($currencyId);
         return $this->safe_currency_structure(array(
@@ -1612,6 +1613,9 @@ class aster extends Exchange {
             //         ...
             //     )
             //
+            if ($response === null) {
+                throw new NullResponse($this->id . ' fetchLastPrices() returned empty response');
+            }
             $results = array();
             for ($i = 0; $i < count($response); $i++) {
                 $marketId = $this->safe_string($response[$i], 'symbol');
@@ -1974,7 +1978,7 @@ class aster extends Exchange {
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2647,7 +2651,13 @@ class aster extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -3122,7 +3132,7 @@ class aster extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "INJUSDT",
@@ -3737,10 +3747,12 @@ class aster extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $crossWalletBalance = $this->safe_string($entry, 'crossWalletBalance');
             $crossUnPnl = $this->safe_string($entry, 'crossUnPnl');
-            $balances[$code] = array(
-                'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
-                'crossWalletBalance' => $crossWalletBalance,
-            );
+            if ($code !== null) {
+                $balances[$code] = array(
+                    'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
+                    'crossWalletBalance' => $crossWalletBalance,
+                );
+            }
         }
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
@@ -3776,6 +3788,9 @@ class aster extends Exchange {
         $initialMarginPercentageString = null;
         if ($leverageString !== null) {
             $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
+            if ($leverage === null) {
+                throw new ExchangeError($this->id . ' parseAccountPosition() missing leverage');
+            }
             $rational = $this->is_round_number(fmod(1000, $leverage));
             if (!$rational) {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3892,6 +3907,9 @@ class aster extends Exchange {
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
+            if ($truncatedLiquidationPrice === null) {
+                throw new ExchangeError($this->id . ' method() missing truncatedLiquidationPrice');
+            }
             if ($truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more $collateral than the $size of the $position

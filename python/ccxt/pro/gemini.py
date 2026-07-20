@@ -6,10 +6,11 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Tickers, Trade
+from ccxt.base.types import Any, Int, Market, Order, OrderBook, Str, Strings, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
@@ -59,6 +60,8 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'trades:' + market['symbol']
         marketId = market['id']
+        if marketId is None:
+            raise ArgumentsRequired(self.id + ' watchTrades() marketId is required')
         request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -96,7 +99,7 @@ class gemini(ccxt.async_support.gemini):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def parse_ws_trade(self, trade, market=None) -> Trade:
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         # regular v2 trade
         #
@@ -168,7 +171,7 @@ class gemini(ccxt.async_support.gemini):
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             stored = ArrayCache(tradesLimit)
-            self.trades[symbol] = stored
+            self.store_by_key(self.trades, symbol, stored)
         stored.append(trade)
         messageHash = 'trades:' + symbol
         client.resolve(stored, messageHash)
@@ -324,11 +327,12 @@ class gemini(ccxt.async_support.gemini):
         ohlcvsBySymbol = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsBySymbol is None:
             self.ohlcvs[symbol] = {}
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
+            if symbol is not None and timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = stored
         changesLength = len(changes)
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
@@ -355,6 +359,8 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         marketId = market['id']
+        if marketId is None:
+            raise ArgumentsRequired(self.id + ' watchOrderBook() marketId is required')
         request = {
             'type': 'subscribe',
             'subscriptions': [
@@ -484,7 +490,7 @@ class gemini(ccxt.async_support.gemini):
         self.bidsasks[symbol] = currentBidAsk
         client.resolve(bidsAsksDict, messageHash)
 
-    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str] = None, params={}):
+    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: Strings = None, params={}):
         if self.markets is None:
             await self.load_markets()
         if symbols is None:
@@ -684,7 +690,7 @@ class gemini(ccxt.async_support.gemini):
             orders.append(order)
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "type": "accepted",
@@ -833,6 +839,8 @@ class gemini(ccxt.async_support.gemini):
             ts = self.safe_integer(message, 'timestampms', self.milliseconds())
             eventId = self.safe_integer(message, 'eventId')
             events = self.safe_list(message, 'events')
+            if events is None:
+                return
             orderBookItems = []
             bidaskItems = []
             collectedEventsOfTrades = []
@@ -861,6 +869,8 @@ class gemini(ccxt.async_support.gemini):
 
     async def authenticate(self, params={}):
         url = self.safe_string(params, 'url')
+        if url is None:
+            return
         if (self.clients is not None) and (url in self.clients):
             return
         self.check_required_credentials()

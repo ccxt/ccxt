@@ -528,7 +528,7 @@ class ndax extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'ProductId');
         $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'Product'));
         $ProductType = $this->safe_string($rawCurrency, 'ProductType');
@@ -638,7 +638,7 @@ class ndax extends Exchange {
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
         $isDisable = $this->safe_value($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -686,7 +686,7 @@ class ndax extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
@@ -1280,12 +1280,12 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
                 $account['used'] = $this->safe_string($balance, 'Hold');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
         }
         return $this->safe_balance($result);
@@ -1647,11 +1647,11 @@ class ndax extends Exchange {
                 'Quantity' => ($amountString === null) ? null : floatval($amountString),
                 'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
                 // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price) || '0'),
             );
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
+                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price) || '0');
             }
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
@@ -1716,11 +1716,11 @@ class ndax extends Exchange {
                 'Quantity' => ($amountString === null) ? null : floatval($amountString),
                 'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
                 // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price) || '0'),
             );
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
+                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price) || '0');
             }
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;

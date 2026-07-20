@@ -224,7 +224,7 @@ class binance extends \ccxt\async\binance {
             $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
             $stream = $this->number_to_string($normalizedIndex);
-            $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
+            $this->store_by_key($this->options['streamBySubscriptionsHash'], $subscriptionHash, $stream);
             $subscriptionsByStreams = $this->safe_value($this->options, 'numSubscriptionsByStream');
             if ($subscriptionsByStreams === null) {
                 $this->options['numSubscriptionsByStream'] = $this->create_safe_dictionary();
@@ -413,7 +413,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve(array( $liquidation ), 'liquidations::' . $symbol);
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         // future
         //    {
@@ -741,6 +741,9 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $messageHashes[] = 'orderbook::' . $symbol;
                 $subscriptionHash = $market['lowercaseId'] . '@' . $name;
+                if ($watchOrderBookRate === null) {
+                    throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() $watchOrderBookRate is required');
+                }
                 $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
@@ -944,7 +947,7 @@ class binance extends \ccxt\async\binance {
                     // if the $orderbook is dropped before the $snapshot is received
                     return;
                 }
-                $orderbook = $this->orderbooks[$symbol];
+                $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 $orderbook->reset($snapshot);
                 // unroll the accumulated deltas
                 $messages = $orderbook->cache;
@@ -952,7 +955,13 @@ class binance extends \ccxt\async\binance {
                 for ($i = 0; $i < count($messages); $i++) {
                     $messageItem = $messages[$i];
                     $U = $this->safe_integer($messageItem, 'U');
+                    if ($U === null) {
+                        return;
+                    }
                     $u = $this->safe_integer($messageItem, 'u');
+                    if ($u === null) {
+                        return;
+                    }
                     $pu = $this->safe_integer($messageItem, 'pu');
                     if ($type === 'future') {
                         // 4. Drop any event where $u is < lastUpdateId in the $snapshot
@@ -974,7 +983,7 @@ class binance extends \ccxt\async\binance {
                         }
                     }
                 }
-                $this->orderbooks[$symbol] = $orderbook;
+                $this->store_by_key($this->orderbooks, $symbol, $orderbook);
                 $client->resolve($orderbook, $messageHash);
             } catch (Exception $e) {
                 unset($client->subscriptions[$messageHash]);
@@ -1050,7 +1059,13 @@ class binance extends \ccxt\async\binance {
         } else {
             try {
                 $U = $this->safe_integer($message, 'U');
+                if ($U === null) {
+                    return;
+                }
                 $u = $this->safe_integer($message, 'u');
+                if ($u === null) {
+                    return;
+                }
                 $pu = $this->safe_integer($message, 'pu');
                 if ($pu === null) {
                     // spot
@@ -1331,7 +1346,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null): array {
         //
         // public watchTrades
         //
@@ -1583,6 +1598,9 @@ class binance extends \ccxt\async\binance {
                 $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
                 $market = $this->market($symbolString);
                 $marketId = $market['lowercaseId'];
+                if ($marketId === null) {
+                    throw new ArgumentsRequired($this->id . ' watchOHLCVForSymbols() $marketId is required');
+                }
                 if ($klineType === 'indexPriceKline') {
                     // weird behavior for index price kline we can't use the perp $suffix
                     $marketId = str_replace('_perp', '', $marketId);
@@ -1654,6 +1672,9 @@ class binance extends \ccxt\async\binance {
                 $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
                 $market = $this->market($symbolString);
                 $marketId = $market['lowercaseId'];
+                if ($marketId === null) {
+                    throw new ArgumentsRequired($this->id . ' unWatchOHLCVForSymbols() $marketId is required');
+                }
                 if ($klineType === 'indexPriceKline') {
                     // weird behavior for index price kline we can't use the perp $suffix
                     $marketId = str_replace('_perp', '', $marketId);
@@ -1766,11 +1787,13 @@ class binance extends \ccxt\async\binance {
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $unifiedTimeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
+            if ($symbol !== null && $unifiedTimeframe !== null) {
+                $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
+            }
         }
         $stored->append($parsed);
         $resolveData = array( $symbol, $unifiedTimeframe, $stored );
@@ -2120,7 +2143,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function watch_multi_ticker_helper($methodName, string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    public function watch_multi_ticker_helper($methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params, $isUnsubscribe) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2132,7 +2155,7 @@ class binance extends \ccxt\async\binance {
             $firstMarket = null;
             $marketType = null;
             $symbolsDefined = ($symbols !== null);
-            if ($symbolsDefined) {
+            if ($symbols !== null) {
                 $firstMarket = $this->market($symbols[0]);
             }
             $defaultMarket = ($isMarkPrice) ? 'swap' : null;
@@ -2167,7 +2190,7 @@ class binance extends \ccxt\async\binance {
             } else {
                 $unifiedPrefix = 'ticker';
             }
-            if ($symbolsDefined) {
+            if ($symbols !== null) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
                     $market = $this->market($symbol);
@@ -2192,7 +2215,7 @@ class binance extends \ccxt\async\binance {
                 $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
             }
             $streamHash = $channelName;
-            if ($symbolsDefined) {
+            if ($symbols !== null) {
                 $streamHash = $channelName . '::' . implode(',', $symbols);
             }
             $url = $this->get_ws_url($rawMarketType, $this->get_future_ws_category($channelName)) . '/' . $this->stream($rawMarketType, $streamHash);
@@ -2473,11 +2496,11 @@ class binance extends \ccxt\async\binance {
             }
             $parsedTicker = $this->parse_ws_ticker($ticker, $marketType);
             $symbol = $parsedTicker['symbol'];
-            $newTickers[$symbol] = $parsedTicker;
+            $this->store_by_key($newTickers, $symbol, $parsedTicker);
             if ($isBidAsk) {
-                $this->bidsasks[$symbol] = $parsedTicker;
+                $this->store_by_key($this->bidsasks, $symbol, $parsedTicker);
             } else {
-                $this->tickers[$symbol] = $parsedTicker;
+                $this->store_by_key($this->tickers, $symbol, $parsedTicker);
             }
             $messageHash = $unifiedPrefix . ':' . $channelName . '@' . $symbol;
             $resolvedMessageHashes[] = $messageHash;
@@ -2619,6 +2642,9 @@ class binance extends \ccxt\async\binance {
                 $response = Async\await($this->sapiPostUserListenToken($request));
                 $listenToken = $this->safe_string($response, 'token');
                 $expirationTime = $this->safe_integer($response, 'expirationTime');
+                if ($expirationTime === null) {
+                    return;
+                }
                 // Step 2 => Subscribe to user data stream via WebSocket API
                 $requestId = $this->request_id($url);
                 $messageHash = (string) $requestId;
@@ -3209,7 +3235,7 @@ class binance extends \ccxt\async\binance {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $delta = $this->safe_string($message, 'd');
-            if (is_array($this->balance[$accountType]) && array_key_exists($code, $this->balance[$accountType])) {
+            if (($accountType !== null) && ($code !== null) && (is_array($this->balance[$accountType]) && array_key_exists($code, $this->balance[$accountType]))) {
                 $previousValue = $this->balance[$accountType][$code]['free'];
                 if (gettype($previousValue) !== 'string') {
                     $previousValue = $this->number_to_string($previousValue);
@@ -3218,10 +3244,15 @@ class binance extends \ccxt\async\binance {
             } else {
                 $account['free'] = $delta;
             }
-            $this->balance[$accountType][$code] = $account;
+            if (($accountType !== null) && ($code !== null)) {
+                $this->balance[$accountType][$code] = $account;
+            }
         } else {
             $message = $this->safe_dict($message, 'a', $message);
             $B = $this->safe_list($message, 'B');
+            if ($B === null) {
+                return;
+            }
             for ($i = 0; $i < count($B); $i++) {
                 $entry = $B[$i];
                 $currencyId = $this->safe_string($entry, 'a');
@@ -3230,7 +3261,9 @@ class binance extends \ccxt\async\binance {
                 $account['free'] = $this->safe_string($entry, 'f');
                 $account['used'] = $this->safe_string($entry, 'l');
                 $account['total'] = $this->safe_string($entry, $wallet);
-                $this->balance[$accountType][$code] = $account;
+                if (($accountType !== null) && ($code !== null)) {
+                    $this->balance[$accountType][$code] = $account;
+                }
             }
         }
         $timestamp = $this->safe_integer($message, 'E');
@@ -3467,10 +3500,10 @@ class binance extends \ccxt\async\binance {
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $isSwap = ($marketType === 'future' || $marketType === 'delivery');
-            $payload = null;
+            $payload = array();
             if ($marketType === 'spot') {
                 $payload = $this->editSpotOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
-            } elseif ($isSwap) {
+            } else {
                 $payload = $this->editContractOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
             }
             $returnRateLimits = false;
@@ -3948,7 +3981,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         // spot
         //
@@ -4265,6 +4298,9 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
                 $market = $this->get_market_from_symbols($symbols);
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                }
                 $messageHash = '::' . implode(',', $symbols);
             }
             $type = null;
@@ -4345,7 +4381,7 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
+                if (($contracts !== null) && ($contracts > 0)) {
                     $cache->append($position);
                 }
             }
@@ -4424,7 +4460,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "s" => "BTCUSDT", // Symbol
@@ -4655,7 +4691,8 @@ class binance extends \ccxt\async\binance {
             $type = null;
             $market = null;
             if ($symbol !== null) {
-                $market = $this->market($symbol);
+                $marketResolved = $this->market($symbol);
+                $market = $marketResolved;
                 $symbol = $market['symbol'];
             }
             list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
@@ -4667,7 +4704,7 @@ class binance extends \ccxt\async\binance {
                 $type = 'delivery';
             }
             $messageHash = 'myTrades';
-            if ($symbol !== null) {
+            if (($symbol !== null) && ($market !== null)) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
                 $params = $this->extend($params, array( 'type' => $market['type'], 'symbol' => $symbol ));
@@ -4724,7 +4761,7 @@ class binance extends \ccxt\async\binance {
                                 $orderFee = $fees[$i];
                                 if ($orderFee['currency'] === $tradeFee['currency']) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $order['fees'][$i]['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                    $order['fees'][$i]['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost) || '0');
                                     $insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -4735,7 +4772,7 @@ class binance extends \ccxt\async\binance {
                         } elseif ($fee !== null) {
                             if ($fee['currency'] === $tradeFee['currency']) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost) || '0');
                             } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
@@ -4822,8 +4859,9 @@ class binance extends \ccxt\async\binance {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_integer($error, 'code');
         $msg = $this->safe_string($error, 'msg');
+        $codeValue = ($code === null) ? 0 : $code;
         try {
-            $this->handle_errors($code, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
+            $this->handle_errors($codeValue, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
             // private endpoint uses $id

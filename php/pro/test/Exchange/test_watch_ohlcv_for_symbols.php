@@ -31,6 +31,9 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
             $success = true;
             try {
                 $response = \React\Async\await($exchange->watch_ohlcv_for_symbols([[$symbol, $chosen_timeframe_key]], $since, $limit));
+                if ($response === null) {
+                    throw new Exception($exchange->id . ' watch returned undefined response');
+                }
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -40,6 +43,9 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             if ($success === true) {
+                if ($response === null) {
+                    throw new Exception($exchange->id . ' watch returned undefined response');
+                }
                 $assertion_message = $exchange->id . ' ' . $method . ' ' . $symbol . ' ' . $chosen_timeframe_key . ' | ' . $exchange->json($response);
                 assert($exchange->is_dictionary($response), 'Response must be a dictionary. ' . $assertion_message);
                 assert(is_array($response) && array_key_exists($symbol, $response), 'Response should contain the symbol as key. ' . $assertion_message);

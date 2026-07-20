@@ -178,6 +178,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
             $ts_ms = $entry['timestamp'];
+            if ($dt_parsed === null) {
+                assert(false, 'datetime is not parseable: ' . $dt . $log_text);
+            }
             $diff = abs($dt_parsed - $ts_ms);
             if ($diff >= 500) {
                 $dt_parsed_string = $exchange->iso8601($dt_parsed);
@@ -245,7 +248,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
 
 function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
     $log_text = log_template($exchange, $method, array());
-    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
+    assert(($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -678,7 +681,7 @@ function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+            if (($exchange->markets === null) || !(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
                 return;
             }
             // if OHLCV supported

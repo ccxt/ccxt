@@ -525,6 +525,9 @@ class deribit extends Exchange {
             $settle = $base;
         }
         $splitBase = $base;
+        if ($base === null) {
+            throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing base');
+        }
         if (mb_strpos($base, '_') > -1) {
             $splitSymbol = explode('_', $base);
             $splitBase = $this->safe_string($splitSymbol, 0);
@@ -583,7 +586,7 @@ class deribit extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -655,7 +658,7 @@ class deribit extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         return $this->safe_currency_structure(array(
@@ -949,8 +952,17 @@ class deribit extends Exchange {
                     $settle = $this->safe_currency_code($settleId);
                     $settlementPeriod = $this->safe_value($market, 'settlement_period');
                     $swap = ($settlementPeriod === 'perpetual');
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $option = (mb_strpos($kind, 'option') !== false);
+                    if ($kind === null) {
+                        throw new ExchangeError($this->id . ' method() missing kind');
+                    }
                     $isComboMarket = mb_strpos($kind, 'combo') !== false;
                     $expiry = $this->safe_integer($market, 'expiration_timestamp');
                     $strike = null;
@@ -986,7 +998,7 @@ class deribit extends Exchange {
                     if ($parsedMarketValue) {
                         continue;
                     }
-                    $parsedMarkets[$symbol] = true;
+                    $this->store_by_key($parsedMarkets, $symbol, true);
                     $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                     $tickSize = $this->safe_number($market, 'tick_size');
                     $result[] = array(
@@ -1052,7 +1064,7 @@ class deribit extends Exchange {
         );
         $summaries = array();
         if (is_array($balance) && array_key_exists('summaries', $balance)) {
-            $summaries = $this->safe_list($balance, 'summaries');
+            $summaries = $this->safe_list($balance, 'summaries', array());
         } else {
             $summaries = array( $balance );
         }
@@ -1064,7 +1076,7 @@ class deribit extends Exchange {
             $account['free'] = $this->safe_string($data, 'available_funds');
             $account['used'] = $this->safe_string($data, 'maintenance_margin');
             $account['total'] = $this->safe_string($data, 'equity');
-            $result[$currencyCode] = $account;
+            $this->store_by_key($result, $currencyCode, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1454,7 +1466,7 @@ class deribit extends Exchange {
             for ($i = 0; $i < count($result); $i++) {
                 $ticker = $this->parse_ticker($result[$i]);
                 $symbol = $ticker['symbol'];
-                $tickers[$symbol] = $ticker;
+                $this->store_by_key($tickers, $symbol, $ticker);
             }
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         })();
@@ -1706,7 +1718,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-get_account_summary
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1796,8 +1808,9 @@ class deribit extends Exchange {
                 }
             }
             $parsedFees = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->require_symbols();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $fee = array(
                     'info' => $market,
@@ -3375,6 +3388,9 @@ class deribit extends Exchange {
             }
             if (is_array($params) && array_key_exists('isDeribitPaginationCall', $params)) {
                 $params = $this->omit($params, 'isDeribitPaginationCall');
+                if ($limit === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $limit argument');
+                }
                 $maxUntil = $this->sum($since, $limit * $duration);
                 $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
             }

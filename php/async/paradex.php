@@ -1435,6 +1435,9 @@ class paradex extends Exchange {
             $now = $this->nonce();
             if ($cachedToken !== null) {
                 $cachedExpires = $this->safe_integer($this->options, 'expires');
+                if ($cachedExpires === null) {
+                    throw new ExchangeError($this->id . ' authenticateRest() missing cachedExpires');
+                }
                 if ($now < $cachedExpires) {
                     return $cachedToken;
                 }
@@ -1602,7 +1605,13 @@ class paradex extends Exchange {
         return Precise::string_mul($num, '100000000');
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
@@ -1690,6 +1699,9 @@ class paradex extends Exchange {
             $account = Async\await($this->retrieve_account());
             $now = $this->nonce();
             $orderType = $this->safe_string($request, 'type');
+            if ($orderType === null) {
+                throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
+            }
             $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
             $orderReq = array(
                 'timestamp' => $now * 1000,
@@ -2320,7 +2332,7 @@ class paradex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'size');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2924,7 +2936,7 @@ class paradex extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $rawMarginMode, $market = null): array {
+    public function parse_margin_mode(array $rawMarginMode, ?array $market = null): array {
         $marketId = $this->safe_string($rawMarginMode, 'market');
         $market = $this->safe_market($marketId, $market);
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
@@ -2954,8 +2966,8 @@ class paradex extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
-            $leverage = null;
-            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
+            $leverage = 1;
+            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', $leverage);
             $request = array(
                 'market' => $market['id'],
                 'leverage' => $leverage,

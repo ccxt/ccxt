@@ -335,7 +335,7 @@ class coinone extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
         $isWithdrawEnabled = $this->safe_string($rawCurrency, 'withdraw_status', '') === 'normal';
@@ -492,7 +492,7 @@ class coinone extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'avail');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1265,7 +1265,7 @@ class coinone extends Exchange {
                     $depositAddress['tag'] = $value;
                     $depositAddress['info'] = array( $address, $value );
                 }
-                $result[$code] = $depositAddress;
+                $this->store_by_key($result, $code, $depositAddress);
             }
             return $result;
         })();

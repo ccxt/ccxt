@@ -663,7 +663,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         //
         //     {
         //       "id" => 1,
@@ -1541,7 +1541,7 @@ class extended extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'availableToWithdraw');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2669,8 +2669,14 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            }
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);

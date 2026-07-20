@@ -1290,7 +1290,7 @@ class gate extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -2008,7 +2008,7 @@ class gate extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -2019,26 +2019,28 @@ class gate extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'name');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => !$this->safe_bool($chain, 'deposit_disabled'),
-                'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled'),
-                'fee' => null,
-                'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => !$this->safe_bool($chain, 'deposit_disabled'),
+                    'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled'),
+                    'fee' => null,
+                    'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -2451,8 +2453,9 @@ class gate extends Exchange {
 
     public function parse_trading_fees($response) {
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->require_symbols();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $result[$symbol] = $this->parse_trading_fee($response, $market);
         }
@@ -2540,7 +2543,9 @@ class gate extends Exchange {
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
                     $networkCode = $this->network_id_to_code($networkId, $code);
-                    $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
+                    if ($networkCode !== null) {
+                        $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
+                    }
                 }
             }
             $result[$code] = array(
@@ -2626,16 +2631,18 @@ class gate extends Exchange {
                 $currencyId = $this->safe_string($fee, 'currency');
                 $code = $this->safe_currency_code($currencyId, $currency);
                 $networkCode = $this->network_id_to_code($chainKey, $code);
-                $result['networks'][$networkCode] = array(
-                    'withdraw' => array(
-                        'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
-                        'percentage' => false,
-                    ),
-                    'deposit' => array(
-                        'fee' => null,
-                        'percentage' => null,
-                    ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'withdraw' => array(
+                            'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
+                            'percentage' => false,
+                        ),
+                        'deposit' => array(
+                            'fee' => null,
+                            'percentage' => null,
+                        ),
+                    );
+                }
             }
         }
         return $result;
@@ -2842,6 +2849,9 @@ class gate extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'current');
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' method() missing timestamp');
+        }
         if (!$market['spot']) {
             $timestamp = $timestamp * 1000;
         }
@@ -2896,6 +2906,9 @@ class gate extends Exchange {
             }
         } else {
             $ticker = $this->safe_value($response, 0);
+        }
+        if ($ticker === null) {
+            throw new NullResponse($this->id . ' fetchTicker() returned empty response');
         }
         return $this->parse_ticker($ticker, $market);
     }
@@ -4503,7 +4516,13 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $contract = $market['contract'];
         $trigger = $this->safe_value($params, 'trigger');
@@ -4780,7 +4799,7 @@ class gate extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
@@ -6359,6 +6378,9 @@ class gate extends Exchange {
         //         "pending_orders" => 0
         //     }
         //
+        if ($response === null) {
+            throw new NullResponse($this->id . ' fetchPosition() returned empty response');
+        }
         return $this->parse_position($response, $market);
     }
 
@@ -6470,7 +6492,7 @@ class gate extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_positions($response, $symbols);
+        return $this->parse_positions($response || array(), $symbols);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
@@ -8107,6 +8129,9 @@ class gate extends Exchange {
         //
         $marketId = $this->safe_string($greeks, 'name');
         $symbol = $this->safe_symbol($marketId, $market);
+        if ($market === null) {
+            throw new ExchangeError($this->id . ' parseGreeks() could not resolve market');
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => null,

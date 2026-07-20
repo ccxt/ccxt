@@ -519,7 +519,7 @@ class bigone extends Exchange {
         return $this->parse_currencies($currenciesData);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
         $name = $this->safe_string($rawCurrency, 'name');
@@ -536,27 +536,29 @@ class bigone extends Exchange {
             $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
             $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
             $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'margin' => null,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => null,
-                'fee' => $this->parse_number($withdrawalFee),
-                'precision' => $this->parse_number($precision),
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $minDepositAmount,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'margin' => null,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'fee' => $this->parse_number($withdrawalFee),
+                    'precision' => $this->parse_number($precision),
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $minDepositAmount,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $minWithdrawalAmount,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $minWithdrawalAmount,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $chain,
-            );
+                    'info' => $chain,
+                );
+            }
         }
         $chainLength = count($chains);
         $type = null;
@@ -1017,6 +1019,9 @@ class bigone extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'Timestamp');
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' fetchTime() missing timestamp');
+        }
         return $this->parse_to_int($timestamp / 1000000);
     }
 
@@ -1415,7 +1420,7 @@ class bigone extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['used'] = $this->safe_string($balance, 'locked_balance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1453,7 +1458,7 @@ class bigone extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_type(string $type) {
+    public function parse_type(?string $type) {
         $types = array(
             'STOP_LIMIT' => 'limit',
             'STOP_MARKET' => 'market',
@@ -1592,7 +1597,7 @@ class bigone extends Exchange {
         $isLimit = $uppercaseType === 'LIMIT';
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), $exchangeSpecificParam, $params);
+        list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), ($exchangeSpecificParam === true), $params);
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
@@ -1668,7 +1673,7 @@ class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        $order = $this->safe_dict($response, 'data');
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order, $market);
     }
 
@@ -1700,7 +1705,7 @@ class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        $order = $this->safe_dict($response, 'data');
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
 

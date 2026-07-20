@@ -866,7 +866,7 @@ class xt(ccxt.async_support.xt):
             symbol = market['symbol']
             parsed = self.parse_ohlcv(data, market)
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -1268,7 +1268,7 @@ class xt(ccxt.async_support.xt):
         account['free'] = self.safe_string(data, 'availableBalance')
         account['used'] = self.safe_string(data, 'f')
         account['total'] = self.safe_string_2(data, 'b', 'walletBalance')
-        self.balance[code] = account
+        self.store_by_key(self.balance, code, account)
         self.balance = self.safe_balance(self.balance)
         tradeType = 'contract' if ('coin' in data) else 'spot'
         client.resolve(self.balance, 'balance::' + tradeType)

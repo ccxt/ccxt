@@ -181,7 +181,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $requestId;
     }
 
-    public function subscribe($url, $messageHash, $subscriptionHash, $params = array(), $subscription = null) {
+    public function subscribe($url, $messageHash, $subscriptionHash, $params = array(), ?array $subscription = null) {
         return Async\async(function () use ($url, $messageHash, $subscriptionHash, $params, $subscription) {
             $requestId = (string) $this->request_id();
             $request = array(
@@ -508,7 +508,7 @@ class kucoin extends \ccxt\async\kucoin {
         })();
     }
 
-    public function subscribe_public_multiple_uta($messageHashes, $channel, $symbols, $params = array(), $subscription = null) {
+    public function subscribe_public_multiple_uta($messageHashes, $channel, $symbols, $params = array(), ?array $subscription = null) {
         return Async\async(function () use ($messageHashes, $channel, $symbols, $params, $subscription) {
             $requestId = (string) $this->request_id();
             $market = $this->get_market_from_symbols($symbols);
@@ -2811,7 +2811,9 @@ class kucoin extends \ccxt\async\kucoin {
         $account['free'] = $this->safe_string_2($data, 'available', 'availableBalance');
         $account['used'] = $used;
         $account['total'] = $this->safe_string($data, 'total');
-        $this->balance[$uniformType][$code] = $account;
+        if (($uniformType !== null) && ($code !== null)) {
+            $this->balance[$uniformType][$code] = $account;
+        }
         $this->balance[$uniformType] = $this->safe_balance($this->balance[$uniformType]);
         $messageHash = $uniformType . ':balance';
         $client->resolve($this->balance[$uniformType], $messageHash);
@@ -2848,7 +2850,9 @@ class kucoin extends \ccxt\async\kucoin {
         $account['free'] = $this->safe_string($data, 'a');
         $account['used'] = $this->safe_string($data, 'h');
         $account['total'] = $this->safe_string($data, 'b');
-        $this->balance[$type][$code] = $account;
+        if (($type !== null) && ($code !== null)) {
+            $this->balance[$type][$code] = $account;
+        }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $messageHash = $type . ':balance';
         $client->resolve($this->balance[$type], $messageHash);
@@ -3310,7 +3314,7 @@ class kucoin extends \ccxt\async\kucoin {
         $data = $this->safe_dict($message, 'd', array());
         $fundingRate = $this->parse_ws_funding_rate($data);
         $symbol = $fundingRate['symbol'];
-        $this->fundingRates[$symbol] = $fundingRate;
+        $this->store_by_key($this->fundingRates, $symbol, $fundingRate);
         $messageHash = 'fundingRate:' . $symbol;
         $client->resolve($fundingRate, $messageHash);
     }

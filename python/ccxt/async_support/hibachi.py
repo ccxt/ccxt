@@ -1889,7 +1889,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions')
+        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions', [])
         responseTradingHistory = promises[1]
         #
         # {
@@ -1917,8 +1917,8 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory')
-        rows = self.array_concat(rowsCapitalHistory or [], rowsTradingHistory or [])
+        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory', [])
+        rows = self.array_concat(rowsCapitalHistory, rowsTradingHistory)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:

@@ -169,7 +169,7 @@ class kucoin(ccxt.async_support.kucoin):
         self.unlock_id()
         return requestId
 
-    async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
+    async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription: dict | None = None):
         requestId = str(self.request_id())
         request = {
             'id': requestId,
@@ -438,7 +438,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def subscribe_public_multiple_uta(self, messageHashes, channel, symbols, params={}, subscription=None):
+    async def subscribe_public_multiple_uta(self, messageHashes, channel, symbols, params={}, subscription: dict | None = None):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
         urlType = 'futures' if market['contract'] else 'spot'
@@ -2535,7 +2535,8 @@ class kucoin(ccxt.async_support.kucoin):
         account['free'] = self.safe_string_2(data, 'available', 'availableBalance')
         account['used'] = used
         account['total'] = self.safe_string(data, 'total')
-        self.balance[uniformType][code] = account
+        if (uniformType is not None) and (code is not None):
+            self.balance[uniformType][code] = account
         self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
         messageHash = uniformType + ':balance'
         client.resolve(self.balance[uniformType], messageHash)
@@ -2570,7 +2571,8 @@ class kucoin(ccxt.async_support.kucoin):
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
-        self.balance[type][code] = account
+        if (type is not None) and (code is not None):
+            self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = type + ':balance'
         client.resolve(self.balance[type], messageHash)
@@ -2982,7 +2984,7 @@ class kucoin(ccxt.async_support.kucoin):
         data = self.safe_dict(message, 'd', {})
         fundingRate = self.parse_ws_funding_rate(data)
         symbol = fundingRate['symbol']
-        self.fundingRates[symbol] = fundingRate
+        self.store_by_key(self.fundingRates, symbol, fundingRate)
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 

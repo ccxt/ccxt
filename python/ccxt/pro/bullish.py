@@ -626,7 +626,8 @@ class bullish(ccxt.async_support.bullish):
             account['total'] = self.safe_string(data, 'availableQuantity')
             account['used'] = self.safe_string(data, 'lockedQuantity')
             code = self.safe_currency_code(assetId)
-            self.balance[tradingAccountId][code] = account
+            if (tradingAccountId is not None) and (code is not None):
+                self.balance[tradingAccountId][code] = account
             self.balance[tradingAccountId]['info'] = message
             self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
         messageHash = 'balance'

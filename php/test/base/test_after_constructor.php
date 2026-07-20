@@ -97,7 +97,7 @@ function helper_test_init_market() {
             'BTC/USD' => $sample_market,
         ),
     ));
-    assert($exchange2->markets['BTC/USD'] !== null);
+    assert(($exchange2->markets !== null) && ($exchange2->markets['BTC/USD'] !== null));
 }
 
 

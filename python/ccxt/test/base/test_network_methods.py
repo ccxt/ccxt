@@ -14,6 +14,7 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
+
 def helper_test_network_code_to_id(networks_map):
     # we should conduct tests with such example configuration
     exchange = ccxt.Exchange({

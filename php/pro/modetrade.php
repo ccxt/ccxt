@@ -470,7 +470,7 @@ class modetrade extends \ccxt\async\modetrade {
             $this->safe_number($data, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -1304,13 +1304,16 @@ class modetrade extends \ccxt\async\modetrade {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = $this->account();
+            if (($code !== null) && (is_array($this->balance) && array_key_exists($code, $this->balance))) {
+                $account = $this->balance[$code];
+            }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
-            $this->balance[$code] = $account;
+            $this->store_by_key($this->balance, $code, $account);
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');

@@ -748,7 +748,7 @@ class toobit extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'coinId');
         $code = $this->safe_currency_code($id);
         $networks = array();
@@ -757,27 +757,29 @@ class toobit extends Exchange {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'margin' => null,
-                'deposit' => $this->safe_bool($rawNetwork, 'allowDeposit'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'allowWithdraw'),
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
-                'precision' => null,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minDepositQuantity'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'margin' => null,
+                    'deposit' => $this->safe_bool($rawNetwork, 'allowDeposit'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'allowWithdraw'),
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minDepositQuantity'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minWithdrawQuantity'),
+                            'max' => $this->safe_number($rawNetwork, 'maxWithdrawQuantity'),
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minWithdrawQuantity'),
-                        'max' => $this->safe_number($rawNetwork, 'maxWithdrawQuantity'),
-                    ),
-                ),
-                'info' => $rawNetwork,
-            );
+                    'info' => $rawNetwork,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -1742,7 +1744,7 @@ class toobit extends Exchange {
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
             $account['total'] = $this->safe_string_2($balance, 'total', 'balance');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1803,7 +1805,10 @@ class toobit extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
         $market = $this->market($symbol);
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
@@ -1837,7 +1842,13 @@ class toobit extends Exchange {
         return array( $request, $params );
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],

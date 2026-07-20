@@ -109,6 +109,7 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
+
 class BaseExchange(object):
     """Base exchange class"""
     id = 'Exchange'
@@ -1222,7 +1223,6 @@ class BaseExchange(object):
                 total += arg
         return total
 
-
     @staticmethod
     def aggregate(bidasks):
         ordered = {}
@@ -1230,7 +1230,6 @@ class BaseExchange(object):
             if volume > 0:
                 ordered[price] = ordered.get(price, 0) + volume
         return [[price, volume] for price, volume in ordered.items()]
-
 
     @staticmethod
     def seconds():
@@ -1496,7 +1495,7 @@ class BaseExchange(object):
         return address_hex
 
     @staticmethod
-    def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+    def retrieve_stark_account(signature, accountClassHash, accountProxyClassHash):
         from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
         from ccxt.static_dependencies.starknet.hash.utils import private_to_stark_key
         privateKey = get_private_key_from_eth_signature(signature)
@@ -1522,7 +1521,7 @@ class BaseExchange(object):
         }
 
     @staticmethod
-    def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+    def starknet_encode_structured_data(domain, messageTypes, messageData, address):
         from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
         types = list(messageTypes.keys())
         if len(types) > 1:
@@ -1545,7 +1544,7 @@ class BaseExchange(object):
         return msgHash
 
     @staticmethod
-    def starknet_sign (msg_hash, pri):
+    def starknet_sign(msg_hash, pri):
         # // TODO: unify to ecdsa
         from ccxt.static_dependencies.starknet.hash.utils import message_signature
         if isinstance(pri, str):
@@ -1554,7 +1553,7 @@ class BaseExchange(object):
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
-    def extended_starknet_sign (msg_hash, pri):
+    def extended_starknet_sign(msg_hash, pri):
         from ccxt.static_dependencies.starknet.hash.utils import message_signature
         if isinstance(msg_hash, str):
             msg_hash = int(msg_hash, 0)
@@ -1564,12 +1563,12 @@ class BaseExchange(object):
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
-    def extended_starknet_get_selector_from_name (name):
+    def extended_starknet_get_selector_from_name(name):
         from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
         return get_selector_from_name(name)
 
     @staticmethod
-    def extended_starknet_compute_poseidon_hash_on_elements (data):
+    def extended_starknet_compute_poseidon_hash_on_elements(data):
         values = [int(x, 0) if isinstance(x, str) else int(x) for x in data]
         from ccxt.static_dependencies.starknet.hash.poseidon import poseidon_hash_many
         return hex(poseidon_hash_many(values))
@@ -1673,7 +1672,6 @@ class BaseExchange(object):
             's': ('%0' + str(hex_length) + 'x') % s_int,
             'v': v,
         }
-
 
     @staticmethod
     def _ecdsa_secp256k1_coincurve(request, secret, hash=None, fixed_length=False):
@@ -2100,7 +2098,6 @@ class BaseExchange(object):
             int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
             sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
             int(takerFeeRateStr), int(makerFeeRateStr), False)
-
 
         tx = zklink_sdk.Contract(builder)
         seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
@@ -4090,10 +4087,19 @@ class BaseExchange(object):
                 self.markets_by_id[value['id']] = marketsByIdArray
             else:
                 self.markets_by_id[value['id']] = [value]
+            # strip None-valued keys from the parsed market before deepExtend,
+            # otherwise an explicit `taker: None`(from safeMarketStructure)
+            # would clobber the fee defaults from self.fees['trading'] in the merge
+            valueDefined = {}
+            valueKeys = list(value.keys())
+            for j in range(0, len(valueKeys)):
+                valueKey = valueKeys[j]
+                if value[valueKey] is not None:
+                    valueDefined[valueKey] = value[valueKey]
             market = self.deep_extend(self.safe_market_structure(), {
                 'precision': self.precision,
                 'limits': self.limits,
-            }, self.fees['trading'], value)
+            }, self.fees['trading'], valueDefined)
             if market['linear']:
                 market['subType'] = 'linear'
             elif market['inverse']:

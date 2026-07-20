@@ -1547,7 +1547,7 @@ class bigone(Exchange, ImplicitAPI):
         isLimit = uppercaseType == 'LIMIT'
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
-        postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), (exchangeSpecificParam is True), params)
+        postOnly, params = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam is True, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required

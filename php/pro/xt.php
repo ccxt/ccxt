@@ -988,7 +988,7 @@ class xt extends \ccxt\async\xt {
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($data, $market);
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -1411,7 +1411,7 @@ class xt extends \ccxt\async\xt {
         $account['free'] = $this->safe_string($data, 'availableBalance');
         $account['used'] = $this->safe_string($data, 'f');
         $account['total'] = $this->safe_string_2($data, 'b', 'walletBalance');
-        $this->balance[$code] = $account;
+        $this->store_by_key($this->balance, $code, $account);
         $this->balance = $this->safe_balance($this->balance);
         $tradeType = (is_array($data) && array_key_exists('coin', $data)) ? 'contract' : 'spot';
         $client->resolve($this->balance, 'balance::' . $tradeType);

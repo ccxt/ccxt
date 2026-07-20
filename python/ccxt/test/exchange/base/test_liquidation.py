@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 def test_liquidation(exchange, skipped_properties, method, entry, symbol):
     format = {
         'info': {},

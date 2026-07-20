@@ -16,6 +16,7 @@ import asyncio
 from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 async def test_fetch_tickers(exchange, skipped_properties, symbol):
     # prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     # is impractical and the "every active market has a ticker" check doesn't apply — test

@@ -71,11 +71,14 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = 'ticker:' + symbol
         url = self.urls['api']['ws']
         self.set_broker_headers()
+        baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
+        quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
+        assetId = baseIdString.lower() + quoteIdString.lower()
         subscribe = {
             'id': self.request_id(),
             'method': 'SUBSCRIBE',
             'params': ['ticker@1s'],
-            'assets': [market['baseId'].lower() + market['quoteId'].lower()],
+            'assets': [assetId],
         }
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
@@ -90,7 +93,9 @@ class mudrex(ccxt.async_support.mudrex):
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
                 messageHashes.append('ticker:' + market['symbol'])
-                assets.append(market['baseId'].lower() + market['quoteId'].lower())
+                baseIdString = market['baseId'] if (market['baseId'] is not None) else ''
+                quoteIdString = market['quoteId'] if (market['quoteId'] is not None) else ''
+                assets.append(baseIdString.lower() + quoteIdString.lower())
         url = self.urls['api']['ws']
         self.set_broker_headers()
         subscribe = {
@@ -120,7 +125,9 @@ class mudrex(ccxt.async_support.mudrex):
         prefix = 'kline'
         if priceType == 'mark':
             prefix = 'markKline'
-        stream = prefix + '@' + interval + '@' + market['baseId'].lower() + market['quoteId'].lower()
+        streamBaseId = market['baseId'] if (market['baseId'] is not None) else ''
+        streamQuoteId = market['quoteId'] if (market['quoteId'] is not None) else ''
+        stream = prefix + '@' + interval + '@' + streamBaseId.lower() + streamQuoteId.lower()
         messageHash = stream
         url = self.urls['api']['ws']
         self.set_broker_headers()
@@ -160,6 +167,8 @@ class mudrex(ccxt.async_support.mudrex):
 
     def handle_ohlcv(self, client, message):
         stream = self.safe_string(message, 'stream')
+        if stream is None:
+            return
         parts = stream.split('@')
         interval = parts[1]
         tf = self.find_timeframe(interval)
@@ -178,11 +187,12 @@ class mudrex(ccxt.async_support.mudrex):
             self.safe_number(data, 'v'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], tf)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), tf)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][tf] = stored
+            if symbol is not None and tf is not None:
+                self.ohlcvs[symbol][tf] = stored
         stored.append(parsed)
         messageHash = stream
         client.resolve(stored, messageHash)

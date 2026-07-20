@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
@@ -167,8 +168,12 @@ class poloniex extends \ccxt\async\poloniex {
             if ($this->is_empty($symbols)) {
                 $marketIds[] = 'all';
             } else {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' $subscribe() $symbols is required');
+                }
                 $messageHash = $messageHash . '::' . implode(',', $symbols);
-                $marketIds = $this->market_ids($symbols);
+                $ids = $this->market_ids($symbols);
+                $marketIds = ($ids === null) ? array() : $ids;
             }
             if ($name !== 'balances') {
                 $subscribe['symbols'] = $marketIds;
@@ -228,6 +233,9 @@ class poloniex extends \ccxt\async\poloniex {
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrderWs() $side is required');
+            }
             $uppercaseSide = strtoupper($side);
             $isPostOnly = $this->is_post_only($uppercaseType === 'MARKET', $uppercaseType === 'LIMIT_MAKER', $params);
             if ($isPostOnly) {
@@ -597,7 +605,7 @@ class poloniex extends \ccxt\async\poloniex {
         })();
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -655,12 +663,14 @@ class poloniex extends \ccxt\async\poloniex {
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = ($timeframe === null) ? null : $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = ($timeframe === null) ? null : $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                if ($symbol !== null && $timeframe !== null) {
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
             }
             $stored->append($parsed);
             $client->resolve($stored, $messageHash);
@@ -699,7 +709,7 @@ class poloniex extends \ccxt\async\poloniex {
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                     $tradesArray = new ArrayCache($tradesLimit);
-                    $this->trades[$symbol] = $tradesArray;
+                    $this->store_by_key($this->trades, $symbol, $tradesArray);
                 }
                 $tradesArray->append($trade);
                 $client->resolve($tradesArray, $messageHash);
@@ -708,7 +718,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // handleTrade
         //
@@ -789,7 +799,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade($trade, ?array $market = null) {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -911,8 +921,8 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrderTrades = $previousOrder['trades'];
                     for ($j = 0; $j < count($previousOrderTrades); $j++) {
                         $previousOrderTrade = $previousOrderTrades[$j];
-                        $cost = $this->number_to_string($previousOrderTrade['cost']);
-                        $amount = $this->number_to_string($previousOrderTrade['amount']);
+                        $cost = $this->number_to_string($previousOrderTrade['cost']) || '0';
+                        $amount = $this->number_to_string($previousOrderTrade['amount']) || '0';
                         $totalCost = Precise::string_add($totalCost, $cost);
                         $totalAmount = Precise::string_add($totalAmount, $amount);
                     }
@@ -962,7 +972,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -1064,8 +1074,8 @@ class poloniex extends \ccxt\async\poloniex {
             if ($marketId !== null) {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
-                $this->tickers[$symbol] = $ticker;
-                $newTickers[$symbol] = $ticker;
+                $this->store_by_key($this->tickers, $symbol, $ticker);
+                $this->store_by_key($newTickers, $symbol, $ticker);
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker::');
@@ -1235,7 +1245,7 @@ class poloniex extends \ccxt\async\poloniex {
             $newAccount = $this->account();
             $newAccount['free'] = $this->safe_string($balance, 'available');
             $newAccount['used'] = $this->safe_string($balance, 'hold');
-            $result[$code] = $newAccount;
+            $this->store_by_key($result, $code, $newAccount);
         }
         return $this->safe_balance($result);
     }

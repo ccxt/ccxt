@@ -437,7 +437,7 @@ class onetrading extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'code');
         $code = $this->safe_currency_code($id);
         return $this->safe_currency_structure(array(
@@ -538,7 +538,7 @@ class onetrading extends Exchange {
         if ($isPerp) {
             $symbol = $symbol . ':' . $quote;
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -586,7 +586,7 @@ class onetrading extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -671,8 +671,9 @@ class onetrading extends Exchange {
         $firstSpotTier = $this->safe_dict($spotTiers, 0, array());
         $firstFuturesTier = $this->safe_dict($futuresTiers, 0, array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->require_symbols();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
             $result[$symbol] = array(
@@ -738,8 +739,9 @@ class onetrading extends Exchange {
         $futuresTakerFee = Precise::string_div($futuresTakerFee, '100');
         $result = array();
         // $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->require_symbols();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
             $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
@@ -906,7 +908,7 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
+            $this->store_by_key($result, $symbol, $ticker);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
@@ -1024,10 +1026,16 @@ class onetrading extends Exchange {
             'MONTHS' => 'M',
         );
         $lowercaseUnit = $this->safe_string($units, $unit);
+        if (($period === null) || ($lowercaseUnit === null)) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing period/unit');
+        }
         $timeframe = $period . $lowercaseUnit;
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing timestamp');
+        }
         $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
@@ -1059,6 +1067,9 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $periodUnit = $this->safe_string($this->timeframes, $timeframe);
+        if ($periodUnit === null) {
+            throw new ExchangeError($this->id . ' fetchOHLCV() missing periodUnit');
+        }
         list($period, $unit) = explode('/', $periodUnit);
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
@@ -1184,7 +1195,7 @@ class onetrading extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1382,6 +1393,9 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'instrument_code' => $market['id'],
             'type' => $uppercaseType, // LIMIT, MARKET, STOP

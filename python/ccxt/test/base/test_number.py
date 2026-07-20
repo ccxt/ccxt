@@ -24,6 +24,7 @@ from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
 import ccxt  # noqa: F402
 from ccxt.base.precise import Precise  # noqa E402
 
+
 def test_number():
     exchange = ccxt.Exchange({
         'id': 'regirock',

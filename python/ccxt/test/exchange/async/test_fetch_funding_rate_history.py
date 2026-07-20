@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_funding_rate_history  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 async def test_fetch_funding_rate_history(exchange, skipped_properties, symbol):
     method = 'fetchFundingRateHistory'
     funding_rates_history = await exchange.fetch_funding_rate_history(symbol)

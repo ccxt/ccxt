@@ -586,7 +586,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate($fundingRate, ?array $market = null, $message = null): array {
+    public function parse_ws_funding_rate($fundingRate, ?array $market = null, mixed $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');

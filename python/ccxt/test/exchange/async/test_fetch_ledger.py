@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_ledger_entry  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 async def test_fetch_ledger(exchange, skipped_properties, code):
     method = 'fetchLedger'
     items = await exchange.fetch_ledger(code)

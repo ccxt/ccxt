@@ -1040,7 +1040,7 @@ class phemex extends Exchange {
             //                     "symbol":"BTCUSDT",
             //                     "steps":"2000K",
             //                     "riskLimits":array(
-            //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),,
+            //                         array("limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"),
             //                         array("limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"),
             //                         array("limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"),
             //                     )
@@ -1157,7 +1157,7 @@ class phemex extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $valueScaleString = $this->safe_string($rawCurrency, 'valueScale');
@@ -1213,7 +1213,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
+    public function custom_parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -4730,7 +4730,7 @@ class phemex extends Exchange {
                 'currency' => $market['settle'],
                 'minNotional' => $minNotionalResponse,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => null,
                 'info' => $tier,
             );

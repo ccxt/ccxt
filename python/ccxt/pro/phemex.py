@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -58,17 +58,17 @@ class phemex(ccxt.async_support.phemex):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep, market=None):
+    def from_ep(self, ep, market: Market = None):
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev, market=None):
+    def from_ev(self, ev, market: Market = None):
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er, market=None):
+    def from_er(self, er, market: Market = None):
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
@@ -80,7 +80,7 @@ class phemex(ccxt.async_support.phemex):
         self.unlock_id()
         return requestId
 
-    def parse_swap_ticker(self, ticker, market=None):
+    def parse_swap_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "close": 442800,
@@ -98,8 +98,9 @@ class phemex(ccxt.async_support.phemex):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         lastString = self.from_ep(self.safe_string(ticker, 'close'), market)
         last = self.parse_number(lastString)
@@ -139,7 +140,7 @@ class phemex(ccxt.async_support.phemex):
             'info': ticker,
         })
 
-    def parse_perpetual_ticker(self, ticker, market=None):
+    def parse_perpetual_ticker(self, ticker, market: Market = None):
         #
         #    [
         #        "STXUSDT",
@@ -157,8 +158,9 @@ class phemex(ccxt.async_support.phemex):
         #    ]
         #
         marketId = self.safe_string(ticker, 0)
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         lastString = self.from_ep(self.safe_string(ticker, 4), market)
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), market))
@@ -378,7 +380,7 @@ class phemex(ccxt.async_support.phemex):
                 total = self.from_en(totalEv, scale)
             account['used'] = used
             account['total'] = total
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
             self.balance = self.safe_balance(self.balance)
         messageHash = type + ':balance'
         client.resolve(self.balance, messageHash)
@@ -469,7 +471,7 @@ class phemex(ccxt.async_support.phemex):
             messageHash = 'kline:' + timeframe + ':' + symbol
             ohlcvs = self.parse_ohlcvs(candles, market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -668,11 +670,11 @@ class phemex(ccxt.async_support.phemex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def custom_handle_delta(self, bookside, delta, market=None):
+    def custom_handle_delta(self, bookside, delta, market: Market = None):
         bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
-    def custom_handle_deltas(self, bookside, deltas, market=None):
+    def custom_handle_deltas(self, bookside, deltas, market: Market = None):
         for i in range(0, len(deltas)):
             self.custom_handle_delta(bookside, deltas[i], market)
 
@@ -893,7 +895,7 @@ class phemex(ccxt.async_support.phemex):
             symbol = parsed['symbol']
             if type is None:
                 type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
-            marketIds[symbol] = True
+            self.store_by_key(marketIds, symbol, True)
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             market = keys[i]
@@ -1142,7 +1144,7 @@ class phemex(ccxt.async_support.phemex):
         messageHash = 'orders:' + type
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_swap_order(self, order, market=None):
+    def parse_ws_swap_order(self, order, market: Market = None):
         #
         # swap
         #    {
@@ -1270,8 +1272,9 @@ class phemex(ccxt.async_support.phemex):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))
@@ -1408,9 +1411,9 @@ class phemex(ccxt.async_support.phemex):
         #       }
         #     ]
         # }
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         if id in client.subscriptions:
-            method = client.subscriptions[id]
+            method = self.safe_value(client.subscriptions, id)
             del client.subscriptions[id]
             if method is not True:
                 method(client, message)

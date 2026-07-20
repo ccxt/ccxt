@@ -1608,7 +1608,7 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), (exchangeSpecificParam === true), params);
+        [ postOnly, params ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required

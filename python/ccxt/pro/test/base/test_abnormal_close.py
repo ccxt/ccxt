@@ -67,6 +67,7 @@ async def test_abnormal_close():
     await ex.watch_trades('BTC/USDT:USDT')
     await ex.close()
 
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     asyncio.run(test_abnormal_close())

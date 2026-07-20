@@ -13,6 +13,5 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
-
 def test_status(exchange, skipped_properties, method, entry, now):
     assert True, 'testStatus'

@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_last_price  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 def test_fetch_last_prices(exchange, skipped_properties, symbol):
     method = 'fetchLastprices'
     # log ('fetching all tickers at once...')

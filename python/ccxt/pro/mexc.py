@@ -190,8 +190,10 @@ class mexc(ccxt.async_support.mexc):
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
-        else:
+        elif rawTicker is not None:
             ticker = self.parse_ticker(rawTicker, market)
+        else:
+            return
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
@@ -319,7 +321,7 @@ class mexc(ccxt.async_support.mexc):
         #         "s": "BTCUSDT"
         #     }
         #
-        data = self.safe_list_2(message, 'data', 'd')
+        data = self.safe_list_2(message, 'data', 'd', [])
         channel = self.safe_string(message, 'c', '')
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId)
@@ -338,7 +340,7 @@ class mexc(ccxt.async_support.mexc):
             else:
                 ticker = self.parse_ticker(entry)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            self.store_by_key(self.tickers, symbol, ticker)
             result.append(ticker)
             messageHash = 'ticker:' + symbol
             client.resolve(ticker, messageHash)
@@ -419,7 +421,7 @@ class mexc(ccxt.async_support.mexc):
         marketType = None
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.markets_for_symbols(symbols)
+        markets = self.require_value(self.markets_for_symbols(symbols), 'watchBidsAsks() markets is required')
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
         isSpot = marketType == 'spot'
         if not isSpot:
@@ -562,6 +564,7 @@ class mexc(ccxt.async_support.mexc):
                 'interval': timeframeId,
             }
             ohlcv = await self.watch_swap_public(channel, messageHash, requestParams, params)
+        ohlcv = self.require_value(ohlcv, 'watchOHLCV() ohlcv is required')
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -652,8 +655,8 @@ class mexc(ccxt.async_support.mexc):
             parsed = self.parse_ws_ohlcv(rawOhlcv, market)
         messageHash = 'candles:' + symbol + ':' + timeframe
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-        if stored is None:
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        if (stored is None) and (symbol is not None) and (timeframe is not None):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
@@ -748,13 +751,14 @@ class mexc(ccxt.async_support.mexc):
                 'symbol': market['id'],
             }
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
+        orderbook = self.require_value(orderbook, 'watchOrderBook() orderbook is required')
         return orderbook.limit()
 
     def handle_order_book_subscription(self, client: Client, message):
         # spot
         #     {id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT"}
         #
-        msg = self.safe_string(message, 'msg')
+        msg = self.safe_string(message, 'msg', '')
         parts = msg.split('@')
         marketId = self.safe_string(parts, 2)
         symbol = self.safe_symbol(marketId)
@@ -765,11 +769,15 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
+        if (nonce is None) or (firstDeltaNonce is None):
+            return -1
         if nonce < firstDeltaNonce - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
+            if deltaNonce is None:
+                return -1
             if deltaNonce >= nonce:
                 return i
         return len(cache)
@@ -892,7 +900,7 @@ class mexc(ccxt.async_support.mexc):
     def handle_delta(self, orderbook, delta):
         existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
-        if deltaNonce < existingNonce:
+        if (deltaNonce is not None) and (existingNonce is not None) and (deltaNonce < existingNonce):
             # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             # so, we just skip old updates
             return
@@ -932,6 +940,7 @@ class mexc(ccxt.async_support.mexc):
                 'symbol': market['id'],
             }
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
+        trades = self.require_value(trades, 'watchTrades() trades is required')
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -1038,11 +1047,12 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_spot_private(channel, messageHash, params)
         else:
             trades = await self.watch_swap_private(messageHash, params)
+        trades = self.require_value(trades, 'watchMyTrades() trades is required')
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message, subscription=None):
+    def handle_my_trade(self, client: Client, message, subscription: dict | None = None):
         #
         #    {
         #        "c": "spot@private.deals.v3.api",
@@ -1086,8 +1096,10 @@ class mexc(ccxt.async_support.mexc):
         trade: Trade
         if market['spot']:
             trade = self.parse_ws_trade(data, market)
-        else:
+        elif data is not None:
             trade = self.parse_trade(data, market)
+        else:
+            return
         trades = self.myTrades
         if trades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1209,6 +1221,7 @@ class mexc(ccxt.async_support.mexc):
             orders = await self.watch_spot_private(channel, messageHash, params)
         else:
             orders = await self.watch_swap_private(messageHash, params)
+        orders = self.require_value(orders, 'watchOrders() orders is required')
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -1298,8 +1311,10 @@ class mexc(ccxt.async_support.mexc):
             sendTime = self.safe_integer(message, 'sendTime')
             if sendTime is not None:
                 parsed['lastTradeTimestamp'] = sendTime
-        else:
+        elif data is not None:
             parsed = self.parse_order(data, market)
+        else:
+            return
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -1526,7 +1541,7 @@ class mexc(ccxt.async_support.mexc):
         account = self.account()
         account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
         account['used'] = self.safe_string_2(data, 'frozenBalance', 'frozenAmount')
-        self.balance[type][code] = account
+        self.store_by_key(self.balance[type], code, account)
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
 
@@ -1591,7 +1606,7 @@ class mexc(ccxt.async_support.mexc):
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_funding_rate(data)
         symbol = fundingRate['symbol']
-        self.fundingRates[symbol] = fundingRate
+        self.store_by_key(self.fundingRates, symbol, fundingRate)
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
@@ -1694,7 +1709,7 @@ class mexc(ccxt.async_support.mexc):
         marketType = None
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.markets_for_symbols(symbols)
+        markets = self.require_value(self.markets_for_symbols(symbols), 'unWatchBidsAsks() markets is required')
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
         isSpot = marketType == 'spot'
         if not isSpot:
@@ -1835,7 +1850,7 @@ class mexc(ccxt.async_support.mexc):
                 symbol = self.safe_string(splitHashes, 2)
                 if len(splitHashes) > 4:
                     symbol += ':' + self.safe_string(splitHashes, 3)
-                if symbol in self.ohlcvs:
+                if (symbol is not None) and (symbol in self.ohlcvs):
                     del self.ohlcvs[symbol]
             elif messageHash.find('orderbook') >= 0:
                 symbol = messageHash.replace('unsubscribe:orderbook:', '')
@@ -1929,7 +1944,7 @@ class mexc(ccxt.async_support.mexc):
         #       "windowEnd":"1754737980"
         #    }
         # }
-        channel = self.safe_string(message, 'channel')
+        channel = self.safe_string(message, 'channel', '')
         channelParts = channel.split('@')
         channelId = self.safe_string(channelParts, 1)
         if channelId == 'public.kline.v3.api.pb':
@@ -1967,7 +1982,7 @@ class mexc(ccxt.async_support.mexc):
             channel = self.safe_string(message, 'channel')
         else:
             parts = c.split('@')
-            channel = self.safe_string(parts, 1)
+            channel = self.safe_string(parts, 1, '')
         methods = {
             'public.deals.v3.api': self.handle_trades,
             'push.deal': self.handle_trades,
@@ -1989,7 +2004,7 @@ class mexc(ccxt.async_support.mexc):
             'pong': self.handle_pong,
             'push.funding.rate': self.handle_funding_rate,
         }
-        if channel in methods:
+        if (channel is not None) and (channel in methods):
             method = methods[channel]
             method(client, message)
 

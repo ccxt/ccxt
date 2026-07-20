@@ -87,7 +87,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function is_prediction(): bool {
-        return $this->safe_bool($this->has, 'prediction', false);
+        return $this->safe_bool($this->has, 'prediction', false) === true;
     }
 
     public function parse_search_queries($params = array()) {
@@ -211,7 +211,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $result;
     }
 
-    public function filter_events_by_search_in(array $events, array $queries, ?string $searchIn = null) {
+    public function filter_events_by_search_in(array $events, ?array $queries, ?string $searchIn = null) {
         // keep $events whose $title and/or $description contains one of the $queries ($searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         $queriesLength = 0;
@@ -231,9 +231,15 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($qi = 0; $qi < count($queries); $qi++) {
                 $q = strtolower($queries[$qi]);
+                if ($title === null) {
+                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing title');
+                }
                 if ($checkTitle && (mb_strpos($title, $q) !== false)) {
                     $matched = true;
                     break;
+                }
+                if ($description === null) {
+                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing description');
                 }
                 if ($checkDescription && (mb_strpos($description, $q) !== false)) {
                     $matched = true;
@@ -276,11 +282,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function filter_events_by_tags(array $events, ?array $tags = null) {
         // keep $events carrying one of the requested $tags; tolerant to string $tags and to
         // object $tags (array( slug, title, ... )) since venues differ. no-op when no $tags requested
-        $tagsLength = 0;
-        if ($tags !== null) {
-            $tagsLength = count($tags);
-        }
-        if ($tagsLength === 0) {
+        if (($tags === null) || (strlen($tags) === 0)) {
             return $events;
         }
         $wanted = array();
@@ -414,7 +416,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
     }
 
-    public function outcome(string $outcomeSymbol) {
+    public function outcome(?string $outcomeSymbol) {
+        if ($outcomeSymbol === null) {
+            throw new ArgumentsRequired($this->id . ' outcome() requires an $outcomeSymbol argument');
+        }
         if (($this->outcomes === null) || $this->is_empty($this->outcomes)) {
             throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
@@ -427,10 +432,13 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new BadSymbol($this->id . ' does not have outcome ' . $outcomeSymbol . ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
-    public function has_outcome(string $outcomeIdOrSymbol) {
+    public function has_outcome(?string $outcomeIdOrSymbol) {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if ($outcomeIdOrSymbol === null) {
+            return false;
+        }
         if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol, $this->outcomes))) {
             return true;
         }
@@ -512,7 +520,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         for ($i = 0; $i < count($replacementKeys); $i++) {
             $replacementKey = $replacementKeys[$i];
             $replacementValue = $this->safe_string($replacements, $replacementKey);
-            $s = str_replace($replacementKey, $replacementValue, $s);
+            if ($replacementValue !== null) {
+                $s = str_replace($replacementKey, $replacementValue, $s);
+            }
         }
         $rawParts = explode('-', $s);
         $parts = array();
@@ -526,7 +536,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return strtoupper($joined);
     }
 
-    public function slug_to_market_symbol(?string $eventSlug, string $marketSlug) {
+    public function slug_to_market_symbol(?string $eventSlug, ?string $marketSlug) {
         // $eventSlug is nullable (Str) => markets without a parent event (e.g. myriad's 1:1 markets)
         // pass null — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
@@ -544,13 +554,16 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $eventPart . '_' . $marketPart;
     }
 
-    public function slug_to_outcome_symbol(?string $eventSlug, string $marketSlug, string $outcome) {
+    public function slug_to_outcome_symbol(?string $eventSlug, ?string $marketSlug, ?string $outcome) {
         // build on slugToMarketSymbol so the $outcome handle stays consistent with the market symbol
         // — both event-qualified or both not — otherwise a qualified market . unqualified $outcome mismatch.
         // the $label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the $outcome handle
+        if ($outcome === null) {
+            $outcome = '';
+        }
         $upper = strtoupper($outcome);
         $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $chars = $this->string_to_chars_array($upper);
@@ -575,7 +588,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . $label;
     }
 
-    public function set_markets($markets, $currencies = null) {
+    public function set_markets($markets, ?array $currencies = null) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys $this->markets/$this->symbols by 'symbol',
         // so alias the handle onto a shallow $copy per $row; the caller's rows stay symbol-free
@@ -587,17 +600,17 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $copy['symbol'] = $this->safe_string_2($row, 'market', 'symbol');
             $aliased[] = $copy;
         }
-        parent::set_markets($aliased, $currencies);
-        // strip the alias back off the stored rows — venues assemble user-visible event
+        $stored = parent::set_markets($aliased, $currencies);
+        // strip the alias back off the $stored rows — venues assemble user-visible event
         // structures from $this->markets(hyperliquid groups its outcome $markets that way),
         // so a leftover 'symbol' $key would leak the deprecated field back to the caller
-        $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
+        $marketKeys = is_array($stored) ? array_keys($stored) : array();
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
-            $this->markets[$key] = $this->omit($this->markets[$key], 'symbol');
+            $stored[$key] = $this->omit($stored[$key], 'symbol');
         }
         $this->populate_outcomes();
-        return $this->markets;
+        return $stored;
     }
 
     public function index_market_outcomes($market) {
@@ -751,7 +764,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         })();
     }
 
-    public function load_outcome(string $outcomeSymbol, $reload = false) {
+    public function load_outcome(?string $outcomeSymbol, $reload = false) {
         return Async\async(function () use ($outcomeSymbol, $reload) {
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
             // returns at once (pass $reload=true to skip the cache and refetch the outcome's metadata).
@@ -760,6 +773,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up => the first
             // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
             // sane on venues whose full universe is one cheap request (hyperliquid)
+            if ($outcomeSymbol === null) {
+                throw new ArgumentsRequired($this->id . ' loadOutcome() requires an $outcomeSymbol argument');
+            }
             if (!$reload) {
                 if ($this->has_outcome($outcomeSymbol)) {
                     return $this->safe_outcome($outcomeSymbol);
@@ -889,7 +905,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a prediction $outcome
          * @param {string} $outcome unified $outcome handle
@@ -1200,7 +1216,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchSettlements() is not supported yet');
     }
 
-    public function safe_prediction_order(array $outcomeOrder, $outcomeObj = null) {
+    public function safe_prediction_order(array $outcomeOrder, ?array $outcomeObj = null) {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1333,7 +1349,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $result;
     }
 
-    public function safe_prediction_trade(array $trade, $outcomeObj = null) {
+    public function safe_prediction_trade(array $trade, ?array $outcomeObj = null) {
         // build the prediction $trade directly (no crypto safeTrade, which leaks fields the type omits)
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
@@ -1368,7 +1384,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $result;
     }
 
-    public function safe_prediction_ticker(array $ticker, $outcomeObj = null) {
+    public function safe_prediction_ticker(array $ticker, ?array $outcomeObj = null) {
         // build the prediction $ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from $open+$close —
         // prediction venues report those directly, so the crypto back-derivation from $percentage is moot.
@@ -1571,25 +1587,28 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
     }
 
-    public function amount_to_prediction_precision(string $outcome, $amount) {
+    public function amount_to_prediction_precision(?string $outcome, $amount) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->amount_to_precision($marketSymbol, $amount);
     }
 
-    public function price_to_prediction_precision(string $outcome, $price) {
+    public function price_to_prediction_precision(?string $outcome, $price) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->price_to_precision($marketSymbol, $price);
     }
 
-    public function cost_to_prediction_precision(string $outcome, $cost) {
+    public function cost_to_prediction_precision(?string $outcome, $cost) {
         $outcomeObj = $this->outcome($outcome);
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         return $this->cost_to_precision($marketSymbol, $cost);
     }
 
-    public function pad_hex_to_even(string $hex) {
+    public function pad_hex_to_even(?string $hex) {
+        if ($hex === null) {
+            return '';
+        }
         // prepend a nibble so the $hex has an even number of characters (whole bytes)
         $hexLength = count($hex);
         if ((fmod($hexLength, 2)) !== 0) {
@@ -1598,13 +1617,19 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $hex;
     }
 
-    public function pad_hex_address(string $address) {
+    public function pad_hex_address(?string $address) {
+        if ($address === null) {
+            return '';
+        }
         // left-pads a 20-byte $address to a 32-byte ABI word (24 leading zero bytes)
         $stripped = $this->remove0x_prefix($address);
         return '000000000000000000000000' . $stripped;
     }
 
-    public function rlp_encode_bytes(string $hex) {
+    public function rlp_encode_bytes(?string $hex) {
+        if ($hex === null) {
+            return '';
+        }
         // RLP-encodes a single byte string ($hex without 0x) per the Ethereum RLP spec
         $byteLength = $this->parse_to_int(strlen($hex) / 2);
         if ($byteLength === 0) {
@@ -1637,7 +1662,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
     }
 
-    public function int_to_rlp_hex(float $value) {
+    public function int_to_rlp_hex(?int $value) {
+        if ($value === null) {
+            throw new ArgumentsRequired($this->id . ' intToRlpHex() requires a $value argument');
+        }
         // an integer minimal big-endian byte $hex; 0 is the empty byte string
         if ($value === 0) {
             return '';
@@ -1647,9 +1675,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $hex;
     }
 
-    public function hex_to_rlp_bytes(string $hexValue) {
+    public function hex_to_rlp_bytes(?string $hexValue) {
         // a hex value (e.g. an RPC result) big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if ($hexValue === null) {
+            return '';
+        }
         $h = $this->remove0x_prefix($hexValue);
         $start = 0;
         $total = count($h);
@@ -1670,7 +1701,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' signEvmTransaction() must be overridden by the exchange');
     }
 
-    public function eth_rpc(string $rpcUrl, string $method, array $rpcParams) {
+    public function eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         return Async\async(function () use ($rpcUrl, $method, $rpcParams) {
             $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
             $headers = array( 'Content-Type' => 'application/json' );
@@ -1685,7 +1716,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         })();
     }
 
-    public function send_evm_transaction(string $rpcUrl, float $chainId, string $fromAddress, string $to, string $value, string $data, string $gasLimit) {
+    public function send_evm_transaction(?string $rpcUrl, float $chainId, ?string $fromAddress, ?string $to, ?string $value, ?string $data, ?string $gasLimit) {
         return Async\async(function () use ($rpcUrl, $chainId, $fromAddress, $to, $value, $data, $gasLimit) {
             $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
             $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
@@ -1704,7 +1735,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         })();
     }
 
-    public function wait_for_transaction_receipt(string $rpcUrl, string $txHash, $timeout = 60000) {
+    public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
         return Async\async(function () use ($rpcUrl, $txHash, $timeout) {
             $start = $this->milliseconds();
             while (($this->milliseconds() - $start) < $timeout) {

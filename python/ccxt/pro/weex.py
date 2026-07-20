@@ -291,6 +291,8 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
+        if market is None:
+            return
         tickers = self.safe_list(message, 'd', [])
         data = self.safe_dict(tickers, 0, {})
         ticker = self.parse_ws_ticker(data, market)
@@ -320,8 +322,9 @@ class weex(ccxt.async_support.weex):
         #
         timestamp = self.safe_integer(ticker, 'C')
         close = self.safe_string(ticker, 'c')
+        symbol = None if (market is None) else market['symbol']
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'h'),
@@ -465,6 +468,8 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
+        if market is None:
+            return
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
         if not (symbol in self.trades):
@@ -484,7 +489,7 @@ class weex(ccxt.async_support.weex):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "T": 1776089287762,
@@ -496,12 +501,13 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         timestamp = self.safe_integer(trade, 'T')
+        symbol = None if (market is None) else market['symbol']
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 't'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
@@ -668,6 +674,8 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
+        if market is None:
+            return
         symbol = market['symbol']
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
@@ -675,10 +683,11 @@ class weex(ccxt.async_support.weex):
         firstEntry = self.safe_dict(data, 0, {})
         interval = self.safe_string(firstEntry, 'i')
         timeframe = self.find_timeframe(interval)
-        if not (timeframe in self.ohlcvs[symbol]):
+        if (symbol is None) or (timeframe is None) or not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
-        stored = self.ohlcvs[symbol][timeframe]
+            if symbol is not None and timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         for i in range(0, len(data)):
             entry = self.safe_dict(data, i, {})
             parsed = self.parse_ws_ohlcv(entry)
@@ -687,7 +696,7 @@ class weex(ccxt.async_support.weex):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         t: 1776092400000,
@@ -839,6 +848,8 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
+        if market is None:
+            return
         symbol = market['symbol']
         messageHash = 'orderbook::' + symbol
         if not (symbol in self.orderbooks):
@@ -953,16 +964,19 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         market = self.get_market_from_client_and_message(client, message)
+        if market is None:
+            return
         ticker = self.parse_ws_bid_ask(message, market)
         symbol = ticker['symbol']
-        self.bidsasks[symbol] = ticker
+        self.store_by_key(self.bidsasks, symbol, ticker)
         messageHash = 'bidask::' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message, market=None):
+    def parse_ws_bid_ask(self, message, market: Market = None):
         timestamp = self.safe_integer(message, 'E')
+        symbol = None if (market is None) else market['symbol']
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'ask': self.safe_string(message, 'a'),
@@ -1091,7 +1105,7 @@ class weex(ccxt.async_support.weex):
             trade = self.safe_dict(data, i, {})
             parsed = self.parse_ws_my_trade(trade)
             symbol = parsed['symbol']
-            symbols[symbol] = True
+            self.store_by_key(symbols, symbol, True)
             trades.append(parsed)
         messageHash = 'myTrades'
         symbolKeys = list(symbols.keys())
@@ -1104,7 +1118,7 @@ class weex(ccxt.async_support.weex):
             client.resolve(trades, symbolMessageHash)
         client.resolve(trades, messageHash)
 
-    def parse_ws_my_trade(self, trade, market=None):
+    def parse_ws_my_trade(self, trade, market: Market = None):
         #
         # spot
         #     {
@@ -1128,7 +1142,8 @@ class weex(ccxt.async_support.weex):
         positionSide = self.safe_string(trade, 'positionSide')
         if positionSide is not None:
             marketType = 'swap'
-        market = self.safe_market(marketId, None, None, marketType)
+        marketResolved = self.safe_market(marketId, None, None, marketType)
+        market = marketResolved
         side = self.safe_string_lower(trade, 'orderSide')
         fee = None
         commission = self.safe_string(trade, 'fillFee')
@@ -1137,9 +1152,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = market['base']
+                    feeCurrency = marketResolved['base']
                 else:
-                    feeCurrency = market['quote']
+                    feeCurrency = marketResolved['quote']
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1149,7 +1164,7 @@ class weex(ccxt.async_support.weex):
             'id': self.safe_string(trade, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': self.safe_string(trade, 'orderId'),
             'type': self.safe_string(trade, 'type'),
             'side': side,
@@ -1280,7 +1295,7 @@ class weex(ccxt.async_support.weex):
             parsed = self.parse_ws_order(rawOrder)
             orders.append(parsed)
             symbol = parsed['symbol']
-            symbols[symbol] = True
+            self.store_by_key(symbols, symbol, True)
         messageHash = 'orders'
         symbolKeys = list(symbols.keys())
         market = self.get_market_from_symbols(symbolKeys)
@@ -1292,7 +1307,7 @@ class weex(ccxt.async_support.weex):
             client.resolve(orders, symbolMessageHash)
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #     {
@@ -1384,7 +1399,8 @@ class weex(ccxt.async_support.weex):
         positionSide = self.safe_string(order, 'positionSide')
         if positionSide is not None:
             marketType = 'swap'
-        market = self.safe_market(marketId, None, None, marketType)
+        marketResolved = self.safe_market(marketId, None, None, marketType)
+        market = marketResolved
         side = self.safe_string_lower(order, 'orderSide')
         fee = None
         commission = self.safe_string(order, 'cumFillFee')
@@ -1393,9 +1409,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = market['base']
+                    feeCurrency = marketResolved['base']
                 else:
-                    feeCurrency = market['quote']
+                    feeCurrency = marketResolved['quote']
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1412,7 +1428,7 @@ class weex(ccxt.async_support.weex):
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': self.parseOrderType(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
@@ -1566,7 +1582,8 @@ class weex(ccxt.async_support.weex):
             account['free'] = self.safe_string_2(entry, 'available', 'amount')
             account['used'] = self.safe_string(entry, 'frozen')
             account['total'] = self.safe_string_2(entry, 'equity', 'legacyAmount')
-            self.balance[accountType][code] = account
+            if (accountType is not None) and (code is not None):
+                self.balance[accountType][code] = account
         timestamp = self.safe_integer(message, 'E')
         self.balance[accountType]['timestamp'] = timestamp
         self.balance[accountType]['datetime'] = self.iso8601(timestamp)
@@ -1714,7 +1731,7 @@ class weex(ccxt.async_support.weex):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         # same api
         return self.parse_position(position, market)
 

@@ -65,7 +65,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'passphrase': self.password,
         }
 
-    async def subscribe(self, name, symbol=None, messageHashStart=None, params={}):
+    async def subscribe(self, name, symbol: Str = None, messageHashStart: Str = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -89,7 +89,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_multiple(self, name, symbols=[], messageHashStart=None, params={}):
+    async def subscribe_multiple(self, name, symbols: List[str] = [], messageHashStart: Str = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -135,6 +135,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         """
         if self.markets is None:
             await self.load_markets()
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchTickers() symbols is required')
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadSymbol(self.id + ' watchTickers requires a non-empty symbols array')
@@ -378,7 +380,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             if tradesArray is None:
                 tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 tradesArray = ArrayCache(tradesLimit)
-                self.trades[symbol] = tradesArray
+                self.store_by_key(self.trades, symbol, tradesArray)
             tradesArray.append(trade)
             client.resolve(tradesArray, messageHash)
         return message
@@ -581,6 +583,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             makerOrderId = self.safe_string(message, 'maker_order_id')
             takerOrderId = self.safe_string(message, 'taker_order_id')
             orders = self.orders
+            if orders is None:
+                return
             previousOrders = self.safe_value(orders.hashmap, symbol, {})
             previousOrder = self.safe_value(previousOrders, orderId)
             if previousOrder is None:
@@ -591,6 +595,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                 client.resolve(orders, messageHash)
             else:
                 sequence = self.safe_integer(message, 'sequence')
+                if sequence is None:
+                    return
                 previousInfo = self.safe_value(previousOrder, 'info', {})
                 previousSequence = self.safe_integer(previousInfo, 'sequence')
                 if (previousSequence is None) or (sequence > previousSequence):
@@ -638,6 +644,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             if order[key] is not None:
                                 previousOrder[key] = order[key]
                         # update the newUpdates count
+                        if orders is None:
+                            return
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
@@ -712,7 +720,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if marketId is not None:
             ticker = self.parse_ticker(message)
             symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
+            self.store_by_key(self.tickers, symbol, ticker)
             messageHash = 'ticker:' + symbol
             idMessageHash = 'ticker:' + marketId
             client.resolve(ticker, messageHash)
@@ -837,7 +845,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                 side = self.safe_string(sides, key)
                 price = self.safe_number(change, 1)
                 amount = self.safe_number(change, 2)
-                bookside = orderbook[side]
+                bookside = self.safe_value(orderbook, side)
                 bookside.store(price, amount)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)

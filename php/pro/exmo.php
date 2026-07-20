@@ -126,6 +126,9 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         if ($type === 'spot') {
@@ -165,7 +168,7 @@ class exmo extends \ccxt\async\exmo {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balances, $currencyId);
                 $account['used'] = $this->safe_string($reserved, $currencyId);
-                $this->balance[$code] = $account;
+                $this->store_by_key($this->balance, $code, $account);
             }
         } elseif ($event === 'update') {
             $currencyId = $this->safe_string($data, 'currency');
@@ -173,7 +176,7 @@ class exmo extends \ccxt\async\exmo {
             $account = $this->account();
             $account['free'] = $this->safe_string($data, 'balance');
             $account['used'] = $this->safe_string($data, 'reserved');
-            $this->balance[$code] = $account;
+            $this->store_by_key($this->balance, $code, $account);
         }
         $this->balance = $this->safe_balance($this->balance);
     }
@@ -204,7 +207,7 @@ class exmo extends \ccxt\async\exmo {
             $account['free'] = $this->safe_string($wallet, 'free');
             $account['used'] = $this->safe_string($wallet, 'used');
             $account['total'] = $this->safe_string($wallet, 'balance');
-            $this->balance[$code] = $account;
+            $this->store_by_key($this->balance, $code, $account);
             $this->balance = $this->safe_balance($this->balance);
         }
     }
@@ -294,6 +297,9 @@ class exmo extends \ccxt\async\exmo {
         //      }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $topicParts = explode(':', $topic);
         $marketId = $this->safe_string($topicParts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -352,6 +358,9 @@ class exmo extends \ccxt\async\exmo {
         //      }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode(':', $topic);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -469,6 +478,9 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         $messageHash = 'myTrades:' . $type;
@@ -482,6 +494,9 @@ class exmo extends \ccxt\async\exmo {
         } else {
             $myTrades = $this->myTrades;
         }
+        if ($myTrades === null) {
+            return;
+        }
         if ($event === 'snapshot') {
             $rawTrades = $this->safe_value($message, 'data', array());
         } elseif ($event === 'update') {
@@ -493,7 +508,7 @@ class exmo extends \ccxt\async\exmo {
         for ($j = 0; $j < count($trades); $j++) {
             $trade = $trades[$j];
             $myTrades->append($trade);
-            $symbols[$trade['symbol']] = true;
+            $this->store_by_key($symbols, $trade['symbol'], true);
         }
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
@@ -569,6 +584,9 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode(':', $topic);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -703,6 +721,9 @@ class exmo extends \ccxt\async\exmo {
         // }
         //
         $topic = $this->safe_string($message, 'topic');
+        if ($topic === null) {
+            return;
+        }
         $parts = explode('/', $topic);
         $type = $this->safe_string($parts, 0);
         $messageHash = 'orders:' . $type;
@@ -723,7 +744,7 @@ class exmo extends \ccxt\async\exmo {
         for ($j = 0; $j < count($rawOrders); $j++) {
             $order = $this->parse_ws_order($rawOrders[$j]);
             $cachedOrders->append($order);
-            $symbols[$order['symbol']] = true;
+            $this->store_by_key($symbols, $order['symbol'], true);
         }
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {

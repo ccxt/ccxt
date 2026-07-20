@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -348,10 +349,10 @@ class toobit(ccxt.async_support.toobit):
         timeframe = self.find_timeframe(timeframeId)
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if not (timeframe in self.ohlcvs[symbol]):
+        if (symbol is not None) and (timeframe is not None) and not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options['ws'], 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
-        stored = self.ohlcvs[symbol][timeframe]
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
@@ -360,7 +361,7 @@ class toobit(ccxt.async_support.toobit):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #             {
         #                 t: 1757251200000,
@@ -467,18 +468,20 @@ class toobit(ccxt.async_support.toobit):
         #    }
         #
         data = self.safe_list(message, 'data')
+        if data is None:
+            return
         newTickers = {}
         for i in range(0, len(data)):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker)
             symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
-            newTickers[symbol] = parsed
+            self.store_by_key(self.tickers, symbol, parsed)
+            self.store_by_key(newTickers, symbol, parsed)
             messageHash = 'ticker::' + symbol
             client.resolve(parsed, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         return self.parse_ticker(ticker, market)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -651,6 +654,8 @@ class toobit(ccxt.async_support.toobit):
         swapMessageHash = 'contract:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
+        if subscriptionHash is None:
+            raise ArgumentsRequired(self.id + ' watchBalance() requires a subscription hash')
         url = self.get_user_stream_url()
         client = self.client(url)
         self.set_balance_cache(client, marketType, subscriptionHash, params)
@@ -658,7 +663,7 @@ class toobit(ccxt.async_support.toobit):
         return await self.watch(url, messageHash, params, subscriptionHash)
 
     def set_balance_cache(self, client: Client, marketType, subscriptionHash: Str = None, params={}):
-        if subscriptionHash in client.subscriptions:
+        if (subscriptionHash is None) or (subscriptionHash in client.subscriptions):
             return
         type = 'spot' if (marketType == 'spot') else 'contract'
         messageHash = type + ':fetchBalanceSnapshot'
@@ -717,7 +722,8 @@ class toobit(ccxt.async_support.toobit):
             account['info'] = balance
             account['used'] = self.safe_string(balance, 'l')
             account['free'] = self.safe_string(balance, 'f')
-            self.balance[type][code] = account
+            if (type is not None) and (code is not None):
+                self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')
 
@@ -802,7 +808,7 @@ class toobit(ccxt.async_support.toobit):
         messageHash = 'orders:' + self.safe_string(order, 'symbol')
         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         timestamp = self.safe_integer(order, 'O')
         marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId, market)
@@ -901,7 +907,7 @@ class toobit(ccxt.async_support.toobit):
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
 
-    def parse_my_trade(self, trade, market=None):
+    def parse_my_trade(self, trade, market: Market = None):
         marketId = self.safe_string(trade, 's')
         ts = self.safe_string(trade, 't')
         return self.safe_trade({
@@ -938,6 +944,8 @@ class toobit(ccxt.async_support.toobit):
         messageHash = ''
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
         url = self.get_user_stream_url()
         client = self.client(url)
@@ -1034,7 +1042,7 @@ class toobit(ccxt.async_support.toobit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         marketId = self.safe_string(position, 's')
         return self.safe_position({
             'info': position,

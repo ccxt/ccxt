@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base import test_liquidation  # noqa E402
 
+
 async def test_fetch_liquidations(exchange, skipped_properties, code):
     method = 'fetchLiquidations'
     if not exchange.has['fetchLiquidations']:

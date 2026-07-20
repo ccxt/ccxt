@@ -500,7 +500,7 @@ class derive extends Exchange {
         return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         return $this->safe_currency_structure(array(
@@ -2498,7 +2498,7 @@ class derive extends Exchange {
                     $amount = $this->safe_string($balance, 'amount');
                     $account['total'] = Precise::string_add($account['total'], $amount);
                 }
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
         }
         return $this->safe_balance($result);
@@ -2652,7 +2652,7 @@ class derive extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_derive_subaccount_id(string $methodName, array $params) {
+    public function handle_derive_subaccount_id(string $methodName, array $params): array {
         $derivesubAccountId = null;
         list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {

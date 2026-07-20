@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -118,7 +118,7 @@ class cex(ccxt.async_support.cex):
             account['free'] = self.safe_string(freeBalance, currencyId)
             account['used'] = self.safe_string(usedBalance, currencyId)
             code = self.safe_currency_code(currencyId)
-            result[code] = account
+            self.store_by_key(result, code, account)
         self.balance = self.safe_balance(result)
         messageHash = self.safe_string(message, 'oid')
         client.resolve(self.balance, messageHash)
@@ -178,7 +178,7 @@ class cex(ccxt.async_support.cex):
         #
         self.handle_trades_inner(client, message)
 
-    def parse_ws_old_trade(self, trade, market=None):
+    def parse_ws_old_trade(self, trade, market: Market = None):
         #
         #  snapshot trade
         #    "sell:1665467367741:3888551:19058.8:14541219"
@@ -223,6 +223,8 @@ class cex(ccxt.async_support.cex):
     def handle_trades_inner(self, client: Client, message):
         data = self.safe_list(message, 'data', [])
         symbol = self.safe_string(self.options['watchTrades'], 'symbol')
+        if symbol is None:
+            return
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.trades[symbol] = ArrayCache(limit)
@@ -356,7 +358,7 @@ class cex(ccxt.async_support.cex):
         if messageHash is not None:
             client.resolve(ticker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #  public
         #    {
@@ -570,7 +572,7 @@ class cex(ccxt.async_support.cex):
         messageHash = 'myTrades:' + trade['symbol']
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "d": "order:59091012956:a:BTC",
@@ -743,7 +745,7 @@ class cex(ccxt.async_support.cex):
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)
 
-    def parse_ws_order_update(self, order, market=None):
+    def parse_ws_order_update(self, order, market: Market = None):
         #
         #      {
         #          "id": "150714937",
@@ -784,9 +786,13 @@ class cex(ccxt.async_support.cex):
         remainsPrecision = self.safe_string(order, 'remains')
         remaining = None
         if remainsPrecision is not None:
+            if market is None:
+                return None
             remaining = self.currency_from_precision(market['base'], remainsPrecision)
         amount = self.safe_string(order, 'amount')
         if not isTransaction:
+            if market is None:
+                return None
             self.currency_from_precision(market['base'], amount)
         baseId = self.safe_string(order, 'symbol')
         quoteId = self.safe_string(order, 'symbol2')
@@ -881,9 +887,13 @@ class cex(ccxt.async_support.cex):
             market = self.safe_market(symbol)
             order = self.parse_order(rawOrder, market)
             order['status'] = 'open'
+            if myOrders is None:
+                return
             myOrders.append(order)
         self.orders = myOrders
         messageHash = 'orders:' + symbol
+        if myOrders is None:
+            return
         ordersLength = len(myOrders)
         if ordersLength > 0:
             client.resolve(myOrders, messageHash)
@@ -1064,6 +1074,8 @@ class cex(ccxt.async_support.cex):
         #     }
         #
         pair = self.safe_string(message, 'pair')
+        if pair is None:
+            return
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)

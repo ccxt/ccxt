@@ -907,31 +907,33 @@ class xt extends Exchange {
                 $rawNetwork = $rawNetworks[$j];
                 $networkId = $this->safe_string($rawNetwork, 'chain');
                 $networkCode = $this->network_id_to_code($networkId, $code);
-                $networks[$networkCode] = array(
-                    'info' => $rawNetwork,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'name' => null,
-                    'active' => null,
-                    'fee' => $this->safe_number($rawNetwork, 'withdrawFeeAmount'),
-                    'precision' => null,
-                    'deposit' => $this->safe_bool($rawNetwork, 'depositEnabled'),
-                    'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnabled'),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
+                if ($networkCode !== null) {
+                    $networks[$networkCode] = array(
+                        'info' => $rawNetwork,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'name' => null,
+                        'active' => null,
+                        'fee' => $this->safe_number($rawNetwork, 'withdrawFeeAmount'),
+                        'precision' => null,
+                        'deposit' => $this->safe_bool($rawNetwork, 'depositEnabled'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnabled'),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => $this->safe_number($rawNetwork, 'withdrawMinAmount'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($rawNetwork, 'withdrawMinAmount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+                    );
+                }
             }
             $typeRaw = $this->safe_string($entry, 'type');
             $type = null;
@@ -940,7 +942,7 @@ class xt extends Exchange {
             } else {
                 $type = 'other';
             }
-            $result[$code] = $this->safe_currency_structure(array(
+            $this->store_by_key($result, $code, $this->safe_currency_structure(array(
                 'info' => $entry,
                 'id' => $currencyId,
                 'code' => $code,
@@ -966,7 +968,7 @@ class xt extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            )));
         }
         return $result;
     }
@@ -1784,7 +1786,7 @@ class xt extends Exchange {
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i], $market);
             $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
+            $this->store_by_key($result, $symbol, $ticker);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -2402,7 +2404,7 @@ class xt extends Exchange {
             $account['free'] = $free;
             $account['used'] = $used;
             $account['total'] = $total;
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2464,7 +2466,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, $type, $side, $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2527,7 +2529,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, $type, $side, $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3227,7 +3229,7 @@ class xt extends Exchange {
         if ($resultDict !== null) {
             $orders = $this->safe_list($resultDict, 'items', array());
         } else {
-            $orders = $this->safe_list($response, 'result');
+            $orders = $this->safe_list($response, 'result') || array();
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -4294,7 +4296,7 @@ class xt extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null): array {
+    public function parse_leverage_tiers($response, ?array $symbols = null, ?string $marketIdKey = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4694,7 +4696,7 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on a single open contract trade position
          *
@@ -4754,7 +4756,7 @@ class xt extends Exchange {
                 return $this->parse_position($entry, $marketInner);
             }
         }
-        return null;
+        throw new NullResponse($this->id . ' fetchPosition() could not find a position for ' . $symbol);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
@@ -5174,8 +5176,14 @@ class xt extends Exchange {
             $body = $query;
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
+                if ($body === null) {
+                    throw new NullResponse($this->id . ' sign() returned empty body');
+                }
                 if (mb_strpos($payload, 'future') > -1) {
                     $body['clientMedia'] = $id;
+                    if ($body === null) {
+                        throw new NullResponse($this->id . ' sign() returned empty body');
+                    }
                 } else {
                     $body['media'] = $id;
                 }

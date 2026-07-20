@@ -144,7 +144,7 @@ class bitmart(ccxt.async_support.bitmart):
         messageHash = prefix + messageHash
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def subscribe_multiple(self, unifiedName: str, channel: str, type: str, symbols: Strings = None, params={}):
+    async def subscribe_multiple(self, unifiedName: str, channel: Str, type: Str, symbols: Strings = None, params={}):
         symbols = self.market_symbols(symbols, type, False, True)
         if symbols is None:
             symbols = []
@@ -292,14 +292,16 @@ class bitmart(ccxt.async_support.bitmart):
                     code = self.safe_currency_code(currencyId)
                     account['free'] = self.safe_string(rawBalance, 'av_bal')
                     account['used'] = self.safe_string(rawBalance, 'fz_bal')
-                    self.balance[type][code] = account
+                    if (type is not None) and (code is not None):
+                        self.balance[type][code] = account
         else:
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(data, 'available_balance')
             account['used'] = self.safe_string(data, 'frozen_balance')
-            self.balance[type][code] = account
+            if (type is not None) and (code is not None):
+                self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)
@@ -697,6 +699,8 @@ class bitmart(ccxt.async_support.bitmart):
             stored = self.orders
             for i in range(0, len(orders)):
                 order = self.parse_ws_order(orders[i])
+                if order is None:
+                    continue
                 stored.append(order)
                 newOrders.append(order)
                 symbol = order['symbol']
@@ -710,7 +714,7 @@ class bitmart(ccxt.async_support.bitmart):
             client.resolve(newOrders, symbolSpecificMessageHash)
         client.resolve(newOrders, messageHash)
 
-    def parse_ws_order(self, order: dict, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #    {
@@ -803,11 +807,12 @@ class bitmart(ccxt.async_support.bitmart):
             updatedTimestamp = self.safe_integer(orderInfo, 'update_time')
             lastTrade = self.safe_dict(orderInfo, 'last_trade')
             cachedOrders = self.orders
-            orders = self.safe_value(cachedOrders.hashmap, symbol, {})
-            cachedOrder = None if (orderId is None) else self.safe_value(orders, orderId)
             trades = None
-            if cachedOrder is not None:
-                trades = self.safe_value(order, 'trades')
+            if cachedOrders is not None:
+                orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+                cachedOrder = None if (orderId is None) else self.safe_value(orders, orderId)
+                if cachedOrder is not None:
+                    trades = self.safe_value(order, 'trades')
             if lastTrade is not None:
                 if trades is None:
                     trades = []
@@ -1362,7 +1367,7 @@ class bitmart(ccxt.async_support.bitmart):
                 parsed = self.parse_ohlcv(rawOHLCV, market)
                 parsed[0] = self.parse_to_int(self.parse_to_int(parsed[0]) / durationInMs) * durationInMs
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+                stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
                 if stored is None:
                     limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                     stored = ArrayCacheByTimestamp(limit)
@@ -1376,7 +1381,7 @@ class bitmart(ccxt.async_support.bitmart):
             symbol = market['symbol']
             items = self.safe_list(data, 'items', [])
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)

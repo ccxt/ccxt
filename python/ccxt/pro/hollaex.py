@@ -10,6 +10,7 @@ from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Tra
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 
@@ -103,6 +104,8 @@ class hollaex(ccxt.async_support.hollaex):
         channel = self.safe_string(message, 'topic')
         market = self.safe_market(marketId)
         symbol = market['symbol']
+        if symbol is None:
+            return
         data = self.safe_value(message, 'data')
         timestamp = self.safe_string(data, 'timestamp')
         timestampMs = self.parse8601(timestamp)
@@ -113,6 +116,8 @@ class hollaex(ccxt.async_support.hollaex):
             self.orderbooks[symbol] = orderbook
         else:
             orderbook = self.orderbooks[symbol]
+            if orderbook is None:
+                return
             orderbook.reset(snapshot)
         messageHash = channel + ':' + marketId
         client.resolve(orderbook, messageHash)
@@ -197,7 +202,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message, subscription=None):
+    def handle_my_trades(self, client: Client, message, subscription: dict | None = None):
         #
         # {
         #     "topic":"usertrade",
@@ -239,7 +244,7 @@ class hollaex(ccxt.async_support.hollaex):
             symbol = trade['symbol']
             market = self.market(symbol)
             marketId = market['id']
-            marketIds[marketId] = True
+            self.store_by_key(marketIds, marketId, True)
         # non-symbol specific
         client.resolve(self.myTrades, channel)
         keys = list(marketIds.keys())
@@ -273,7 +278,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message, subscription: dict | None = None):
         #
         #     {
         #         "topic": "order",
@@ -354,7 +359,7 @@ class hollaex(ccxt.async_support.hollaex):
             symbol = order['symbol']
             market = self.market(symbol)
             marketId = market['id']
-            marketIds[marketId] = True
+            self.store_by_key(marketIds, marketId, True)
         # non-symbol specific
         client.resolve(self.orders, channel)
         keys = list(marketIds.keys())
@@ -404,11 +409,13 @@ class hollaex(ccxt.async_support.hollaex):
             parts = key.split('_')
             currencyId = self.safe_string(parts, 0)
             code = self.safe_currency_code(currencyId)
-            account = self.balance[code] if (code in self.balance) else self.account()
+            account = self.account()
+            if (code is not None) and (code in self.balance):
+                account = self.balance[code]
             second = self.safe_string(parts, 1)
             freeOrTotal = 'free' if (second == 'available') else 'total'
             account[freeOrTotal] = self.safe_string(data, key)
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
@@ -427,6 +434,8 @@ class hollaex(ccxt.async_support.hollaex):
         if expires is None:
             timeout = int((self.timeout / str(1000)))
             expires = self.sum(self.seconds(), timeout)
+            if expires is None:
+                raise ArgumentsRequired(self.id + ' watchPrivate() expires is required')
             expires = str(expires)
             # we need to memoize these values to avoid generating a new url on each method execution
             # that would trigger a new connection on each received message

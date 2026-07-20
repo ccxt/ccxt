@@ -437,7 +437,7 @@ class gemini extends Exchange {
         return $this->parse_currencies($currenciesArray);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 0);
         $code = $this->safe_currency_code($id);
         $type = $this->safe_string($rawCurrency, 7) ? 'fiat' : 'crypto';
@@ -447,26 +447,28 @@ class gemini extends Exchange {
         $networkCode = null;
         if ($networkId !== null) {
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $precision,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $precision,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -818,7 +820,7 @@ class gemini extends Exchange {
         }
         $type = $swap ? 'swap' : 'spot';
         $isSpot = !$swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -866,7 +868,7 @@ class gemini extends Exchange {
             ),
             'created' => null,
             'info' => $response,
-        );
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1223,7 +1225,7 @@ class gemini extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1235,7 +1237,7 @@ class gemini extends Exchange {
          * @see https://docs.gemini.com/rest-api/#get-notional-volume
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1276,8 +1278,9 @@ class gemini extends Exchange {
         $maker = $this->parse_number($makerString);
         $taker = $this->parse_number($takerString);
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->require_symbols();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,

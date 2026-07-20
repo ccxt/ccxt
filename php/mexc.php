@@ -1175,7 +1175,7 @@ class mexc extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($id);
         $networks = array();
@@ -1184,23 +1184,25 @@ class mexc extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string_2($chain, 'netWork', 'network');
             $network = $this->network_id_to_code($networkId, $code);
-            $networks[$network] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $network,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'depositEnable', false),
-                'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_string($chain, 'withdrawMin'),
-                        'max' => $this->safe_string($chain, 'withdrawMax'),
+            if ($network !== null) {
+                $networks[$network] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'depositEnable', false),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_string($chain, 'withdrawMin'),
+                            'max' => $this->safe_string($chain, 'withdrawMax'),
+                        ),
                     ),
-                ),
-                'contract' => $this->safe_string($chain, 'contract'),
-            );
+                    'contract' => $this->safe_string($chain, 'contract'),
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -2548,8 +2550,8 @@ class mexc extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            // 'price' => floatval($this->price_to_precision($symbol, $price)),
-            'vol' => floatval($this->amount_to_precision($symbol, $amount)),
+            // 'price' => floatval($this->price_to_precision($symbol, $price) || '0'),
+            'vol' => floatval(($this->amount_to_precision($symbol, $amount) || '0')),
             // 'leverage' => int, // required for isolated margin
             // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
@@ -2573,7 +2575,7 @@ class mexc extends Exchange {
             // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
         );
         if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
-            $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            $request['price'] = floatval($this->price_to_precision($symbol, $price) || '0');
         }
         if ($openType === 1) {
             $leverage = $this->safe_integer($params, 'leverage');
@@ -3953,8 +3955,8 @@ class mexc extends Exchange {
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
                 $subResult = array();
-                $subResult[$baseCode] = $this->parse_balance_helper($base);
-                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                $this->store_by_key($subResult, $baseCode, $this->parse_balance_helper($base));
+                $this->store_by_key($subResult, $quoteCode, $this->parse_balance_helper($quote));
                 $result[$symbol] = $this->safe_balance($subResult);
             }
             return $result;
@@ -3966,7 +3968,7 @@ class mexc extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($entry, 'availableBalance');
                 $account['used'] = $this->safe_string($entry, 'frozenBalance');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             return $this->safe_balance($result);
         } else {
@@ -3977,7 +3979,7 @@ class mexc extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($entry, 'free');
                 $account['used'] = $this->safe_string($entry, 'locked');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             return $this->safe_balance($result);
         }
@@ -4845,8 +4847,8 @@ class mexc extends Exchange {
             // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
             $networkUnified = $this->network_id_to_code($networkCode, $code);
             $networks = $this->safe_dict($currency, 'networks', array());
-            if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
-                $network = $this->safe_dict($networks, $networkUnified, array());
+            if (($networkUnified !== null) && (is_array($networks) && array_key_exists($networkUnified, $networks))) {
+                $network = ($networkUnified === null) ? array() : $this->safe_dict($networks, $networkUnified, array());
                 $networkInfo = $this->safe_value($network, 'info', array());
                 $networkId = $this->safe_string($networkInfo, 'network');
             } else {
@@ -4899,8 +4901,8 @@ class mexc extends Exchange {
         $networkId = null;
         $networkUnified = $this->network_id_to_code($networkCode, $code);
         $networks = $this->safe_dict($currency, 'networks', array());
-        if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
-            $network = $this->safe_dict($networks, $networkUnified, array());
+        if (($networkUnified !== null) && (is_array($networks) && array_key_exists($networkUnified, $networks))) {
+            $network = ($networkUnified === null) ? array() : $this->safe_dict($networks, $networkUnified, array());
             $networkInfo = $this->safe_value($network, 'info', array());
             $networkId = $this->safe_string($networkInfo, 'network');
         } else {
@@ -4934,7 +4936,8 @@ class mexc extends Exchange {
         $network = $this->safe_string($params, 'network');
         $addressStructures = $this->fetch_deposit_addresses_by_network($code, $params);
         if ($network !== null) {
-            $result = $this->safe_dict($addressStructures, $this->network_id_to_code($network, $code));
+            $netCode = $this->network_id_to_code($network, $code);
+            $result = ($netCode === null) ? null : $this->safe_dict($addressStructures, $netCode);
         } else {
             $options = $this->safe_dict($this->options, 'defaultNetworks');
             $defaultNetworkForCurrency = $this->safe_string($options, $code);
@@ -5453,7 +5456,7 @@ class mexc extends Exchange {
         } elseif ($marketType === 'swap') {
             throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
         }
-        return null;
+        throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -6022,16 +6025,18 @@ class mexc extends Exchange {
             $networkEntry = $networkList[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
-            $result['networks'][$networkCode] = array(
-                'withdraw' => array(
-                    'fee' => $this->safe_number($networkEntry, 'withdrawFee'),
-                    'percentage' => null,
-                ),
-                'deposit' => array(
-                    'fee' => null,
-                    'percentage' => null,
-                ),
-            );
+            if ($networkCode !== null) {
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => $this->safe_number($networkEntry, 'withdrawFee'),
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
         }
         return $this->assign_default_deposit_withdraw_fees($result);
     }
@@ -6112,7 +6117,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), $defaultValue = null): array {
+    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'

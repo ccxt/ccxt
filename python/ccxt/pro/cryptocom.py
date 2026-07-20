@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ChecksumError
 
@@ -393,6 +394,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         # }
         #
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         marketId = self.safe_string(message, 'instrument_name')
         symbolSpecificMessageHash = self.safe_string(message, 'subscription')
         market = self.safe_market(marketId)
@@ -562,7 +565,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker, market)
             symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
+            self.store_by_key(self.tickers, symbol, parsed)
             client.resolve(parsed, messageHash)
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -652,11 +655,11 @@ class cryptocom(ccxt.async_support.cryptocom):
         ticker = self.safe_dict(data, 0, {})
         parsedTicker = self.parse_ws_bid_ask(ticker)
         symbol = parsedTicker['symbol']
-        self.bidsasks[symbol] = parsedTicker
+        self.store_by_key(self.bidsasks, symbol, parsedTicker)
         messageHash = 'bidask.' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -737,11 +740,12 @@ class cryptocom(ccxt.async_support.cryptocom):
         interval = self.safe_string(message, 'interval')
         timeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
+            if symbol is not None and timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = stored
         data = self.safe_value(message, 'data')
         for i in range(0, len(data)):
             tick = data[i]
@@ -774,7 +778,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message, subscription=None):
+    def handle_orders(self, client: Client, message, subscription: dict | None = None):
         #
         #    {
         #        "method": "subscribe",
@@ -849,6 +853,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = 'positions'
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
         client = self.client(url)
         self.set_positions_cache(client, symbols)
@@ -879,7 +885,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -1006,7 +1012,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             account = self.account()
             account['total'] = self.safe_string(balance, 'quantity')
             account['used'] = self.safe_string(balance, 'reserved_qty')
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
             self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
         messageHashRequest = self.safe_string(message, 'id')

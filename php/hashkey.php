@@ -1175,7 +1175,7 @@ class hashkey extends Exchange {
         return $this->parse_currencies($coins);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, 'coinId');
         $code = $this->safe_currency_code($currencyId);
         $networks = $this->safe_list($rawCurrency, 'chainTypes');
@@ -1184,26 +1184,28 @@ class hashkey extends Exchange {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'chainType');
             $networkCode = $this->network_code_to_id($networkId, $code);
-            $parsedNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'minWithdrawQuantity'),
-                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'minWithdrawQuantity'),
+                            'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($network, 'minDepositQuantity'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($network, 'minDepositQuantity'),
-                        'max' => null,
-                    ),
-                ),
-                'active' => null,
-                'deposit' => $this->safe_bool($network, 'allowDeposit'),
-                'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
-                'fee' => $this->safe_number($network, 'withdrawFee'),
-                'precision' => null,
-                'info' => $network,
-            );
+                    'active' => null,
+                    'deposit' => $this->safe_bool($network, 'allowDeposit'),
+                    'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
+                    'fee' => $this->safe_number($network, 'withdrawFee'),
+                    'precision' => null,
+                    'info' => $network,
+                );
+            }
         }
         $rawType = $this->safe_string($rawCurrency, 'tokenType');
         $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
@@ -1849,7 +1851,7 @@ class hashkey extends Exchange {
             $account['total'] = $this->safe_string($balanceEntry, 'total');
             $account['free'] = $this->safe_string($balanceEntry, 'free');
             $account['used'] = $this->safe_string($balanceEntry, 'locked');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1875,7 +1877,7 @@ class hashkey extends Exchange {
         $result = array(
             'info' => $balance,
         );
-        $result[$code] = $account;
+        $this->store_by_key($result, $code, $account);
         return $this->safe_balance($result);
     }
 
@@ -2659,7 +2661,13 @@ class hashkey extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         if ($market['spot']) {
             return $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -2670,7 +2678,13 @@ class hashkey extends Exchange {
         }
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build $request
@@ -2718,7 +2732,7 @@ class hashkey extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_swap_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * helper function to build $request

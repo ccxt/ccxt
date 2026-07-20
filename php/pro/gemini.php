@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -62,6 +63,9 @@ class gemini extends \ccxt\async\gemini {
             $market = $this->market($symbol);
             $messageHash = 'trades:' . $market['symbol'];
             $marketId = $market['id'];
+            if ($marketId === null) {
+                throw new ArgumentsRequired($this->id . ' watchTrades() $marketId is required');
+            }
             $request = array(
                 'type' => 'subscribe',
                 'subscriptions' => array(
@@ -106,7 +110,7 @@ class gemini extends \ccxt\async\gemini {
         })();
     }
 
-    public function parse_ws_trade($trade, $market = null): array {
+    public function parse_ws_trade($trade, ?array $market = null): array {
         //
         // regular v2 $trade
         //
@@ -181,7 +185,7 @@ class gemini extends \ccxt\async\gemini {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $stored = new ArrayCache($tradesLimit);
-            $this->trades[$symbol] = $stored;
+            $this->store_by_key($this->trades, $symbol, $stored);
         }
         $stored->append($trade);
         $messageHash = 'trades:' . $symbol;
@@ -354,11 +358,13 @@ class gemini extends \ccxt\async\gemini {
         if ($ohlcvsBySymbol === null) {
             $this->ohlcvs[$symbol] = array();
         }
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if ($symbol !== null && $timeframe !== null) {
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
         }
         $changesLength = count($changes);
         // reverse order of array to store candles in ascending order
@@ -390,6 +396,9 @@ class gemini extends \ccxt\async\gemini {
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
             $marketId = $market['id'];
+            if ($marketId === null) {
+                throw new ArgumentsRequired($this->id . ' watchOrderBook() $marketId is required');
+            }
             $request = array(
                 'type' => 'subscribe',
                 'subscriptions' => array(
@@ -758,7 +767,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "type" => "accepted",
@@ -916,6 +925,9 @@ class gemini extends \ccxt\async\gemini {
             $ts = $this->safe_integer($message, 'timestampms', $this->milliseconds());
             $eventId = $this->safe_integer($message, 'eventId');
             $events = $this->safe_list($message, 'events');
+            if ($events === null) {
+                return;
+            }
             $orderBookItems = array();
             $bidaskItems = array();
             $collectedEventsOfTrades = array();
@@ -951,6 +963,9 @@ class gemini extends \ccxt\async\gemini {
 
     public function authenticate($params = array()) {
         $url = $this->safe_string($params, 'url');
+        if ($url === null) {
+            return;
+        }
         if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url, $this->clients))) {
             return;
         }

@@ -527,7 +527,7 @@ class coinbaseexchange extends Exchange {
         })();
     }
 
-    public function parse_currency($rawCurrency): array {
+    public function parse_currency($rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'id');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($id);
@@ -538,24 +538,26 @@ class coinbaseexchange extends Exchange {
             $network = $supportedNetworks[$j];
             $networkId = $this->safe_string($network, 'id');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'name' => $this->safe_string($network, 'name'),
-                'network' => $networkCode,
-                'active' => $this->safe_string($network, 'status') === 'online',
-                'withdraw' => null,
-                'deposit' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($network, 'min_withdrawal_amount'),
-                        'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'name' => $this->safe_string($network, 'name'),
+                    'network' => $networkCode,
+                    'active' => $this->safe_string($network, 'status') === 'online',
+                    'withdraw' => null,
+                    'deposit' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($network, 'min_withdrawal_amount'),
+                            'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+                        ),
                     ),
-                ),
-                'contract' => $this->safe_string($network, 'contract_address'),
-                'info' => $network,
-            );
+                    'contract' => $this->safe_string($network, 'contract_address'),
+                    'info' => $network,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -774,7 +776,7 @@ class coinbaseexchange extends Exchange {
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'hold');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1095,7 +1097,7 @@ class coinbaseexchange extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -2247,7 +2249,7 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) !== 'string') {

@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_ticker  # noqa E402
 
+
 async def test_fetch_ticker(exchange, skipped_properties, symbol):
     method = 'fetchTicker'
     ticker = await exchange.fetch_ticker(symbol)

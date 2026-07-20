@@ -422,7 +422,7 @@ class bitflyer extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'amount');
             $account['free'] = $this->safe_string($balance, 'available');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -878,7 +878,7 @@ class bitflyer extends Exchange {
         })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user

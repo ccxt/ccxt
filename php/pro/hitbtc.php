@@ -380,7 +380,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             } else {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $marketId = $this->market_id($symbols[$i]);
-                    $marketIds[] = $marketId;
+                    if ($marketId !== null) {
+                        $marketIds[] = $marketId;
+                    }
                 }
             }
             $request = array(
@@ -817,7 +819,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -833,7 +835,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "t" => 1626860340000,             // Message timestamp
@@ -973,6 +975,9 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function handle_order_helper(Client $client, $message, $order) {
         $orders = $this->orders;
+        if ($orders === null) {
+            return;
+        }
         $marketId = $this->safe_string_lower_2($order, 'instrument', 'symbol');
         $method = $this->safe_string($message, 'method', '');
         $splitMethod = explode('_order', $method);

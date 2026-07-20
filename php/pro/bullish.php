@@ -696,7 +696,9 @@ class bullish extends \ccxt\async\bullish {
             $account['total'] = $this->safe_string($data, 'availableQuantity');
             $account['used'] = $this->safe_string($data, 'lockedQuantity');
             $code = $this->safe_currency_code($assetId);
-            $this->balance[$tradingAccountId][$code] = $account;
+            if (($tradingAccountId !== null) && ($code !== null)) {
+                $this->balance[$tradingAccountId][$code] = $account;
+            }
             $this->balance[$tradingAccountId]['info'] = $message;
             $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
         }

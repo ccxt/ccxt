@@ -15,6 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_currency  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 async def test_fetch_currencies(exchange, skipped_properties):
     method = 'fetchCurrencies'
     currencies = await exchange.fetch_currencies()

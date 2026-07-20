@@ -17,6 +17,7 @@ from ccxt.base.errors import ArgumentsRequired  # noqa E402
 from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 async def test_watch_bids_asks(exchange, skipped_properties, symbol):
     without_symbol = test_watch_bids_asks_helper(exchange, skipped_properties, None)
     with_symbol = test_watch_bids_asks_helper(exchange, skipped_properties, [symbol])

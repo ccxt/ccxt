@@ -122,6 +122,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         if type == 'spot':
@@ -159,14 +161,14 @@ class exmo(ccxt.async_support.exmo):
                 account = self.account()
                 account['free'] = self.safe_string(balances, currencyId)
                 account['used'] = self.safe_string(reserved, currencyId)
-                self.balance[code] = account
+                self.store_by_key(self.balance, code, account)
         elif event == 'update':
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(data, 'balance')
             account['used'] = self.safe_string(data, 'reserved')
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
         self.balance = self.safe_balance(self.balance)
 
     def parse_margin_balance(self, message):
@@ -195,7 +197,7 @@ class exmo(ccxt.async_support.exmo):
             account['free'] = self.safe_string(wallet, 'free')
             account['used'] = self.safe_string(wallet, 'used')
             account['total'] = self.safe_string(wallet, 'balance')
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
             self.balance = self.safe_balance(self.balance)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -274,6 +276,8 @@ class exmo(ccxt.async_support.exmo):
         #      }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         topicParts = topic.split(':')
         marketId = self.safe_string(topicParts, 1)
         symbol = self.safe_symbol(marketId)
@@ -327,6 +331,8 @@ class exmo(ccxt.async_support.exmo):
         #      }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split(':')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
@@ -436,6 +442,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         messageHash = 'myTrades:' + type
@@ -448,6 +456,8 @@ class exmo(ccxt.async_support.exmo):
             self.myTrades = myTrades
         else:
             myTrades = self.myTrades
+        if myTrades is None:
+            return
         if event == 'snapshot':
             rawTrades = self.safe_value(message, 'data', [])
         elif event == 'update':
@@ -458,7 +468,7 @@ class exmo(ccxt.async_support.exmo):
         for j in range(0, len(trades)):
             trade = trades[j]
             myTrades.append(trade)
-            symbols[trade['symbol']] = True
+            self.store_by_key(symbols, trade['symbol'], True)
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
@@ -527,6 +537,8 @@ class exmo(ccxt.async_support.exmo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split(':')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
@@ -650,6 +662,8 @@ class exmo(ccxt.async_support.exmo):
         # }
         #
         topic = self.safe_string(message, 'topic')
+        if topic is None:
+            return
         parts = topic.split('/')
         type = self.safe_string(parts, 0)
         messageHash = 'orders:' + type
@@ -668,7 +682,7 @@ class exmo(ccxt.async_support.exmo):
         for j in range(0, len(rawOrders)):
             order = self.parse_ws_order(rawOrders[j])
             cachedOrders.append(order)
-            symbols[order['symbol']] = True
+            self.store_by_key(symbols, order['symbol'], True)
         symbolKeys = list(symbols.keys())
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]

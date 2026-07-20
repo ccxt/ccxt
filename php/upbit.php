@@ -386,7 +386,7 @@ class upbit extends Exchange {
         return $this->fetch_market_by_id($market['id'], $params);
     }
 
-    public function fetch_market_by_id(string $id, $params = array()) {
+    public function fetch_market_by_id(?string $id, $params = array()) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         $request = array(
@@ -515,6 +515,9 @@ class upbit extends Exchange {
 
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'market');
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -584,7 +587,7 @@ class upbit extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'balance');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -787,7 +790,7 @@ class upbit extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $ids = ($symbols !== null) ? $this->market_ids($symbols) : $this->ids;
         $promises = array();
-        $queries = $this->ids_query_strings($ids, 6400); // seems upbit server limitations
+        $queries = $this->ids_query_strings($ids || array(), 6400); // seems upbit server limitations
         for ($i = 0; $i < count($queries); $i++) {
             $idsQuery = $queries[$i];
             $promises[] = $this->publicGetTicker(array( 'markets' => $idsQuery ));
@@ -1070,7 +1073,7 @@ class upbit extends Exchange {
             $element['percentage'] = true;
             $element['tierBased'] = false;
             $element['info'] = $fetchMarketResponse[$i];
-            $response[$this->safe_string($fetchMarketResponse[$i], 'symbol')] = $element;
+            $this->store_by_key($response, $this->safe_string($fetchMarketResponse[$i], 'symbol'), $element);
         }
         return $response;
     }
@@ -1173,7 +1176,7 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function calc_order_price(string $symbol, float $amount, ?float $price = null, $params = array()): string {
+    public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
         $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');
@@ -1192,6 +1195,9 @@ class upbit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' When $createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote $amount to spend.');
             }
             $quoteAmount = $this->cost_to_precision($symbol, $amount);
+        }
+        if ($quoteAmount === null) {
+            throw new ArgumentsRequired($this->id . ' calcOrderPrice() could not determine quote amount');
         }
         return $quoteAmount;
     }

@@ -429,7 +429,7 @@ class modetrade(ccxt.async_support.modetrade):
             self.safe_number(data, 'volume'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -1183,13 +1183,15 @@ class modetrade(ccxt.async_support.modetrade):
             key = keys[i]
             value = balances[key]
             code = self.safe_currency_code(key)
-            account = self.balance[code] if (code in self.balance) else self.account()
+            account = self.account()
+            if (code is not None) and (code in self.balance):
+                account = self.balance[code]
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
-            self.balance[code] = account
+            self.store_by_key(self.balance, code, account)
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 

@@ -342,7 +342,7 @@ class lighter(ccxt.async_support.lighter):
         symbolsLength = 0
         if symbols is not None:
             symbolsLength = len(symbols)
-        if symbolsLength == 0:
+        if (symbols is None) or (symbolsLength == 0):
             messageHashes.append(self.get_message_hash('ticker'))
         else:
             for i in range(0, len(symbols)):
@@ -808,6 +808,8 @@ class lighter(ccxt.async_support.lighter):
         price = self.safe_string(liquidation, 'price')
         baseValue = Precise.string_mul(contracts, contractSize)
         quoteValue = Precise.string_mul(baseValue, price)
+        if market is None:
+            return None
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -995,7 +997,7 @@ class lighter(ccxt.async_support.lighter):
                 account = self.account()
                 account['used'] = self.safe_string(asset, 'locked_balance')
                 account['total'] = self.safe_string(asset, 'balance')
-                balance[code] = account
+                self.store_by_key(balance, code, account)
         else:
             stats = self.safe_dict(message, 'stats', {})
             account = self.account()

@@ -10,6 +10,7 @@ use ccxt\async\abstract\blofin as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1269,7 +1270,13 @@ class blofin extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1541,7 +1548,7 @@ class blofin extends Exchange {
         })();
     }
 
-    public function create_tpsl_order_request(string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_tpsl_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
@@ -2239,7 +2246,7 @@ class blofin extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $position = $this->safe_dict($data, 0);
             if ($position === null) {
-                return null;
+                throw new NullResponse($this->id . ' fetchPosition() returned empty position');
             }
             return $this->parse_position($position, $market);
         })();
@@ -2434,7 +2441,8 @@ class blofin extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
+            $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
+            $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
         $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));

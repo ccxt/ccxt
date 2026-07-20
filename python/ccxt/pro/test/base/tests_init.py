@@ -10,6 +10,7 @@ from ccxt.pro.test.base.test_cache import test_ws_cache  # noqa: F401
 from ccxt.pro.test.base.test_future import test_ws_future  # noqa: F401
 from ccxt.pro.test.base.test_abnormal_close import test_abnormal_close  # noqa: F401
 
+
 async def test_base_init_ws():
     test_ws_order_book()
     test_ws_cache()

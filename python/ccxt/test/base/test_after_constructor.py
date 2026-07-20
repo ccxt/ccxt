@@ -15,6 +15,7 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
+
 def helper_test_init_throttler():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',

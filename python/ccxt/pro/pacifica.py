@@ -72,7 +72,7 @@ class pacifica(ccxt.async_support.pacifica):
             },
         })
 
-    def setup_api_key_headers(self, key: str = None):
+    def setup_api_key_headers(self, key: Str = None):
         headers = {}
         if key is not None:
             headers['PF-API-KEY'] = key
@@ -721,7 +721,7 @@ class pacifica(ccxt.async_support.pacifica):
             rawTrade = data[i]
             parsed = self.parse_ws_trade(rawTrade)
             symbol = parsed['symbol']
-            symbols[symbol] = True
+            self.store_by_key(symbols, symbol, True)
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
@@ -822,7 +822,7 @@ class pacifica(ccxt.async_support.pacifica):
             self.trades[symbol] = stored
         trades = self.trades[symbol]
         for i in range(0, len(entry)):
-            data = self.safe_dict(entry, i)
+            data = self.safe_dict(entry, i, {})
             trade = self.parse_ws_trade(data)
             trades.append(trade)
         messageHash = 'trade:' + symbol
@@ -994,13 +994,16 @@ class pacifica(ccxt.async_support.pacifica):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         timeframe = self.safe_string(data, 'i')
+        if timeframe is None:
+            return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if not (timeframe in self.ohlcvs[symbol]):
+        if (symbol is None) or (timeframe is None) or not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
-        ohlcv = self.ohlcvs[symbol][timeframe]
+            if symbol is not None and timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = stored
+        ohlcv = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
         messageHash = 'candles:' + timeframe + ':' + symbol
@@ -1119,7 +1122,7 @@ class pacifica(ccxt.async_support.pacifica):
             order = self.parse_order(rawOrder)
             stored.append(order)
             symbol = self.safe_string(order, 'symbol')
-            marketSymbols[symbol] = True
+            self.store_by_key(marketSymbols, symbol, True)
         keys = list(marketSymbols.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
@@ -1179,11 +1182,13 @@ class pacifica(ccxt.async_support.pacifica):
         symbol = market['symbol']
         interval = self.safe_string(subscription, 'interval')
         timeframe = self.find_timeframe(interval)
+        if timeframe is None:
+            return
         subMessageHash = 'candles:' + timeframe + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
-        if symbol in self.ohlcvs:
-            if timeframe in self.ohlcvs[symbol]:
+        if (symbol is not None) and (symbol in self.ohlcvs):
+            if (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
                 del self.ohlcvs[symbol][timeframe]
 
     def handle_order_unsubscription(self, client: Client, subscription: dict):
@@ -1303,7 +1308,7 @@ class pacifica(ccxt.async_support.pacifica):
     def request_id(self) -> str:
         return self.uuid()  # uuid v4
 
-    def wrap_as_post_action(self, operationType: str, request: dict) -> dict:
+    def wrap_as_post_action(self, operationType: Str, request: dict) -> dict:
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
         requestId = self.request_id()

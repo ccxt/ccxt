@@ -787,7 +787,7 @@ class woo extends Exchange {
             $inverse = false;
         }
         $active = $this->safe_string($market, 'status') === 'TRADING';
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -835,7 +835,7 @@ class woo extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1188,12 +1188,12 @@ class woo extends Exchange {
             );
             $parsed = $this->parse_currency($customCurrency);
             $code = $this->safe_string($parsed, 'code');
-            $result[$code] = $parsed;
+            $this->store_by_key($result, $code, $parsed);
         }
         return $result;
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $currencyId = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($currencyId);
         $tokensByNetworkId = $this->index_by($rawCurrency['_tokens_by_id'], 'network');
@@ -1206,27 +1206,29 @@ class woo extends Exchange {
             $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
             $networkCode = $this->network_id_to_code($networkId, $code);
             $specialNetworkId = $this->safe_string($tokenEntry, 'token');
-            $resultingNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
-                'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
-                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $resultingNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
+                    'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
+                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
-            );
+                    'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -2663,7 +2665,7 @@ class woo extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
             $account['free'] = $this->safe_string($balance, 'availableBalance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2708,7 +2710,7 @@ class woo extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCode, $currency['code']);
-        $networkEntry = $this->safe_dict($currency['networks'], $networkCode);
+        $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry === null) {
             $supportedNetworks = is_array($currency['networks']) ? array_keys($currency['networks']) : array();
             throw new BadRequest($this->id . '  can not determine a network code, please provide unified "network" param, one from the following => ' . $this->json($supportedNetworks));
@@ -3983,7 +3985,7 @@ class woo extends Exchange {
         return $this->v1PrivatePostClientIsolatedMargin($this->extend($request, $params));
     }
 
-    public function fetch_position(?string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -4456,34 +4458,36 @@ class woo extends Exchange {
             $entry = $data[$i];
             $id = $this->safe_string($entry, 'token');
             $code = $this->safe_currency_code($id);
-            $result[$code] = array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => null,
-                'type' => null,
-                'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->safe_number($entry, 'tick'),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($code !== null) {
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $this->safe_number($entry, 'tick'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => $this->safe_timestamp($entry, 'createdTime'),
-            );
+                    'created' => $this->safe_timestamp($entry, 'createdTime'),
+                );
+            }
         }
         return $result;
     }

@@ -142,7 +142,7 @@ class IndexedOrderBookSide(OrderBookSide):
             # insert new price level
             self._hashmap[order_id] = index_price
             index = bisect.bisect_left(self._index, index_price)
-            while index < len (self._index) and self._index[index] == index_price and self[index][2] < order_id:
+            while index < len(self._index) and self._index[index] == index_price and self[index][2] < order_id:
                 index += 1
             self._index.insert(index, index_price)
             self.insert(index, delta)

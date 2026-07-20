@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_balance  # noqa E402
 
+
 async def test_fetch_balance(exchange, skipped_properties):
     method = 'fetchBalance'
     response = await exchange.fetch_balance()

@@ -1265,26 +1265,28 @@ class bitmart extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $currencyCode);
             $withdraw = $this->safe_bool($currency, 'withdraw_enabled');
             $deposit = $this->safe_bool($currency, 'deposit_enabled');
-            $entry['networks'][$networkCode] = array(
-                'info' => $currency,
-                'id' => $networkId,
-                'code' => $networkCode,
-                'withdraw' => $withdraw,
-                'deposit' => $deposit,
-                'active' => $withdraw && $deposit,
-                'fee' => $this->safe_number($currency, 'withdraw_fee'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'withdraw_minsize'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $entry['networks'][$networkCode] = array(
+                    'info' => $currency,
+                    'id' => $networkId,
+                    'code' => $networkCode,
+                    'withdraw' => $withdraw,
+                    'deposit' => $deposit,
+                    'active' => $withdraw && $deposit,
+                    'fee' => $this->safe_number($currency, 'withdraw_fee'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'withdraw_minsize'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
-            $result[$currencyCode] = $entry;
+                );
+            }
+            $this->store_by_key($result, $currencyCode, $entry);
         }
         $keys = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -2378,8 +2380,8 @@ class bitmart extends Exchange {
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
-                $subResult[$baseCode] = $this->parse_balance_helper($base);
-                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                $this->store_by_key($subResult, $baseCode, $this->parse_balance_helper($base));
+                $this->store_by_key($subResult, $quoteCode, $this->parse_balance_helper($quote));
                 $result[$symbol] = $this->safe_balance($subResult);
             }
             return $result;
@@ -2392,7 +2394,7 @@ class bitmart extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
                 $account['used'] = $this->safe_string_n($balance, array( 'unAvailable', 'frozen', 'frozen_balance' ));
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             return $this->safe_balance($result);
         }
@@ -2953,7 +2955,7 @@ class bitmart extends Exchange {
         return $parsedOrders;
     }
 
-    public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_swap_order_request(?string $symbol, ?string $type, ?string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * create a trade order
@@ -2996,7 +2998,7 @@ class bitmart extends Exchange {
             'symbol' => $market['id'],
         );
         if ($amount !== null) {
-            $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+            $request['size'] = intval(($this->amount_to_precision($symbol, $amount) || '0'));
         }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $mode = $this->safe_integer($params, 'mode'); // only for swap
@@ -3099,7 +3101,13 @@ class bitmart extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * create a spot order $request
@@ -4939,7 +4947,7 @@ class bitmart extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -5675,7 +5683,7 @@ class bitmart extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array()) {
+    public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }

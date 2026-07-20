@@ -636,7 +636,7 @@ class coinsph extends Exchange {
         })();
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         $id = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($id);
         $isFiat = $this->safe_bool($rawCurrency, 'isLegalMoney');
@@ -646,26 +646,28 @@ class coinsph extends Exchange {
             $networkItem = $networkList[$j];
             $network = $this->safe_string($networkItem, 'network');
             $networkCode = $this->network_id_to_code($network, $code);
-            $networks[$networkCode] = array(
-                'info' => $networkItem,
-                'id' => $network,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
-                'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
-                'fee' => $this->safe_number($networkItem, 'withdrawFee'),
-                'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($networkItem, 'withdrawMin'),
-                        'max' => $this->safe_number($networkItem, 'withdrawMax'),
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $networkItem,
+                    'id' => $network,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
+                    'fee' => $this->safe_number($networkItem, 'withdrawFee'),
+                    'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                            'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -1413,7 +1415,7 @@ class coinsph extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'free');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }

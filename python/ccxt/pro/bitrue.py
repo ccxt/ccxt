@@ -177,7 +177,7 @@ class bitrue(ccxt.async_support.bitrue):
                     account['free'] = free
                 if updateUsed:
                     account['used'] = used
-                self.balance[code] = account
+                self.store_by_key(self.balance, code, account)
         self.balance = self.safe_balance(self.balance)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -244,7 +244,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #    {
         #        "e": "ORDER",
@@ -398,9 +398,12 @@ class bitrue(ccxt.async_support.bitrue):
         client.resolve(orderbook, messageHash)
 
     def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
-        symbols = list(self.markets.keys())
+        markets = self.markets
+        if markets is None:
+            return None
+        symbols = list(markets.keys())
         for i in range(0, len(symbols)):
-            candidate = self.markets[symbols[i]]
+            candidate = markets[symbols[i]]
             if not candidate['swap']:
                 continue
             baseId = self.safe_string_lower(candidate, 'baseId', '')

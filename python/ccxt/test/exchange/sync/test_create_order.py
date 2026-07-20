@@ -22,6 +22,7 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base import test_order  # noqa E402
 
+
 # ----------------------------------------------------------------------------
 def tco_debug(exchange, symbol, message):
     # just for debugging purposes
@@ -241,7 +242,7 @@ def tco_get_minimum_amount_for_limit_price(exchange, market, price, predefined_a
 def tco_try_cancel_order(exchange, symbol, order, skipped_properties):
     order_fetched = test_shared_methods.fetch_order(exchange, symbol, order['id'], skipped_properties)
     if order_fetched is None:
-        return
+        return True
     needs_cancel = exchange.in_array(order_fetched['status'], ['open', 'pending', None])
     # if it was not reported as closed/filled, then try to cancel it
     if needs_cancel:

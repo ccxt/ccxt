@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_status  # noqa E402
 
+
 def test_fetch_status(exchange, skipped_properties):
     method = 'fetchStatus'
     status = exchange.fetch_status()

@@ -328,7 +328,6 @@ class BaseExchange(SyncExchange):
             del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
-
     async def load_markets(self, reload=False, params={}):
         """
         Loads and prepares the markets for trading.

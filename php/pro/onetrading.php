@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -242,7 +243,7 @@ class onetrading extends \ccxt\async\onetrading {
         $client->resolve($this->tickers, 'tickers');
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "instrument" => "ETH_BTC",
@@ -555,7 +556,7 @@ class onetrading extends \ccxt\async\onetrading {
         $client->resolve($this->orders, 'orders');
     }
 
-    public function parse_trading_order($order, $market = null) {
+    public function parse_trading_order($order, ?array $market = null) {
         //
         //     {
         //         "order_book_sequence" => 892925263,
@@ -1071,7 +1072,7 @@ class onetrading extends \ccxt\async\onetrading {
         $account = $this->account();
         $account['free'] = $this->safe_string($balance, 'new_available');
         $account['used'] = $this->safe_string($balance, 'new_locked');
-        $this->balance[$code] = $account;
+        $this->store_by_key($this->balance, $code, $account);
         $this->balance = $this->safe_balance($this->balance);
     }
 
@@ -1121,9 +1122,11 @@ class onetrading extends \ccxt\async\onetrading {
             }
             $subscriptionMarketId = $this->safe_value($subscription, $marketId);
             if ($subscriptionMarketId === null) {
-                $subscription[$marketId] = array();
+                $this->store_by_key($subscription, $marketId, array());
             }
-            $subscription[$marketId][$timeframe] = true;
+            if (($marketId !== null) && ($timeframe !== null)) {
+                $subscription[$marketId][$timeframe] = true;
+            }
             $properties = array();
             $marketIds = is_array($subscription) ? array_keys($subscription) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
@@ -1205,18 +1208,23 @@ class onetrading extends \ccxt\async\onetrading {
             $this->safe_number($message, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
         }
         $stored->append($parsed);
-        $this->ohlcvs[$symbol][$timeframe] = $stored;
+        if ($symbol !== null && $timeframe !== null) {
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
+        }
         $client->resolve($stored, $channel);
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
+    public function find_timeframe($timeframe, mixed $timeframes = null) {
         $timeframes = $timeframes || $this->timeframes;
+        if ($timeframes === null) {
+            throw new ArgumentsRequired($this->id . ' findTimeframe() $timeframes is required');
+        }
         $keys = is_array($timeframes) ? array_keys($timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -1347,7 +1355,11 @@ class onetrading extends \ccxt\async\onetrading {
             $marketIds = array();
             $numSymbols = count($symbols);
             if ($numSymbols === 0) {
-                $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+                $marketsById = $this->markets_by_id;
+                if ($marketsById === null) {
+                    return array();
+                }
+                $marketIds = is_array($marketsById) ? array_keys($marketsById) : array();
             } else {
                 $marketIds = $this->market_ids($symbols);
             }

@@ -1027,7 +1027,7 @@ class bydfi extends \ccxt\async\bydfi {
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'wb');
                 $account['used'] = $this->safe_string($balance, 'tfm');
-                $result[$code] = $account;
+                $this->store_by_key($result, $code, $account);
             }
             $parsedBalance = $this->safe_balance($result);
             $this->balance = $this->extend($this->balance, $parsedBalance);

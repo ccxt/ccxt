@@ -409,7 +409,7 @@ class independentreserve extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'AvailableBalance');
             $account['total'] = $this->safe_string($balance, 'TotalBalance');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -857,7 +857,7 @@ class independentreserve extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -878,14 +878,17 @@ class independentreserve extends Exchange {
                 $currencyId = $this->safe_string($fee, 'CurrencyCode');
                 $code = $this->safe_currency_code($currencyId);
                 $tradingFee = $this->safe_number($fee, 'Fee');
-                $fees[$code] = array(
-                    'info' => $fee,
-                    'fee' => $tradingFee,
-                );
+                if ($code !== null) {
+                    $fees[$code] = array(
+                        'info' => $fee,
+                        'fee' => $tradingFee,
+                    );
+                }
             }
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->require_symbols();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $fee = $this->safe_value($fees, $market['base'], array());
                 $result[$symbol] = array(

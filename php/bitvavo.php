@@ -579,7 +579,7 @@ class bitvavo extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currency(array $rawCurrency): array {
+    public function parse_currency(array $rawCurrency): CurrencyInterface {
         //
         //     array(
         //         {
@@ -629,22 +629,24 @@ class bitvavo extends Exchange {
         for ($j = 0; $j < count($networksArray); $j++) {
             $networkId = $networksArray[$j];
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdrawal,
-                'fee' => $withdrawFee,
-                'precision' => $this->parse_number($this->parse_precision($precision)),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdrawal,
+                    'fee' => $withdrawFee,
+                    'precision' => $this->parse_number($this->parse_precision($precision)),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $minWithdraw,
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -1131,7 +1133,7 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function fetch_ohlcv(?string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -1180,7 +1182,7 @@ class bitvavo extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'inOrder');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1484,7 +1486,13 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function create_order_request(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1563,7 +1571,7 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -2629,10 +2637,12 @@ class bitvavo extends Exchange {
             $networkId = $currencyCode;
         }
         $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-        $result['networks'][$networkCode] = array(
-            'deposit' => $result['deposit'],
-            'withdraw' => $result['withdraw'],
-        );
+        if ($networkCode !== null) {
+            $result['networks'][$networkCode] = array(
+                'deposit' => $result['deposit'],
+                'withdraw' => $result['withdraw'],
+            );
+        }
         return $result;
     }
 

@@ -5348,8 +5348,8 @@ class binance(Exchange, ImplicitAPI):
             elif uppercaseType == 'LIMIT':
                 uppercaseType = 'STOP_LOSS_LIMIT'
         request['type'] = uppercaseType
-        validOrderTypes = self.safe_list(market['info'], 'orderTypes')
-        if not self.in_array(uppercaseType, validOrderTypes or []):
+        validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
+        if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
                 raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
@@ -6545,8 +6545,8 @@ class binance(Exchange, ImplicitAPI):
             if type == 'market':
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         else:
-            validOrderTypes = self.safe_list(market['info'], 'orderTypes')
-            if not self.in_array(uppercaseType, validOrderTypes or []):
+            validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
+            if not self.in_array(uppercaseType, validOrderTypes):
                 if initialUppercaseType != uppercaseType:
                     raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
                 else:

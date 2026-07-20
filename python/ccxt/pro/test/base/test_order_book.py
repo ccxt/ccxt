@@ -13,15 +13,12 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
-
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402
-
-
-
 
 
 def equals(a, b):
     return a == b
+
 
 # --------------------------------------------------------------------------------------------------------------------
 def test_ws_order_book():

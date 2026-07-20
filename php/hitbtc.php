@@ -963,7 +963,7 @@ class hitbtc extends Exchange {
         return $this->parse_currencies($enhancedArray);
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $currencyId = $currency['_coin_id'];
         $code = $this->safe_currency_code($currencyId);
         $entry = $currency;
@@ -974,22 +974,24 @@ class hitbtc extends Exchange {
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
-            $networks[$networkCode] = array(
-                'info' => $rawNetwork,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
-                'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
-                'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawNetwork,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                    'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                    'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $entry,
@@ -1105,7 +1107,7 @@ class hitbtc extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'reserved');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -2430,7 +2432,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         $isLimit = ($type === 'limit');
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2700,7 +2702,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,

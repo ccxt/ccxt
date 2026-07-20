@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
 use React\Async;
@@ -437,6 +438,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         // }
         //
         $channel = $this->safe_string($message, 'channel');
+        if ($channel === null) {
+            return;
+        }
         $marketId = $this->safe_string($message, 'instrument_name');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
         $market = $this->safe_market($marketId);
@@ -635,7 +639,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $ticker = $data[$i];
             $parsed = $this->parse_ws_ticker($ticker, $market);
             $symbol = $parsed['symbol'];
-            $this->tickers[$symbol] = $parsed;
+            $this->store_by_key($this->tickers, $symbol, $parsed);
             $client->resolve($parsed, $messageHash);
         }
     }
@@ -734,12 +738,12 @@ class cryptocom extends \ccxt\async\cryptocom {
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
         $symbol = $parsedTicker['symbol'];
-        $this->bidsasks[$symbol] = $parsedTicker;
+        $this->store_by_key($this->bidsasks, $symbol, $parsedTicker);
         $messageHash = 'bidask.' . $symbol;
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -830,11 +834,13 @@ class cryptocom extends \ccxt\async\cryptocom {
         $interval = $this->safe_string($message, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if ($symbol !== null && $timeframe !== null) {
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
         }
         $data = $this->safe_value($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
@@ -876,7 +882,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_orders(Client $client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message, ?array $subscription = null) {
         //
         //    {
         //        "method" => "subscribe",
@@ -957,6 +963,9 @@ class cryptocom extends \ccxt\async\cryptocom {
             $messageHash = 'positions';
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                }
                 $messageHash = '::' . implode(',', $symbols);
             }
             $client = $this->client($url);
@@ -996,7 +1005,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
+                if (($contracts !== null) && ($contracts > 0)) {
                     $cache->append($position);
                 }
             }
@@ -1136,7 +1145,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'quantity');
             $account['used'] = $this->safe_string($balance, 'reserved_qty');
-            $this->balance[$code] = $account;
+            $this->store_by_key($this->balance, $code, $account);
             $this->balance = $this->safe_balance($this->balance);
         }
         $client->resolve($this->balance, $messageHash);

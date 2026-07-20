@@ -519,7 +519,7 @@ class apex extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $currencyId = $this->safe_string($currency, 'token');
         $code = $this->safe_currency_code($currencyId);
         $name = $this->safe_string($currency, 'displayName');
@@ -534,26 +534,28 @@ class apex extends Exchange {
                 if ($tokenName === $currencyId) {
                     $networkId = $this->safe_string($chain, 'chainId');
                     $networkCode = $this->network_id_to_code($networkId, $code);
-                    $networks[$networkCode] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => !$this->safe_bool($chain, 'depositDisable'),
-                        'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
-                        'fee' => $this->safe_number($token, 'minFee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($token, 'minWithdraw'),
-                                'max' => null,
+                    if ($networkCode !== null) {
+                        $networks[$networkCode] = array(
+                            'info' => $chain,
+                            'id' => $networkId,
+                            'network' => $networkCode,
+                            'active' => null,
+                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                            'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                            'fee' => $this->safe_number($token, 'minFee'),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
+                            'limits' => array(
+                                'withdraw' => array(
+                                    'min' => $this->safe_number($token, 'minWithdraw'),
+                                    'max' => null,
+                                ),
+                                'deposit' => array(
+                                    'min' => $this->safe_number($chain, 'minDeposit'),
+                                    'max' => null,
+                                ),
                             ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'minDeposit'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
+                        );
+                    }
                 }
             }
         }
@@ -1098,7 +1100,7 @@ class apex extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1311,18 +1313,20 @@ class apex extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         if ($market === null && $marketId !== null) {
-            if (is_array($this->markets) && array_key_exists($marketId, $this->markets)) {
-                $market = $this->markets[$marketId];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+            $marketsMap = $this->markets;
+            $marketsById = $this->markets_by_id;
+            if (($marketsMap !== null) && (is_array($marketsMap) && array_key_exists($marketId, $marketsMap))) {
+                $market = $marketsMap[$marketId];
+            } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId, $marketsById))) {
+                $market = $marketsById[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($newMarketId, $this->markets_by_id)) {
-                    $markets = $this->markets_by_id[$newMarketId];
+                if (($marketsById !== null) && (is_array($marketsById) && array_key_exists($newMarketId, $marketsById))) {
+                    $markets = $marketsById[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
-                        if ($this->markets_by_id[$newMarketId][0]['id2'] === $marketId) {
-                            $market = $this->markets_by_id[$newMarketId][0];
+                        if ($marketsById[$newMarketId][0]['id2'] === $marketId) {
+                            $market = $marketsById[$newMarketId][0];
                         }
                     }
                 }
@@ -1331,7 +1335,7 @@ class apex extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function generate_random_client_id_omni(string $_accountId) {
+    public function generate_random_client_id_omni(?string $_accountId) {
         $accountId = $_accountId || (string) $this->rand_number(12);
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
@@ -1392,6 +1396,9 @@ class apex extends Exchange {
             }
             $market = $this->market($symbol);
             $orderType = strtoupper($type);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $orderSide = strtoupper($side);
             $orderSize = $this->amount_to_precision($symbol, $amount);
             $orderPrice = '0';
@@ -1529,7 +1536,8 @@ class apex extends Exchange {
             }
             $tokenId = $this->safe_string($currency, 'tokenId', '');
             $decimalsNum = $this->safe_number($currency, 'decimals', 0);
-            $mathPowResult = (pow(10, $decimalsNum));
+            $decimalsNumber = ($decimalsNum === null) ? 0 : $decimalsNum;
+            $mathPowResult = (pow(10, $decimalsNumber));
             $amountNumber = $this->parse_to_int($amount * $mathPowResult);
             $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
             $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));

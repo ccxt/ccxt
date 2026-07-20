@@ -617,7 +617,7 @@ class cryptocom extends Exchange {
         return $this->parse_currencies($enhancedArray);
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $id = $this->safe_string($currency, '_coin_id');
         $code = $this->safe_currency_code($id);
         $networks = array();
@@ -626,22 +626,24 @@ class cryptocom extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network_id');
             $network = $this->network_id_to_code($networkId, $code);
-            $networks[$network] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $network,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
-                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
-                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                        'max' => null,
+            if ($network !== null) {
+                $networks[$network] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                    'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                    'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $currency,
@@ -1217,7 +1219,7 @@ class cryptocom extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'quantity');
             $account['used'] = $this->safe_string($balance, 'reserved_qty');
-            $result[$code] = $account;
+            $this->store_by_key($result, $code, $account);
         }
         return $this->safe_balance($result);
     }
@@ -1340,7 +1342,13 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1560,7 +1568,13 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result);
     }
 
-    public function create_advanced_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1699,7 +1713,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function edit_order_request(string $id, string $symbol, float $amount, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()) {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
@@ -2109,13 +2123,15 @@ class cryptocom extends Exchange {
             $this->check_address($address);
             $networkId = $this->safe_string($value, 'network');
             $network = $this->network_id_to_code($networkId, $responseCode);
-            $result[$network] = array(
-                'info' => $value,
-                'currency' => $responseCode,
-                'network' => $network,
-                'address' => $address,
-                'tag' => $tag,
-            );
+            if ($network !== null) {
+                $result[$network] = array(
+                    'info' => $value,
+                    'currency' => $responseCode,
+                    'network' => $network,
+                    'address' => $address,
+                    'tag' => $tag,
+                );
+            }
         }
         return $result;
     }
@@ -2700,10 +2716,12 @@ class cryptocom extends Exchange {
                 $networkId = $this->safe_string($networkInfo, 'network_id');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'deposit' => array( 'fee' => null, 'percentage' => null ),
+                        'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
+                    );
+                }
                 if ($networkListLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($networkInfo, 'withdrawal_fee');
                     $result['withdraw']['percentage'] = false;

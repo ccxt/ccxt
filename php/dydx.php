@@ -497,6 +497,9 @@ class dydx extends Exchange {
         //
         $quoteId = 'USDC';
         $marketId = $this->safe_string($market, 'ticker');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
         $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
@@ -842,7 +845,7 @@ class dydx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    public function handle_public_address(?string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
@@ -1233,7 +1236,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         return $this->encode_dydx_tx_raw($signDoc, $signature['r'] . $signature['s']);
@@ -1295,7 +1298,7 @@ class dydx extends Exchange {
         return $account;
     }
 
-    public function pow(string $n, string $m) {
+    public function pow(string $n, ?string $m) {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         // TODO => cap
@@ -1305,10 +1308,19 @@ class dydx extends Exchange {
         return $r;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
         list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
@@ -1382,6 +1394,9 @@ class dydx extends Exchange {
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
+                if ($latestBlockHeight === null) {
+                    throw new ExchangeError($this->id . ' method() missing latestBlockHeight');
+                }
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
@@ -1422,7 +1437,13 @@ class dydx extends Exchange {
             'value' => $orderPayload,
         );
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
-        $orderId = $this->create_order_id_from_parts($this->get_wallet_address(), $subaccountId, $clientOrderId, $orderFlag, $marketInfo['clobPairId']);
+        $walletAddress = $this->get_wallet_address();
+        $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
+        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
+        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
+        $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $params) );
     }
 
@@ -1452,7 +1473,11 @@ class dydx extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         $info = $this->safe_dict($result, 'response');
-        return $this->safe_integer($info, 'last_block_height');
+        $height = $this->safe_integer($info, 'last_block_height');
+        if ($height === null) {
+            throw new ExchangeError($this->id . ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return $height;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1820,7 +1845,7 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(mixed $message, string $memo, mixed $account): mixed {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): mixed {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,
@@ -1856,6 +1881,9 @@ class dydx extends Exchange {
         }
         $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
         $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
+        if ($feeAmount === null) {
+            throw new ExchangeError($this->id . ' estimateTxFee() missing feeAmount');
+        }
         if (mb_strpos($feeAmount, '.') !== false) {
             $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
         }

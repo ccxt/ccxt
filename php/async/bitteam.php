@@ -666,7 +666,7 @@ class bitteam extends Exchange {
         })();
     }
 
-    public function parse_currency(array $currency): array {
+    public function parse_currency(array $currency): CurrencyInterface {
         $statusesResponse = $this->safe_value($this->options, '_temp_currencies_statuses', array());
         $id = $this->safe_string($currency, 'symbol');
         $numericId = $this->safe_integer($currency, 'id');
@@ -699,30 +699,32 @@ class bitteam extends Exchange {
             $networkId = $networkIds[$j];
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkFee = $this->safe_number($feesByNetworkId, $networkId);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'active' => $active,
-                'fee' => $networkFee,
-                'precision' => $networkPrecision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'active' => $active,
+                    'fee' => $networkFee,
+                    'precision' => $networkPrecision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minWithdraw),
+                            'max' => $this->parse_number($maxWithdraw),
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minDeposit),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minWithdraw),
-                        'max' => $this->parse_number($maxWithdraw),
-                    ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minDeposit),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $currency,
-            );
+                    'info' => $currency,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -2227,11 +2229,13 @@ class bitteam extends Exchange {
             $used = $this->safe_string($currencyBalance, 'used');
             $total = $this->safe_string($currencyBalance, 'total');
             $currencyCode = $this->safe_currency_code(strtolower($rawCurrencyId));
-            $balance[$currencyCode] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            if ($currencyCode !== null) {
+                $balance[$currencyCode] = array(
+                    'free' => $free,
+                    'used' => $used,
+                    'total' => $total,
+                );
+            }
         }
         return $this->safe_balance($balance);
     }

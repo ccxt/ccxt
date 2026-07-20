@@ -14,6 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_trading_fee  # noqa E402
 
+
 async def test_fetch_trading_fee(exchange, skipped_properties, symbol):
     method = 'fetchTradingFee'
     fee = await exchange.fetch_trading_fee(symbol)

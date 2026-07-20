@@ -6,11 +6,12 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.precise import Precise
@@ -161,8 +162,11 @@ class poloniex(ccxt.async_support.poloniex):
         if self.is_empty(symbols):
             marketIds.append('all')
         else:
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             messageHash = messageHash + '::' + ','.join(symbols)
-            marketIds = self.market_ids(symbols)
+            ids = self.market_ids(symbols)
+            marketIds = [] if (ids is None) else ids
         if name != 'balances':
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
@@ -213,6 +217,8 @@ class poloniex(ccxt.async_support.poloniex):
         await self.authenticate()
         market = self.market(symbol)
         uppercaseType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderWs() side is required')
         uppercaseSide = side.upper()
         isPostOnly = self.is_post_only(uppercaseType == 'MARKET', uppercaseType == 'LIMIT_MAKER', params)
         if isPostOnly:
@@ -518,7 +524,7 @@ class poloniex(ccxt.async_support.poloniex):
         await self.authenticate()
         return await self.subscribe(name, name, True, None, params)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -575,12 +581,13 @@ class poloniex(ccxt.async_support.poloniex):
         messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = None if (timeframe is None) else self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = None if (timeframe is None) else self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if symbol is not None:
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol][timeframe] = stored
+                if symbol is not None and timeframe is not None:
+                    self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
             client.resolve(stored, messageHash)
         return message
@@ -616,12 +623,12 @@ class poloniex(ccxt.async_support.poloniex):
                 if tradesArray is None:
                     tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
                     tradesArray = ArrayCache(tradesLimit)
-                    self.trades[symbol] = tradesArray
+                    self.store_by_key(self.trades, symbol, tradesArray)
                 tradesArray.append(trade)
                 client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # handleTrade
         #
@@ -700,7 +707,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_trade(self, trade, market=None):
+    def parse_ws_order_trade(self, trade, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -819,8 +826,8 @@ class poloniex(ccxt.async_support.poloniex):
                     previousOrderTrades = previousOrder['trades']
                     for j in range(0, len(previousOrderTrades)):
                         previousOrderTrade = previousOrderTrades[j]
-                        cost = self.number_to_string(previousOrderTrade['cost'])
-                        amount = self.number_to_string(previousOrderTrade['amount'])
+                        cost = self.number_to_string(previousOrderTrade['cost']) or '0'
+                        amount = self.number_to_string(previousOrderTrade['amount']) or '0'
                         totalCost = Precise.string_add(totalCost, cost)
                         totalAmount = Precise.string_add(totalAmount, amount)
                     if Precise.string_gt(totalAmount, '0'):
@@ -859,7 +866,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.resolve(orders, 'orders')
         return message
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -959,8 +966,8 @@ class poloniex(ccxt.async_support.poloniex):
             if marketId is not None:
                 ticker = self.parse_ticker(item)
                 symbol = ticker['symbol']
-                self.tickers[symbol] = ticker
-                newTickers[symbol] = ticker
+                self.store_by_key(self.tickers, symbol, ticker)
+                self.store_by_key(newTickers, symbol, ticker)
         messageHashes = self.find_message_hashes(client, 'ticker::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1116,7 +1123,7 @@ class poloniex(ccxt.async_support.poloniex):
             newAccount = self.account()
             newAccount['free'] = self.safe_string(balance, 'available')
             newAccount['used'] = self.safe_string(balance, 'hold')
-            result[code] = newAccount
+            self.store_by_key(result, code, newAccount)
         return self.safe_balance(result)
 
     def handle_my_trades(self, client: Client, parsedTrade):

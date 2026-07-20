@@ -100,6 +100,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         #     }
         #
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         parts = channel.split('_')
         marketId = self.safe_string(parts, 3)
         symbol = self.safe_symbol(marketId)
@@ -107,6 +109,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         nonce = self.safe_value(storedOrderBook, 'nonce')
         delta = self.safe_value(message, 'data')
         deltaNonce = self.safe_integer(delta, 'microtimestamp')
+        if deltaNonce is None:
+            return
         messageHash = 'orderbook:' + symbol
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
@@ -143,8 +147,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         # we will consider it a fail
         firstElement = deltas[0]
         firstElementNonce = self.safe_integer(firstElement, 'microtimestamp')
+        if firstElementNonce is None:
+            return -1
         nonce = self.safe_integer(orderbook, 'nonce')
-        if nonce < firstElementNonce:
+        if (nonce is None) or (nonce < firstElementNonce):
             return -1
         for i in range(0, len(deltas)):
             delta = deltas[i]
@@ -181,7 +187,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         #     {
         #         "buy_order_id": 1211625836466176,
@@ -196,11 +202,13 @@ class bitstamp(ccxt.async_support.bitstamp):
         #         "price": 6294.77
         #     }
         #
-        microtimestamp = self.safe_integer(trade, 'microtimestamp')
+        microtimestamp = self.safe_integer(trade, 'microtimestamp', 0)
         id = self.safe_string(trade, 'id')
         timestamp = self.parse_to_int(microtimestamp / 1000)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
+        if market is None:
+            market = self.safe_market(None, market)
         symbol = market['symbol']
         sideRaw = self.safe_integer(trade, 'type')
         side = 'buy' if (sideRaw == 0) else 'sell'
@@ -242,6 +250,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         parts = channel.split('_')
         marketId = self.safe_string(parts, 2)
         market = self.safe_market(marketId)
@@ -394,6 +404,8 @@ class bitstamp(ccxt.async_support.bitstamp):
 
     def handle_order_book_subscription(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         parts = channel.split('_')
         marketId = self.safe_string(parts, 3)
         symbol = self.safe_symbol(marketId)
@@ -413,6 +425,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         #     }
         #
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         if channel.find('order_book') > -1:
             self.handle_order_book_subscription(client, message)
 
@@ -455,6 +469,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         #     }
         #
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         methods = {
             'live_trades': self.handle_trade,
             'diff_order_book': self.handle_order_book,
