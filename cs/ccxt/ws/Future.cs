@@ -3,7 +3,7 @@ namespace ccxt;
 
 using System.Runtime.CompilerServices;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public class Future

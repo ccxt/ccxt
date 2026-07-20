@@ -331,8 +331,8 @@ public partial class alpaca : Exchange
         //
         object timestamp = this.safeString(response, "timestamp");
         object localTime = slice(timestamp, 0, 23);
-        object jetlagStrStart = subtract(((string)timestamp).Length, 6);
-        object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
+        object jetlagStrStart = subtract(getArrayLength(timestamp), 6);
+        object jetlagStrEnd = subtract(getArrayLength(timestamp), 3);
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
         return iso;
@@ -1006,7 +1006,7 @@ public partial class alpaca : Exchange
             { "side", side },
             { "type", type },
         };
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price"});
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             object newType = null;
@@ -1325,7 +1325,7 @@ public partial class alpaca : Exchange
         {
             ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price"});
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);

@@ -1819,7 +1819,7 @@ func (this *BlofinCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var request any = map[string]any{
 			"instId": GetValue(market, "id"),
 		}
-		var isTrigger any = this.SafeBoolN(params, []any{"trigger"}, false)
+		var isTrigger any = this.SafeBool(params, "trigger", false)
 		var isTpsl any = this.SafeBool2(params, "tpsl", "TPSL", false)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {

@@ -31,9 +31,19 @@ public partial class paradex : Exchange
         return await this.callAsync ("publicGetMarkets",parameters);
     }
 
+    public async Task<object> publicGetMarketsHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketsHistory",parameters);
+    }
+
     public async Task<object> publicGetMarketsKlines (object parameters = null)
     {
         return await this.callAsync ("publicGetMarketsKlines",parameters);
+    }
+
+    public async Task<object> publicGetMarketsSettlementPrice (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketsSettlementPrice",parameters);
     }
 
     public async Task<object> publicGetMarketsSummary (object parameters = null)

@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchMarketLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchMarketLeverageTiers(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchMarketLeverageTiers";
-        object tiers = await exchange.fetchMarketLeverageTiers(symbol);
+        object tiers = await ((dynamic)exchange).fetchMarketLeverageTiers(symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (object j = 0; isLessThan(j, getArrayLength(tiers)); postFixIncrement(ref j))
         {

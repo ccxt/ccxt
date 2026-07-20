@@ -7,8 +7,23 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTicker(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testTicker(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
+        // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+        // books where bid==ask and a stale `last` far from the median are normal — skip the
+        // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+        // omits vwap/previousClose entirely, so their presence must not be asserted
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+                { "spread", true },
+                { "lastBetweenBidAsk", true },
+                { "maxIncrease", true },
+                { "vwap", true },
+                { "previousClose", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },

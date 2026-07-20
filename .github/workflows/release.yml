@@ -66,7 +66,7 @@ jobs:
       - name: Composer install
         run: composer install
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Install Python build tools
         run: pip install build twine
       - name: export exchanges (remove later)

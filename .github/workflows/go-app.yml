@@ -32,7 +32,7 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
-        run: ./utils/init_actions.sh
+        run: ./build/utils/init_actions.sh
       - name: Check tsc version
         run: tsc --version
       - name: Install tsx
@@ -76,18 +76,18 @@ jobs:
           tsx build/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
+      - name: Transpile prediction to Go
+        if: env.prediction_modified == 'true'
+        run: npm run transpile-prediction-go
       - name: Build
         run: go build -C go ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
+      - name: Build prediction
+        if: env.prediction_modified == 'true'
+        run: go build -C go ./v4/prediction
       - name: Build tests
         run: go -C go build ./tests/main.go
-      - name: Format go files
-        run: go fmt .
-        working-directory: go/v4
-      - name: Format go tests
-        run: go fmt .
-        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -120,6 +120,12 @@ jobs:
           for exchange in $cleaned_rest_files; do
             npm run response-go -- $exchange
           done
+      - name: Prediction request tests
+        if: env.prediction_modified == 'true'
+        run: npm run request-go-prediction
+      - name: Prediction response tests
+        if: env.prediction_modified == 'true'
+        run: npm run response-go-prediction
 
       # - name: Upload Go Files
       #   uses: actions/upload-artifact@v4
@@ -177,7 +183,7 @@ jobs:
           name: go-files
           path: go/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - name: Build tests
         run: go build -C go ./tests/main.go
       - name: Install npm dependencies

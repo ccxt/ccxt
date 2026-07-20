@@ -6,6 +6,12 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method any, orderbook any, symbol any) {
+	// prediction-market structures are keyed by an outcome handle, not a `symbol`
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol": true,
+		}, skippedProperties)
+	}
 	var format any = map[string]any{
 		"symbol":    "ETH/BTC",
 		"asks":      []any{[]any{exchange.ParseNumber("1.24"), exchange.ParseNumber("0.453")}, []any{exchange.ParseNumber("1.25"), exchange.ParseNumber("0.157")}},

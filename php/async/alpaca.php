@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class alpaca extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1095,7 +1097,7 @@ class alpaca extends Exchange {
                 'side' => $side,
                 'type' => $type, // $market, limit, stop_limit
             );
-            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
             if ($triggerPrice !== null) {
                 if (mb_strpos($type, 'limit') !== false) {
                     $newType = 'stop_limit';
@@ -1395,7 +1397,7 @@ class alpaca extends Exchange {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
             if ($triggerPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $params = $this->omit($params, 'triggerPrice');

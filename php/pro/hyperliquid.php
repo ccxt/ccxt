@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class hyperliquid extends \ccxt\async\hyperliquid {
     public function describe(): mixed {

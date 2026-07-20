@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class lighter extends \ccxt\async\lighter {
     public function describe(): mixed {
@@ -426,63 +427,55 @@ class lighter extends \ccxt\async\lighter {
     }
 
     public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * watches a mark price
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_ticker($symbol, $params));
-        })();
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * watches a mark price
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->watch_ticker($symbol, $params);
     }
 
     public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * watches mark prices
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_tickers($symbols, $params));
-        })();
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * watches mark prices
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->watch_tickers($symbols, $params);
     }
 
     public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * unWatches a mark price
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_ticker($symbol, $params));
-        })();
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * unWatches a mark price
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_ticker($symbol, $params);
     }
 
     public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * unWatches mark prices
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_tickers($symbols, $params));
-        })();
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * unWatches mark prices
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_tickers($symbols, $params);
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {

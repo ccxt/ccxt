@@ -4912,7 +4912,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5069,7 +5069,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
         request['category'] = type
-        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
         if isTrigger:
             request['orderFilter'] = 'StopOrder'
@@ -5160,7 +5160,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5193,7 +5193,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5233,7 +5233,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         type = None
         type, params = self.get_bybit_type('fetchCanceledAndClosedOrders', market, params)
         request['category'] = type
-        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
         if isTrigger:
             request['orderFilter'] = 'StopOrder'
@@ -6576,10 +6576,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
-        timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
+        timestamp = self.safe_integer_2(position, 'createdTime', 'createdAt')
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
-            lastUpdateTimestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt', 'updatedTime'])
+            lastUpdateTimestamp = self.safe_integer_2(position, 'updatedTime', 'updatedAt')
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -7240,7 +7240,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         timestamp = self.safe_integer(response, 'time')
         transfer = self.safe_dict(response, 'result', {})
-        statusRaw = self.safe_string_n(response, ['retCode', 'retMsg'])
+        statusRaw = self.safe_string_2(response, 'retCode', 'retMsg')
         status = self.parse_transfer_status(statusRaw)
         return self.extend(self.parse_transfer(transfer, currency), {
             'timestamp': timestamp,

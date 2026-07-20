@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class xt extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1942,7 +1944,7 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'a'),
+            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
             'quoteVolume' => $this->safe_number($ticker, 'v'),
             'info' => $ticker,
         ), $market);

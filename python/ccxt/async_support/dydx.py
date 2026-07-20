@@ -2338,7 +2338,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][section])
+        url = self.urls['api'][section]
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         url += '/' + pathWithParams

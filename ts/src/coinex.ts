@@ -1046,7 +1046,11 @@ export default class coinex extends Exchange {
         //
         const marketType = ('mark_price' in ticker) ? 'swap' : 'spot';
         const marketId = this.safeString (ticker, 'market');
-        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        const quoteVolume = market['inverse'] ? undefined : this.safeString (ticker, 'value');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1066,7 +1070,7 @@ export default class coinex extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeString (ticker, 'mark_price'),
             'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,

@@ -5202,7 +5202,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5373,7 +5373,7 @@ export default class bybit extends Exchange {
             throw new NotSupported(this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -5469,7 +5469,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5505,7 +5505,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5550,7 +5550,7 @@ export default class bybit extends Exchange {
         let type = undefined;
         [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -6970,10 +6970,10 @@ export default class bybit extends Exchange {
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
-        const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
+        const timestamp = this.safeInteger2(position, 'createdTime', 'createdAt');
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
+            lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
@@ -7696,7 +7696,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger(response, 'time');
         const transfer = this.safeDict(response, 'result', {});
-        const statusRaw = this.safeStringN(response, ['retCode', 'retMsg']);
+        const statusRaw = this.safeString2(response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), {
             'timestamp': timestamp,

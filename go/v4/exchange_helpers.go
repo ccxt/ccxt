@@ -2620,6 +2620,28 @@ func SetDefaults(p any) {
 	setDefaults(p)
 }
 
+// NewMapArray converts a generated-code result (usually a []any of map[string]any
+// entries) into a typed []map[string]any; used by the typed wrappers
+func NewMapArray(res any) []map[string]any {
+	if res == nil {
+		return nil
+	}
+	if typed, ok := res.([]map[string]any); ok {
+		return typed
+	}
+	list, ok := res.([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]map[string]any, len(list))
+	for i, item := range list {
+		if m, ok := item.(map[string]any); ok {
+			out[i] = m
+		}
+	}
+	return out
+}
+
 func setDefaults(p any) {
 	// Get the value of the pointer to struct
 	val := reflect.ValueOf(p).Elem()

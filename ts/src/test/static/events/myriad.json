@@ -1,0 +1,484 @@
+[
+    {
+        "id": "POLYMARKET_KALSHI",
+        "event": "POLYMARKET_KALSHI",
+        "slug": "POLYMARKET_KALSHI",
+        "markets": [
+            {
+                "id": "2741:549",
+                "market": "POLYMARKET_KALSHI",
+                "base": "polymarket-or-kalshi",
+                "quote": "USDC",
+                "baseId": "2741:549",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "taker": 0.02,
+                "maker": 0.02,
+                "expiry": 4102444860000,
+                "expiryDatetime": "2100-01-01T00:01:00.000Z",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "marginModes": {},
+                "info": {
+                    "id": "549",
+                    "networkId": "2741",
+                    "slug": "polymarket-or-kalshi",
+                    "title": "Polymarket or Kalshi?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either",
+                    "publishedAt": "2025-11-08T11:02:20.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/20176323-324a-4b47-283e-8c2f6e1d0900/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/54523a13-d80d-403f-8282-e10f06393000/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.89296615",
+                    "volume": "11792850.814653",
+                    "volume24h": 1.029,
+                    "volumeNotional": "15796115.564182",
+                    "volumeNotional24h": "1.418676",
+                    "users": "1071",
+                    "shares": "2240.415558",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x4841Ec2b14C129F03Ce6dcA3ce61f482D48DCE29",
+                        "0x44d4b4189ACFD8B18d9939f7E76a78672eAd40c2",
+                        "0x304fc7881ce775dd94607B4165006b70D885b441"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Polymarket",
+                            "shares": "615.670527",
+                            "sharesHeld": "1559.441408",
+                            "price": "0.72519807",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00034775",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmaHmjD4WmrBLKg4Nd92KwQMC9P1KfYaUcZQFb2AfWUws7",
+                            "holders": "122",
+                            "tokenId": "1098"
+                        },
+                        {
+                            "id": "1",
+                            "title": "Kalshi",
+                            "shares": "1624.745031",
+                            "sharesHeld": "550.366904",
+                            "price": "0.27480193",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00091887",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "10",
+                            "tokenId": "1099"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": [],
+                    "marketId": "549"
+                },
+                "tierBased": false,
+                "percentage": true,
+                "prediction": true,
+                "feeSide": "get",
+                "outcomes": [
+                    {
+                        "id": "2741:549/0",
+                        "symbol": "POLYMARKET_KALSHI:POLYMARKET",
+                        "marketSymbol": "POLYMARKET_KALSHI",
+                        "label": "Polymarket",
+                        "active": true,
+                        "info": {
+                            "networkId": "2741",
+                            "marketId": "549",
+                            "slug": "polymarket-or-kalshi",
+                            "outcomeId": "0",
+                            "outcomeLabel": "Polymarket",
+                            "outcomePrice": 0.72519807,
+                            "volume24h": 1.029,
+                            "state": "open",
+                            "tradingModel": "amm"
+                        }
+                    },
+                    {
+                        "id": "2741:549/1",
+                        "symbol": "POLYMARKET_KALSHI:KALSHI",
+                        "marketSymbol": "POLYMARKET_KALSHI",
+                        "label": "Kalshi",
+                        "active": true,
+                        "info": {
+                            "networkId": "2741",
+                            "marketId": "549",
+                            "slug": "polymarket-or-kalshi",
+                            "outcomeId": "1",
+                            "outcomeLabel": "Kalshi",
+                            "outcomePrice": 0.27480193,
+                            "volume24h": 1.029,
+                            "state": "open",
+                            "tradingModel": "amm"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "FEAR_GREED",
+        "event": "FEAR_GREED",
+        "slug": "FEAR_GREED",
+        "markets": [
+            {
+                "id": "2741:449",
+                "market": "FEAR_GREED",
+                "base": "fear-or-greed",
+                "quote": "USDC",
+                "baseId": "2741:449",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "taker": 0.02,
+                "maker": 0.02,
+                "expiry": 4102444860000,
+                "expiryDatetime": "2100-01-01T00:01:00.000Z",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "marginModes": {},
+                "info": {
+                    "id": "449",
+                    "networkId": "2741",
+                    "slug": "fear-or-greed",
+                    "title": "Fear or Greed?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "**There are zero trading fees charged for this market.**\n\n**This market is to gauge social sentiment, is trading only, and will never be resolved towards either",
+                    "publishedAt": "2025-10-07T15:48:47.000Z",
+                    "expiresAt": "2100-01-01T00:01:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "sell": {
+                            "fee": "0",
+                            "treasury_fee": "0",
+                            "distributor_fee": "0"
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": "-1",
+                    "topics": [
+                        "Crypto",
+                        "Sentiment"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://x.com/myriadmarkets",
+                    "resolutionTitle": "You",
+                    "token": {
+                        "name": "Bridged USDC (Stargate)",
+                        "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+                        "symbol": "USDC.e",
+                        "decimals": "6"
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/bb255b5e-03ff-4960-7d42-fdcdb0354a00/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/9cf5170f-fb63-4a0a-8743-04d701f49a00/public",
+                    "liquidity": "1000",
+                    "liquidityPrice": "0.99769669",
+                    "volume": "1122416.505018",
+                    "volume24h": 1.039,
+                    "volumeNotional": "2215102.718962",
+                    "volumeNotional24h": "1.944775",
+                    "users": "1258",
+                    "shares": "2004.66888",
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": true,
+                    "moneyline": false,
+                    "executionMode": "0",
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x950a42a5E748455Dc5d8B33F8A0c344Ba9cdb384",
+                        "0x7988E00745d107B5605EE9935A49Ff3ECD4D3ED9",
+                        "0x5497dbf37b8553f0C3d36D3458C558c0195685C5"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": "0",
+                            "title": "Fear",
+                            "shares": "1070.514885",
+                            "sharesHeld": "743.109033",
+                            "price": "0.46598917",
+                            "closingPrice": null,
+                            "priceChange24h": "0.00103708",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/QmWkt7sqJ74vGeFvSSLkFuW5ukAA2zKt24eHD7KRbwV2rz",
+                            "holders": "40",
+                            "tokenId": "898"
+                        },
+                        {
+                            "id": "1",
+                            "title": "Greed",
+                            "shares": "934.153995",
+                            "sharesHeld": "879.469923",
+                            "price": "0.53401083",
+                            "closingPrice": null,
+                            "priceChange24h": "-0.00090323",
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": "53",
+                            "tokenId": "899"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "externalSources": [],
+                    "marketId": "449"
+                },
+                "tierBased": false,
+                "percentage": true,
+                "prediction": true,
+                "feeSide": "get",
+                "outcomes": [
+                    {
+                        "id": "2741:449/0",
+                        "symbol": "FEAR_GREED:FEAR",
+                        "marketSymbol": "FEAR_GREED",
+                        "label": "Fear",
+                        "active": true,
+                        "info": {
+                            "networkId": "2741",
+                            "marketId": "449",
+                            "slug": "fear-or-greed",
+                            "outcomeId": "0",
+                            "outcomeLabel": "Fear",
+                            "outcomePrice": 0.46598917,
+                            "volume24h": 1.039,
+                            "state": "open",
+                            "tradingModel": "amm"
+                        }
+                    },
+                    {
+                        "id": "2741:449/1",
+                        "symbol": "FEAR_GREED:GREED",
+                        "marketSymbol": "FEAR_GREED",
+                        "label": "Greed",
+                        "active": true,
+                        "info": {
+                            "networkId": "2741",
+                            "marketId": "449",
+                            "slug": "fear-or-greed",
+                            "outcomeId": "1",
+                            "outcomeLabel": "Greed",
+                            "outcomePrice": 0.53401083,
+                            "volume24h": 1.039,
+                            "state": "open",
+                            "tradingModel": "amm"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "WORLDCUP_GROUP_D_OB",
+        "event": "WORLDCUP_GROUP_D_OB",
+        "slug": "WORLDCUP_GROUP_D_OB",
+        "markets": [
+            {
+                "id": "56:730",
+                "market": "WORLDCUP_GROUP_D_OB",
+                "base": "will-trkiye-win-group-d",
+                "quote": "USDC",
+                "baseId": "56:730",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "prediction": true,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "info": {
+                    "networkId": "56",
+                    "marketId": "730",
+                    "slug": "will-trkiye-win-group-d",
+                    "state": "open"
+                },
+                "outcomes": [
+                    {
+                        "id": "56:730/0",
+                        "symbol": "WORLDCUP_GROUP_D_OB:YES",
+                        "marketSymbol": "WORLDCUP_GROUP_D_OB",
+                        "label": "Yes",
+                        "active": true,
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "730",
+                            "slug": "will-trkiye-win-group-d",
+                            "outcomeId": "0",
+                            "outcomeLabel": "Yes",
+                            "state": "open",
+                            "tradingModel": "ob",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    },
+                    {
+                        "id": "56:730/1",
+                        "symbol": "WORLDCUP_GROUP_D_OB:NO",
+                        "marketSymbol": "WORLDCUP_GROUP_D_OB",
+                        "label": "No",
+                        "active": true,
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "730",
+                            "slug": "will-trkiye-win-group-d",
+                            "outcomeId": "1",
+                            "outcomeLabel": "No",
+                            "state": "open",
+                            "tradingModel": "ob",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

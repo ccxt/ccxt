@@ -95,7 +95,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object name = name3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkRequiredCredentials();
             Object market = null;
             Object messageHash = name;
@@ -169,7 +172,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object name = name3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkRequiredCredentials();
             if (Helpers.isTrue(this.isEmpty((java.util.List<String>)(symbols))))
             {
@@ -226,7 +232,6 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
             return (this.subscribe("RISK", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -252,7 +257,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchFundingRates() requires an array of symbols")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object fundingRate = (this.subscribeMultiple("RISK", symbols, parameters)).join();
             Object symbol = this.safeString(fundingRate, "symbol");
             if (Helpers.isTrue(this.newUpdates))
@@ -282,7 +290,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = null;
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
@@ -325,7 +336,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = null;
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
@@ -552,7 +566,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object options = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -651,7 +668,10 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object trades = (this.subscribeMultiple("MATCH", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -770,7 +790,6 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
             return (this.subscribeMultiple("LEVEL2", symbols, parameters)).join();
         });
 

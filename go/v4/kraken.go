@@ -1431,7 +1431,7 @@ func (this *KrakenCore) FetchLedger(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -2892,7 +2892,7 @@ func (this *KrakenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -3562,7 +3562,7 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			var sinceString any = this.NumberToString(since)
 			AddElementToObject(request, "start", Precise.StringDiv(sinceString, "1000"))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -3682,7 +3682,7 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			var sinceString any = this.NumberToString(since)
 			AddElementToObject(request, "start", Precise.StringDiv(sinceString, "1000"))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")

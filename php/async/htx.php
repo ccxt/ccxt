@@ -19,6 +19,9 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class htx extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -3202,7 +3205,7 @@ class htx extends Exchange {
                 // 'from' => intval(($since / (string) 1000)), spot only
                 // 'to' => $this->seconds(), spot only
             );
-            $priceType = $this->safe_string_n($params, array( 'priceType', 'price' ));
+            $priceType = $this->safe_string_2($params, 'priceType', 'price');
             $params = $this->omit($params, array( 'priceType', 'price' ));
             $until = null;
             list($until, $params) = $this->handle_param_integer($params, 'until');
@@ -5126,7 +5129,7 @@ class htx extends Exchange {
         if ($isLinearOrder) {
             $type = $this->safe_string($order, 'type');
             if (($type === null) || ($type === 'tp') || ($type === 'sl') || ($type === 'tpsl')) {
-                $type = $this->safe_string_n($order, array( 'tp_type', 'sl_type' ));
+                $type = $this->safe_string_2($order, 'tp_type', 'sl_type');
             }
             if ($type === '0') {
                 $type = null;

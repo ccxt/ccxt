@@ -1235,7 +1235,7 @@ public partial class kraken : ccxt.kraken
         {
             limit = callDynamically(result, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
 
     /**

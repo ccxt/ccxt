@@ -934,7 +934,7 @@ func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatil
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

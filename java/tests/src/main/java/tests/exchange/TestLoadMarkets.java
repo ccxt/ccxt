@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestLoadMarkets extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testLoadMarkets(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testLoadMarkets(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "loadMarkets";
-        Object markets = (exchange.loadMarkets()).join();
+        Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Object symbolsLength = Helpers.getArrayLength(exchange.symbols);

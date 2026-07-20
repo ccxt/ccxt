@@ -29,18 +29,19 @@ SOFTWARE.
 
 /* eslint-disable */
 
-import { Exchange }  from './src/base/Exchange.js'
+import { Exchange, BaseExchange }  from './src/base/Exchange.js'
+import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.64';
+const version = '4.5.67';
 
 //-----------------------------------------------------------------------------
 
@@ -229,6 +230,12 @@ import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
+
+import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import kalshiPrediction from  './src/prediction/kalshi.js'
+import limitlessPrediction from  './src/prediction/limitless.js'
+import myriadPrediction from  './src/prediction/myriad.js'
+import polymarketPrediction from  './src/prediction/polymarket.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -431,13 +438,30 @@ for (const exchange in pro) {
 pro['Exchange'] = Exchange // now the same for rest and ts
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro}, exchanges, functions, errors)
+const prediction = {
+    'hyperliquid':            hyperliquidPrediction,
+    'kalshi':                 kalshiPrediction,
+    'limitless':              limitlessPrediction,
+    'myriad':                 myriadPrediction,
+    'polymarket':             polymarketPrediction,
+};
+
+(prediction as any).exchanges = Object.keys (prediction)
+// the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
+// prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
+prediction['Exchange'] = PredictionExchange
+//-----------------------------------------------------------------------------
+
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
     Exchange,
+    BaseExchange,
+    PredictionExchange,
     exchanges,
     pro,
+    prediction,
     Precise,
     functions,
     errors,
@@ -510,7 +534,22 @@ export {
     FeeInterface,
     TradingFeeInterface,
     MarketMarginModes,
+    Precision,
     MarketInterface,
+    PredictionFees,
+    PredictionEvent,
+    PredictionMarket,
+    PredictionOutcome,
+    PredictionOrder,
+    PredictionTrade,
+    PredictionPosition,
+    PredictionTicker,
+    PredictionOrderBook,
+    PredictionTickers,
+    PredictionTradingFee,
+    PredictionOpenInterest,
+    PredictionSettlement,
+    fetchEventsParams,
     Trade,
     Order,
     OrderBook,
@@ -542,6 +581,7 @@ export {
     OpenInterests,
     Liquidation,
     OrderRequest,
+    PredictionOrderRequest,
     CancellationRequest,
     FundingHistory,
     MarginMode,

@@ -5162,7 +5162,7 @@ class bybit extends Exchange {
         $result = $this->fetch_orders($symbol, null, null, $this->extend($request, $params));
         $length = count($result);
         if ($length === 0) {
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
@@ -5334,7 +5334,7 @@ class bybit extends Exchange {
             throw new NotSupported($this->id . ' fetchOrders() is not supported for spot markets');
         }
         $request['category'] = $type;
-        $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
@@ -5431,7 +5431,7 @@ class bybit extends Exchange {
         $result = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
         $length = count($result);
         if ($length === 0) {
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
@@ -5468,7 +5468,7 @@ class bybit extends Exchange {
         $result = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
         $length = count($result);
         if ($length === 0) {
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
@@ -5514,7 +5514,7 @@ class bybit extends Exchange {
         $type = null;
         list($type, $params) = $this->get_bybit_type('fetchCanceledAndClosedOrders', $market, $params);
         $request['category'] = $type;
-        $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
@@ -6941,10 +6941,10 @@ class bybit extends Exchange {
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
         $initialMarginString = $this->safe_string_2($position, 'positionIM', 'cumEntryValue');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
-        $timestamp = $this->safe_integer_n($position, array( 'createdTime', 'createdAt' ));
+        $timestamp = $this->safe_integer_2($position, 'createdTime', 'createdAt');
         $lastUpdateTimestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
         if ($lastUpdateTimestamp === null) {
-            $lastUpdateTimestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt', 'updatedTime' ));
+            $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedTime', 'updatedAt');
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
@@ -7664,7 +7664,7 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($response, 'time');
         $transfer = $this->safe_dict($response, 'result', array());
-        $statusRaw = $this->safe_string_n($response, array( 'retCode', 'retMsg' ));
+        $statusRaw = $this->safe_string_2($response, 'retCode', 'retMsg');
         $status = $this->parse_transfer_status($statusRaw);
         return $this->extend($this->parse_transfer($transfer, $currency), array(
             'timestamp' => $timestamp,

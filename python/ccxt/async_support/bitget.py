@@ -6771,7 +6771,7 @@ class bitget(Exchange, ImplicitAPI):
             elif trigger:
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
-                endTime = self.safe_integer_n(params, ['endTime', 'until'])
+                endTime = self.safe_integer_2(params, 'endTime', 'until')
                 params = self.omit(params, ['until'])
                 if since is None:
                     since = now - 7776000000

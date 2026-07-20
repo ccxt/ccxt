@@ -10,6 +10,7 @@ use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class independentreserve extends \ccxt\async\independentreserve {
     public function describe(): mixed {

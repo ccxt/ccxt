@@ -341,37 +341,37 @@ public final class SafeMethods {
 
     public static Object safeStringUpper(Object obj, Object key, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = toStringOrNull(safeString(obj, key, defaultValue));
+        Object result = toStringOrNull(safeString(obj, key));
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
     public static Object safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = safeString2(obj, key1, key2, defaultValue);
+        Object result = safeString2(obj, key1, key2);
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
     public static Object safeStringUpperN(Object obj, Object keys, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = safeStringN(obj, keys, defaultValue);
+        Object result = safeStringN(obj, keys);
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
     public static Object safeStringLower(Object obj, Object key, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = safeString(obj, key, defaultValue);
+        Object result = safeString(obj, key);
         return (result == null)? defaultValue : ((String)result).toLowerCase();
     }
 
     public static Object safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = safeString2(obj, key1, key2, defaultValue);
+        Object result = safeString2(obj, key1, key2);
         return (result == null)? defaultValue : ((String)result).toLowerCase();
     }
 
     public static Object safeStringLowerN(Object obj, Object keys, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = safeStringN(obj, keys, defaultValue);
+        Object result = safeStringN(obj, keys);
         return (result == null) ? defaultValue : ((String)result).toLowerCase();
     }
 

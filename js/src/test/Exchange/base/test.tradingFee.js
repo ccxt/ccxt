@@ -6,6 +6,10 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 function testTradingFee(exchange, skippedProperties, method, symbol, entry) {
+    // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
+    if (exchange.safeBool(exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend({ 'symbol': true }, skippedProperties);
+    }
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',

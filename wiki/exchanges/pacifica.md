@@ -67,8 +67,9 @@
 retrieves data on all markets for pacifica
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -129,6 +130,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -171,6 +173,7 @@ fetches the margin mode of the trading pair
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -215,6 +218,7 @@ retrieves data on all swap markets for pacifica
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -240,7 +244,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d' |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M' |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -520,6 +524,7 @@ fetch all unfilled currently closed orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -543,6 +548,7 @@ fetch all canceled orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -566,6 +572,7 @@ fetch all closed and canceled orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -798,6 +805,7 @@ Retrieves the open interest for a list of symbols
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -818,6 +826,7 @@ retrieves the open interest of a contract trading pair
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -864,6 +873,7 @@ fetch the history of funding payments paid and received on this account
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -914,6 +924,7 @@ creates a sub-account under the main account
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a response object
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
