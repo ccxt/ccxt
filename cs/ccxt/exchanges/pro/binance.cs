@@ -335,7 +335,11 @@ public partial class binance : ccxt.binance
             }
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
-        object firstMarket = this.getMarketFromSymbols(symbols);
+        object firstMarket = null;
+        if (!isTrue(this.isEmpty(symbols)))
+        {
+            firstMarket = this.getMarketFromSymbols(symbols);
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
