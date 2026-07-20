@@ -3828,6 +3828,12 @@ public partial class binance : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                object updateTime = this.safeInteger(balance, "updateTime");
+                if (isTrue(isEqual(updateTime, 0)))
+                {
+                    continue;
+                }
                 object currencyId = this.safeString(balance, "asset");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
