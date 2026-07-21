@@ -1,0 +1,36 @@
+{
+    "exchange": "binance",
+    "asyncOnly": true,
+    "skipKeys": [
+		"timestamp",
+		"signature"
+	],
+    "outputType": "json",
+    "options": {
+		"loadAllOutcomes": true
+	},
+    "methods": {
+		"fetchOrderBook": [
+			{
+				"description": "fetch orderbook by outcome label",
+				"method": "fetchOrderBook",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book?timestamp=1784640076532&vendor=PREDICT_FUN&marketId=5992559&tokenId=111320514734107489769832633008728755658539627048951651727730916027834170490912&signature=xxxxxxxxxxx",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			}
+		],
+		"fetchTicker": [
+			{
+				"description": "fetch ticker by outcome label",
+				"method": "fetchTicker",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book/last-trade-price?timestamp=1784640076532&&marketId=5992559&signature=xxxxxxxxxxx",
+				"input": [
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
+				],
+				"output": null
+			}
+		]
+    }
+}

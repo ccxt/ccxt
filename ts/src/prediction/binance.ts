@@ -653,7 +653,7 @@ export default class binance extends Exchange {
         const resolvedOutcome = resolvedOutcomeRaw;
         return {
             'id': marketId,
-            'symbol': marketSymbol,
+            'market': marketSymbol,
             'base': collateral,
             'quote': collateral,
             'settle': undefined,
