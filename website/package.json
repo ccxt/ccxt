@@ -20,7 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "feed": "^6.0.0",
     "flexsearch": "^0.8.212",
-    "fumadocs-core": "16.9.2",
+    "fumadocs-core": "16.11.5",
     "fumadocs-mdx": "15.2.0",
     "fumadocs-ui": "16.11.5",
     "hast-util-to-jsx-runtime": "^2.3.6",
