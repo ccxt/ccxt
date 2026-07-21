@@ -3665,9 +3665,6 @@ export class BaseExchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        if (ticker === undefined) {
-            throw new NotSupported (this.id + ' parseTicker() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
@@ -3676,16 +3673,10 @@ export class BaseExchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
-        if (trade === undefined) {
-            throw new NotSupported (this.id + ' parseTrade() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        if (transaction === undefined) {
-            throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
@@ -3705,9 +3696,6 @@ export class BaseExchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
-        if (order === undefined) {
-            throw new NotSupported (this.id + ' parseOrder() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
@@ -3728,9 +3716,6 @@ export class BaseExchange {
     }
 
     parsePosition (position: Dict, market: Market = undefined): Position {
-        if (position === undefined) {
-            throw new NotSupported (this.id + ' parsePosition() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
