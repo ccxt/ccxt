@@ -73,6 +73,17 @@
 				],
 				"output": null
 			}
+		],
+		"fetchBalance": [
+			{
+				"description": "fetch balance",
+				"method": "fetchBalance",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/balance/payment-options?timestamp=1784640076532&signature=xxxxxxxxxxx",
+				"input": [
+					12345678
+				],
+				"output": null
+			}
 		]
     }
 }

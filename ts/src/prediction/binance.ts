@@ -42,6 +42,7 @@ export default class binance extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchBalance': true,
                 'prediction': true,
             },
             'urls': {
@@ -852,6 +853,45 @@ export default class binance extends Exchange {
         const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, this.safeOutcomeSymbol (outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size');
         return this.safePredictionOrderBook (orderbook, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#query-payment-option-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'cedefi', 'funding', or 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        // const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        // const type = this.safeString (params, 'type', defaultType);
+        const response = await this.sapiPrivateGetBalancePaymentOptions (params);
+        //
+        // {
+        //     "items": [
+        //         {
+        //             "accountType": "SPOT",
+        //             "availableBalanceDisplay": "1000.00",
+        //             "enabled": true
+        //         }
+        //     ]
+        // }
+        //
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeList (response, 'items', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const accountType = this.safeString (balance, 'accountType');
+            const free = this.safeString (balance, 'availableBalanceDisplay');
+            const account = this.account ();
+            account['free'] = free;
+            result[accountType] = account;
+        }
+        return result;
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
