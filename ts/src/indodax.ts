@@ -767,6 +767,8 @@ export default class indodax extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // openOrders / orderHistory sell
+        //
         //     {
         //         "order_id": "12345",
         //         "submit_time": "1392228122",
@@ -776,8 +778,8 @@ export default class indodax extends Exchange {
         //         "remain_ltc": "100000000"
         //     }
         //
-        // market closed orders - note that the price is very high
-        // and does not reflect actual price the order executed at
+        // orderHistory filled sell - note that the price can be very high
+        // and may not reflect actual price the order executed at
         //
         //     {
         //       "order_id": "49326856",
@@ -788,6 +790,33 @@ export default class indodax extends Exchange {
         //       "status": "filled",
         //       "order_xrp": "30.45000000",
         //       "remain_xrp": "0.00000000"
+        //     }
+        //
+        // getOrder filled buy (quote-sized IDR order, filled base in receive_{base})
+        //
+        //     {
+        //         "order_id": "1019792",
+        //         "price": "544",
+        //         "type": "buy",
+        //         "order_rp": "10999",
+        //         "fee": 35,
+        //         "receive_ath": "20.15",
+        //         "status": "filled"
+        //     }
+        //
+        // getOrder cancelled buy
+        //
+        //     {
+        //         "order_id": "59639504",
+        //         "price": "100207000",
+        //         "type": "buy",
+        //         "order_rp": "336058",
+        //         "remain_rp": "336058",
+        //         "submit_time": "1578648363",
+        //         "finish_time": "1578649332",
+        //         "status": "cancelled",
+        //         "receive_idr": "336058",
+        //         "client_order_id": "clientx-sj82ks82j"
         //     }
         //
         // cancelOrder
@@ -817,26 +846,52 @@ export default class indodax extends Exchange {
         const price = this.safeString (order, 'price');
         let amount: Str = undefined;
         let remaining: Str = undefined;
+        let filled: Str = undefined;
+        let fee = undefined;
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
             let baseId = market['baseId'];
-            if ((market['quoteId'] === 'idr') && ('order_rp' in order)) {
+            if ((market['quoteId'] === 'idr') && (('order_rp' in order) || ('remain_rp' in order) || ('spend_rp' in order))) {
                 quoteId = 'rp';
             }
-            if ((market['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((market['baseId'] === 'idr') && (('order_rp' in order) || ('remain_rp' in order))) {
                 baseId = 'rp';
             }
-            cost = this.safeString (order, 'order_' + quoteId);
-            if (!cost) {
-                amount = this.safeString (order, 'order_' + baseId);
-                remaining = this.safeString (order, 'remain_' + baseId);
+            const orderQuote = this.safeString (order, 'order_' + quoteId);
+            const orderBase = this.safeString (order, 'order_' + baseId);
+            const remainBase = this.safeString (order, 'remain_' + baseId);
+            const receiveBase = this.safeString (order, 'receive_' + baseId);
+            if (orderQuote !== undefined) {
+                cost = orderQuote;
+            }
+            if (orderBase !== undefined) {
+                amount = orderBase;
+            }
+            if (remainBase !== undefined) {
+                remaining = remainBase;
+            }
+            if (receiveBase !== undefined) {
+                filled = receiveBase;
+            }
+            if ((amount === undefined) && (filled !== undefined)) {
+                amount = filled;
+            }
+            if ((status === 'closed') && (remaining === undefined) && ((filled !== undefined) || (amount !== undefined))) {
+                remaining = '0';
+            }
+            const feeCost = this.safeNumber (order, 'fee');
+            if (feeCost !== undefined) {
+                fee = {
+                    'currency': market['quote'],
+                    'cost': feeCost,
+                    'rate': undefined,
+                };
             }
         }
         const timestamp = this.safeInteger (order, 'submit_time');
-        const fee = undefined;
         const id = this.safeString (order, 'order_id');
         return this.safeOrder ({
             'info': order,
@@ -855,7 +910,7 @@ export default class indodax extends Exchange {
             'cost': cost,
             'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
