@@ -3436,7 +3436,7 @@ export default class bingx extends Exchange {
         if ((takeProfit !== undefined) && (takeProfit.indexOf ('{') === 0)) {
             result['takeProfit'] = this.parseJson (takeProfit);
         }
-        return this.parseOrder (result || {}, market);
+        return this.parseOrder (result, market);
     }
 
     /**

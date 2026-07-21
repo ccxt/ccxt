@@ -1918,7 +1918,8 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response || {}), extendParams) as Order;
+            const parsedResponse = (response === undefined) ? {} : response;
+            return this.extend (this.parseOrder (parsedResponse), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseOrder (data), extendParams) as Order;
@@ -2088,7 +2089,8 @@ export default class woofipro extends Exchange {
         // }
         //
         const orders = this.safeDict (response, 'data', response);
-        return this.parseOrder (orders || {}, market);
+        const parsedOrders = (orders === undefined) ? {} : orders;
+        return this.parseOrder (parsedOrders, market);
     }
 
     /**
