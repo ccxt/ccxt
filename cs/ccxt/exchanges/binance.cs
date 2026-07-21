@@ -9297,6 +9297,10 @@ public partial class binance : Exchange
             }
             response = await this.sapiGetCapitalWithdrawHistory(this.extend(request, parameters));
         }
+        if (isTrue((response is string)))
+        {
+            response = this.parseJson(response);
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(response, i))["type"] = "withdrawal";
