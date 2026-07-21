@@ -31,6 +31,48 @@
 				],
 				"output": null
 			}
+		],
+		"fetchEvents": [
+			{
+				"description": "fetch events by query",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/search?timestamp=1784640076532&query=FED&topK=25&signature=xxxxxxxxxxx",
+				"input": [
+					{
+						"query": "FED"
+					}
+				],
+				"output": null
+			},
+			{
+				"description": "fetch events by eventid",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/detail?timestamp=1784640076532&&marketTopicId=12345678&signature=xxxxxxxxxxx",
+				"input": [
+					{
+						"eventId": 12345678
+					}
+				],
+				"output": null
+			},
+			{
+				"description": "fetch events",
+				"method": "fetchEvents",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/list?timestamp=1784640076532&&offset=0&limit=25&signature=xxxxxxxxxxx",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchEvent": [
+			{
+				"description": "fetch event",
+				"method": "fetchEvent",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/detail?timestamp=1784640076532&&marketTopicId=12345678&signature=xxxxxxxxxxx",
+				"input": [
+					12345678
+				],
+				"output": null
+			}
 		]
     }
 }
