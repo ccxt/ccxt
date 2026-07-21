@@ -47,6 +47,7 @@ class Entry:
 
 
 IndexType = Union[str, int]
+NullableIndexType = Union[str, int, None]
 Num = Union[None, str, float, int, Decimal]
 NumType = Union[Type[str], Type[float], Type[int], Type[Decimal]]
 Str = Optional[str]
