@@ -8413,6 +8413,8 @@ class binance(Exchange, ImplicitAPI):
             #         "transferType": 0
             #       }
             #     ]
+        if isinstance(response, str):
+            response = self.parse_json(response)
         for i in range(0, len(response)):
             response[i]['type'] = 'withdrawal'
         return self.parse_transactions(response, currency, since, limit)
