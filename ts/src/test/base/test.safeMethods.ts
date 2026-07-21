@@ -315,6 +315,7 @@ function testSafeFloat () {
     });
     
     const inputDict = helperDefaultInputDict ();
+    const inputList = [ 'Hi', 2 ];
 
     // safeFloat
     // @ts-expect-error
