@@ -866,6 +866,7 @@ class Transpiler {
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
             'DepositAddress': /-> (?:List\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
