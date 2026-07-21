@@ -3455,10 +3455,10 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: Dict[] = [];
-        const marketIds: Str[] = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
+            const marketId = this.safeString (rawOrder, 'symbol', '');
             const type = this.safeString (rawOrder, 'type');
             marketIds.push (marketId);
             const side = this.safeString (rawOrder, 'side');
@@ -3468,7 +3468,7 @@ export default class bingx extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const symbols = this.marketSymbols (marketIds as string[], undefined, false, true, true);
+        const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
         const request: Dict = {};
