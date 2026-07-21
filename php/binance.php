@@ -8826,6 +8826,9 @@ class binance extends Exchange {
             //       }
             //     )
         }
+        if (gettype($response) === 'string') {
+            $response = $this->parse_json($response);
+        }
         for ($i = 0; $i < count($response); $i++) {
             $response[$i]['type'] = 'withdrawal';
         }
