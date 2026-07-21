@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	ccxt "github.com/ccxt/ccxt/go/v4"
 	ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 )
 
@@ -74,27 +75,27 @@ func main() {
 	run("fetchPositions", func() (int, error) { r, e := ex.FetchPositions(); return len(r), e })
 	run("fetchMyTrades (all)", func() (int, error) { r, e := ex.FetchMyTrades(); return len(r), e })
 	run("fetchMyTrades (outcome)", func() (int, error) {
-		r, e := ex.FetchMyTrades(ccxtprediction.WithFetchMyTradesOutcome(outcome))
+		r, e := ex.FetchMyTrades(ccxt.WithFetchMyTradesSymbol(outcome))
 		return len(r), e
 	})
 	run("fetchOrders (outcome)", func() (int, error) {
-		r, e := ex.FetchOrders(ccxtprediction.WithFetchOrdersOutcome(outcome))
+		r, e := ex.FetchOrders(ccxt.WithFetchOrdersSymbol(outcome))
 		return len(r), e
 	})
 	run("fetchOpenOrders (outcome)", func() (int, error) {
-		r, e := ex.FetchOpenOrders(ccxtprediction.WithFetchOpenOrdersOutcome(outcome))
+		r, e := ex.FetchOpenOrders(ccxt.WithFetchOpenOrdersSymbol(outcome))
 		return len(r), e
 	})
 	run("fetchOrder (fake id)", func() (int, error) {
-		_, e := ex.FetchOrder(fake, ccxtprediction.WithFetchOrderOutcome(outcome))
+		_, e := ex.FetchOrder(fake, ccxt.WithFetchOrderSymbol(outcome))
 		return 1, e
 	})
 	run("fetchOrdersByIds (fake id)", func() (int, error) {
-		r, e := ex.FetchOrdersByIds([]string{fake}, ccxtprediction.WithFetchOrdersByIdsOutcome(outcome))
+		r, e := ex.FetchOrdersByIds([]string{fake}, ccxt.WithFetchOrdersByIdsSymbol(outcome))
 		return len(r), e
 	})
 	run("cancelOrder (fake id)", func() (int, error) {
-		_, e := ex.CancelOrder(fake, ccxtprediction.WithCancelOrderOutcome(outcome))
+		_, e := ex.CancelOrder(fake, ccxt.WithCancelOrderSymbol(outcome))
 		return 1, e
 	})
 	run("cancelOrders (fake id)", func() (int, error) {
@@ -102,7 +103,7 @@ func main() {
 		return len(r), e
 	})
 	run("cancelAllOrders (slug, no-op)", func() (int, error) {
-		r, e := ex.CancelAllOrders(ccxtprediction.WithCancelAllOrdersParams(map[string]any{"slug": slug, "warnOnCancelAllOrdersWithOutcome": false}))
+		r, e := ex.CancelAllOrders(ccxt.WithCancelAllOrdersParams(map[string]any{"slug": slug, "warnOnCancelAllOrdersWithOutcome": false}))
 		return len(r), e
 	})
 }

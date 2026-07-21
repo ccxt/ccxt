@@ -85,7 +85,7 @@ class PredictionExchange(BaseExchange):
         })
 
     def is_prediction(self) -> bool:
-        return self.safe_bool(self.has, 'prediction', False) is True
+        return self.safe_bool(self.has, 'prediction', False)
 
     def parse_search_queries(self, params={}):
         # accepts either `query`(a single search string) or `queries`(a list of strings)
@@ -118,7 +118,7 @@ class PredictionExchange(BaseExchange):
             extraNames = extraNames + ', ' + scopeKey
         raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
-    def apply_event_fetch_params(self, events: List[Any], params={}, queries: Strings = None):
+    def apply_event_fetch_params(self, events: List[Any], params={}, queries: List[str] = None):
         # applies the unified fetchEvents options client-side(eventId/slug/status/searchIn/sort/limit)
         # so exchanges whose API can't filter natively still support them consistently.
         # every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -186,7 +186,7 @@ class PredictionExchange(BaseExchange):
                 result.append(event)
         return result
 
-    def filter_events_by_search_in(self, events: List[Any], queries: Strings, searchIn: Str = None):
+    def filter_events_by_search_in(self, events: List[Any], queries: List[str], searchIn: Str = None):
         # keep events whose title and/or description contains one of the queries(searchIn defaults to 'both')
         # own-line length read so the regex transpiler uses count()(array) not strlen()(string)
         queriesLength = 0
@@ -204,13 +204,9 @@ class PredictionExchange(BaseExchange):
             matched = False
             for qi in range(0, len(queries)):
                 q = queries[qi].lower()
-                if title is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing title')
                 if checkTitle and (title.find(q) >= 0):
                     matched = True
                     break
-                if description is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing description')
                 if checkDescription and (description.find(q) >= 0):
                     matched = True
                     break
@@ -240,10 +236,13 @@ class PredictionExchange(BaseExchange):
                 pendingSep = True
         return s
 
-    def filter_events_by_tags(self, events: List[Any], tags: Strings = None):
+    def filter_events_by_tags(self, events: List[Any], tags: List[str] = None):
         # keep events carrying one of the requested tags; tolerant to string tags and to
         # object tags({slug, title, ...}) since venues differ. no-op when no tags requested
-        if (tags is None) or (len(tags) == 0):
+        tagsLength = 0
+        if tags is not None:
+            tagsLength = len(tags)
+        if tagsLength == 0:
             return events
         wanted = []
         for i in range(0, len(tags)):
@@ -342,9 +341,7 @@ class PredictionExchange(BaseExchange):
             return self.events_by_slug[eventIdOrSlug]
         raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents({'query': ...}) first")
 
-    def outcome(self, outcomeSymbol: Str):
-        if outcomeSymbol is None:
-            raise ArgumentsRequired(self.id + ' outcome() requires an outcomeSymbol argument')
+    def outcome(self, outcomeSymbol: str):
         if (self.outcomes is None) or self.is_empty(self.outcomes):
             raise ExchangeError(self.id + ' outcomes not loaded - call loadOutcomes() or an outcome-addressed method first')
         if outcomeSymbol in self.outcomes:
@@ -353,12 +350,10 @@ class PredictionExchange(BaseExchange):
             return self.outcomes_by_id[outcomeSymbol]
         raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents()/loadOutcomes() first')
 
-    def has_outcome(self, outcomeIdOrSymbol: Str):
+    def has_outcome(self, outcomeIdOrSymbol: str):
         # sync cache-only membership probe — never throws and never fetches. self is the predicate
         # behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome(stub on miss)
         # and outcome(throws on miss) are the accessors
-        if outcomeIdOrSymbol is None:
-            return False
         if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
             return True
         if (self.outcomes_by_id is not None) and (outcomeIdOrSymbol in self.outcomes_by_id):
@@ -429,8 +424,7 @@ class PredictionExchange(BaseExchange):
         for i in range(0, len(replacementKeys)):
             replacementKey = replacementKeys[i]
             replacementValue = self.safe_string(replacements, replacementKey)
-            if replacementValue is not None:
-                s = s.replace(replacementKey, replacementValue)
+            s = s.replace(replacementKey, replacementValue)
         rawParts = s.split('-')
         parts = []
         for i in range(0, len(rawParts)):
@@ -440,7 +434,7 @@ class PredictionExchange(BaseExchange):
         joined = '_'.join(parts)
         return joined.upper()
 
-    def slug_to_market_symbol(self, eventSlug: Str, marketSlug: Str):
+    def slug_to_market_symbol(self, eventSlug: Str, marketSlug: str):
         # eventSlug is nullable(Str): markets without a parent event(e.g. myriad's 1:1 markets)
         # pass None — the body already collapses an absent event to just the market part.
         # a strict `string` param would make PHP/typed transpilers raise on null before the body runs.
@@ -456,15 +450,13 @@ class PredictionExchange(BaseExchange):
             return marketPart
         return eventPart + '_' + marketPart
 
-    def slug_to_outcome_symbol(self, eventSlug: Str, marketSlug: Str, outcome: Str):
+    def slug_to_outcome_symbol(self, eventSlug: Str, marketSlug: str, outcome: str):
         # build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         # — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
         # the label gets a light slug treatment(uppercase alphanumerics joined by '_', no stop-word
         # removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         # currency symbols("JD Vance", a dollar-sign price) yield clean handles(JD_VANCE, 120)
         # instead of leaking raw text into the outcome handle
-        if outcome is None:
-            outcome = ''
         upper = outcome.upper()
         allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         chars = self.string_to_chars_array(upper)
@@ -495,16 +487,16 @@ class PredictionExchange(BaseExchange):
             copy = self.extend({}, row)
             copy['symbol'] = self.safe_string_2(row, 'market', 'symbol')
             aliased.append(copy)
-        stored = super(PredictionExchange, self).set_markets(aliased, currencies)
+        super(PredictionExchange, self).set_markets(aliased, currencies)
         # strip the alias back off the stored rows — venues assemble user-visible event
         # structures from self.markets(hyperliquid groups its outcome markets that way),
         # so a leftover 'symbol' key would leak the deprecated field back to the caller
-        marketKeys = list(stored.keys())
+        marketKeys = list(self.markets.keys())
         for i in range(0, len(marketKeys)):
             key = marketKeys[i]
-            stored[key] = self.omit(stored[key], 'symbol')
+            self.markets[key] = self.omit(self.markets[key], 'symbol')
         self.populate_outcomes()
-        return stored
+        return self.markets
 
     def index_market_outcomes(self, market):
         # index one market's outcome tokens into self.outcomes / self.outcomes_by_id,
@@ -626,7 +618,7 @@ class PredictionExchange(BaseExchange):
             await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes
 
-    async def load_outcome(self, outcomeSymbol: Str, reload=False):
+    async def load_outcome(self, outcomeSymbol: str, reload=False):
         # resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         # returns at once(pass reload=true to skip the cache and refetch the outcome's metadata).
         # on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
@@ -634,8 +626,6 @@ class PredictionExchange(BaseExchange):
         # options.loadAllOutcomes(default False) opts back into the legacy bulk warm-up: the first
         # miss loads the whole(capped) listing once so later lookups are 0-network hits — only
         # sane on venues whose full universe is one cheap request(hyperliquid)
-        if outcomeSymbol is None:
-            raise ArgumentsRequired(self.id + ' loadOutcome() requires an outcomeSymbol argument')
         if not reload:
             if self.has_outcome(outcomeSymbol):
                 return self.safe_outcome(outcomeSymbol)
@@ -739,7 +729,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}):
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params={}):
         """
         fetches the order book for a prediction outcome
         :param str outcome: unified outcome handle
@@ -1016,7 +1006,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchSettlements() is not supported yet')
 
-    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj: dict | None = None):
+    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj=None):
         # build the prediction order directly(do NOT delegate to the crypto safeOrder, which injects
         # ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         # never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1126,7 +1116,7 @@ class PredictionExchange(BaseExchange):
         }
         return result
 
-    def safe_prediction_trade(self, trade: dict, outcomeObj: dict | None = None):
+    def safe_prediction_trade(self, trade: dict, outcomeObj=None):
         # build the prediction trade directly(no crypto safeTrade, which leaks fields the type omits)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
@@ -1158,7 +1148,7 @@ class PredictionExchange(BaseExchange):
         }
         return result
 
-    def safe_prediction_ticker(self, ticker: dict, outcomeObj: dict | None = None):
+    def safe_prediction_ticker(self, ticker: dict, outcomeObj=None):
         # build the prediction ticker directly(no crypto safeTicker, which injects vwap/previousClose/
         # indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         # prediction venues report those directly, so the crypto back-derivation from percentage is moot.
@@ -1240,7 +1230,7 @@ class PredictionExchange(BaseExchange):
         }
         return result
 
-    def safe_prediction_order_book(self, orderbook: dict, outcomeObj: dict | None = None):
+    def safe_prediction_order_book(self, orderbook: dict, outcomeObj: dict = None):
         # normalize a parsed order book to the prediction shape: replace the unified
         # `symbol` with the `outcome` handle and attach the outcome identity fields
         # outcomeId and market - so books match the PredictionOrderBook structure.
@@ -1336,44 +1326,38 @@ class PredictionExchange(BaseExchange):
     def filter_by_outcome_since_limit(self, array, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 
-    def filter_by_outcomes_since_limit(self, array, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcomes_since_limit(self, array, outcomes: List[str] = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'outcome', outcomes, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
-    def amount_to_prediction_precision(self, outcome: Str, amount):
+    def amount_to_prediction_precision(self, outcome: str, amount):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.amount_to_precision(marketSymbol, amount)
 
-    def price_to_prediction_precision(self, outcome: Str, price):
+    def price_to_prediction_precision(self, outcome: str, price):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.price_to_precision(marketSymbol, price)
 
-    def cost_to_prediction_precision(self, outcome: Str, cost):
+    def cost_to_prediction_precision(self, outcome: str, cost):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)
 
-    def pad_hex_to_even(self, hex: Str):
-        if hex is None:
-            return ''
+    def pad_hex_to_even(self, hex: str):
         # prepend a nibble so the hex has an even number of characters(whole bytes)
         hexLength = len(hex)
         if (hexLength % 2) != 0:
             return '0' + hex
         return hex
 
-    def pad_hex_address(self, address: Str):
-        if address is None:
-            return ''
+    def pad_hex_address(self, address: str):
         # left-pads a 20-byte address to a 32-byte ABI word(24 leading zero bytes)
         stripped = self.remove0x_prefix(address)
         return '000000000000000000000000' + stripped
 
-    def rlp_encode_bytes(self, hex: Str):
-        if hex is None:
-            return ''
+    def rlp_encode_bytes(self, hex: str):
         # RLP-encodes a single byte string(hex without 0x) per the Ethereum RLP spec
         byteLength = self.parse_to_int(len(hex) / 2)
         if byteLength == 0:
@@ -1399,9 +1383,7 @@ class PredictionExchange(BaseExchange):
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
 
-    def int_to_rlp_hex(self, value: Int):
-        if value is None:
-            raise ArgumentsRequired(self.id + ' intToRlpHex() requires a value argument')
+    def int_to_rlp_hex(self, value: float):
         # an integer minimal big-endian byte hex; 0 is the empty byte string
         if value == 0:
             return ''
@@ -1409,11 +1391,9 @@ class PredictionExchange(BaseExchange):
         hex = self.pad_hex_to_even(hex)
         return hex
 
-    def hex_to_rlp_bytes(self, hexValue: Str):
+    def hex_to_rlp_bytes(self, hexValue: str):
         # a hex value(e.g. an RPC result) big-endian byte hex; leading zero bytes
         # are stripped and 0 becomes the empty byte string(RLP integer encoding)
-        if hexValue is None:
-            return ''
         h = self.remove0x_prefix(hexValue)
         start = 0
         total = len(h)
@@ -1430,7 +1410,7 @@ class PredictionExchange(BaseExchange):
         # sendEvmTransaction below can call it; a call on the base itself is unsupported
         raise NotSupported(self.id + ' signEvmTransaction() must be overridden by the exchange')
 
-    async def eth_rpc(self, rpcUrl: Str, method: str, rpcParams: List[Any]):
+    async def eth_rpc(self, rpcUrl: str, method: str, rpcParams: List[Any]):
         payload = {'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams}
         headers = {'Content-Type': 'application/json'}
         response = await self.fetch(rpcUrl, 'POST', headers, self.json(payload))
@@ -1441,7 +1421,7 @@ class PredictionExchange(BaseExchange):
         # safeString would coerce a receipt object to "[object Object]"
         return self.safe_value(response, 'result')
 
-    async def send_evm_transaction(self, rpcUrl: Str, chainId: float, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str):
+    async def send_evm_transaction(self, rpcUrl: str, chainId: float, fromAddress: str, to: str, value: str, data: str, gasLimit: str):
         nonce = await self.eth_rpc(rpcUrl, 'eth_getTransactionCount', [fromAddress, 'pending'])
         gasPrice = await self.eth_rpc(rpcUrl, 'eth_gasPrice', [])
         tx = {
@@ -1457,7 +1437,7 @@ class PredictionExchange(BaseExchange):
         signed = self.sign_evm_transaction(tx, self.privateKey)
         return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
 
-    async def wait_for_transaction_receipt(self, rpcUrl: Str, txHash: Str, timeout=60000):
+    async def wait_for_transaction_receipt(self, rpcUrl: str, txHash: str, timeout=60000):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])

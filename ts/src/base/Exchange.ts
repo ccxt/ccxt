@@ -3634,7 +3634,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    parseCurrency (rawCurrency: Dict): Currency {
         throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
     }
 

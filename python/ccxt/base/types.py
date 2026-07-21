@@ -47,7 +47,6 @@ class Entry:
 
 
 IndexType = Union[str, int]
-NullableIndexType = Optional[Union[str, int]]
 Num = Union[None, str, float, int, Decimal]
 NumType = Union[Type[str], Type[float], Type[int], Type[Decimal]]
 Str = Optional[str]
@@ -140,7 +139,6 @@ class Position(TypedDict):
     percentage: Num
     stopLossPrice: Num
     takeProfitPrice: Num
-
 
 class OrderRequest(TypedDict):
     symbol: Str
@@ -295,8 +293,6 @@ class Ticker(TypedDict):
 Tickers = Dict[str, Ticker]
 
 OrderBooks = Dict[str, OrderBook]
-
-
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -377,16 +373,13 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
-
 class MarketMarginModes(TypedDict):
     cross: bool
     isolated: bool
 
-
 class MinMax(TypedDict):
     min: Num
     max: Num
-
 
 class MarketLimits(TypedDict):
     amount: Optional[MinMax]
@@ -413,31 +406,30 @@ class MarketInterface(TypedDict):
     active: Bool
     type: Str
     subType: Str
-    spot: Bool
-    margin: Bool
+    spot: bool
+    margin: bool
     marginModes: MarketMarginModes
-    swap: Bool
-    future: Bool
-    option: Bool
-    contract: Bool
+    swap: bool
+    future: bool
+    option: bool
+    contract: bool
     settle: Str
     settleId: Str
     contractSize: Num
-    linear: Bool
-    inverse: Bool
+    linear: bool
+    inverse: bool
     expiry: Num
     expiryDatetime: Str
     strike: Num
     optionType: Str
     taker: Num
     maker: Num
-    percentage: Bool
-    tierBased: Bool
+    percentage: bool
+    tierBased: bool
     feeSide: Str
     precision: Precision
     limits: MarketLimits
     created: Int
-
 
 class Limit(TypedDict):
     min: Num
@@ -528,14 +520,12 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
     interval: Str
 
-
 class FundingRateHistory(TypedDict):
     symbol: Str
     timestamp: Int
     fundingRate: Num
     datetime: Str
     info: Dict[str, Any]
-
 
 class OpenInterest(TypedDict):
     symbol: Str
@@ -546,7 +536,6 @@ class OpenInterest(TypedDict):
     timestamp: Int
     datetime: Str
     info: Dict[str, Any]
-
 
 class LeverageTier:
     tier: Num
@@ -624,7 +613,6 @@ TradingFees = Dict[Str, TradingFeeInterface]
 IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
 LeverageTiers = Dict[Str, List[LeverageTier]]
-
 
 # Prediction-market structures (ccxt.prediction namespace).
 # Hierarchy: Event -> Market -> Outcome. The Outcome is the tradeable unit; there is
@@ -883,7 +871,6 @@ class fetchEventsParams(TypedDict):
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
-
 
 class ConstructorArgs(TypedDict, total=False):
     apiKey: str

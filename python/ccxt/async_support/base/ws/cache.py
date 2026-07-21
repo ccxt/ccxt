@@ -3,7 +3,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class Delegate:
     def __init__(self, name, delegated):
         self.name = name

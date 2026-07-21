@@ -171,8 +171,8 @@ public partial class testMainClass : BaseTest
     {
         var path = path2 as string;
         var filesInDir = System.IO.Directory.GetFiles(path);
-        // List<object> so TS `as string[]` hard-casts and bare object use both work under C#
-        var fileNameOnly = new List<object>();
+        // return filesInDir.ToList<string>();
+        var fileNameOnly = new List<string>();
         foreach (string fileName in filesInDir)
         {
             fileNameOnly.Add(Path.GetFileName(fileName));
