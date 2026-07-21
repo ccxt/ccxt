@@ -708,7 +708,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchTicker
      * @description fetches the last trade price for a single prediction outcome
-     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-last-trade-price
      * @param {string} outcome unified outcome handle like BTC_PRICE_1H_UP_DOWN_UP:YES, or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -785,7 +785,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchTickers
      * @description fetches last trade prices for multiple outcomes, one request per distinct underlying market
-     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-last-trade-price
      * @param {string[]} outcomes unified outcomes — required: the venue has no all-tickers endpoint
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -824,7 +824,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchOrderBook
      * @description fetches the order book for a single prediction outcome token
-     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#query-order-book
      * @param {string} outcome unified outcome handle, or an outcome token id
      * @param {int} [limit] not used by binance fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
