@@ -37,7 +37,11 @@ function helperDefaultInputDict () {
     };
 }
 
-function testSafeString (exchange) {
+function testSafeString () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
@@ -107,7 +111,11 @@ function testSafeString (exchange) {
     assert (exchange.safeStringUpperN (inputList, [ 3, 2, 0 ]) === 'HI');
 }
 
-function testSafeValue (exchange) {
+function testSafeValue () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
@@ -153,7 +161,11 @@ function testSafeValue (exchange) {
     assert (exchange.safeValueN (inputList, [ 3, 2, 0 ]) === 'Hi');
 }
 
-function testSafeDict (exchange) {
+function testSafeDict () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
@@ -173,6 +185,7 @@ function testSafeDict (exchange) {
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDict2 (inputDict, 'a', 'list');
     assert (listObject === undefined);
+    // @ts-expect-error
     assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
 
     // safeDictN
@@ -184,15 +197,15 @@ function testSafeDict (exchange) {
 }
 
 
-function testSafeList (exchange) {
+function testSafeList () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
 
-    const compareDict = {
-        'a': 1,
-    };
-    
     // safeList
     let listObject = exchange.safeList (inputDict, 'list');
     assert (exchange.safeList (inputDict, 'dict') === undefined);
@@ -203,6 +216,7 @@ function testSafeList (exchange) {
     // safeList2
     listObject = exchange.safeList2 (inputDict, 'a', 'list');
     assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
+    // @ts-expect-error
     assert (exchange.safeList2 (inputList, 2, 1) === undefined);
 
     // safeListN
@@ -211,7 +225,11 @@ function testSafeList (exchange) {
     assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
 }
 
-function testSafeInteger (exchange) {
+function testSafeInteger () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
     
     // safeInteger
     const inputDict = helperDefaultInputDict ();
@@ -262,7 +280,11 @@ function testSafeInteger (exchange) {
     assert (exchange.safeIntegerProductN (inputList, [ 3, 2, 1 ], factor) === 20);
 }
 
-function testSafeTimestamp (exchange) {
+function testSafeTimestamp () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
@@ -286,7 +308,11 @@ function testSafeTimestamp (exchange) {
     assert (exchange.safeTimestampN (inputList, [ 3, 2, 1 ]) === 2000);
 }
 
-function testSafeFloat (exchange) {
+function testSafeFloat () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
     
     const inputDict = helperDefaultInputDict ();
 
@@ -318,7 +344,11 @@ function testSafeFloat (exchange) {
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
 }
 
-function testSafeNumber (exchange) {
+function testSafeNumber () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
     
@@ -355,7 +385,11 @@ function testSafeNumber (exchange) {
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
 }
 
-function testSafeBool (exchange) {
+function testSafeBool () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
     
     const inputDict = helperDefaultInputDict ();
     const inputList = [ 'Hi', 2 ];
@@ -373,7 +407,11 @@ function testSafeBool (exchange) {
     assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
 }
 
-function testCacheSafeCalls (exchange) {
+function testCacheSafeCalls () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleex',
+    });
 
     // init array cache tests
     // Test cache types - ArrayCache
@@ -456,21 +494,16 @@ function testCacheSafeCalls (exchange) {
 }
 
 function testSafeMethods () {
-
-    const exchange = new ccxt.Exchange ({
-        'id': 'sampleex',
-    });
-
-    testSafeString (exchange);
-    testSafeValue (exchange);
-    testSafeDict (exchange);
-    testSafeList (exchange);
-    testSafeInteger (exchange);
-    testSafeTimestamp (exchange);
-    testSafeFloat (exchange);
-    testSafeNumber (exchange);
-    testSafeBool (exchange);
-    testCacheSafeCalls (exchange);
+    testSafeString ();
+    testSafeValue ();
+    testSafeDict ();
+    testSafeList ();
+    testSafeInteger ();
+    testSafeTimestamp ();
+    testSafeFloat ();
+    testSafeNumber ();
+    testSafeBool ();
+    testCacheSafeCalls ();
 }
 
 export default testSafeMethods;
