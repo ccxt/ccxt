@@ -462,10 +462,8 @@ export default class binance extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const detail = await this.fetchRawTopicDetail (id, params);
-        const event: any = this.parseEvent (detail);
-        this.indexEventOutcomes (event);
-        return event;
+        const events = await this.fetchEvents (this.extend ({ 'eventId': id }), params);
+        return this.safeDict (events, 0);
     }
 
     /**
