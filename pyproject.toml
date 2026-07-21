@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==82.0.1"]
+requires = ["setuptools==83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -43,7 +43,7 @@ classifiers = [
 # all dependencies are pinned to exact versions to protect against
 # malicious or vulnerable releases of downstream dependencies
 dependencies = [
-    "setuptools==82.0.1",
+    "setuptools==83.0.0",
     "certifi==2026.6.17",
     "requests==2.34.2",
     "cryptography==49.0.0",
@@ -102,7 +102,7 @@ type = [
     "mypy==1.6.1",
 ]
 dev = [
-    "setuptools==82.0.1",
+    "setuptools==83.0.0",
     "certifi==2026.6.17",
     "requests==2.34.2",
     "cryptography==49.0.0",
