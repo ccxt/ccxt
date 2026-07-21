@@ -1244,7 +1244,7 @@ export default class woofipro extends Exchange {
         const maker = this.safeString (data, 'futures_maker_fee_rate');
         const taker = this.safeString (data, 'futures_taker_fee_rate');
         const result: Dict = {};
-        const symbols = this.requireSymbols ();
+        const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             result[symbol] = {

@@ -886,7 +886,7 @@ export default class cex extends Exchange {
                 result[parsed['symbol']] = parsed;
             }
         }
-        const symbols = this.requireSymbols ();
+        const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             if (!(symbol in result)) {

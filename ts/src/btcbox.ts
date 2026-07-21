@@ -425,7 +425,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -475,7 +475,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -552,7 +552,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }

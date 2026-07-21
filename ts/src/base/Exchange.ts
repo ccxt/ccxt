@@ -385,7 +385,7 @@ export class BaseExchange {
     };
 
     markets_by_id!: Dictionary<any> | undefined;
-    symbols: Strings = undefined;
+    symbols: string[] = [];
     ids: Strings = undefined;
     currencies: Currencies = {};
 
@@ -2981,7 +2981,7 @@ export class BaseExchange {
         this.ids = undefined;
         this.markets = undefined;
         this.markets_by_id = undefined;
-        this.symbols = undefined;
+        this.symbols = [];
         this.codes = undefined;
         this.currencies = this.createSafeDictionary ();
         this.currencies_by_id = undefined;
@@ -6668,13 +6668,6 @@ export class BaseExchange {
         return value;
     }
 
-    requireSymbols (): string[] {
-        const symbols = this.symbols;
-        if (symbols === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        return symbols;
-    }
 
     /* eslint-disable no-unused-vars */
     handleOptionAndParams <T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];

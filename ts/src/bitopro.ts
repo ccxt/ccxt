@@ -860,7 +860,7 @@ export default class bitopro extends Exchange {
         const result: Dict = {};
         const maker = this.safeNumber (first, 'makerFee');
         const taker = this.safeNumber (first, 'takerFee');
-        const symbols = this.requireSymbols ();
+        const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             result[symbol] = {

@@ -676,7 +676,7 @@ export default class onetrading extends Exchange {
         const firstSpotTier = this.safeDict (spotTiers, 0, {});
         const firstFuturesTier = this.safeDict (futuresTiers, 0, {});
         const result: Dict = {};
-        const symbols = this.requireSymbols ();
+        const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -744,7 +744,7 @@ export default class onetrading extends Exchange {
         futuresTakerFee = Precise.stringDiv (futuresTakerFee, '100');
         const result: Dict = {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        const symbols = this.requireSymbols ();
+        const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);

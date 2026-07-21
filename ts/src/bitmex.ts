@@ -593,7 +593,7 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
-        const marketExists = ((this.symbols !== undefined) && this.inArray (symbol, this.symbols));
+        const marketExists = this.inArray (symbol, this.symbols);
         if (!marketExists) {
             return this.parseNumber (rawQuantity);
         }
