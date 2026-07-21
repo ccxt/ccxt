@@ -1542,7 +1542,8 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const balanceResult = this.parseBalance (response || {});
+        const balanceResponse = (response === undefined) ? {} : response;
+        const balanceResult = this.parseBalance (balanceResponse);
         if (balanceResult === undefined) {
             throw new NullResponse (this.id + ' fetchBalance() returned empty response');
         }
