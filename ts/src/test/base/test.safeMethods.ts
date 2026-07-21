@@ -207,20 +207,17 @@ function testSafeList () {
     const inputList = [ 'Hi', 2 ];
 
     // safeList
-    let listObject = exchange.safeList (inputDict, 'list');
     assert (exchange.safeList (inputDict, 'dict') === undefined);
     assert (exchange.safeList (inputList, 1) === undefined);
     const arrayOfDicts = exchange.safeList (inputDict, 'listOfDicts');
     assert (equals ((arrayOfDicts as any[])[0], { 'a': 1 }));
 
     // safeList2
-    listObject = exchange.safeList2 (inputDict, 'a', 'list');
     assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
     // @ts-expect-error
     assert (exchange.safeList2 (inputList, 2, 1) === undefined);
 
     // safeListN
-    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
     assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
     assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
 }
