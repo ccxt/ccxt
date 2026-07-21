@@ -89,7 +89,6 @@
                 "parsedResponse": [
                     {
                         "id": "SPOT_AAVE_USDT",
-                        "lowercaseId": null,
                         "symbol": "AAVE/USDT",
                         "base": "AAVE",
                         "quote": "USDT",
@@ -103,14 +102,10 @@
                         "swap": false,
                         "future": false,
                         "option": false,
-                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
-                        "subType": null,
-                        "taker": null,
-                        "maker": null,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -137,10 +132,6 @@
                                 "min": 1,
                                 "max": null
                             }
-                        },
-                        "marginModes": {
-                            "cross": null,
-                            "isolated": null
                         },
                         "created": null,
                         "info": {
