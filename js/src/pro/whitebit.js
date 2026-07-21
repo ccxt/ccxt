@@ -502,6 +502,22 @@ export default class whitebit extends whitebitRest {
                 'currency': market['quote'],
             };
         }
+        const rawSide = this.safeInteger(trade, 8);
+        let side = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        }
+        else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger(trade, 9);
+        let takerOrMaker = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        }
+        else if (role === 2) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade({
             'id': id,
             'info': trade,
@@ -510,8 +526,8 @@ export default class whitebit extends whitebitRest {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,

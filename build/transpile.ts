@@ -3406,11 +3406,17 @@ class Transpiler {
     }
 }
 
-async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false) {
+async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false, allChildren = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
-    let isFirst = true
+    // by default the first fork runs without --child so it also transpiles the serial
+    // tail (base methods, tests, ...); pass allChildren=true when the caller runs that
+    // tail itself (e.g. the C# parent overlaps it with the exchange fan-out)
+    let isFirst = !allChildren
     const args: string[] = [];
+    if (allChildren) {
+        args.push ('--child')
+    }
     if (force) {
         args.push ('--force')
     }

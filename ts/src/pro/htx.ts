@@ -1247,6 +1247,7 @@ export default class htx extends htxRest {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
+                    'lastTradeTimestamp': this.safeInteger (data, 'tradeTime'),
                     'symbol': market['symbol'],
                     'filled': this.parseNumber (filled),
                     'remaining': this.parseNumber (remaining),

@@ -355,7 +355,7 @@ npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
 
 ### 6.6 GitHub Actions CI
 
-Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
+Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `build/utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
 
 | Lang | Workflow | Pre-transpile | Full transpile | Build | Live tests |
 |---|---|---|---|---|---|

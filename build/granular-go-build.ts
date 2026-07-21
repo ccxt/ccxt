@@ -65,21 +65,26 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
     });
 }
 
-function createExchangeDynamicFile(exchanges: string[], ws = false) {
+function createExchangeDynamicFile(exchanges: string[], ws = false, prediction = false) {
 
-    const dynamicPath = ws ? './go/v4/pro/exchange_dynamic.go' : './go/v4/exchange_dynamic.go';
+    const dynamicPath = prediction ? './go/v4/prediction/exchange_dynamic.go' : (ws ? './go/v4/pro/exchange_dynamic.go' : './go/v4/exchange_dynamic.go');
 
-    const pack = ws ? 'ccxtpro' : 'ccxt';
-    const imports = ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : ''
-    const prefix = ws ? 'ccxt.' : '';
+    const pack = prediction ? 'ccxtprediction' : (ws ? 'ccxtpro' : 'ccxt');
+    const imports = (ws || prediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : ''
+    const prefix = (ws || prediction) ? 'ccxt.' : '';
 
     const caseStatements = exchanges.map(exchange => {
         const statement = `    case "${exchange}":
             ${exchange}Itf := New${capitalizeFirstLetter(exchange)}Core()
             ${exchange}Itf.Init(exchangeArgs)
             return ${exchange}Itf, true`;
+        if (prediction) {
+            return fs.existsSync('./ts/src/prediction/' + exchange + '.ts') ? statement : '';
+        }
         if (!ws) {
-            return statement;
+            // prediction-only exchanges (e.g. kalshi) don't exist in the ccxt package — keep
+            // only ids with a regular source; ids in both (e.g. hyperliquid) land in both files
+            return fs.existsSync('./ts/src/' + exchange + '.ts') ? statement : '';
         }
         return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? statement : '';
         }).join('\n');
@@ -102,7 +107,7 @@ ${imports}
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${prefix}ICoreExchange, bool) {
     switch exchangeId {
-${ws ? '' : ExchangeStatement}
+${(ws || prediction) ? '' : ExchangeStatement}
 ${caseStatements}
     default:
         return nil, false
@@ -126,9 +131,9 @@ function createExchangeTypedInterfaceFile(exchanges: string[]) {
 
     // Modify the file content as needed
 
-    const caseStatements = exchanges.map(exchange => `       case "${exchange}":
+    const caseStatements = exchanges.map(exchange => fs.existsSync('./ts/src/' + exchange + '.ts') ? `       case "${exchange}":
            itf := New${capitalizeFirstLetter(exchange)}(options)
-           return itf`).join('\n    ');
+           return itf` : '').join('\n    ');
 
     const template = `
 package ccxt
@@ -219,6 +224,7 @@ function main() {
     if (WS_SUPPORT) {
         createExchangeDynamicFile(args, true);
     }
+    createExchangeDynamicFile(args, false, true); // prediction exchanges (go/v4/prediction)
     createExchangeTypedInterfaceFile(args);
     createWsExchangeTypedInterfaceFile(args);
 

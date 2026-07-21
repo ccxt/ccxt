@@ -2,8 +2,8 @@
 
 # Asserts the npm package works as expected, using ESM, CJS, and exports map validation.
 npm pack . --silent
-mv ccxt-*.tgz ./utils/package-test/
-cd ./utils/package-test
+mv ccxt-*.tgz ./build/utils/package-test/
+cd ./build/utils/package-test
 npm install ccxt-*.tgz typescript
 node test-esm.mjs
 return_code=$?
