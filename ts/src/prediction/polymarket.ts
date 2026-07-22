@@ -2087,8 +2087,7 @@ export default class polymarket extends Exchange {
         let builderBytes32 = bytes32Zero;
         if (builderRaw !== undefined) {
             let builderHex = this.remove0xPrefix (builderRaw);
-            const builderHexLength = builderHex.length;
-            if (builderHexLength <= 40) {
+            if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
                 let feeRate = 0;
                 if (builderFeeEnabled) {
