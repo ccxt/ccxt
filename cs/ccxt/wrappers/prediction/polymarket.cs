@@ -627,6 +627,12 @@ public partial class polymarket
     /// string : unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.builderCode</term>
+    /// <description>
+    /// string : builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>

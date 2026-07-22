@@ -300,6 +300,9 @@ public partial class polymarket : PredictionExchange
                 { "ctfExchangeVersion", "2" },
                 { "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B" },
                 { "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59" },
+                { "builder", "0xea409de8b037bb6ac664b6d12d6831b03cb04a37" },
+                { "builderFee", true },
+                { "feeRate", 0 },
             } },
         });
     }
@@ -2131,6 +2134,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
@@ -2283,12 +2287,40 @@ public partial class polymarket : PredictionExchange
         object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         object cost = this.safeNumber(parameters, "cost");
-        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"});
+        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
         object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         object makerAmount = this.safeString(amounts, "makerAmount");
         object takerAmount = this.safeString(amounts, "takerAmount");
         object sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         object bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        object builderRaw = this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
+        object builderBytes32 = bytes32Zero;
+        if (isTrue(!isEqual(builderRaw, null)))
+        {
+            object builderHex = this.remove0xPrefix(builderRaw);
+            if (isTrue(isLessThanOrEqual(getArrayLength(builderHex), 40)))
+            {
+                object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
+                object feeRate = 0;
+                if (isTrue(builderFeeEnabled))
+                {
+                    feeRate = this.safeInteger(this.options, "feeRate", 0);
+                }
+                object feeHex = this.intToBase16(feeRate);
+                feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
+                object addressHex = builderHex;
+                addressHex = (addressHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
+                builderHex = add(feeHex, addressHex);
+            } else
+            {
+                builderHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+            }
+            builderBytes32 = add("0x", builderHex);
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
@@ -2305,7 +2337,7 @@ public partial class polymarket : PredictionExchange
             { "signatureType", signatureType },
             { "timestamp", timestamp },
             { "metadata", bytes32Zero },
-            { "builder", bytes32Zero },
+            { "builder", builderBytes32 },
         };
         object exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         object negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
@@ -2329,7 +2361,7 @@ public partial class polymarket : PredictionExchange
                 { "timestamp", timestamp },
                 { "expiration", expiration },
                 { "metadata", bytes32Zero },
-                { "builder", bytes32Zero },
+                { "builder", builderBytes32 },
                 { "signature", signature },
             } },
             { "owner", owner },
