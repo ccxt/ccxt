@@ -19,6 +19,7 @@ type OrderBookInterface interface {
 	GetNonce() any
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
+	Copy() OrderBookInterface
 }
 
 type WsOrderBook struct {
@@ -486,6 +487,32 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 // func (this *IncrementalIndexedOrderBook) SetCache(cache any) {
 // 	this.WsOrderBook.SetCache(cache)
 // }
+
+func (this *WsOrderBook) Copy() OrderBookInterface {
+	snapshot := make(map[string]any)
+	if this.Outcome != nil {
+		snapshot["outcome"] = this.Outcome
+		snapshot["outcomeId"] = this.OutcomeId
+		snapshot["market"] = this.Market
+	} else {
+		snapshot["symbol"] = this.Symbol
+	}
+	var copy OrderBookInterface
+	if _, ok := interface{}(this).(*CountedOrderBook); ok {
+		copy = NewCountedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	} else if _, ok := interface{}(this).(*IndexedOrderBook); ok {
+		copy = NewIndexedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	} else {
+		copy = NewWsOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	}
+	ob := copy.(*WsOrderBook)
+	ob.Asks = this.Asks.CopySide()
+	ob.Bids = this.Bids.CopySide()
+	ob.Nonce = this.Nonce
+	ob.Timestamp = this.Timestamp
+	ob.Datetime = this.Datetime
+	return copy
+}
 
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce
