@@ -33,6 +33,12 @@ jobs:
 
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
+        env:
+          # Route Claude Code's Anthropic-native protocol through OpenRouter's
+          # Anthropic-compatible endpoint ("Anthropic Skin")
+          ANTHROPIC_BASE_URL: "https://openrouter.ai/api"
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY: ""
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: "--model claude-fable-5 --max-turns 10"
+          # OpenRouter model slug format (anthropic/ prefix), not the direct API string
+          claude_args: "--model anthropic/claude-fable-5 --max-turns 10"
