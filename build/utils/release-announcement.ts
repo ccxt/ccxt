@@ -4,6 +4,9 @@ import { pathToFileURL } from 'node:url';
 const releaseHeadingPattern = /^# \[([^\]]+)\]\((https:\/\/github\.com\/ccxt\/ccxt\/releases\/tag\/[^)]+)\) - .+$/m;
 const changePattern = /^[*-]\s+(.+?) by \[@([^\]]+)\]\([^)]+\) in \[#\d+\]\((https:\/\/github\.com\/ccxt\/ccxt\/pull\/\d+)\)$/;
 const relevantChangePattern = /^(feat|fix)(?:\(([^)]+)\)|\s+([^:]+))?!?:\s*(.+)$/i;
+// housekeeping commits are never announcement-worthy — excluded explicitly so they stay
+// out even if the relevant-change whitelist above is ever widened
+const excludedChangePattern = /^(chore|docs)(?:\([^)]*\))?!?:/i;
 const discordSuppressEmbeds = 1 << 2;
 
 export interface HttpRequestOptions {
@@ -48,6 +51,9 @@ export function createReleaseAnnouncement (changelog: string): string {
             continue;
         }
         if (/\bdelist(?:ed|ing)?\b/i.test(change[1])) {
+            continue;
+        }
+        if (excludedChangePattern.test(change[1])) {
             continue;
         }
         const relevantChange = relevantChangePattern.exec(change[1]);
