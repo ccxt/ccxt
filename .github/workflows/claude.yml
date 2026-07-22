@@ -35,10 +35,14 @@ jobs:
         uses: anthropics/claude-code-action@v1
         env:
           # Route Claude Code's Anthropic-native protocol through OpenRouter's
-          # Anthropic-compatible endpoint ("Anthropic Skin")
+          # Anthropic-compatible endpoint. ANTHROPIC_AUTH_TOKEN makes the CLI
+          # send "Authorization: Bearer <key>", which is what OpenRouter expects.
           ANTHROPIC_BASE_URL: "https://openrouter.ai/api"
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.OPENROUTER_API_KEY }}
-          ANTHROPIC_API_KEY: ""
         with:
-          # OpenRouter model slug format (anthropic/ prefix), not the direct API string
+          # The action's validator requires anthropic_api_key to be set;
+          # we pass the OpenRouter key here to satisfy it. The base URL
+          # override ensures requests go to OpenRouter either way.
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          # OpenRouter model slug format (anthropic/ prefix)
           claude_args: "--model anthropic/claude-fable-5 --max-turns 10"
