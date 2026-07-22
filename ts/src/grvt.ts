@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -786,7 +786,7 @@ export default class grvt extends Exchange {
         return this.parseCurrencies (responseResult);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         //
         //            {
         //                "id": "4",
@@ -1387,7 +1387,9 @@ export default class grvt extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = availableBalance; // todo: revise after API team clarification
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1789,7 +1791,7 @@ export default class grvt extends Exchange {
             'transfer_metadata': null,
         };
         request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
-        let response: NullableDict = undefined;
+        let response = undefined;
         try {
             response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         } catch (error) {
@@ -2010,7 +2012,7 @@ export default class grvt extends Exchange {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId (params);
         const isReduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const orderRequest = {
+        const orderRequest: Dict = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [ orderLeg ],
@@ -2519,7 +2521,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
+    async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
         await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
@@ -2540,7 +2542,7 @@ export default class grvt extends Exchange {
         return this.parseLeverages (results, symbols);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         //
         // fetchMarginModes
         //
@@ -3162,11 +3164,14 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
+    createSignedRequest (request: any, structureType: string, currencyObj: Dict | undefined = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3179,6 +3184,9 @@ export default class grvt extends Exchange {
             };
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],

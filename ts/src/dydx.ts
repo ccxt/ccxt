@@ -505,6 +505,9 @@ export default class dydx extends Exchange {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString (market, 'ticker');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('-');
         const baseName = this.safeString (parts, 0);
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -850,8 +853,8 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: string, params: Dict) {
-        let userAux = undefined;
+    handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
@@ -1241,7 +1244,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
+    signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee: any = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
@@ -1303,7 +1306,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: Str) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -1313,10 +1316,19 @@ export default class dydx extends Exchange {
         return r;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         let subaccountId = 0;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
@@ -1338,7 +1350,7 @@ export default class dydx extends Exchange {
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
-        let conditionalOrderTriggerSubticks = '0';
+        let conditionalOrderTriggerSubticks: Str = '0';
         let orderFlag: Int = undefined;
         let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
@@ -1390,6 +1402,9 @@ export default class dydx extends Exchange {
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         } else {
@@ -1430,7 +1445,13 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        const orderId = this.createOrderIdFromParts (this.getWalletAddress (), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress ();
+        const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts (walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [ orderId, this.extend (signingPayload, params) ];
     }
 
@@ -1460,7 +1481,11 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const info = this.safeDict (result, 'response');
-        return this.safeInteger (info, 'last_block_height');
+        const height = this.safeInteger (info, 'last_block_height');
+        if (height === undefined) {
+            throw new ExchangeError (this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
 
     /**
@@ -1802,7 +1827,7 @@ export default class dydx extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1830,7 +1855,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
+    async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request = {
             'txBytes': txBytes,
@@ -1866,6 +1891,9 @@ export default class dydx extends Exchange {
         }
         const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new ExchangeError (this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf ('.') >= 0) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }

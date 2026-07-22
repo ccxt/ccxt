@@ -361,12 +361,12 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'market_stats/all',
         };
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
             for (let i = 0; i < symbols.length; i++) {
@@ -868,6 +868,9 @@ export default class lighter extends lighterRest {
         const price = this.safeString (liquidation, 'price');
         const baseValue = Precise.stringMul (contracts, contractSize);
         const quoteValue = Precise.stringMul (baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -1053,7 +1056,7 @@ export default class lighter extends lighterRest {
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
         }
-        const balance = this.safeDict (this.balance, type, {});
+        const balance = this.safeDict (this.balance, (type as string), {});
         if (type === 'spot') {
             const assets = this.safeDict (message, 'assets', {});
             const assetIds = Object.keys (assets);
@@ -1065,7 +1068,9 @@ export default class lighter extends lighterRest {
                 const account = this.account ();
                 account['used'] = this.safeString (asset, 'locked_balance');
                 account['total'] = this.safeString (asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         } else {
             const stats = this.safeDict (message, 'stats', {});

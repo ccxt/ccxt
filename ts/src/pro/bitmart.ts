@@ -108,7 +108,7 @@ export default class bitmart extends bitmartRest {
 
     async subscribe (unifiedName, channel, symbol, type, params = {}) {
         const market = this.market (symbol);
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['public']);
         let request = {};
         let messageHash: Str = undefined;
         let rawHash: Str = undefined;
@@ -143,12 +143,12 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (unifiedName: string, channel: string, type: string, symbols: Strings = undefined, params = {}) {
+    async subscribeMultiple (unifiedName: string, channel: Str, type: Str, symbols: Strings = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, type, false, true);
         if (symbols === undefined) {
             symbols = [];
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['public']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
         const rawSubscriptions: string[] = [];
@@ -211,7 +211,7 @@ export default class bitmart extends bitmartRest {
             };
         }
         const messageHash = 'balance:' + type;
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
         let fetchBalanceSnapshot: Bool = undefined;
@@ -243,7 +243,7 @@ export default class bitmart extends bitmartRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -309,7 +309,9 @@ export default class bitmart extends bitmartRest {
                     const code = this.safeCurrencyCode (currencyId);
                     account['free'] = this.safeString (rawBalance, 'av_bal');
                     account['used'] = this.safeString (rawBalance, 'fz_bal');
-                    this.balance[type][code] = account;
+                    if ((type !== undefined) && (code !== undefined)) {
+                        this.balance[type][code] = account;
+                    }
                 }
             }
         } else {
@@ -318,7 +320,9 @@ export default class bitmart extends bitmartRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'available_balance');
             account['used'] = this.safeString (data, 'frozen_balance');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         const messageHash = 'balance:' + type;
@@ -637,7 +641,7 @@ export default class bitmart extends bitmartRest {
                 'args': [ 'futures/order' ],
             };
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
         const newOrders = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         if (this.newUpdates) {
             return newOrders;
@@ -690,7 +694,7 @@ export default class bitmart extends bitmartRest {
                 'args': [ 'futures/order' ],
             };
         }
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -763,6 +767,9 @@ export default class bitmart extends bitmartRest {
             const stored = this.orders;
             for (let i = 0; i < orders.length; i++) {
                 const order = this.parseWsOrder (orders[i]);
+                if (order === undefined) {
+                    continue;
+                }
                 stored.append (order);
                 newOrders.push (order);
                 const symbol = order['symbol'];
@@ -781,7 +788,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (newOrders, messageHash);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //    {
@@ -874,11 +881,13 @@ export default class bitmart extends bitmartRest {
             const updatedTimestamp = this.safeInteger (orderInfo, 'update_time');
             const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
             let trades: NullableList = undefined;
-            if (cachedOrder !== undefined) {
-                trades = this.safeValue (order, 'trades');
+            if (cachedOrders !== undefined) {
+                const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
+                if (cachedOrder !== undefined) {
+                    trades = this.safeValue (order, 'trades');
+                }
             }
             if (lastTrade !== undefined) {
                 if (trades === undefined) {
@@ -965,7 +974,7 @@ export default class bitmart extends bitmartRest {
             'action': 'subscribe',
             'args': [ 'futures/position' ],
         };
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
         const newPositions = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash);
         if (this.newUpdates) {
             return newPositions;
@@ -1483,7 +1492,7 @@ export default class bitmart extends bitmartRest {
                 const parsed = this.parseOHLCV (rawOHLCV, market);
                 parsed[0] = this.parseToInt (this.parseToInt (parsed[0]) / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                     stored = new ArrayCacheByTimestamp (limit);
@@ -1499,7 +1508,7 @@ export default class bitmart extends bitmartRest {
             const symbol = market['symbol'];
             const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1795,7 +1804,7 @@ export default class bitmart extends bitmartRest {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type as string, symbols, params);
+        const orderbook = await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
         return orderbook.limit ();
     }
 
@@ -1821,7 +1830,7 @@ export default class bitmart extends bitmartRest {
             channel = 'depth50';
         }
         params = this.extend (params, { 'unsubscribe': true });
-        return await this.subscribeMultiple ('orderbook', channel as string, type as string, symbols, params);
+        return await this.subscribeMultiple ('orderbook', channel as string, type, symbols, params);
     }
 
     /**
@@ -1898,7 +1907,7 @@ export default class bitmart extends bitmartRest {
 
     async authenticate (type, params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.implodeHostname (this.urls['api']['ws'][type]['private']);
+        const url = this.implodeHostname (this.urls['api']['ws'][type as string]['private']);
         const messageHash = 'authenticated';
         const client = this.client (url);
         const future = client.reusableFuture (messageHash);

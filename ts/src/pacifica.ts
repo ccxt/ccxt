@@ -678,6 +678,9 @@ export default class pacifica extends Exchange {
         let maxLeverage: Int = undefined;
         let crossMargin: Bool = undefined;
         let isolatedMargin: Bool = undefined;
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         if (isSpot) {
             const idParts = id.split ('-');
             quoteId = this.safeString (idParts, 1, quoteId);
@@ -701,7 +704,7 @@ export default class pacifica extends Exchange {
         if (isSwap) {
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict (this.fees, type, {});
+        const fees = this.safeDict (this.fees, (type as string), {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecision = this.safeNumber (market, 'lot_size');
@@ -1278,7 +1281,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1490,7 +1493,7 @@ export default class pacifica extends Exchange {
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
         ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (operationType === 'create_market_order') {
             response = await this.privatePostOrdersCreateMarket (this.extend (request, params));
         } else if (operationType === 'create_stop_order') {
@@ -1520,7 +1523,13 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): [Dict, Str] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): [Dict, Str] {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1675,7 +1684,7 @@ export default class pacifica extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        const actions = [];
+        const actions: Dict[] = [];
         const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1737,7 +1746,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -1798,7 +1807,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -1815,7 +1824,7 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
-        const actions = [];
+        const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
@@ -1919,7 +1928,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrderRequest (id, symbol, params);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
         } else {
@@ -1996,7 +2005,10 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
 
-    editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
         }
@@ -2077,7 +2089,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult (response);
-        const result = [];
+        const result: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'created_at');
@@ -2135,7 +2147,9 @@ export default class pacifica extends Exchange {
             const info = data[i];
             const ticker = this.parseTicker (info);
             const symbol = this.safeString (ticker, 'symbol');
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -2483,7 +2497,7 @@ export default class pacifica extends Exchange {
         return this.safeString (tifMap, tif, undefined);
     }
 
-    mapSide (sideRaw: string) {
+    mapSide (sideRaw: Str) {
         const sideMap: Dict = {
             'sell': 'ask',
             'buy': 'bid',
@@ -2491,7 +2505,7 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: string) {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -2688,7 +2702,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557431179
         // }
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
         }
@@ -3098,7 +3112,7 @@ export default class pacifica extends Exchange {
             'airdrop': 'airdrop',
             'payout': 'payout',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -3477,7 +3491,7 @@ export default class pacifica extends Exchange {
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result = [];
+            const result: Dict[] = [];
             for (let i = 0; i < value.length; i++) {
                 result.push (this.sortJsonKeys (value[i]));
             }

@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool, List, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, CurrencyInterface, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Bool, List, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -471,7 +471,7 @@ export default class bitmex extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const asset = this.safeString (currency, 'asset');
         const code = this.safeCurrencyCode (asset);
         const id = this.safeString (currency, 'currency');
@@ -498,26 +498,28 @@ export default class bitmex extends Exchange {
             if (isWithdrawEnabled) {
                 withdrawEnabled = true;
             }
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': withdrawalFee,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const currencyEnabled = this.safeValue (currency, 'enabled');
         const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
@@ -800,14 +802,14 @@ export default class bitmex extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
-        let baseId = this.safeString (market, 'underlying');
-        let quoteId = this.safeString (market, 'quoteCurrency');
+        let baseId: Str = this.safeString (market, 'underlying');
+        let quoteId: Str = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settlCurrency');
         const settle = this.safeCurrencyCode (settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        let type: MarketType = undefined;
+        let type: MarketType | undefined = undefined;
         let swap = false;
         let spot = false;
         let future = false;
@@ -873,7 +875,10 @@ export default class bitmex extends Exchange {
             isQuanto = undefined;
             linear = undefined;
         }
-        return {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseMarket() requires a symbol');
+        }
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -924,7 +929,7 @@ export default class bitmex extends Exchange {
             },
             'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {
@@ -985,7 +990,9 @@ export default class bitmex extends Exchange {
             const total = this.safeString (balance, 'marginBalance');
             account['free'] = this.convertToRealAmount (code, free);
             account['total'] = this.convertToRealAmount (code, total);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1326,7 +1333,7 @@ export default class bitmex extends Exchange {
             'AffiliatePayout': 'referral',
             'SpotTrade': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1388,7 +1395,7 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let fee: Fee = undefined;
+        let fee: NullableDict = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
@@ -1771,7 +1778,7 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        let useOpenTimestamp = undefined;
+        let useOpenTimestamp: Bool = undefined;
         [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
@@ -1883,7 +1890,7 @@ export default class bitmex extends Exchange {
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
@@ -1994,7 +2001,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false);
+            isInverse = this.safeBool (market, 'inverse', false) === true;
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -2416,6 +2423,9 @@ export default class bitmex extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request: Dict = {
             'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
@@ -2853,6 +2863,9 @@ export default class bitmex extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         if (symbol in this.currencies) {
             const code = this.currency (symbol);
             request['symbol'] = code['id'];
@@ -3073,10 +3086,12 @@ export default class bitmex extends Exchange {
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 const withdrawalFeeId = this.safeString (network, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeId, precision));
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                    };
+                }
                 if (networksLength === 1) {
                     result['withdraw']['fee'] = withdrawalFee;
                     result['withdraw']['percentage'] = false;
@@ -3146,7 +3161,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         response = await this.publicGetStats (this.extend (request, params));
         //
         //    [
@@ -3226,7 +3241,7 @@ export default class bitmex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3612,7 +3627,7 @@ export default class bitmex extends Exchange {
         return this.parseSettlements (response, market, since, limit);
     }
 
-    parseSettlements (settlements, market = undefined, since = undefined, limit = undefined) {
+    parseSettlements (settlements, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -3622,7 +3637,7 @@ export default class bitmex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market = undefined) {
+    parseSettlement (settlement, market: Market = undefined) {
         //
         //    {
         //        timestamp: '2025-03-28T12:00:00.000Z',
@@ -3741,6 +3756,9 @@ export default class bitmex extends Exchange {
                 'api-key': this.apiKey,
             };
             expires = this.sum (this.seconds (), expires);
+            if (expires === undefined) {
+                throw new ExchangeError (this.id + ' sign() missing expires');
+            }
             const stringExpires = expires.toString ();
             auth += stringExpires;
             headers['api-expires'] = stringExpires;

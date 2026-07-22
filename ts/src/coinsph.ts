@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Currencies, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
 
 /**
  * @class coinsph
@@ -625,7 +625,7 @@ export default class coinsph extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
@@ -635,26 +635,28 @@ export default class coinsph extends Exchange {
             const networkItem = networkList[j];
             const network = this.safeString (networkItem, 'network');
             const networkCode = this.networkIdToCode (network, code);
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool (networkItem, 'depositEnable'),
-                'withdraw': this.safeBool (networkItem, 'withdrawEnable'),
-                'fee': this.safeNumber (networkItem, 'withdrawFee'),
-                'precision': this.safeNumber (networkItem, 'withdrawIntegerMultiple'),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkItem, 'withdrawMin'),
-                        'max': this.safeNumber (networkItem, 'withdrawMax'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (networkItem, 'depositEnable'),
+                    'withdraw': this.safeBool (networkItem, 'withdrawEnable'),
+                    'fee': this.safeNumber (networkItem, 'withdrawFee'),
+                    'precision': this.safeNumber (networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkItem, 'withdrawMin'),
+                            'max': this.safeNumber (networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1380,7 +1382,9 @@ export default class coinsph extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'free');
             account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

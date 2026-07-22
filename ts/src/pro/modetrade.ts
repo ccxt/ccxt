@@ -453,7 +453,7 @@ export default class modetrade extends modetradeRest {
             this.safeNumber (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1269,13 +1269,18 @@ export default class modetrade extends modetradeRest {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode (key);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
+            let account = this.account ();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub (total, used);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');

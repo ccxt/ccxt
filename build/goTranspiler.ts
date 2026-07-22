@@ -1945,6 +1945,9 @@ ${constStatements.join('\n')}
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
+            // symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
+            // to an untyped []any{} literal which cannot be assigned to the typed field.
+            [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
             // Fix setMarketsFromExchange parameter type (base methods now hang off *BaseExchange)
             [/func\s+\(this \*BaseExchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange)'],
             // the empty `class Exchange extends BaseExchange {}` transpiles to a thin struct +

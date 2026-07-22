@@ -83,7 +83,7 @@ function helperTestInitMarket () {
             'BTC/USD': sampleMarket,
         },
     });
-    assert (exchange2.markets['BTC/USD'] !== undefined);
+    assert ((exchange2.markets !== undefined) && (exchange2.markets['BTC/USD'] !== undefined));
 }
 
 function helperTestProperties () {
@@ -288,7 +288,7 @@ function helperTestProperties () {
     // common props
     //
     assert (exchange.markets === undefined, 'markets should be undefined');
-    assert (exchange.symbols === undefined, 'symbols should be undefined');
+    assert (exchange.symbols.length === 0, 'symbols should be an empty array');
     assert (exchange.markets_by_id === undefined, 'markets_by_id should be undefined');
     assert (exchange.ids === undefined, 'ids should be undefined');
     testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});

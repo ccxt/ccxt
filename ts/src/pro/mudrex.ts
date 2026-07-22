@@ -73,11 +73,14 @@ export default class mudrex extends mudrexRest {
         const messageHash = 'ticker:' + symbol;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
+        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
+        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const assetId = baseIdString.toLowerCase () + quoteIdString.toLowerCase ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
             'params': [ 'ticker@1s' ],
-            'assets': [ market['baseId'].toLowerCase () + market['quoteId'].toLowerCase () ],
+            'assets': [ assetId ],
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
@@ -88,13 +91,15 @@ export default class mudrex extends mudrexRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const assets = [];
+        const messageHashes: string[] = [];
+        const assets: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
-                assets.push (market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ());
+                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
+                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+                assets.push (baseIdString.toLowerCase () + quoteIdString.toLowerCase ());
             }
         }
         const url = this.urls['api']['ws'];
@@ -131,7 +136,9 @@ export default class mudrex extends mudrexRest {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const stream = prefix + '@' + interval + '@' + market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
+        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase () + streamQuoteId.toLowerCase ();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
@@ -180,6 +187,9 @@ export default class mudrex extends mudrexRest {
 
     handleOHLCV (client, message) {
         const stream = this.safeString (message, 'stream');
+        if (stream === undefined) {
+            return;
+        }
         const parts = stream.split ('@');
         const interval = parts[1];
         const tf = this.findTimeframe (interval);
@@ -199,11 +209,13 @@ export default class mudrex extends mudrexRest {
             this.safeNumber (data, 'v'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], tf);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][tf] = stored;
+            if (symbol !== undefined && tf !== undefined) {
+                this.ohlcvs[symbol][tf] = stored;
+            }
         }
         stored.append (parsed);
         const messageHash = stream;

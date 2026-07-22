@@ -61,7 +61,7 @@ export default class exmo extends exmoRest {
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const subscribe: Dict = {
             'method': 'subscribe',
             'topics': [ type + '/wallet' ],
@@ -124,6 +124,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         if (type === 'spot') {
@@ -163,7 +166,9 @@ export default class exmo extends exmoRest {
                 const account = this.account ();
                 account['free'] = this.safeString (balances, currencyId);
                 account['used'] = this.safeString (reserved, currencyId);
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         } else if (event === 'update') {
             const currencyId = this.safeString (data, 'currency');
@@ -171,7 +176,9 @@ export default class exmo extends exmoRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'balance');
             account['used'] = this.safeString (data, 'reserved');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
     }
@@ -202,7 +209,9 @@ export default class exmo extends exmoRest {
             account['free'] = this.safeString (wallet, 'free');
             account['used'] = this.safeString (wallet, 'used');
             account['total'] = this.safeString (wallet, 'balance');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance (this.balance);
         }
     }
@@ -288,6 +297,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const topicParts = topic.split (':');
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -346,6 +358,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -383,7 +398,7 @@ export default class exmo extends exmoRest {
         }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'myTrades:' + type;
@@ -463,18 +478,24 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'myTrades:' + type;
         const event = this.safeString (message, 'event');
         let rawTrades: List = [];
-        let myTrades = undefined;
+        let myTrades: ArrayCache | undefined = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             myTrades = new ArrayCacheBySymbolById (limit);
             this.myTrades = myTrades;
         } else {
             myTrades = this.myTrades;
+        }
+        if (myTrades === undefined) {
+            return;
         }
         if (event === 'snapshot') {
             rawTrades = this.safeValue (message, 'data', []);
@@ -487,7 +508,9 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
-            symbols[trade['symbol']] = true;
+            if (trade['symbol'] !== undefined) {
+                symbols[trade['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -563,6 +586,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -617,7 +643,7 @@ export default class exmo extends exmoRest {
         }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'orders:' + type;
@@ -695,6 +721,9 @@ export default class exmo extends exmoRest {
         // }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'orders:' + type;
@@ -715,7 +744,9 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < rawOrders.length; j++) {
             const order = this.parseWsOrder (rawOrders[j]);
             cachedOrders.append (order);
-            symbols[order['symbol']] = true;
+            if (order['symbol'] !== undefined) {
+                symbols[order['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -912,7 +943,7 @@ export default class exmo extends exmoRest {
     async authenticate (params = {}) {
         const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type as string];
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {

@@ -7,7 +7,7 @@ import Exchange from './abstract/coinex.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -734,7 +734,7 @@ export default class coinex extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (coin): Currency {
+    parseCurrency (coin): CurrencyInterface {
         const asset = this.safeDict (coin, 'asset', {});
         const currencyId = this.safeString (asset, 'ccy');
         const chains = this.safeList (coin, 'chains', []) as List;
@@ -772,7 +772,9 @@ export default class coinex extends Exchange {
                 },
                 'info': chain,
             };
-            networks[networkCode] = network;
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -1751,7 +1753,9 @@ export default class coinex extends Exchange {
             const baseDebt = this.safeString (loan, 'base_ccy');
             const baseInterest = this.safeString (interest, 'base_ccy');
             baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1783,7 +1787,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1818,7 +1824,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1850,7 +1858,9 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1870,7 +1880,7 @@ export default class coinex extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         const isMargin = (marginMode !== undefined) || (marketType === 'margin');
         if (marketType === 'swap') {
@@ -2119,7 +2129,7 @@ export default class coinex extends Exchange {
         const marketType = (orderType === 'swap') ? 'swap' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const feeCurrencyId = this.safeString (order, 'fee_ccy');
-        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        let feeCurrency: Str = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
             feeCurrency = market['quote'];
         }
@@ -2187,7 +2197,13 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
@@ -2251,7 +2267,7 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -2966,7 +2982,7 @@ export default class coinex extends Exchange {
         } else {
             request['order_id'] = this.parseToNumeric (id);
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         if (market['spot']) {
             if (marginMode !== undefined) {
@@ -3087,12 +3103,14 @@ export default class coinex extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            orderSymbols.push (marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push (marketId);
+            }
             const id = this.safeString (rawOrder, 'id');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             let orderParams = this.safeDict (rawOrder, 'params', {});
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, orderParams ] = this.handleMarginModeAndParams ('editOrders', orderParams);
             let market_type = 'SPOT';
             if (market['swap']) {
@@ -3176,7 +3194,7 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (swap) {
             request['market_type'] = 'FUTURES';
@@ -3471,7 +3489,7 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -3752,7 +3770,7 @@ export default class coinex extends Exchange {
                 }
             }
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -4105,7 +4123,7 @@ export default class coinex extends Exchange {
             //     }
             //
         } else {
-            let marginMode = undefined;
+            let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             if (marginMode !== undefined) {
                 request['market_type'] = 'MARGIN';
@@ -4443,7 +4461,7 @@ export default class coinex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const minLeverage = this.safeInteger (market['limits']['leverage'], 'min', 1);
         const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 100);
@@ -4520,7 +4538,7 @@ export default class coinex extends Exchange {
     parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         const tiers: List = [];
         const brackets = this.safeList (info, 'level', []) as List;
-        let minNotional = 0;
+        let minNotional: Num = 0;
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'market');
@@ -4597,7 +4615,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         const status = this.safeStringLower (response, 'message');
         const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend (this.parseMarginModification (data, market), {
@@ -5304,7 +5322,7 @@ export default class coinex extends Exchange {
         let request: Dict = {
             'ccy': currency['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
             request['transfer_type'] = 'MARGIN';
@@ -5859,7 +5877,9 @@ export default class coinex extends Exchange {
             }
             const code = this.safeCurrencyCode (currencyId);
             if (codes === undefined || this.inArray (code, codes)) {
-                result[code] = this.parseDepositWithdrawFee (item);
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee (item);
+                }
             }
         }
         return result;
@@ -5920,16 +5940,18 @@ export default class coinex extends Exchange {
                     const currencyId = this.safeString (asset, 'ccy');
                     const feeCode = this.safeCurrencyCode (currencyId, currency);
                     const networkCode = this.networkIdToCode (networkId, feeCode);
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber (entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }

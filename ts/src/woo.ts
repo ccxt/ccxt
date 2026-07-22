@@ -6,7 +6,7 @@ import Exchange from './abstract/woo.js';
 import { AccountSuspended, AuthenticationError, BadSymbol, DuplicateOrderId, InsufficientFunds, OrderNotFound, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -761,7 +761,7 @@ export default class woo extends Exchange {
         const marketId = this.safeString (market, 'symbol', '');
         const parts = marketId.split ('_');
         const first = this.safeString (parts, 0);
-        let marketType: MarketType | undefined = undefined;
+        let marketType: Str = undefined;
         let spot = false;
         let swap = false;
         if (first === 'SPOT') {
@@ -793,7 +793,7 @@ export default class woo extends Exchange {
             inverse = false;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -841,7 +841,7 @@ export default class woo extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -1194,12 +1194,14 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency (customCurrency);
             const code = this.safeString (parsed, 'code');
-            result[code] = parsed;
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
         const tokensByNetworkId = this.indexBy (rawCurrency['_tokens_by_id'], 'network');
@@ -1212,27 +1214,29 @@ export default class woo extends Exchange {
             const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
             const networkCode = this.networkIdToCode (networkId, code);
             const specialNetworkId = this.safeString (tokenEntry, 'token');
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
-                'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
-                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
+                    'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
+                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': { 'network': networkEntry, 'token': tokenEntry },
-            };
+                    'info': { 'network': networkEntry, 'token': tokenEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -1510,7 +1514,7 @@ export default class woo extends Exchange {
             request['childOrders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isConditional) {
             response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
             //
@@ -1625,7 +1629,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isConditional) {
@@ -1687,7 +1691,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
@@ -1745,7 +1749,7 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateDeleteTradeAlgoOrders (params);
         } else {
@@ -1817,7 +1821,7 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
@@ -1948,7 +1952,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (trigger) {
             response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
             //
@@ -2669,7 +2673,9 @@ export default class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['free'] = this.safeString (balance, 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2714,7 +2720,7 @@ export default class woo extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
@@ -2874,7 +2880,7 @@ export default class woo extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     getCurrencyFromChaincode (networkizedCode, currency) {
@@ -3537,7 +3543,7 @@ export default class woo extends Exchange {
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
-        market = this.market ((symbol as string));
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger2 (fundingRate, 'nextFundingTime', 'fundingTs');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
@@ -3788,7 +3794,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['spot']) {
             response = await this.v3PrivateGetAccountInfo (params);
             //
@@ -3998,11 +4004,11 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: Str, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -4462,34 +4468,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'token');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber (entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber (entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp (entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp (entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }

@@ -2,9 +2,9 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 
@@ -153,12 +153,16 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        let marketIds = [ ];
+        let marketIds: string[] = [];
         if (this.isEmpty (symbols)) {
             marketIds.push ('all');
         } else {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
+            }
             messageHash = messageHash + '::' + symbols.join (',');
-            marketIds = this.marketIds (symbols);
+            const ids = this.marketIds (symbols);
+            marketIds = (ids === undefined) ? [] : ids;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
@@ -215,6 +219,9 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const market = this.market (symbol);
         let uppercaseType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase ();
         const isPostOnly = this.isPostOnly (uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
@@ -332,7 +339,7 @@ export default class poloniex extends poloniexRest {
         //
         const messageHash = this.safeString (message, 'id');
         const data = this.safeValue (message, 'data', []);
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const parsedOrder = this.parseWsOrder (order);
@@ -451,7 +458,7 @@ export default class poloniex extends poloniexRest {
             'symbols': marketIds,
         };
         const request = this.extend (subscribe, params);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push (name + '::' + symbols[i]);
@@ -561,7 +568,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -619,12 +626,14 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append (parsed);
             client.resolve (stored, messageHash);
@@ -663,7 +672,9 @@ export default class poloniex extends poloniexRest {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache (tradesLimit);
-                    this.trades[symbol] = tradesArray;
+                    if (symbol !== undefined) {
+                        this.trades[symbol] = tradesArray;
+                    }
                 }
                 tradesArray.append (trade);
                 client.resolve (tradesArray, messageHash);
@@ -672,7 +683,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // handleTrade
         //
@@ -753,7 +764,7 @@ export default class poloniex extends poloniexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -848,7 +859,7 @@ export default class poloniex extends poloniexRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const marketIds = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeValue (data, i);
             const marketId = this.safeString (order, 'symbol');
@@ -870,13 +881,13 @@ export default class poloniex extends poloniexRest {
                     }
                     previousOrder['trades'].push (trade);
                     previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                    let totalCost = '0';
-                    let totalAmount = '0';
+                    let totalCost: Str = '0';
+                    let totalAmount: Str = '0';
                     const previousOrderTrades = previousOrder['trades'];
                     for (let j = 0; j < previousOrderTrades.length; j++) {
                         const previousOrderTrade = previousOrderTrades[j];
-                        const cost = this.numberToString (previousOrderTrade['cost']);
-                        const amount = this.numberToString (previousOrderTrade['amount']);
+                        const cost = this.numberToString (previousOrderTrade['cost']) || '0';
+                        const amount = this.numberToString (previousOrderTrade['amount']) || '0';
                         totalCost = Precise.stringAdd (totalCost, cost);
                         totalAmount = Precise.stringAdd (totalAmount, amount);
                     }
@@ -926,7 +937,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1028,8 +1039,12 @@ export default class poloniex extends poloniexRest {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                newTickers[symbol] = ticker;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = ticker;
+                }
+                if (symbol !== undefined) {
+                    newTickers[symbol] = ticker;
+                }
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');
@@ -1199,7 +1214,9 @@ export default class poloniex extends poloniexRest {
             const newAccount = this.account ();
             newAccount['free'] = this.safeString (balance, 'available');
             newAccount['used'] = this.safeString (balance, 'hold');
-            result[code] = newAccount;
+            if (code !== undefined) {
+                result[code] = newAccount;
+            }
         }
         return this.safeBalance (result);
     }

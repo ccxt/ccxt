@@ -6,7 +6,7 @@ import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { TransferEntry, Balances, Currency, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -528,7 +528,7 @@ export default class bigone extends Exchange {
         return this.parseCurrencies (currenciesData);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (rawCurrency, 'name');
@@ -545,27 +545,29 @@ export default class bigone extends Exchange {
             const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
             const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
             const precision = this.parsePrecision (this.safeString2 (chain, 'withdrawal_scale', 'scale'));
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.parseNumber (withdrawalFee),
-                'precision': this.parseNumber (precision),
-                'limits': {
-                    'deposit': {
-                        'min': minDepositAmount,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber (withdrawalFee),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': minWithdrawalAmount,
-                        'max': undefined,
-                    },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         const chainLength = chains.length;
         let type: Str = undefined;
@@ -671,7 +673,7 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets = this.safeList (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
@@ -1026,6 +1028,9 @@ export default class bigone extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'Timestamp');
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         return this.parseToInt (timestamp / 1000000);
     }
 
@@ -1107,7 +1112,7 @@ export default class bigone extends Exchange {
 
     parseContractBidsAsks (bidsAsks) {
         const bidsAsksKeys = Object.keys (bidsAsks);
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
             const price = bidsAsksKeys[i];
             const amount = bidsAsks[price];
@@ -1425,7 +1430,9 @@ export default class bigone extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['used'] = this.safeString (balance, 'locked_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1464,14 +1471,14 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: string) {
+    parseType (type: Str) {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
             'MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1603,7 +1610,7 @@ export default class bigone extends Exchange {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
-        [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
+        [ postOnly, params ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1679,7 +1686,7 @@ export default class bigone extends Exchange {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeDict (response, 'data');
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order, market);
     }
 
@@ -1711,7 +1718,7 @@ export default class bigone extends Exchange {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeDict (response, 'data');
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
     }
 
@@ -1748,7 +1755,7 @@ export default class bigone extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const cancelled = this.safeList (data, 'cancelled', []);
         const failed = this.safeList (data, 'failed', []);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelled.length; i++) {
             const orderId = cancelled[i];
             result.push (this.safeOrder ({

@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -368,7 +368,10 @@ export default class hyperliquid extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
-    market (symbol: string): MarketInterface {
+    market (symbol: Str): MarketInterface {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -471,7 +474,7 @@ export default class hyperliquid extends Exchange {
         return this.parseCurrencies (tokens);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         // const id = i;
         const id = this.safeString (rawCurrency, 'index');
         const name = this.safeString (rawCurrency, 'name');
@@ -511,7 +514,9 @@ export default class hyperliquid extends Exchange {
                     nameWithoutU = nameWithoutU + parts[j];
                 }
                 const baseCode = this.safeCurrencyCode (nameWithoutU);
-                this.options['spotCurrencyMapping'][code] = baseCode;
+                if (code !== undefined) {
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
             }
         }
         return result;
@@ -650,9 +655,10 @@ export default class hyperliquid extends Exchange {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
+                    const hip3Code = (safeCode === undefined) ? name : safeCode.replace (':', '-');
                     this.options['hip3TokensByName'][(name as string)] = {
                         'quote': collateralTokenCode,
-                        'code': safeCode.replace (':', '-'),
+                        'code': hip3Code,
                     };
                 }
                 result.push (data);
@@ -861,7 +867,7 @@ export default class hyperliquid extends Exchange {
         const second = this.safeList (response, 1, []);
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
-        const markets: MarketInterface[] = [];
+        const markets: Market[] = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const index = this.safeInteger (market, 'index');
@@ -1004,6 +1010,9 @@ export default class hyperliquid extends Exchange {
         const settleId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
         const baseName = this.safeString (market, 'name');
         let base = this.safeCurrencyCode (baseName);
+        if (base === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing base currency');
+        }
         base = base.replace (':', '-'); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');
@@ -1086,7 +1095,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    updateSpotCurrencyCode (code: string): string {
+    updateSpotCurrencyCode (code: Str): Str {
         if (code === undefined) {
             return code;
         }
@@ -1174,7 +1183,9 @@ export default class hyperliquid extends Exchange {
                 const used = this.safeString (balance, 'hold');
                 account['total'] = total;
                 account['used'] = used;
-                spotBalances[code] = account;
+                if (code !== undefined) {
+                    spotBalances[code] = account;
+                }
             }
             return this.safeBalance (spotBalances);
         }
@@ -1551,7 +1562,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchTrades', params);
         if (this.markets === undefined) {
@@ -1599,12 +1610,12 @@ export default class hyperliquid extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    amountToPrecision (symbol, amount) {
+    amountToPrecision (symbol: Str, amount) {
         const market = this.market (symbol);
         return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
-    priceToPrecision (symbol: string, price): string {
+    priceToPrecision (symbol: Str, price): Str {
         const market = this.market (symbol);
         const priceStr = this.numberToString (price);
         const integerPart = (priceStr as string).split ('.')[0];
@@ -1805,7 +1816,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         try {
             response = await this.privatePostExchange (request);
             return response;
@@ -2207,7 +2218,13 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (ordersToBeParsed);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: string, price: Str = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         type = type.toUpperCase ();
         side = (side as string).toUpperCase ();
@@ -2236,7 +2253,7 @@ export default class hyperliquid extends Exchange {
         } else {
             px = this.priceToPrecision (symbol, price);
         }
-        const sz = this.amountToPrecision (symbol, amount);
+        const sz: Str = this.amountToPrecision (symbol, amount);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const orderType: Dict = {};
         if (isTrigger) {
@@ -2312,7 +2329,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market ((marketId as string));
+            const market = this.market (marketId);
             const symbol = market['symbol'];
             const type = this.safeStringUpper (rawOrder, 'type');
             const side = this.safeStringUpper (rawOrder, 'side');
@@ -2326,7 +2343,7 @@ export default class hyperliquid extends Exchange {
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
-            const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, (amount as string), price, orderParams);
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, type, side, (amount as string), price, orderParams);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
@@ -2552,7 +2569,7 @@ export default class hyperliquid extends Exchange {
          * @param {object} [params]
          * @returns {object} the raw request object to be sent to the exchange
          */
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         const nonce = this.milliseconds ();
@@ -2754,7 +2771,7 @@ export default class hyperliquid extends Exchange {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
             const marketId = this.safeString (rawOrder, 'symbol');
-            const market = this.market ((marketId as string));
+            const market = this.market (marketId);
             const symbol = market['symbol'];
             const type = this.safeStringUpper (rawOrder, 'type');
             const isMarket = (type === 'MARKET');
@@ -2786,7 +2803,7 @@ export default class hyperliquid extends Exchange {
             } else {
                 px = this.priceToPrecision (symbol, px);
             }
-            const sz = this.amountToPrecision (symbol, amount);
+            const sz: Str = this.amountToPrecision (symbol, amount);
             const orderType: Dict = {};
             if (isTrigger) {
                 let isTp = false;
@@ -4503,7 +4520,7 @@ export default class hyperliquid extends Exchange {
             'internalTransfer': 'transfer',
             'accountClassTransfer': 'transfer',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -4877,7 +4894,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
-        let userAux = undefined;
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);

@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -367,11 +367,11 @@ export default class toobit extends toobitRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol !== undefined) && (timeframe !== undefined) && !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
@@ -382,7 +382,7 @@ export default class toobit extends toobitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //             {
         //                 t: 1757251200000,
@@ -496,20 +496,27 @@ export default class toobit extends toobitRest {
         //    }
         //
         const data = this.safeList (message, 'data');
+        if (data === undefined) {
+            return;
+        }
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            newTickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
+            if (symbol !== undefined) {
+                newTickers[symbol] = parsed;
+            }
             const messageHash = 'ticker::' + symbol;
             client.resolve (parsed, messageHash);
         }
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         return this.parseTicker (ticker, market);
     }
 
@@ -698,6 +705,9 @@ export default class toobit extends toobitRest {
         const swapMessageHash = 'contract:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        if (subscriptionHash === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBalance() requires a subscription hash');
+        }
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         this.setBalanceCache (client, marketType, subscriptionHash, params);
@@ -706,7 +716,7 @@ export default class toobit extends toobitRest {
     }
 
     setBalanceCache (client: Client, marketType, subscriptionHash: Str = undefined, params = {}) {
-        if (subscriptionHash in client.subscriptions) {
+        if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
         const type = (marketType === 'spot') ? 'spot' : 'contract';
@@ -769,7 +779,9 @@ export default class toobit extends toobitRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'l');
             account['free'] = this.safeString (balance, 'f');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
@@ -778,7 +790,7 @@ export default class toobit extends toobitRest {
     async loadBalanceSnapshot (client, messageHash, marketType) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -864,7 +876,7 @@ export default class toobit extends toobitRest {
         client.resolve (orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -972,7 +984,7 @@ export default class toobit extends toobitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade (trade, market: Market = undefined) {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         return this.safeTrade ({
@@ -1011,6 +1023,9 @@ export default class toobit extends toobitRest {
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getUserStreamUrl ();
@@ -1125,7 +1140,7 @@ export default class toobit extends toobitRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         const marketId = this.safeString (position, 's');
         return this.safePosition ({
             'info': position,

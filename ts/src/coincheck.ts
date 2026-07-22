@@ -312,7 +312,7 @@ export default class coincheck extends Exchange {
         //
         const exchangeStatuses = this.safeList (response, 'exchange_status', []);
         let status = 'ok';
-        let updated = undefined;
+        let updated: Int = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
             const exchangeStatus = exchangeStatuses[i];
             const rawStatus = this.safeString (exchangeStatus, 'status');
@@ -619,7 +619,7 @@ export default class coincheck extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;

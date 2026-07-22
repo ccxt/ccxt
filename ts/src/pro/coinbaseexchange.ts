@@ -60,13 +60,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         };
     }
 
-    async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
+    async subscribe (name, symbol: Str = undefined, messageHashStart: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         let messageHash = messageHashStart;
-        const productIds = [];
+        const productIds: Str[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -88,14 +88,14 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+    async subscribeMultiple (name, symbols: string[] = [], messageHashStart: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const productIds = [];
+        const messageHashes: string[] = [];
+        const productIds: Str[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market (symbol);
@@ -143,6 +143,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() symbols is required');
         }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -341,7 +344,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const marketId = marketIds[i];
             messageHashes.push (name + ':' + marketId);
@@ -433,7 +436,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol] = tradesArray;
+                if (symbol !== undefined) {
+                    this.trades[symbol] = tradesArray;
+                }
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
@@ -647,6 +652,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const makerOrderId = this.safeString (message, 'maker_order_id');
             const takerOrderId = this.safeString (message, 'taker_order_id');
             const orders = this.orders;
+            if (orders === undefined) {
+                return;
+            }
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             let previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -658,6 +666,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 client.resolve (orders, messageHash);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
+                if (sequence === undefined) {
+                    return;
+                }
                 const previousInfo = this.safeValue (previousOrder, 'info', {});
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
@@ -714,6 +725,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         // update the newUpdates count
+                        if (orders === undefined) {
+                            return;
+                        }
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
                     }
@@ -796,7 +810,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (marketId !== undefined) {
             const ticker = this.parseTicker (message);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = 'ticker:' + symbol;
             const idMessageHash = 'ticker:' + marketId;
             client.resolve (ticker, messageHash);
@@ -928,7 +944,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 const side = this.safeString (sides, key);
                 const price = this.safeNumber (change, 1);
                 const amount = this.safeNumber (change, 2);
-                const bookside = orderbook[side];
+                const bookside = this.safeValue (orderbook, side);
                 bookside.store (price, amount);
             }
             orderbook['timestamp'] = timestamp;

@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1549,6 +1549,9 @@ export default class bybit extends Exchange {
             base = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
             const symbolQuoteAndSettle = this.safeString (symbolBase, 1);
+            if (symbolQuoteAndSettle === undefined) {
+                throw new ExchangeError (this.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
+            }
             const splitQuote = symbolQuoteAndSettle.split (':');
             const quoteAndSettle = this.safeString (splitQuote, 0);
             quote = quoteAndSettle;
@@ -1631,7 +1634,7 @@ export default class bybit extends Exchange {
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -1649,7 +1652,7 @@ export default class bybit extends Exchange {
         return [ subType, params ];
     }
 
-    getAmount (symbol: string, amount: number) {
+    getAmount (symbol: Str, amount: number | undefined) {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market (symbol);
@@ -1661,7 +1664,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: string, price: string) {
+    getPrice (symbol: Str, price: Str) {
         if (price === undefined) {
             return price;
         }
@@ -1673,7 +1676,7 @@ export default class bybit extends Exchange {
         return price;
     }
 
-    getCost (symbol: string, cost: string) {
+    getCost (symbol: Str, cost: Str) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -1720,8 +1723,8 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const list = this.safeList (result, 'list', []);
         let status = 'ok';
-        let eta = undefined;
-        let url = undefined;
+        let eta: Int = undefined;
+        let url: Str = undefined;
         for (let i = 0; i < list.length; i++) {
             const event = list[i];
             const state = this.safeString (event, 'state');
@@ -1820,7 +1823,7 @@ export default class bybit extends Exchange {
         return this.parseCurrencies (rows);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const currencyId = this.safeString (currency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (currency, 'name');
@@ -1830,26 +1833,28 @@ export default class bybit extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'chain');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger (chain, 'chainDeposit') === 1,
-                'withdraw': this.safeInteger (chain, 'chainWithdraw') === 1,
-                'fee': this.safeNumber (chain, 'withdrawFee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger (chain, 'chainDeposit') === 1,
+                    'withdraw': this.safeInteger (chain, 'chainWithdraw') === 1,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'depositMin'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (chain, 'depositMin'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': currency,
@@ -2184,7 +2189,7 @@ export default class bybit extends Exchange {
             } else if (future) {
                 type = 'future';
             }
-            let expiry = undefined;
+            let expiry: Str | number = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
                 expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
@@ -2340,6 +2345,9 @@ export default class bybit extends Exchange {
             const priceFilter = this.safeDict (market, 'priceFilter', {});
             const status = this.safeString (market, 'status');
             const expiry = this.safeInteger (market, 'deliveryTime');
+            if (id === undefined) {
+                throw new ExchangeError (this.id + ' method() missing id');
+            }
             const splitId = id.split ('-');
             const strike = this.safeString (splitId, 2);
             const optionLetter = this.safeString (splitId, 3);
@@ -2590,7 +2598,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const tickers = this.safeList (result, 'list', []);
-        const rawTicker = this.safeDict (tickers, 0);
+        const rawTicker = this.safeDict (tickers, 0, {});
         return this.parseTicker (rawTicker, market);
     }
 
@@ -3614,7 +3622,9 @@ export default class bybit extends Exchange {
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString (coinEntry, 'coin');
                         const code = this.safeCurrencyCode (currencyId);
-                        result[code] = account;
+                        if (code !== undefined) {
+                            result[code] = account;
+                        }
                     }
                 } else {
                     const account = this.account ();
@@ -3628,7 +3638,9 @@ export default class bybit extends Exchange {
                     account['used'] = this.safeString (entry, 'locked');
                     const currencyId = this.safeStringN (entry, [ 'tokenId', 'coin', 'currencyCoin' ]);
                     const code = this.safeCurrencyCode (currencyId);
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -4193,7 +4205,13 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}, isUTA = true) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -4573,7 +4591,13 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -4956,6 +4980,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request: Dict = {
             'timeWindow': this.parseToInt (timeout / 1000),
         };
@@ -4966,7 +4993,7 @@ export default class bybit extends Exchange {
             'swap': 'DERIVATIVES',
             'option': 'OPTIONS',
         };
-        const product = this.safeString (productMap, type, type);
+        const product = this.safeString (productMap, (type as string), type);
         request['product'] = product;
         const response = await this.privatePostV5OrderDisconnectedCancelAll (this.extend (request, params));
         //
@@ -5996,7 +6023,7 @@ export default class bybit extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
     /**
@@ -6540,7 +6567,7 @@ export default class bybit extends Exchange {
             'CURRENCY_BUY': 'trade',
             'CURRENCY_SELL': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -6621,7 +6648,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('fetchPosition', market, params);
         request['category'] = type;
@@ -6699,7 +6726,7 @@ export default class bybit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', symbols as any, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((symbols !== undefined) && Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
@@ -6709,7 +6736,7 @@ export default class bybit extends Exchange {
             }
             symbols = this.marketSymbols (symbols);
         } else if (symbols !== undefined) {
-            symbol = symbols;
+            symbol = symbols as any;
             symbols = [ this.symbol (symbol) ];
         }
         const request: Dict = {};
@@ -8079,7 +8106,9 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -8125,10 +8154,12 @@ export default class bybit extends Exchange {
                 const networkId = this.safeString (chain, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainsLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -8833,7 +8864,7 @@ export default class bybit extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //  [
         //      {
@@ -8849,8 +8880,9 @@ export default class bybit extends Exchange {
         //
         const tiers: Dict = {};
         const marketIds = this.marketIds (symbols);
-        const filteredResults = this.filterByArray (response, marketIdKey, marketIds, false);
-        const grouped = this.groupBy (filteredResults, marketIdKey);
+        const idKey = (marketIdKey === undefined) ? 'symbol' : marketIdKey;
+        const filteredResults = this.filterByArray (response, idKey, marketIds, false);
+        const grouped = this.groupBy (filteredResults, idKey);
         const keys = Object.keys (grouped);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -8885,7 +8917,7 @@ export default class bybit extends Exchange {
             const tier = info[i];
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId);
-            let minNotional = this.parseNumber ('0');
+            let minNotional: Num = this.parseNumber ('0');
             if (i !== 0) {
                 minNotional = this.safeNumber (info[i - 1], 'riskLimitValue');
             }
@@ -9268,7 +9300,11 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const rawPositions = this.safeList (result, 'list');
-        const positions = this.parsePositions (rawPositions, symbols, params);
+        let rawPositionsList: any[] = [];
+        if (rawPositions !== undefined) {
+            rawPositionsList = rawPositions;
+        }
+        const positions = this.parsePositions (rawPositionsList, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
@@ -9337,34 +9373,36 @@ export default class bybit extends Exchange {
             const disableTo = this.safeBool (entry, 'disableTo');
             const inactive = (disableFrom || disableTo);
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': this.safeString (entry, 'coinType'),
-                'name': this.safeString (entry, 'fullName'),
-                'active': !inactive,
-                'deposit': undefined,
-                'withdraw': this.safeNumber (entry, 'balance'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (entry, 'singleFromMinLimit'),
-                        'max': this.safeNumber (entry, 'singleFromMaxLimit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': this.safeString (entry, 'coinType'),
+                    'name': this.safeString (entry, 'fullName'),
+                    'active': !inactive,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber (entry, 'balance'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber (entry, 'singleFromMinLimit'),
+                            'max': this.safeNumber (entry, 'singleFromMaxLimit'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -9893,7 +9931,7 @@ export default class bybit extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marginType = this.safeString (marginMode, 'marginMode');
         return {
             'info': marginMode,

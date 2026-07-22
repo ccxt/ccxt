@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import onetradingRest from '../onetrading.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -232,7 +232,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.tickers, 'tickers');
     }
 
-    parseWSTicker (ticker, market = undefined) {
+    parseWSTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -539,7 +539,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (this.orders, 'orders');
     }
 
-    parseTradingOrder (order, market = undefined) {
+    parseTradingOrder (order, market: Market = undefined) {
         //
         //     {
         //         "order_book_sequence": 892925263,
@@ -1055,7 +1055,9 @@ export default class onetrading extends onetradingRest {
         const account = this.account ();
         account['free'] = this.safeString (balance, 'new_available');
         account['used'] = this.safeString (balance, 'new_locked');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
     }
 
@@ -1104,9 +1106,13 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            if (marketId !== undefined) {
+                subscription[marketId] = {};
+            }
         }
-        subscription[marketId][timeframe] = true;
+        if ((marketId !== undefined) && (timeframe !== undefined)) {
+            subscription[marketId][timeframe] = true;
+        }
         const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1187,18 +1193,23 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined && timeframe !== undefined) {
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         client.resolve (stored, channel);
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe, timeframes: any = undefined) {
         timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
+        }
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1328,7 +1339,11 @@ export default class onetrading extends onetradingRest {
         let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
-            marketIds = Object.keys (this.markets_by_id);
+            const marketsById = this.markets_by_id;
+            if (marketsById === undefined) {
+                return [];
+            }
+            marketIds = Object.keys (marketsById);
         } else {
             marketIds = this.marketIds (symbols);
         }

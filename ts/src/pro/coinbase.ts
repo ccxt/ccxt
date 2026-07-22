@@ -66,18 +66,22 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: Str | Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         let messageHash = name;
-        let productIds = [];
+        let productIds: Str[] = [];
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
-            productIds = marketIds;
-            messageHash = messageHash + '::' + symbol.join (',');
+            if (marketIds === undefined) {
+                productIds = [];
+            } else {
+                productIds = marketIds;
+            }
+            messageHash = messageHash + '::' + symbols.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
@@ -109,7 +113,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str | Strings = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -120,13 +124,17 @@ export default class coinbase extends coinbaseRest {
         let market: Market = undefined;
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
-        let productIds = [];
+        let productIds: Str[] = [];
         if (Array.isArray (symbol)) {
             const symbols = this.marketSymbols (symbol);
             const marketIds = this.marketIds (symbols);
-            productIds = marketIds;
-            watchMessageHash = watchMessageHash + '::' + symbol.join (',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol.join (',');
+            if (marketIds === undefined) {
+                productIds = [];
+            } else {
+                productIds = marketIds;
+            }
+            watchMessageHash = watchMessageHash + '::' + symbols.join (',');
+            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
@@ -172,8 +180,8 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const productIds = [];
-        const messageHashes = [];
+        const productIds: Str[] = [];
+        const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols, undefined, false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -214,9 +222,9 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const productIds = [];
-        const watchMessageHashes = [];
-        const unWatchMessageHashes = [];
+        const productIds: Str[] = [];
+        const watchMessageHashes: string[] = [];
+        const unWatchMessageHashes: string[] = [];
         symbols = this.marketSymbols (symbols, undefined, false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -249,7 +257,7 @@ export default class coinbase extends coinbaseRest {
         return res;
     }
 
-    createWSAuth (name: string, productIds: string[]) {
+    createWSAuth (name: string, productIds: Str[]) {
         const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
@@ -451,7 +459,7 @@ export default class coinbase extends coinbaseRest {
         const events = this.safeList (message, 'events', []);
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        const newTickers = [];
+        const newTickers: Ticker[] = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = events[i];
             const tickers = this.safeList (tickersObj, 'tickers', []);
@@ -465,7 +473,9 @@ export default class coinbase extends coinbaseRest {
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
-                this.tickers[symbol] = result;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = result;
+                }
                 newTickers.push (result);
                 const messageHash = channel + '::' + symbol;
                 client.resolve (result, messageHash);
@@ -474,7 +484,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "type": "ticker",
@@ -726,6 +736,9 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const event = this.safeValue (events, 0);
         const trades = this.safeList (event, 'trades');
         const trade = this.safeDict (trades, 0);
@@ -741,6 +754,9 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
             const currentTrades = this.safeList (currentEvent, 'trades');
+            if (currentTrades === undefined) {
+                return;
+            }
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[j];
                 tradesArray.append (this.parseTrade (item));
@@ -780,7 +796,10 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
-        const marketIds = [];
+        if (events === undefined) {
+            return;
+        }
+        const marketIds: string[] = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -788,11 +807,17 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const responseOrders = this.safeList (event, 'orders');
+            if (responseOrders === undefined) {
+                return;
+            }
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
                 const cachedOrders = this.orders;
                 const marketId = this.safeString (responseOrder, 'product_id');
+                if (marketId === undefined) {
+                    return;
+                }
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
                 }
@@ -809,7 +834,7 @@ export default class coinbase extends coinbaseRest {
         client.resolve (this.orders, 'user');
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "order_id": "XXX",
@@ -867,7 +892,7 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
-            const orderbookSide = orderbook[side];
+            const orderbookSide = this.safeValue (orderbook, side);
             orderbookSide.store (price, amount);
         }
     }
@@ -902,6 +927,9 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
@@ -1011,7 +1039,9 @@ export default class coinbase extends coinbaseRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
+            const errorMessageValue = (errorMessage !== undefined) ? errorMessage : 'unknown error';
+            throw new ExchangeError (errorMessageValue);
         }
         const method = this.safeValue (methods, channel);
         if (method) {

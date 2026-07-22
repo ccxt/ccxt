@@ -866,10 +866,12 @@ class Transpiler {
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
             'DepositAddress': /-> (?:List\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
+            'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
@@ -1701,16 +1703,20 @@ class Transpiler {
             let part = this.moveJsDocInside(methods[i].trim());
             // let part = methods[i].trim ()
             let lines = part.split ("\n")
-            // strip TypeScript overload signature lines (body-less declarations ending with ';')
-            // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            // strip leading blank / comment lines first (// line comments AND /* */ block comments
+            // like /* eslint-disable ... */) so a note above overload signatures does not block the
+            // overload stripper (otherwise lines[0] is a comment, overloads are not removed, and the
+            // signature regex fails → unCamelCase(undefined)).
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
-            // strip leading blank / line-comment lines so a standalone section-divider comment
-            // block (or a method preceded by // comments) isn't mistaken for the signature. the
-            // main Exchange base has neither, so this is a no-op there; the prediction base uses
-            // section dividers between method groups.
-            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+            // strip TypeScript overload signature lines (body-less declarations ending with ';')
+            // they carry no runtime code and the implementation signature below handles all cases
+            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+                lines.shift ()
+            }
+            // re-strip any blanks/comments left between overloads and the implementation
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//') || lines[0].trim ().startsWith ('/*'))) {
                 lines.shift ()
             }
             if (lines.length === 0) {
@@ -1731,19 +1737,20 @@ class Transpiler {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
-            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // signature line, return type captured non-greedily to allow tuples like [Str, Dict]
+            let methodSignatureRegex = /(async |)(\S+)(?:\s*<[^>]+>)?\s*\(([^)]*)\)\s*(?::\s+(.+?))?\s*{/ // optional TS generics; return type non-greedy for tuples
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
                 log.red (methods[i])
                 log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
+                throw new Error ('transpileMethodsToAllLanguages: could not parse method signature in ' + className)
             }
 
             // async or not
-            let keyword = matches?.[1] as string
+            let keyword = matches[1] as string
 
             // method name
-            let method = matches?.[2] as string
+            let method = matches[2] as string
 
             if (process.argv.includes ('--check-parsers')) {
                 this.checkIfMethodLacksParser (className, method, part)
@@ -1754,10 +1761,10 @@ class Transpiler {
             method = unCamelCase (method)
 
             // method arguments
-            const args = (matches?.[3] as string).trim ()
+            const args = (matches[3] as string).trim ()
 
             // return type
-            let returnType = matches?.[4] as string
+            let returnType = matches[4] as string
 
             // extract argument names and local variables
             const argsArray = args.length ? args.split (',').map (x => x.trim ()) : []
@@ -1774,6 +1781,13 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                // strip trailing `| undefined` / `| null` from return unions so python gets Order not Order | undefined
+                if (syncReturnType && syncReturnType.indexOf ('|') !== -1) {
+                    const returnParts = syncReturnType.split ('|').map ((p) => p.trim ()).filter ((p) => (p !== 'undefined') && (p !== 'null'));
+                    if (returnParts.length === 1) {
+                        syncReturnType = returnParts[0];
+                    }
+                }
             }
             // tuple return types like [Str, Dict] map to array/list (no single-token equivalent)
             const isTupleReturnType = (syncReturnType !== '') && (syncReturnType[0] === '[')
@@ -1816,6 +1830,7 @@ class Transpiler {
                     'number': 'float',
                     'boolean': 'bool',
                     'IndexType': 'int|string',
+                    'NullableIndexType': 'int|string|null',
                     'Int': '?int',
                     'OrderType': 'string',
                     'OrderSide': 'string',
@@ -1824,7 +1839,7 @@ class Transpiler {
                     'NullableDict': '?array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1843,6 +1858,24 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         let type = secondPart[0].trim ()
+                        // Normalise union parameter types so we never emit invalid PHP like
+                        // `?Dict | null` or `?Currency | Str`. Split on `|`, drop the `undefined`
+                        // member (it only signals nullability, already carried by the default /
+                        // the leading `?`). If one named type remains, keep it as a nullable hint;
+                        // if several distinct types remain, PHP cannot express the union, so fall
+                        // back to an untyped parameter (mixed-like) rather than a broken hint.
+                        if (type.indexOf (' | ') !== -1) {
+                            const unionParts = type.split ('|').map ((p) => p.trim ());
+                            const nonUndefined = unionParts.filter ((p) => p !== 'undefined');
+                            if (unionParts.length !== nonUndefined.length) {
+                                nullable = true;
+                            }
+                            if (nonUndefined.length === 1) {
+                                type = nonUndefined[0];
+                            } else {
+                                type = 'any'; // multiple concrete union members -> emit no PHP type hint
+                            }
+                        }
                         const phpType = phpTypes[type] ?? type
                         let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
                         if (resolveType === 'object[]') {

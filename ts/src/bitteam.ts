@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -658,7 +658,7 @@ export default class bitteam extends Exchange {
         return result;
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const statusesResponse = this.safeValue (this.options, '_temp_currencies_statuses', {});
         const id = this.safeString (currency, 'symbol');
         const numericId = this.safeInteger (currency, 'id');
@@ -691,30 +691,32 @@ export default class bitteam extends Exchange {
             const networkId = networkIds[j];
             const networkCode = this.networkIdToCode (networkId, code);
             const networkFee = this.safeNumber (feesByNetworkId, networkId);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': active,
-                'fee': networkFee,
-                'precision': networkPrecision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': active,
+                    'fee': networkFee,
+                    'precision': networkPrecision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.parseNumber (minWithdraw),
+                            'max': this.parseNumber (maxWithdraw),
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (minDeposit),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.parseNumber (minWithdraw),
-                        'max': this.parseNumber (maxWithdraw),
-                    },
-                    'deposit': {
-                        'min': this.parseNumber (minDeposit),
-                        'max': undefined,
-                    },
-                },
-                'info': currency,
-            };
+                    'info': currency,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2191,11 +2193,13 @@ export default class bitteam extends Exchange {
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
             const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
-            balance[currencyCode] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            if (currencyCode !== undefined) {
+                balance[currencyCode] = {
+                    'free': free,
+                    'used': used,
+                    'total': total,
+                };
+            }
         }
         return this.safeBalance (balance);
     }
@@ -2414,7 +2418,7 @@ export default class bitteam extends Exchange {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransactionStatus (status: Str) {

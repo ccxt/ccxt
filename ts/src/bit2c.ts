@@ -6,7 +6,9 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, NullableList } from './base/types.js';
+
+;
 
 //  ---------------------------------------------------------------------------
 
@@ -465,7 +467,7 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response: List = undefined;
+        let response: NullableList = undefined;
         if (method === 'public_get_exchanges_pair_trades') {
             response = await this.publicGetExchangesPairTrades (this.extend (request, params));
         } else {
@@ -481,7 +483,11 @@ export default class bit2c extends Exchange {
         if (typeof response === 'string') {
             throw new ExchangeError (response);
         }
-        return this.parseTrades (response, market, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     /**
@@ -686,7 +692,7 @@ export default class bit2c extends Exchange {
         //          "initialAmount": 2.00000000
         //      }
         //
-        let orderUnified: Dict = undefined;
+        let orderUnified: NullableDict = undefined;
         let isNewOrder = false;
         if ('NewOrder' in order) {
             orderUnified = order['NewOrder'];
@@ -837,7 +843,11 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     removeCommaFromValue (str) {
@@ -887,7 +897,7 @@ export default class bit2c extends Exchange {
         let price: Str = undefined;
         let amount: Str = undefined;
         let orderId: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');

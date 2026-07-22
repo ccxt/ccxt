@@ -5,10 +5,10 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -295,7 +295,7 @@ export default class hibachi extends Exchange {
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct (market, 'marketCreationTimestamp', 1000);
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -344,7 +344,7 @@ export default class hibachi extends Exchange {
             },
             'created': created,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -411,29 +411,31 @@ export default class hibachi extends Exchange {
             'info': {},
         };
         const code = this.safeCurrencyCode ('USDT');
-        result[code] = this.safeCurrencyStructure ({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': this.parseNumber ('0.000001'),
-            'active': true,
-            'fee': undefined,
-            'networks': networks,
-            'deposit': true,
-            'withdraw': true,
-            'limits': {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
+        if (code !== undefined) {
+            result[code] = this.safeCurrencyStructure ({
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': this.parseNumber ('0.000001'),
+                'active': true,
+                'fee': undefined,
+                'networks': networks,
+                'deposit': true,
+                'withdraw': true,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': {},
-        });
+                'info': {},
+            });
+        }
         return result;
     }
 
@@ -446,7 +448,9 @@ export default class hibachi extends Exchange {
         const account = this.account ();
         account['total'] = this.safeString (response, 'balance');
         account['free'] = this.safeString (response, 'maximalWithdraw');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance (result);
     }
 
@@ -549,7 +553,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -618,7 +622,11 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades', []);
-        return this.parseTrades (trades, market);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market);
     }
 
     /**
@@ -631,7 +639,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the hibachi api endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -805,8 +813,9 @@ export default class hibachi extends Exchange {
         const makerFeeRate = this.safeNumber (response, 'tradeMakerFeeRate');
         const takerFeeRate = this.safeNumber (response, 'tradeTakerFeeRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -818,7 +827,13 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
+    orderMessage (market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -868,16 +883,26 @@ export default class hibachi extends Exchange {
         return message;
     }
 
-    createOrderRequest (nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
-        const feeRate = Math.max (this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045)), this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015)));
+        const takerFee = this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045));
+        const makerFee = this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015));
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max (takerFeeValue, makerFeeValue);
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
         } else if (side === 'buy') {
             sideInternal = 'BID';
         }
-        let priceInternal = '';
+        let priceInternal: Str = '';
         if (price) {
             priceInternal = this.priceToPrecision (symbol, price);
         }
@@ -957,7 +982,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const nonce = this.nonce ();
-        const requestOrders = [];
+        const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -978,7 +1003,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -991,9 +1016,19 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    editOrderRequest (nonce: number, id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (nonce: number, id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
-        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
+        const takerFee = this.safeNumber (market, 'taker', 0);
+        const makerFee = this.safeNumber (market, 'maker', 0);
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max (takerFeeValue, makerFeeValue);
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
@@ -1053,7 +1088,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const nonce = this.nonce ();
-        const requestOrders = [];
+        const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
@@ -1075,7 +1110,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1136,7 +1171,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        const orders = [];
+        const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const orderRequest = this.cancelOrderRequest (ids[i]);
             orderRequest['action'] = 'cancel';
@@ -1150,7 +1185,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1202,7 +1237,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    encodeWithdrawMessage (amount: number, maxFees: number, address: string) {
+    encodeWithdrawMessage (amount: Num, maxFees: Num, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)
@@ -1423,7 +1458,11 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit, params);
+        let tradesList: any[] = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades (tradesList, market, since, limit, params);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1461,7 +1500,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1822,7 +1861,7 @@ export default class hibachi extends Exchange {
             'transfer-in': 'transfer',
             'transfer-out': 'transfer',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransactionStatus (status) {
@@ -1841,7 +1880,7 @@ export default class hibachi extends Exchange {
         let type: Str = undefined;
         let direction: Str = undefined;
         let amount: Num = undefined;
-        let fee: Fee = undefined;
+        let fee: NullableDict = undefined;
         let referenceId: Str = undefined;
         let referenceAccount: Str = undefined;
         let status: Str = undefined;
@@ -1968,7 +2007,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions');
+        const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions', []);
         const responseTradingHistory = promises[1];
         //
         // {
@@ -1996,7 +2035,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory');
+        const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory', []);
         const rows = this.arrayConcat (rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger (rows, currency, since, limit, params);
     }
@@ -2146,7 +2185,7 @@ export default class hibachi extends Exchange {
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement, market = undefined) {
+    parseSettlement (settlement, market: Market = undefined) {
         //
         //     {
         //         "direction": "Long",
@@ -2169,8 +2208,8 @@ export default class hibachi extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market = undefined) {
-        const result = [];
+    parseSettlements (settlements, market: Market = undefined) {
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -2371,7 +2410,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeIntegerProduct (entry, 'fundingTimestamp', 1000);

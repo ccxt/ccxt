@@ -418,7 +418,9 @@ export default class bitflyer extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'amount');
             account['free'] = this.safeString (balance, 'available');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -864,7 +866,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }

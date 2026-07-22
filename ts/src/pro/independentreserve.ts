@@ -3,7 +3,7 @@
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, ChecksumError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Dict , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -97,7 +97,7 @@ export default class independentreserve extends independentreserveRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -182,6 +182,9 @@ export default class independentreserve extends independentreserveRest {
         //
         const event = this.safeString (message, 'Event');
         const channel = this.safeString (message, 'Channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('/');
         const depth = this.safeString (parts, 1);
         const baseId = this.safeString (parts, 2);

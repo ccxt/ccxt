@@ -115,7 +115,9 @@ export default class cex extends cexRest {
             account['free'] = this.safeString (freeBalance, currencyId);
             account['used'] = this.safeString (usedBalance, currencyId);
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance (result);
         const messageHash = this.safeString (message, 'oid');
@@ -185,7 +187,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    parseWsOldTrade (trade, market = undefined) {
+    parseWsOldTrade (trade, market: Market = undefined) {
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -233,12 +235,15 @@ export default class cex extends cexRest {
     handleTradesInner (client: Client, message) {
         const data = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[(symbol as string)] = new ArrayCache (limit);
         }
         const stored = this.trades[(symbol as string)];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
@@ -372,7 +377,7 @@ export default class cex extends cexRest {
             return;
         }
         this.tickers[symbol] = ticker;
-        let messageHash = 'ticker:' + symbol;
+        let messageHash: Str = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
         messageHash = this.safeString (message, 'oid');
@@ -381,7 +386,7 @@ export default class cex extends cexRest {
         }
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //  public
         //    {
@@ -406,11 +411,11 @@ export default class cex extends cexRest {
         //        "pair": ["BTC", "USDT"]
         //    }
         const pair = this.safeValue (ticker, 'pair', []);
-        let baseId = this.safeString (ticker, 'symbol1');
+        let baseId: Str = this.safeString (ticker, 'symbol1');
         if (baseId === undefined) {
             baseId = this.safeString (pair, 0);
         }
-        let quoteId = this.safeString (ticker, 'symbol2');
+        let quoteId: Str = this.safeString (ticker, 'symbol2');
         if (quoteId === undefined) {
             quoteId = this.safeString (pair, 1);
         }
@@ -612,7 +617,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "d": "order:59091012956:a:BTC",
@@ -748,8 +753,8 @@ export default class cex extends cexRest {
         const isTransaction = this.safeString (message, 'e') === 'tx';
         const orderId = this.safeString2 (data, 'id', 'order');
         let remains = this.safeString (data, 'remains');
-        let baseId = this.safeString (data, 'symbol');
-        let quoteId = this.safeString (data, 'symbol2');
+        let baseId: Str = this.safeString (data, 'symbol');
+        let quoteId: Str = this.safeString (data, 'symbol2');
         const pair = this.safeValue (data, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString (pair, 'symbol1');
@@ -795,7 +800,7 @@ export default class cex extends cexRest {
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order, market = undefined) {
+    parseWsOrderUpdate (order, market: Market = undefined) {
         //
         //      {
         //          "id": "150714937",
@@ -836,14 +841,20 @@ export default class cex extends cexRest {
         const remainsPrecision = this.safeString (order, 'remains');
         let remaining: Str = undefined;
         if (remainsPrecision !== undefined) {
+            if (market === undefined) {
+                return undefined;
+            }
             remaining = this.currencyFromPrecision (market['base'], remainsPrecision);
         }
         const amount = this.safeString (order, 'amount');
         if (!isTransaction) {
+            if (market === undefined) {
+                return undefined;
+            }
             this.currencyFromPrecision (market['base'], amount);
         }
-        let baseId = this.safeString (order, 'symbol');
-        let quoteId = this.safeString (order, 'symbol2');
+        let baseId: Str = this.safeString (order, 'symbol');
+        let quoteId: Str = this.safeString (order, 'symbol2');
         const pair = this.safeValue (order, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString (order, 'symbol1');
@@ -857,7 +868,7 @@ export default class cex extends cexRest {
         }
         market = this.safeMarket (symbol, market);
         const time = this.safeInteger (order, 'time', this.milliseconds ());
-        let timestamp = time;
+        let timestamp: Int = time;
         if (isTransaction) {
             timestamp = this.parse8601 (time);
         }
@@ -945,10 +956,16 @@ export default class cex extends cexRest {
             const market = this.safeMarket (symbol);
             const order = this.parseOrder (rawOrder, market);
             order['status'] = 'open';
+            if (myOrders === undefined) {
+                return;
+            }
             myOrders.append (order);
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
+        if (myOrders === undefined) {
+            return;
+        }
         const ordersLength = myOrders.length;
         if (ordersLength > 0) {
             client.resolve (myOrders, messageHash);
@@ -1143,6 +1160,9 @@ export default class cex extends cexRest {
         //     }
         //
         const pair = this.safeString (message, 'pair');
+        if (pair === undefined) {
+            return;
+        }
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);

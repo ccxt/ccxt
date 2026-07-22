@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -524,7 +524,7 @@ export default class modetrade extends Exchange {
         const settleId: Str = this.safeString (parts, 2);
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -572,7 +572,7 @@ export default class modetrade extends Exchange {
             },
             'created': this.safeInteger (market, 'created_time'),
             'info': market,
-        };
+        });
     }
 
     /**
@@ -662,7 +662,7 @@ export default class modetrade extends Exchange {
         return this.parseCurrencies (tokenRows);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'token');
         const networks = this.safeList (rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
@@ -1484,7 +1484,13 @@ export default class modetrade extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
         /**
          * @method
          * @ignore
@@ -2326,7 +2332,9 @@ export default class modetrade extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['used'] = this.safeString (balance, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2447,7 +2455,7 @@ export default class modetrade extends Exchange {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -2859,7 +2867,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: Str, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

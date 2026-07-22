@@ -6,7 +6,7 @@ import Exchange from './abstract/xt.js';
 import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -913,31 +913,33 @@ export default class xt extends Exchange {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
                 const networkCode = this.networkIdToCode (networkId, code);
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': undefined,
-                    'fee': this.safeNumber (rawNetwork, 'withdrawFeeAmount'),
-                    'precision': undefined,
-                    'deposit': this.safeBool (rawNetwork, 'depositEnabled'),
-                    'withdraw': this.safeBool (rawNetwork, 'withdrawEnabled'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
+                if (networkCode !== undefined) {
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': undefined,
+                        'active': undefined,
+                        'fee': this.safeNumber (rawNetwork, 'withdrawFeeAmount'),
+                        'precision': undefined,
+                        'deposit': this.safeBool (rawNetwork, 'depositEnabled'),
+                        'withdraw': this.safeBool (rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber (rawNetwork, 'withdrawMinAmount'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                         },
-                        'withdraw': {
-                            'min': this.safeNumber (rawNetwork, 'withdrawMinAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+                    };
+                }
             }
             const typeRaw = this.safeString (entry, 'type');
             let type: Str = undefined;
@@ -946,33 +948,35 @@ export default class xt extends Exchange {
             } else {
                 type = 'other';
             }
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString (entry, 'fullName'),
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
-                'deposit': this.safeString (entry, 'depositStatus') === '1',
-                'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString (entry, 'fullName'),
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
+                    'deposit': this.safeString (entry, 'depositStatus') === '1',
+                    'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
+                    'networks': networks,
+                    'type': type,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }
@@ -1790,7 +1794,9 @@ export default class xt extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2355,7 +2361,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances: NullableDict = undefined;
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeValue (response, 'result', []);
         } else {
@@ -2408,7 +2414,9 @@ export default class xt extends Exchange {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2470,7 +2478,7 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2533,7 +2541,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createContractOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3228,12 +3236,12 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        let orders = [];
+        let orders: Dict[] = [];
         const resultDict = this.safeDict (response, 'result');
         if (resultDict !== undefined) {
             orders = this.safeList (resultDict, 'items', []);
         } else {
-            orders = this.safeList (response, 'result');
+            orders = this.safeList (response, 'result', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -3459,7 +3467,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response),
+            this.safeOrder (response as any),
         ];
     }
 
@@ -3501,7 +3509,7 @@ export default class xt extends Exchange {
         //     }
         //
         return [
-            this.safeOrder (response),
+            this.safeOrder (response as any),
         ];
     }
 
@@ -3809,7 +3817,7 @@ export default class xt extends Exchange {
             'FEE': 'fee',
             'ADL': 'auto-deleveraging',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -4301,7 +4309,7 @@ export default class xt extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4710,7 +4718,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4761,7 +4769,7 @@ export default class xt extends Exchange {
                 return this.parsePosition (entry, marketInner);
             }
         }
-        return undefined;
+        throw new NullResponse (this.id + ' fetchPosition() could not find a position for ' + symbol);
     }
 
     /**
@@ -5181,8 +5189,14 @@ export default class xt extends Exchange {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new NullResponse (this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf ('future') > -1) {
                     body['clientMedia'] = id;
+                    if (body === undefined) {
+                        throw new NullResponse (this.id + ' sign() returned empty body');
+                    }
                 } else {
                     body['media'] = id;
                 }

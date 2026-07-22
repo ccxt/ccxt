@@ -62,7 +62,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
         const request: Dict = {
@@ -105,7 +105,9 @@ export default class ndax extends ndaxRest {
         const ticker = this.parseTicker (payload);
         const symbol = ticker['symbol'];
         const market = this.market (symbol);
-        this.tickers[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
         client.resolve (ticker, messageHash);
@@ -135,7 +137,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
         const request: Dict = {
@@ -184,8 +186,12 @@ export default class ndax extends ndaxRest {
                 tradesArray = new ArrayCache (limit);
             }
             tradesArray.append (trade);
-            this.trades[symbol] = tradesArray;
-            updates[symbol] = true;
+            if (symbol !== undefined) {
+                this.trades[symbol] = tradesArray;
+            }
+            if (symbol !== undefined) {
+                updates[symbol] = true;
+            }
         }
         const symbols = Object.keys (updates);
         for (let i = 0; i < symbols.length; i++) {
@@ -222,7 +228,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
@@ -272,7 +278,9 @@ export default class ndax extends ndaxRest {
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            updates[marketId] = {};
+            if (marketId !== undefined) {
+                updates[marketId] = {};
+            }
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
@@ -280,6 +288,9 @@ export default class ndax extends ndaxRest {
                 const interval = this.safeString (this.timeframes, timeframe, timeframe);
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
+                if (timestamp === undefined) {
+                    return;
+                }
                 const parsed = [
                     this.parseToInt ((timestamp / duration) * duration),
                     this.safeFloat (ohlcv, 3),
@@ -292,15 +303,29 @@ export default class ndax extends ndaxRest {
                 const length = stored.length;
                 if (length && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
+                    let high = parsed[1];
+                    if (parsed[1] === undefined) {
+                        high = previous[1];
+                    } else if (previous[1] !== undefined) {
+                        high = Math.max (parsed[1], previous[1]);
+                    }
+                    let low = parsed[2];
+                    if (parsed[2] === undefined) {
+                        low = previous[2];
+                    } else if (previous[2] !== undefined) {
+                        low = Math.min (parsed[2], previous[2]);
+                    }
                     stored[length - 1] = [
                         parsed[0],
                         previous[1],
-                        Math.max (parsed[1], previous[1]),
-                        Math.min (parsed[2], previous[2]),
+                        high,
+                        low,
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
-                    updates[marketId][timeframe] = true;
+                    if ((marketId !== undefined) && (timeframe !== undefined)) {
+                        updates[marketId][timeframe] = true;
+                    }
                 } else {
                     if (length && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
                         continue;
@@ -310,7 +335,9 @@ export default class ndax extends ndaxRest {
                         if (length >= limit) {
                             stored.shift ();
                         }
-                        updates[marketId][timeframe] = true;
+                        if ((marketId !== undefined) && (timeframe !== undefined)) {
+                            updates[marketId][timeframe] = true;
+                        }
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
@@ -356,7 +383,7 @@ export default class ndax extends ndaxRest {
         limit = (limit === undefined) ? 100 : limit;
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };
@@ -424,13 +451,17 @@ export default class ndax extends ndaxRest {
                 timestamp = this.safeInteger (bidask, 2);
             } else {
                 const newTimestamp = this.safeInteger (bidask, 2);
-                timestamp = Math.max (timestamp, newTimestamp);
+                const currentTimestampValue = (timestamp === undefined) ? 0 : timestamp;
+                const newTimestampValue = (newTimestamp === undefined) ? 0 : newTimestamp;
+                timestamp = Math.max (currentTimestampValue, newTimestampValue);
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger (bidask, 0);
             } else {
                 const newNonce = this.safeInteger (bidask, 0);
-                nonce = Math.max (nonce, newNonce);
+                const currentNonceValue = (nonce === undefined) ? 0 : nonce;
+                const newNonceValue = (newNonce === undefined) ? 0 : newNonce;
+                nonce = Math.max (currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger (bidask, 3);
@@ -487,7 +518,9 @@ export default class ndax extends ndaxRest {
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
         const orderbook = this.orderBook (snapshot, limit);
-        this.orderbooks[symbol] = orderbook;
+        if (symbol !== undefined) {
+            this.orderbooks[symbol] = orderbook;
+        }
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);
     }

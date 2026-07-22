@@ -116,7 +116,9 @@ export default class blockchaincom extends blockchaincomRest {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         const messageHash = 'balance';
         this.balance = this.safeBalance (result);
@@ -528,10 +530,11 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         const messageHash = 'orders';
-        const cachedOrders = this.orders;
+        let cachedOrders = this.orders;
         if (cachedOrders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            cachedOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = cachedOrders;
         }
         if (event === 'subscribed') {
             return;

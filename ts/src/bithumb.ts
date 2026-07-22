@@ -286,7 +286,8 @@ export default class bithumb extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market (symbol);
+        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
     /**

@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -508,7 +508,7 @@ export default class derive extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeCurrencyStructure ({
@@ -633,7 +633,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType | undefined = undefined;
+        let marketType: Str = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -1045,7 +1045,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -2509,7 +2509,9 @@ export default class derive extends Exchange {
                     const amount = this.safeString (balance, 'amount');
                     account['total'] = Precise.stringAdd (account['total'], amount);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -2663,8 +2665,8 @@ export default class derive extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict) {
-        let derivesubAccountId = undefined;
+    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
+        let derivesubAccountId: Str = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
             this.options['subaccount_id'] = derivesubAccountId; // saving in options

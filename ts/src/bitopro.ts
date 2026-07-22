@@ -6,7 +6,9 @@ import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, List } from './base/types.js';
+
+;
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -373,7 +375,7 @@ export default class bitopro extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -442,6 +444,9 @@ export default class bitopro extends Exchange {
     parseMarket (market: Dict): Market {
         const active = !this.safeBool (market, 'maintain');
         const id = this.safeString (market, 'pair');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         const uppercaseId = id.toUpperCase ();
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
@@ -466,7 +471,7 @@ export default class bitopro extends Exchange {
                 'max': undefined,
             },
         };
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -498,7 +503,7 @@ export default class bitopro extends Exchange {
             'active': active,
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -704,7 +709,7 @@ export default class bitopro extends Exchange {
         if (amount === undefined) {
             amount = this.safeString (trade, 'baseAmount');
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -855,8 +860,9 @@ export default class bitopro extends Exchange {
         const result: Dict = {};
         const maker = this.safeNumber (first, 'makerFee');
         const taker = this.safeNumber (first, 'takerFee');
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -946,7 +952,7 @@ export default class bitopro extends Exchange {
         if (length === 0) {
             return candles;
         }
-        const result = [];
+        const result: Dict[] = [];
         let copyFrom = candles[0];
         let timestamp: Int = undefined;
         if (since === undefined) {
@@ -1002,7 +1008,9 @@ export default class bitopro extends Exchange {
                 'free': available,
                 'total': amount,
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1088,6 +1096,9 @@ export default class bitopro extends Exchange {
         const id = this.safeString2 (order, 'id', 'orderId');
         const timestamp = this.safeInteger2 (order, 'timestamp', 'createdTimestamp');
         let side = this.safeString (order, 'action');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' parseOrder() returned no side');
+        }
         side = side.toLowerCase ();
         const amount = this.safeString2 (order, 'amount', 'originalAmount');
         const price = this.safeString (order, 'price');
@@ -1105,7 +1116,7 @@ export default class bitopro extends Exchange {
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (Precise.stringGt (feeAmount, '0')) {
@@ -1240,7 +1251,7 @@ export default class bitopro extends Exchange {
 
     parseCancelOrders (data) {
         const dataKeys = Object.keys (data);
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
             const marketId = dataKeys[i];
             const orderIds = data[marketId];
@@ -1275,7 +1286,9 @@ export default class bitopro extends Exchange {
         const market = this.market (symbol);
         const id = market['uppercaseId'];
         const request: Dict = {};
-        request[id] = ids;
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders (this.extend (request, params));
         //
         //     {
@@ -1307,7 +1320,7 @@ export default class bitopro extends Exchange {
         const request: Dict = {
             // 'pair': market['id'], // optional
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['pair'] = market['id'];

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, List, FeeInterface, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, List, FeeInterface, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -422,6 +422,9 @@ export default class latoken extends Exchange {
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode (this.safeString (baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode (this.safeString (quoteCurrencyInfo, 'tag'));
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const lowercaseQuote = quote.toLowerCase ();
                 const capitalizedQuote = this.capitalize (lowercaseQuote);
                 const status = this.safeString (market, 'status');
@@ -523,7 +526,7 @@ export default class latoken extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const id = this.safeString (currency, 'id');
         const tag = this.safeString (currency, 'tag');
         const code = this.safeCurrencyCode (tag);
@@ -598,7 +601,7 @@ export default class latoken extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
-        const accountType = this.safeString (types, type, type);
+        const accountType = this.safeString (types, (type as string), type);
         const balancesByType = this.groupBy (response, 'type');
         const balances = this.safeValue (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
@@ -616,7 +619,9 @@ export default class latoken extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'blocked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);
@@ -850,7 +855,7 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
+        if ((this.markets !== undefined) && (symbol in this.markets)) {
             market = this.market (symbol);
         }
         const id = this.safeString (trade, 'id');
@@ -1131,7 +1136,7 @@ export default class latoken extends Exchange {
         let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (symbol in this.markets) {
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
                 market = this.market (symbol);
             }
         }
@@ -1390,6 +1395,9 @@ export default class latoken extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1656,7 +1664,7 @@ export default class latoken extends Exchange {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

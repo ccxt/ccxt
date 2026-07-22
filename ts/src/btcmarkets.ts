@@ -380,7 +380,7 @@ export default class btcmarkets extends Exchange {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         };
-        return this.safeString (statuses, type, type);
+        return this.safeString (statuses, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -530,7 +530,7 @@ export default class btcmarkets extends Exchange {
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -580,7 +580,7 @@ export default class btcmarkets extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -610,7 +610,9 @@ export default class btcmarkets extends Exchange {
             const account = this.account ();
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1120,8 +1122,8 @@ export default class btcmarkets extends Exchange {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        const market = this.markets[symbol];
-        let currency: Currency = undefined;
+        const market = this.market (symbol);
+        let currency: Str = undefined;
         let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
@@ -1135,11 +1137,15 @@ export default class btcmarkets extends Exchange {
         }
         const rate = market[takerOrMaker];
         const rateCost = Precise.stringMul (this.numberToString (rate), cost);
+        let feeCost = this.feeToPrecision (symbol, rateCost);
+        if (feeCost === undefined) {
+            feeCost = '0';
+        }
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rateCost)),
+            'cost': parseFloat (feeCost),
         };
     }
 

@@ -6,7 +6,7 @@ import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -444,6 +444,9 @@ export default class bittrade extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
+        if (symbols === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
         const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -452,7 +455,7 @@ export default class bittrade extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id: string, params = {}) {
+    async fetchTradingLimitsById (id: Str, params = {}) {
         const request: Dict = {
             'symbol': id,
         };
@@ -504,7 +507,7 @@ export default class bittrade extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
     /**
@@ -566,6 +569,12 @@ export default class bittrade extends Exchange {
             const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
             const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
             const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+            if (baseId === undefined) {
+                throw new ExchangeError (this.id + ' fetchMarkets() missing baseId');
+            }
+            if (quoteId === undefined) {
+                throw new ExchangeError (this.id + ' fetchMarkets() missing quoteId');
+            }
             result.push ({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -1164,7 +1173,7 @@ export default class bittrade extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const id = this.safeValue (currency, 'name');
         const code = this.safeCurrencyCode (id);
         const depositEnabled = this.safeValue (currency, 'deposit-enabled');
@@ -1215,18 +1224,26 @@ export default class bittrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             let account: NullableDict = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             } else {
                 account = this.account ();
             }
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
+            }
             if (balance['type'] === 'trade') {
                 account['free'] = this.safeString (balance, 'balance');
+            }
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
             }
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString (balance, 'balance');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1302,7 +1319,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
-        const order = this.safeDict (response, 'data');
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
     }
 
@@ -1625,7 +1642,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     {

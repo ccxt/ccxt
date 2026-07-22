@@ -1298,7 +1298,7 @@ export default class paradex extends Exchange {
     }
 
     async getSystemConfig () {
-        const cachedConfig: Dict = this.safeDict (this.options, 'systemConfig');
+        const cachedConfig: NullableDict = this.safeDict (this.options, 'systemConfig');
         if (cachedConfig !== undefined) {
             return cachedConfig;
         }
@@ -1354,7 +1354,7 @@ export default class paradex extends Exchange {
     }
 
     async retrieveAccount () {
-        const cachedAccount: Dict = this.safeDict (this.options, 'paradexAccount');
+        const cachedAccount: NullableDict = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }
@@ -1405,6 +1405,9 @@ export default class paradex extends Exchange {
         const now = this.nonce ();
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger (this.options, 'expires');
+            if (cachedExpires === undefined) {
+                throw new ExchangeError (this.id + ' authenticateRest() missing cachedExpires');
+            }
             if (now < cachedExpires) {
                 return cachedToken;
             }
@@ -1564,14 +1567,20 @@ export default class paradex extends Exchange {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
         };
-        return this.safeStringLower (types, (type as string), type);
+        return this.safeStringLower (types, type, type);
     }
 
     scaleNumber (num: string) {
         return Precise.stringMul (num, '100000000');
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
@@ -1605,7 +1614,7 @@ export default class paradex extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        let sizeString = '0';
+        let sizeString: Str = '0';
         let stopPrice: Str = undefined;
         if (isStopOrder) {
             // flags: Reduce_Only must be provided for TPSL orders.
@@ -1658,6 +1667,9 @@ export default class paradex extends Exchange {
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const orderType = this.safeString (request, 'type');
+        if (orderType === undefined) {
+            throw new ExchangeError (this.id + ' signOrderRequest() missing orderType');
+        }
         const isMarket = (orderType.indexOf ('MARKET') >= 0);
         const orderReq: Dict = {
             'timestamp': now * 1000,
@@ -1852,7 +1864,7 @@ export default class paradex extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (params, orderParams);
-            let orderRequest = this.createOrderRequest ((symbol as string), (type as string), side, amount, price, extendedParams);
+            let orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
         }
@@ -2269,7 +2281,9 @@ export default class paradex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (balance, 'size');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2857,7 +2871,7 @@ export default class paradex extends Exchange {
         return this.parseMarginMode (this.safeDict (configs, 0) as Dict, market);
     }
 
-    parseMarginMode (rawMarginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (rawMarginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (rawMarginMode, 'market');
         market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
@@ -2885,9 +2899,9 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market: Market = this.market ((symbol as string));
-        let leverage: Str = undefined;
-        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        const market: Market = this.market (symbol);
+        let leverage = 1;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', leverage);
         const request: Dict = {
             'market': market['id'],
             'leverage': leverage,
@@ -2969,7 +2983,7 @@ export default class paradex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market: Market = this.market ((symbol as string));
+        const market: Market = this.market (symbol);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         const request: Dict = {

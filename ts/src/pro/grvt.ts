@@ -163,8 +163,8 @@ export default class grvt extends grvtRest {
         }
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', 500);
+        let interval = 500;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -175,7 +175,7 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + (interval as string).toString ());
+            rawHashes.push (marketId + '@' + interval.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request = {
@@ -536,10 +536,10 @@ export default class grvt extends grvtRest {
         if (limit === undefined) {
             [ limit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'limit', 100);
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
+        let interval = 500;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? ((interval as string).toString () + '-' + (limit as number).toString ()) : (interval as string).toString ();
+        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {

@@ -378,7 +378,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeValue (message, 2);
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -908,7 +908,9 @@ export default class bitfinex extends bitfinexRest {
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
             const oldBalance = this.safeValue (this.balance, (balanceType as string), {});
-            oldBalance[code] = balance;
+            if (code !== undefined) {
+                oldBalance[code] = balance;
+            }
             oldBalance['info'] = message;
             this.balance[(balanceType as string)] = this.safeBalance (oldBalance);
             updatedTypes[(balanceType as string)] = true;
@@ -1317,7 +1319,7 @@ export default class bitfinex extends bitfinexRest {
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
             };
-            let method = undefined;
+            let method: any = undefined;
             if (channelId === '0') {
                 method = this.safeValue (privateMethods, (name as string));
             } else {

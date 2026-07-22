@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -330,7 +330,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async handlePortfolioAndParams (methodName: string, params = {}) {
+    async handlePortfolioAndParams (methodName: string, params = {}): Promise<[Str, Dict]> {
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
@@ -353,8 +353,8 @@ export default class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
 
-    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}) {
-        let networkId = undefined;
+    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}): Promise<[Str, Dict]> {
+        let networkId: Str = undefined;
         [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
         if (networkId === undefined) {
             await this.loadCurrencyNetworks (currencyCode);
@@ -530,8 +530,8 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as FundingRateHistory[];
@@ -794,7 +794,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
@@ -804,9 +804,12 @@ export default class coinbaseinternational extends Exchange {
         if (method === 'v1PrivatePostTransfersAddress') {
             const currency = this.currency (code);
             request['asset'] = currency['id'];
-            let networkId: Str = undefined;
+            let networkId: Str | Dict = undefined;
             [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
+        }
+        if (method === undefined) {
+            throw new ArgumentsRequired (this.id + ' method is required');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -974,8 +977,8 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate: Bool = undefined;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
@@ -1426,8 +1429,8 @@ export default class coinbaseinternational extends Exchange {
         //    }
         //
         const marketId = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'base_asset_name');
-        const quoteId = this.safeString (market, 'quote_asset_name');
+        const baseId: Str = this.safeString (market, 'base_asset_name');
+        const quoteId: Str = this.safeString (market, 'quote_asset_name');
         const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
         const isSpot = (typeId === 'SPOT');
         const fees = this.fees;
@@ -1439,7 +1442,10 @@ export default class coinbaseinternational extends Exchange {
         }
         const isLinear = isSpot ? undefined : (settleId === quoteId);
         const isInverse = isSpot ? undefined : (settleId !== quoteId);
-        return {
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
+        return this.safeMarketStructure ({
             'id': marketId,
             'lowercaseId': marketId.toLowerCase (),
             'symbol': symbol,
@@ -1491,7 +1497,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'info': market,
             'created': undefined,
-        };
+        });
     }
 
     /**
@@ -1520,7 +1526,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         //
         //    {
         //       "asset_id":"1",
@@ -1707,7 +1713,9 @@ export default class coinbaseinternational extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (rawBalance, 'quantity');
             account['used'] = this.safeString (rawBalance, 'hold');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1780,6 +1788,9 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
@@ -1933,7 +1944,7 @@ export default class coinbaseinternational extends Exchange {
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -2135,8 +2146,8 @@ export default class coinbaseinternational extends Exchange {
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
@@ -2220,8 +2231,8 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        let maxEntriesPerRequest = 100;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
         }
@@ -2318,9 +2329,9 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
-        let networkId: Str = undefined;
+        let networkId: Str | Dict = undefined;
         [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
         const request: Dict = {
             'portfolio': portfolio,
@@ -2332,6 +2343,9 @@ export default class coinbaseinternational extends Exchange {
             'network_arn_id': networkId,
             'nonce': this.nonce (),
         };
+        if (method === undefined) {
+            throw new ArgumentsRequired (this.id + ' method is required');
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //    {

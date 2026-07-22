@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -339,7 +339,7 @@ export default class bitso extends Exchange {
             'trade': 'trade',
             'fee': 'fee',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -495,8 +495,8 @@ export default class bitso extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'book');
             const [ baseId, quoteId ] = (id as string).split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
+            let base: Str = baseId.toUpperCase ();
+            let quote: Str = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const fees = this.safeValue (market, 'fees', {});
@@ -532,7 +532,7 @@ export default class bitso extends Exchange {
             };
             fee['tiers'] = tiers;
             const baseCurrency = this.safeDict (currencies, base);
-            result.push (this.extend ({
+            result.push (this.safeMarketStructure (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -582,7 +582,7 @@ export default class bitso extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            }, fee));
+            }, fee)));
         }
         return result;
     }
@@ -625,7 +625,7 @@ export default class bitso extends Exchange {
         return this.parseCurrencies (metadata);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'code');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeCurrencyStructure ({
@@ -674,7 +674,9 @@ export default class bitso extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1634,14 +1636,16 @@ export default class bitso extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeNumber (depositFee, 'fee'),
-                'withdraw': undefined,
-                'info': {
-                    'deposit': depositFee,
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeNumber (depositFee, 'fee'),
                     'withdraw': undefined,
-                },
-            };
+                    'info': {
+                        'deposit': depositFee,
+                        'withdraw': undefined,
+                    },
+                };
+            }
         }
         const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys (withdrawalFees);
@@ -1651,14 +1655,16 @@ export default class bitso extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeValue (result[code], 'deposit'),
-                'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                'info': {
-                    'deposit': this.safeValue (result[code]['info'], 'deposit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeValue (this.safeValue (result, code), 'deposit'),
                     'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                },
-            };
+                    'info': {
+                        'deposit': this.safeValue (this.safeValue (this.safeValue (result, code), 'info'), 'deposit'),
+                        'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1724,7 +1730,7 @@ export default class bitso extends Exchange {
         return this.parseDepositWithdrawFees (payload, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined) {
         //
         //    {
         //        "fees": [
@@ -1772,26 +1778,28 @@ export default class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || (code in codes)) {
-                result[code] = {
-                    'deposit': {
-                        'fee': this.safeNumber (entry, 'fee'),
-                        'percentage': !this.safeValue (entry, 'is_fixed'),
-                    },
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'networks': {},
-                    'info': entry,
-                };
+            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+                if (code !== undefined) {
+                    result[code] = {
+                        'deposit': {
+                            'fee': this.safeNumber (entry, 'fee'),
+                            'percentage': !this.safeValue (entry, 'is_fixed'),
+                        },
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                        'info': entry,
+                    };
+                }
             }
         }
         const withdrawalKeys = Object.keys (withdrawalResponse);
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || (code in codes)) {
+            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 const resultValue = this.safeValue (result, code);
                 if (resultValue === undefined) {

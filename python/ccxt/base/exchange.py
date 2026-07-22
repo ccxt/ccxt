@@ -33,7 +33,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, NullableIndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order
 
 # -----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ class BaseExchange(object):
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
-    symbols = None
+    symbols = []
     codes = None
     timeframes = {}
     tokenBucket = None
@@ -2943,7 +2943,7 @@ class BaseExchange(object):
         self.ids = None
         self.markets = None
         self.markets_by_id = None
-        self.symbols = None
+        self.symbols = []
         self.codes = None
         self.currencies = self.create_safe_dictionary()
         self.currencies_by_id = None

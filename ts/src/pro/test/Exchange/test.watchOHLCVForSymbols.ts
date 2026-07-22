@@ -3,6 +3,7 @@ import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { Dict, NullableDict} from '../../../base/types.js';
 
 async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCVForSymbols';
@@ -19,10 +20,13 @@ async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: 
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-        let response = undefined;
+        let response: NullableDict = undefined;
         let success = true;
         try {
             response = await exchange.watchOHLCVForSymbols ([ [ symbol, chosenTimeframeKey ] ], since, limit);
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -32,6 +36,9 @@ async function testWatchOHLCVForSymbols (exchange: Exchange, skippedProperties: 
             success = false;
         }
         if (success === true) {
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
             const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json (response);
             assert (exchange.isDictionary (response), 'Response must be a dictionary. ' + assertionMessage);
             assert (symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);

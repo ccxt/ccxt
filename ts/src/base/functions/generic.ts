@@ -24,9 +24,20 @@ const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
 const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 
-const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
+const toArray = (object: any) => {
+    if ((object === undefined) || (object === null)) {
+        return [];
+    }
+    if (isArray (object)) {
+        return object;
+    }
+    if (!isDict (object)) {
+        return [];
+    }
+    return Object.values (object);
+};
 
-const isEmpty = (object: any[] | Dictionary<any>) => {
+const isEmpty = (object: any[] | Dictionary<any> | null | undefined) => {
     if (object === null || object === undefined) {
         return true;
     }
@@ -39,7 +50,10 @@ const isEmpty = (object: any[] | Dictionary<any>) => {
     return false;
 };
 
-const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
+const keysort = (x: Dictionary<any> | undefined, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const k of keys (x).sort ()) {
         out[k] = x[k];
     }
@@ -69,7 +83,10 @@ const sort = (array: string[]| any) => {
     }
 */
 
-const groupBy = (x: Dictionary<any>, k: string, out: Dictionary<any> = {}) => {
+const groupBy = (x: Dictionary<any> | undefined, k: string, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (k in v) {
             const p = v[k];
@@ -80,8 +97,10 @@ const groupBy = (x: Dictionary<any>, k: string, out: Dictionary<any> = {}) => {
     return out;
 };
 
-const indexBy = (x: Dictionary<any>, k: IndexType, out: Dictionary<any> = {}) => {
-
+const indexBy = (x: Dictionary<any> | undefined, k: IndexType, out: Dictionary<any> = {}) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (k in v) {
             out[v[k]] = v;
@@ -90,8 +109,10 @@ const indexBy = (x: Dictionary<any>, k: IndexType, out: Dictionary<any> = {}) =>
     return out;
 };
 
-const filterBy = (x: Dictionary<any>, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
-
+const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefined, out: Dictionary<any>[] = []) => {
+    if (x === undefined) {
+        return out;
+    }
     for (const v of values (x)) {
         if (v[k] === value) {
             out.push (v);
@@ -142,8 +163,10 @@ const flatten = function flatten (x: any[], out: any[] = []) {
 
 const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any>, ...args: any) => {
-
+const omit = (x: Dictionary<any> | undefined, ...args: any) => {
+    if (x === undefined) {
+        return x;
+    }
     if (!Array.isArray (x)) {
 
         const out = clone (x);

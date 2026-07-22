@@ -6,7 +6,9 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict } from './base/types.js';
+
+;
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, CurrencyInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -657,7 +659,7 @@ export default class bitstamp extends Exchange {
         //             "isin": "EZHKD4DNKHY3"
         //         }
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
@@ -842,26 +844,36 @@ export default class bitstamp extends Exchange {
         return finalResult;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const market = rawCurrency;
         const existing = this.safeDict (this.options, '_temp_currencies_result', {});
         const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const description = this.safeString (market, 'description');
+        if (description === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing description');
+        }
         const [ baseDescription, quoteDescription ] = description.split (' / ');
         const minimumOrder = this.safeString (market, 'minimum_order_value');
+        if (minimumOrder === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing minimumOrder');
+        }
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
-        if (!(base in existing)) {
+        if ((base === undefined) || !(base in existing)) {
             const baseDecimals = this.safeInteger (market, 'base_decimals');
-            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            if (base !== undefined) {
+                this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            }
         }
-        if (!(quote in existing)) {
+        if ((quote === undefined) || !(quote in existing)) {
             const counterDecimals = this.safeInteger (market, 'counter_decimals');
-            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            if (quote !== undefined) {
+                this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            }
         }
-        return this.options['_temp_currencies_result'][quote];
+        return this.safeValue (this.options['_temp_currencies_result'], quote);
     }
 
     /**
@@ -900,6 +912,9 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        if (microtimestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrderBook() missing microtimestamp');
+        }
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
@@ -1079,11 +1094,11 @@ export default class bitstamp extends Exchange {
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
         }
@@ -1210,7 +1225,7 @@ export default class bitstamp extends Exchange {
         if (costString !== undefined) {
             costString = Precise.stringAbs (costString);
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -1373,7 +1388,9 @@ export default class bitstamp extends Exchange {
             account['free'] = this.safeString (currencyBalance, 'available');
             account['used'] = this.safeString (currencyBalance, 'reserved');
             account['total'] = this.safeString (currencyBalance, 'total');
-            result[currencyCode] = account;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1438,7 +1455,10 @@ export default class bitstamp extends Exchange {
         //     ]
         //
         const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
-        const tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
+        let tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
+        if (tradingFee === undefined) {
+            tradingFee = {};
+        }
         return this.parseTradingFee (tradingFee, market);
     }
 
@@ -1460,7 +1480,9 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1523,7 +1545,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseTransactionFees (response, codes: Strings = undefined) {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
@@ -1534,11 +1556,13 @@ export default class bitstamp extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'withdraw_fee': this.safeNumber (fees, 'fee'),
-                'deposit': {},
-                'info': this.safeDict (currencies, id),
-            };
+            if (code !== undefined) {
+                result[code] = {
+                    'withdraw_fee': this.safeNumber (fees, 'fee'),
+                    'deposit': {},
+                    'info': this.safeDict (currencies, id),
+                };
+            }
         }
         return result;
     }
@@ -1552,7 +1576,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1571,7 +1595,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
@@ -1583,16 +1607,18 @@ export default class bitstamp extends Exchange {
                 'fee': withdrawFee,
                 'percentage': undefined,
             };
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': withdrawFee,
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1629,7 +1655,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId' ]);
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
@@ -1651,7 +1677,8 @@ export default class bitstamp extends Exchange {
                 response = await this.privatePostSellPair (this.extend (request, params));
             }
         }
-        const order = this.parseOrder (response, market);
+        const orderResponse = (response === undefined) ? {} : response;
+        const order = this.parseOrder (orderResponse, market);
         order['type'] = type;
         return order;
     }
@@ -1741,7 +1768,7 @@ export default class bitstamp extends Exchange {
         }
         let market: Market = undefined;
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1889,7 +1916,7 @@ export default class bitstamp extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -2106,7 +2133,7 @@ export default class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Precise.stringAbs (amount);
         }
-        let status = 'ok';
+        let status: Str = 'ok';
         if ('status' in transaction) {
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         }
@@ -2134,7 +2161,7 @@ export default class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        let fee = {
+        let fee: NullableDict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2281,7 +2308,7 @@ export default class bitstamp extends Exchange {
             '2': 'trade',
             '14': 'transfer',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2620,7 +2647,7 @@ export default class bitstamp extends Exchange {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (fromAccount === 'main') {
             request['subAccount'] = toAccount;
             response = await this.privatePostTransferFromMain (this.extend (request, params));
@@ -2640,12 +2667,15 @@ export default class bitstamp extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    { status: 'ok' }
         //
         const status = this.safeString (transfer, 'status');
-        return {
+        if (currency === undefined) {
+            throw new ExchangeError (this.id + ' parseTransfer() could not resolve currency');
+        }
+        const result: Dict = {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
@@ -2656,6 +2686,7 @@ export default class bitstamp extends Exchange {
             'toAccount': undefined,
             'status': this.parseTransferStatus (status),
         };
+        return result;
     }
 
     parseTransferStatus (status: Str): Str {
@@ -2727,7 +2758,7 @@ export default class bitstamp extends Exchange {
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if ((status === 'error') || (error !== undefined)) {
-            let errors = [];
+            let errors: string[] = [];
             if (typeof error === 'string') {
                 errors.push (error);
             } else if (error !== undefined) {

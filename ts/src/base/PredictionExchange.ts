@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams, Currencies } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -15,10 +15,10 @@ import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, P
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
  */
 export default class PredictionExchange extends BaseExchange {
-    outcomes: Dictionary<any> = undefined;
-    outcomes_by_id: Dictionary<any> = undefined;
-    events: Dictionary<any> = undefined;
-    events_by_slug: Dictionary<any> = undefined;
+    outcomes: Dictionary<any> | undefined = undefined;
+    outcomes_by_id: Dictionary<any> | undefined = undefined;
+    events: Dictionary<any> | undefined = undefined;
+    events_by_slug: Dictionary<any> | undefined = undefined;
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
@@ -82,10 +82,10 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     isPrediction (): boolean {
-        return this.safeBool (this.has, 'prediction', false);
+        return this.safeBool (this.has, 'prediction', false) === true;
     }
 
-    parseSearchQueries (params = {}): Strings {
+    parseSearchQueries (params = {}): string[] {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         const singleQuery = this.safeString (params, 'query');
         if (singleQuery !== undefined) {
@@ -122,7 +122,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
 
-    applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
+    applyEventFetchParams (events: any[], params = {}, queries: Strings = undefined): any[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
         // every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -132,7 +132,7 @@ export default class PredictionExchange extends BaseExchange {
         const eventId = this.safeString (params, 'eventId');
         const slug = this.safeString (params, 'slug');
         if ((eventId !== undefined) || (slug !== undefined)) {
-            const filtered = [];
+            const filtered: Dict[] = [];
             for (let i = 0; i < result.length; i++) {
                 const event = result[i];
                 const idMatch = (eventId !== undefined) && (this.safeString (event, 'id') === eventId);
@@ -156,7 +156,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const sort = this.safeString (params, 'sort');
         if (sort !== undefined) {
-            let sortKey = undefined;
+            let sortKey: Str = undefined;
             if (sort === 'volume') {
                 sortKey = 'volume';
             } else if (sort === 'liquidity') {
@@ -194,7 +194,7 @@ export default class PredictionExchange extends BaseExchange {
             return events;
         }
         const wantActive = (status === 'active');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const isActive = this.safeBool (event, 'active');
@@ -206,7 +206,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    filterEventsBySearchIn (events: any[], queries: string[], searchIn: Str = undefined): any[] {
+    filterEventsBySearchIn (events: any[], queries: Strings, searchIn: Str = undefined): any[] {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         let queriesLength = 0;
@@ -218,7 +218,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const checkTitle = (searchIn === 'title') || (searchIn === 'both');
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const title = this.safeStringLower (event, 'title', '');
@@ -226,9 +226,15 @@ export default class PredictionExchange extends BaseExchange {
             let matched = false;
             for (let qi = 0; qi < queries.length; qi++) {
                 const q = queries[qi].toLowerCase ();
+                if (title === undefined) {
+                    throw new ExchangeError (this.id + ' filterEventsBySearchIn() missing title');
+                }
                 if (checkTitle && (title.indexOf (q) >= 0)) {
                     matched = true;
                     break;
+                }
+                if (description === undefined) {
+                    throw new ExchangeError (this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && (description.indexOf (q) >= 0)) {
                     matched = true;
@@ -268,17 +274,13 @@ export default class PredictionExchange extends BaseExchange {
         return s;
     }
 
-    filterEventsByTags (events: any[], tags: string[] = undefined): any[] {
+    filterEventsByTags (events: any[], tags: Strings = undefined): any[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        let tagsLength = 0;
-        if (tags !== undefined) {
-            tagsLength = tags.length;
-        }
-        if (tagsLength === 0) {
+        if ((tags === undefined) || (tags.length === 0)) {
             return events;
         }
-        const wanted = [];
+        const wanted: string[] = [];
         for (let i = 0; i < tags.length; i++) {
             const wantedKey = this.normalizeTagKey (tags[i]);
             if (wantedKey !== '') {
@@ -286,14 +288,14 @@ export default class PredictionExchange extends BaseExchange {
                 wanted.push (wantedKey);
             }
         }
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const eventTags = this.safeList (event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
                 const tag = eventTags[ti];
-                let tagLabel = undefined;
+                let tagLabel: Str = undefined;
                 if (typeof tag === 'string') {
                     tagLabel = tag;
                 } else {
@@ -361,7 +363,7 @@ export default class PredictionExchange extends BaseExchange {
         if (this.events === undefined) {
             return [];
         }
-        const result = [];
+        const result: Dict[] = [];
         const seen: Dict = {};
         const keys = Object.keys (this.events);
         for (let i = 0; i < keys.length; i++) {
@@ -405,7 +407,10 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
 
-    outcome (outcomeSymbol: string): any {
+    outcome (outcomeSymbol: Str): any {
+        if (outcomeSymbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' outcome() requires an outcomeSymbol argument');
+        }
         if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
             throw new ExchangeError (this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
@@ -418,10 +423,13 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
-    hasOutcome (outcomeIdOrSymbol: string): boolean {
+    hasOutcome (outcomeIdOrSymbol: Str): boolean {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
+        if (outcomeIdOrSymbol === undefined) {
+            return false;
+        }
         if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
             return true;
         }
@@ -503,10 +511,12 @@ export default class PredictionExchange extends BaseExchange {
         for (let i = 0; i < replacementKeys.length; i++) {
             const replacementKey = replacementKeys[i];
             const replacementValue = this.safeString (replacements, replacementKey);
-            s = s.replaceAll (replacementKey, replacementValue);
+            if (replacementValue !== undefined) {
+                s = s.replaceAll (replacementKey, replacementValue);
+            }
         }
         const rawParts = s.split ('-');
-        const parts = [];
+        const parts: string[] = [];
         for (let i = 0; i < rawParts.length; i++) {
             const w = rawParts[i];
             if (w.length > 0 && !this.inArray (w, stopWords)) {
@@ -517,7 +527,7 @@ export default class PredictionExchange extends BaseExchange {
         return joined.toUpperCase ();
     }
 
-    slugToMarketSymbol (eventSlug: Str, marketSlug: string): string {
+    slugToMarketSymbol (eventSlug: Str, marketSlug: Str): string {
         // eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
         // pass undefined — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
@@ -535,13 +545,16 @@ export default class PredictionExchange extends BaseExchange {
         return eventPart + '_' + marketPart;
     }
 
-    slugToOutcomeSymbol (eventSlug: Str, marketSlug: string, outcome: string): string {
+    slugToOutcomeSymbol (eventSlug: Str, marketSlug: Str, outcome: Str): string {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
         // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
+        if (outcome === undefined) {
+            outcome = '';
+        }
         const upper = outcome.toUpperCase ();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray (upper);
@@ -571,24 +584,24 @@ export default class PredictionExchange extends BaseExchange {
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         const marketsList = this.toArray (markets);
-        const aliased = [];
+        const aliased: string[] = [];
         for (let i = 0; i < marketsList.length; i++) {
             const row = marketsList[i];
             const copy = this.extend ({}, row);
             copy['symbol'] = this.safeString2 (row, 'market', 'symbol');
             aliased.push (copy);
         }
-        super.setMarkets (aliased, currencies);
+        const stored = super.setMarkets (aliased, currencies as any);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        const marketKeys = Object.keys (this.markets);
+        const marketKeys = Object.keys (stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            this.markets[key] = this.omit (this.markets[key], 'symbol');
+            stored[key] = this.omit (stored[key], 'symbol');
         }
         this.populateOutcomes ();
-        return this.markets;
+        return stored;
     }
 
     indexMarketOutcomes (market) {
@@ -690,7 +703,7 @@ export default class PredictionExchange extends BaseExchange {
         // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
         // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
         if (outcomes !== undefined) {
-            let missing = [];
+            let missing: string[] = [];
             for (let i = 0; i < outcomes.length; i++) {
                 if (reload || !this.hasOutcome (outcomes[i])) {
                     missing.push (outcomes[i]);
@@ -703,7 +716,7 @@ export default class PredictionExchange extends BaseExchange {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes ();
-                const stillMissing = [];
+                const stillMissing: string[] = [];
                 for (let i = 0; i < missingLength; i++) {
                     if (!this.hasOutcome (missing[i])) {
                         stillMissing.push (missing[i]);
@@ -740,7 +753,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.outcomes;
     }
 
-    async loadOutcome (outcomeSymbol: string, reload = false) {
+    async loadOutcome (outcomeSymbol: Str, reload = false) {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
         // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
@@ -748,6 +761,9 @@ export default class PredictionExchange extends BaseExchange {
         // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (outcomeSymbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' loadOutcome() requires an outcomeSymbol argument');
+        }
         if (!reload) {
             if (this.hasOutcome (outcomeSymbol)) {
                 return this.safeOutcome (outcomeSymbol);
@@ -793,7 +809,7 @@ export default class PredictionExchange extends BaseExchange {
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         const normalized = marketPart.toLowerCase ().replaceAll ('-', '_');
         const rawWords = normalized.split ('_');
-        const words = [];
+        const words: string[] = [];
         let hasLetters = false;
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < rawWords.length; i++) {
@@ -887,7 +903,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
@@ -1235,7 +1251,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchSettlements() is not supported yet');
     }
 
-    safePredictionOrder (outcomeOrder: Dict, outcomeObj = undefined): PredictionOrder {
+    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Dict | undefined = undefined): PredictionOrder {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1253,7 +1269,7 @@ export default class PredictionExchange extends BaseExchange {
         const rawTrades = this.safeList (outcomeOrder, 'trades', []);
         const trades = this.parsePredictionTrades (rawTrades, outcomeObj);
         const tradesLength = trades.length;
-        const feeList = [];
+        const feeList: Dict[] = [];
         if (tradesLength > 0) {
             if (filled === undefined) {
                 filled = '0';
@@ -1368,7 +1384,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionOrder;
     }
 
-    safePredictionTrade (trade: Dict, outcomeObj = undefined): PredictionTrade {
+    safePredictionTrade (trade: Dict, outcomeObj: Dict | undefined = undefined): PredictionTrade {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
@@ -1403,7 +1419,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionTrade;
     }
 
-    safePredictionTicker (ticker: Dict, outcomeObj = undefined): PredictionTicker {
+    safePredictionTicker (ticker: Dict, outcomeObj: Dict | undefined = undefined): PredictionTicker {
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
@@ -1492,7 +1508,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionPosition;
     }
 
-    safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict = undefined): PredictionOrderBook {
+    safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict | undefined = undefined): PredictionOrderBook {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
@@ -1542,7 +1558,7 @@ export default class PredictionExchange extends BaseExchange {
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
         // `symbol` key, which would silently drop every parsed row
         const rows = this.toArray (trades);
-        let results = [];
+        let results: PredictionTrade[] = [];
         for (let i = 0; i < rows.length; i++) {
             const parsed = this.parsePredictionTrade (rows[i], outcomeObj);
             const trade = this.extend (parsed, params);
@@ -1568,7 +1584,7 @@ export default class PredictionExchange extends BaseExchange {
     parsePredictionOrders (orders: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): PredictionOrder[] {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         const rows = this.toArray (orders);
-        let results = [];
+        let results: PredictionOrder[] = [];
         for (let i = 0; i < rows.length; i++) {
             const parsed = this.parsePredictionOrder (rows[i], outcomeObj);
             const order = this.extend (parsed, params);
@@ -1594,7 +1610,7 @@ export default class PredictionExchange extends BaseExchange {
         // venue-specific outcome filtering stays in the exchange (position identity differs
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         const rows = this.toArray (positions);
-        const results = [];
+        const results: PredictionPosition[] = [];
         for (let i = 0; i < rows.length; i++) {
             const parsed = this.parsePredictionPosition (rows[i]);
             const position = this.extend (parsed, params);
@@ -1607,24 +1623,24 @@ export default class PredictionExchange extends BaseExchange {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    amountToPredictionPrecision (outcome: string, amount): string {
+    amountToPredictionPrecision (outcome: Str, amount): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.amountToPrecision (marketSymbol, amount);
     }
 
-    priceToPredictionPrecision (outcome: string, price): string {
+    priceToPredictionPrecision (outcome: Str, price): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.priceToPrecision (marketSymbol, price);
     }
 
-    costToPredictionPrecision (outcome: string, cost): string {
+    costToPredictionPrecision (outcome: Str, cost): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.costToPrecision (marketSymbol, cost);
@@ -1638,7 +1654,10 @@ export default class PredictionExchange extends BaseExchange {
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
 
-    padHexToEven (hex: string): string {
+    padHexToEven (hex: Str): string {
+        if (hex === undefined) {
+            return '';
+        }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         const hexLength = hex.length;
         if ((hexLength % 2) !== 0) {
@@ -1647,13 +1666,19 @@ export default class PredictionExchange extends BaseExchange {
         return hex;
     }
 
-    padHexAddress (address: string): string {
+    padHexAddress (address: Str): string {
+        if (address === undefined) {
+            return '';
+        }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         const stripped = this.remove0xPrefix (address);
         return '000000000000000000000000' + stripped;
     }
 
-    rlpEncodeBytes (hex: string): string {
+    rlpEncodeBytes (hex: Str): string {
+        if (hex === undefined) {
+            return '';
+        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt (hex.length / 2);
         if (byteLength === 0) {
@@ -1686,7 +1711,10 @@ export default class PredictionExchange extends BaseExchange {
         return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
     }
 
-    intToRlpHex (value: number): string {
+    intToRlpHex (value: Int): string {
+        if (value === undefined) {
+            throw new ArgumentsRequired (this.id + ' intToRlpHex() requires a value argument');
+        }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
         if (value === 0) {
             return '';
@@ -1696,9 +1724,12 @@ export default class PredictionExchange extends BaseExchange {
         return hex;
     }
 
-    hexToRlpBytes (hexValue: string): string {
+    hexToRlpBytes (hexValue: Str): string {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
+        if (hexValue === undefined) {
+            return '';
+        }
         let h = this.remove0xPrefix (hexValue);
         let start = 0;
         const total = h.length;
@@ -1720,7 +1751,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' signEvmTransaction() must be overridden by the exchange');
     }
 
-    async ethRpc (rpcUrl: string, method: string, rpcParams: any[]) {
+    async ethRpc (rpcUrl: Str, method: string, rpcParams: any[]) {
         const payload: Dict = { 'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': rpcParams };
         const headers: Dict = { 'Content-Type': 'application/json' };
         const response = await this.fetch (rpcUrl, 'POST', headers, this.json (payload));
@@ -1733,7 +1764,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.safeValue (response, 'result');
     }
 
-    async sendEvmTransaction (rpcUrl: string, chainId: number, fromAddress: string, to: string, value: string, data: string, gasLimit: string): Promise<string> {
+    async sendEvmTransaction (rpcUrl: Str, chainId: number, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str): Promise<string> {
         const nonce = await this.ethRpc (rpcUrl, 'eth_getTransactionCount', [ fromAddress, 'pending' ]);
         const gasPrice = await this.ethRpc (rpcUrl, 'eth_gasPrice', []);
         const tx: Dict = {
@@ -1750,7 +1781,7 @@ export default class PredictionExchange extends BaseExchange {
         return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
     }
 
-    async waitForTransactionReceipt (rpcUrl: string, txHash: string, timeout = 60000): Promise<any> {
+    async waitForTransactionReceipt (rpcUrl: Str, txHash: Str, timeout = 60000): Promise<any> {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);

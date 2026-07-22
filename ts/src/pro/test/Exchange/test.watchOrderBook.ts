@@ -3,13 +3,14 @@ import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { OrderBook } from '../../../base/types.js';
 
 async function testWatchOrderBook (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOrderBook';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: OrderBook | undefined = undefined;
         let success = true;
         try {
             response = await exchange.watchOrderBook (symbol);

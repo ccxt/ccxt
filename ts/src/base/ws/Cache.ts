@@ -62,7 +62,7 @@ class ArrayCache extends BaseCache implements CustomArray {
     }
 
     getLimit (symbol, limit) {
-        let newUpdatesValue = undefined
+        let newUpdatesValue: Bool = undefined
 
         if (symbol === undefined) {
             newUpdatesValue = this.allNewUpdates
@@ -225,7 +225,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
 class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
 
-    constructor (maxSize = undefined) {
+    constructor (maxSize: Int = undefined) {
         super (maxSize)
         this.keyField = 'outcome'
     }

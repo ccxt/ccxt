@@ -314,7 +314,7 @@ export default class bitbank extends Exchange {
         const quoteId = this.safeString (entry, 'quote_asset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -364,7 +364,7 @@ export default class bitbank extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -665,7 +665,9 @@ export default class bitbank extends Exchange {
             account['free'] = this.safeString (balance, 'free_amount');
             account['used'] = this.safeString (balance, 'locked_amount');
             account['total'] = this.safeString (balance, 'onhand_amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import type { Bool, Dict, List, Str, Strings } from '../base/types.js';
+import type { Bool, Currencies, Dict, List, NullableDict, Str, Strings } from '../base/types.js';
 
 import {
     // errors
@@ -847,7 +847,7 @@ class testMainClass {
         // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
         // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
         // inline rather than through a per-method test file
-        let eventId = undefined;
+        let eventId: Str = undefined;
         if (!this.wsTests) {
             // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
             // Java and its async lambda can't propagate (or re-throw) a checked exception
@@ -895,7 +895,7 @@ class testMainClass {
                 // series filter) is a real bug that only surfaces if the path is actually asserted.
                 // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
                 // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-                const scopesToTest = [];
+                const scopesToTest: Dict[] = [];
                 if (eventId !== undefined) {
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
@@ -1076,9 +1076,9 @@ class testMainClass {
         dump ('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price);
         // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
         // either): record any failure, ALWAYS attempt the cancel, then report the failure
-        let order = undefined;
-        let placedId = undefined;
-        let failure = undefined;
+        let order: NullableDict = undefined;
+        let placedId: Str = undefined;
+        let failure: Str = undefined;
         try {
             order = await callExchangeMethodDynamically (exchange, 'createOrder', [ outcome, 'limit', 'buy', amount, price ]);
             assert (order !== undefined, 'createOrder returned undefined for ' + exchange.id);
@@ -1369,7 +1369,7 @@ class testMainClass {
             result[targetExchange] = ioFileRead (path);
             return result;
         }
-        const files = ioDirRead (folder) as string[];
+        const files = ioDirRead (folder);
         for (let i = 0; i < files.length; i++) {
             const file: string = files[i];
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
@@ -1577,7 +1577,7 @@ class testMainClass {
         return newString;
     }
 
-    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticRequestOutput (exchange, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -1649,7 +1649,7 @@ class testMainClass {
         return newInput;
     }
 
-    async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
+    async testRequestStatically (exchange, method: string, data: object, type: Str, skipKeys: string[]) {
         let output: Str = undefined;
         let requestUrl: Str = undefined;
         if (this.info) {
@@ -1713,12 +1713,12 @@ class testMainClass {
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
-        let predictionEvents = undefined;
+        let predictionEvents: Dict[] | undefined = undefined;
         if (this.predictionTests) {
             predictionEvents = this.loadEventsFromFile (exchangeName);
         }
         let markets = undefined;
-        let currencies = undefined;
+        let currencies: Currencies | undefined = undefined;
         if (predictionEvents === undefined) {
             markets = this.loadMarketsFromFile (exchangeName);
             currencies = this.loadCurrenciesFromFile (exchangeName);
@@ -1795,11 +1795,13 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange (exchangeName, options);
-        exchange.currencies = currencies;
+        if (currencies !== undefined) {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents !== undefined) {
-            const eventMarkets = [];
+            const eventMarkets: Dict[] = [];
             for (let i = 0; i < predictionEvents.length; i++) {
                 const evMarkets = exchange.safeList (predictionEvents[i], 'markets', []);
                 for (let j = 0; j < evMarkets.length; j++) {
@@ -1890,7 +1892,7 @@ class testMainClass {
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, type as string, skipKeys);
+                await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
                 // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
@@ -2278,7 +2280,7 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2303,27 +2305,27 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         let id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
         id = 'ccxtfutures';
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync ()) {
@@ -2344,14 +2346,14 @@ class testMainClass {
             exchange.options['uta'] = false;
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
             exchange.options['uta'] = true;
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync ()) {
@@ -2368,7 +2370,7 @@ class testMainClass {
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2386,7 +2388,7 @@ class testMainClass {
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2468,7 +2470,7 @@ class testMainClass {
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         if (!isSync ()) {
@@ -2505,7 +2507,7 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2553,7 +2555,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2668,7 +2670,7 @@ class testMainClass {
         try {
             await exchange.createOrder ('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync ()) {
@@ -2685,7 +2687,7 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2769,7 +2771,7 @@ class testMainClass {
             await exchange.createOrder ('ETH/USDC', 'limit', 'buy', 1, 5000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2786,7 +2788,7 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync ()) {

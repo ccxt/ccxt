@@ -171,7 +171,7 @@ public final class Functions {
     // toArray
     // -------------------------------------------------
     public static List<Object> toArray(Object a) {
-        if (a == null) return null;
+        if (a == null) return new ArrayList<>();
 
         // WS caches mutate from the message-executor thread. Take the snapshot
         // under the cache's own monitor so the copy can't observe a remove(0)
@@ -181,6 +181,12 @@ public final class Functions {
         }
         if (a instanceof List<?> l) {
             return new ArrayList<>((List<Object>) l);
+        }
+        // Non-map scalars (Boolean/Number/String) must not cast to Map — callers
+        // may pass failed safeList results or other non-collections after strict-null
+        // refactors; treat them as empty collections.
+        if (!(a instanceof Map)) {
+            return new ArrayList<>();
         }
 
         // treat as map -> return values as list (preserve insertion order if possible).

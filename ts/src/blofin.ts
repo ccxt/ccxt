@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, Bool, List, NullableDict, IndexType } from './base/types.js';
@@ -533,7 +533,7 @@ export default class blofin extends Exchange {
         const fees = this.safeDict2 (this.fees, type as IndexType, 'trading', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
-        let maxLeverage = this.safeString (market, 'maxLeverage', '100');
+        let maxLeverage: Str = this.safeString (market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const isActive = (this.safeString (market, 'state') === 'live');
         const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
@@ -898,7 +898,7 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
@@ -1248,7 +1248,13 @@ export default class blofin extends Exchange {
         return this.parseBalanceByType (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -1519,7 +1525,7 @@ export default class blofin extends Exchange {
         return order;
     }
 
-    createTpslOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    createTpslOrderRequest (symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const hedged = this.safeBool (params, 'hedged', false);
         let positionSide = 'net';
@@ -1650,7 +1656,7 @@ export default class blofin extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createOrderRequest (marketId as string, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostTradeBatchOrders (ordersRequests);
@@ -2024,7 +2030,7 @@ export default class blofin extends Exchange {
             '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2203,7 +2209,7 @@ export default class blofin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const position = this.safeDict (data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new NullResponse (this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition (position, market);
     }
@@ -2378,7 +2384,7 @@ export default class blofin extends Exchange {
         const entryPriceString = this.safeString2 (position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const leverageString = this.safeString (position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
@@ -2393,7 +2399,8 @@ export default class blofin extends Exchange {
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString (initialMarginPercentage);
+            initialMarginString = Precise.stringMul (initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4));

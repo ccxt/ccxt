@@ -1,9 +1,9 @@
 import assert from 'assert';
-import { Exchange, Ticker, Market } from "../../../../ccxt.js";
+import { Exchange, Ticker, Market, Str } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTicker (exchange: Exchange, skippedProperties: object, method: string, entry: Ticker, symbol: string) {
+function testTicker (exchange: Exchange, skippedProperties: object, method: string, entry: Ticker, symbol: Str) {
     // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
     // books where bid==ask and a stale `last` far from the median are normal — skip the
     // crypto-oriented price-relationship checks for them. the PredictionTicker type also
@@ -49,7 +49,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
     if (symbolForMarket !== undefined) {
-        if (symbolForMarket in exchange.markets) {
+        if ((exchange.markets !== undefined) && (symbolForMarket in exchange.markets)) {
             market = exchange.market (symbolForMarket);
         } else {
             isUnrecognizedSymbol = true;

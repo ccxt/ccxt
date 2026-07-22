@@ -566,12 +566,14 @@ export default class bitfinex extends Exchange {
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market (symbol);
+        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
         symbol = this.safeSymbol (symbol);
-        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        const market = this.market (symbol);
+        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -901,22 +903,24 @@ export default class bitfinex extends Exchange {
             const networkId = networkIds[j];
             const network = this.networkIdToCode (networkId, code);
             const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
-            networks[network] = {
-                'info': networkId,
-                'id': networkId.toLowerCase (),
-                'network': networkId,
-                'active': undefined,
-                'deposit': this.safeInteger (dwStatuses, 1) === 1,
-                'withdraw': this.safeInteger (dwStatuses, 2) === 1,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase (),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': this.safeInteger (dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger (dwStatuses, 2) === 1,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -986,7 +990,9 @@ export default class bitfinex extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 account['total'] = this.safeString (balance, 2);
                 account['free'] = this.safeString (balance, 4);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -1706,7 +1712,13 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3276,7 +3288,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }

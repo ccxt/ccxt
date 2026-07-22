@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, List } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -826,7 +826,7 @@ export default class poloniex extends Exchange {
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
         // these are known defaults
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -870,7 +870,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger (market, 'tradableStartTime'),
             'info': market,
-        };
+        });
     }
 
     parseSwapMarket (market: Dict): Market {
@@ -931,7 +931,7 @@ export default class poloniex extends Exchange {
             type = 'future';
         }
         const marketType = (type === 'future') ? 'future' : 'swap';
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -981,7 +981,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger (market, 'oDate'),
             'info': market,
-        };
+        });
     }
 
     /**
@@ -1203,7 +1203,7 @@ export default class poloniex extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const entry = currency;
         const id = this.safeString (entry, 'coin');
         const code = this.safeCurrencyCode (id);
@@ -1214,27 +1214,29 @@ export default class poloniex extends Exchange {
             const chain = chains[j];
             const chainId = this.safeString (chain, 'blockchain');
             const networkCode = this.networkIdToCode (chainId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': undefined,
-                'code': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber (chain, 'withdrawFee'),
-                'deposit': this.safeBool (chain, 'depositEnable'),
-                'withdraw': this.safeBool (chain, 'withdrawalEnable'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': undefined,
+                    'code': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'deposit': this.safeBool (chain, 'depositEnable'),
+                    'withdraw': this.safeBool (chain, 'withdrawalEnable'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2427,7 +2429,9 @@ export default class poloniex extends Exchange {
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'avail');
                 account['used'] = this.safeString (balance, 'im');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
             return this.safeBalance (result);
         }
@@ -2442,7 +2446,9 @@ export default class poloniex extends Exchange {
                 const newAccount = this.account ();
                 newAccount['free'] = this.safeString (balance, 'available');
                 newAccount['used'] = this.safeString (balance, 'hold');
-                result[code] = newAccount;
+                if (code !== undefined) {
+                    result[code] = newAccount;
+                }
             }
         }
         return this.safeBalance (result);
@@ -2546,8 +2552,9 @@ export default class poloniex extends Exchange {
         //     }
         //
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -2702,7 +2709,7 @@ export default class poloniex extends Exchange {
         }
         let exchangeNetworkId: Str = undefined;
         networkCode = this.networkIdToCode (networkCode, code);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         } else {
@@ -3008,7 +3015,7 @@ export default class poloniex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined) {
         //
         //         {
         //             "1CR": {
@@ -3037,7 +3044,7 @@ export default class poloniex extends Exchange {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
-            if ((codes === undefined) || (this.inArray (code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
@@ -3050,16 +3057,18 @@ export default class poloniex extends Exchange {
                         const networkInfo = this.safeValue (response, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
-                        networkObject[networkCode] = {
-                            'withdraw': {
-                                'fee': withdrawFee,
-                                'percentage': (withdrawFee !== undefined) ? false : undefined,
-                            },
-                            'deposit': {
-                                'fee': undefined,
-                                'percentage': undefined,
-                            },
-                        };
+                        if (networkCode !== undefined) {
+                            networkObject[networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        }
                         depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
                     }
                 }
@@ -3085,10 +3094,12 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-        depositWithdrawFee['networks'][networkCode] = {
-            'withdraw': withdrawResult,
-            'deposit': depositResult,
-        };
+        if (networkCode !== undefined) {
+            depositWithdrawFee['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': depositResult,
+            };
+        }
         return depositWithdrawFee;
     }
 

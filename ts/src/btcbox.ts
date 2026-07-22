@@ -322,7 +322,7 @@ export default class btcbox extends Exchange {
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure ({
             'id': this.safeString (market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -371,7 +371,7 @@ export default class btcbox extends Exchange {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {
@@ -425,7 +425,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -475,7 +475,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -552,7 +552,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -862,7 +862,7 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         let response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json

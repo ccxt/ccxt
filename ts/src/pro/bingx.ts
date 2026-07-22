@@ -5,7 +5,7 @@ import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList } from '../base/types.js';
+import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1010,7 +1010,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request = undefined;
+        let request: NullableDict = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
@@ -1127,7 +1127,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request = undefined;
+        let request: NullableDict = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {
@@ -1179,7 +1179,7 @@ export default class bingx extends bingxRest {
 
     async loadBalanceSnapshot (client, messageHash, type, subType) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1282,7 +1282,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //     {
         //         "s": "LINK-USDT",     // Symbol
@@ -1722,7 +1722,9 @@ export default class bingx extends bingxRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'lk');
             account['free'] = this.safeString (balance, 'wb');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');

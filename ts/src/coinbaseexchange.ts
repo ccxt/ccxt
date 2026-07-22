@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -522,7 +522,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency): Currency {
+    parseCurrency (rawCurrency): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'id');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (id);
@@ -533,24 +533,26 @@ export default class coinbaseexchange extends Exchange {
             const network = supportedNetworks[j];
             const networkId = this.safeString (network, 'id');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'name': this.safeString (network, 'name'),
-                'network': networkCode,
-                'active': this.safeString (network, 'status') === 'online',
-                'withdraw': undefined,
-                'deposit': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (network, 'min_withdrawal_amount'),
-                        'max': this.safeNumber (network, 'max_withdrawal_amount'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': this.safeString (network, 'name'),
+                    'network': networkCode,
+                    'active': this.safeString (network, 'status') === 'online',
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'min_withdrawal_amount'),
+                            'max': this.safeNumber (network, 'max_withdrawal_amount'),
+                        },
                     },
-                },
-                'contract': this.safeString (network, 'contract_address'),
-                'info': network,
-            };
+                    'contract': this.safeString (network, 'contract_address'),
+                    'info': network,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -765,7 +767,9 @@ export default class coinbaseexchange extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'hold');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1091,7 +1095,7 @@ export default class coinbaseexchange extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1733,7 +1737,7 @@ export default class coinbaseexchange extends Exchange {
             'rebate': 'rebate',     // Fee rebate
             'conversion': 'trade',  // Funds converted between fiat currency and a stablecoin
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2195,7 +2199,7 @@ export default class coinbaseexchange extends Exchange {
         return undefined;
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response !== 'string') {
             if ('message' in response) {

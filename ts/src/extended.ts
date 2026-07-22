@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -650,7 +650,7 @@ export default class extended extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         //
         //     {
         //       "id": 1,
@@ -1508,7 +1508,9 @@ export default class extended extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'availableToWithdraw');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -2042,7 +2044,7 @@ export default class extended extends Exchange {
             'TRANSFER': 'transfer',
             'CLAIM': 'claim',
         };
-        return this.safeString (types, type as string, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2602,7 +2604,13 @@ export default class extended extends Exchange {
         return settlement;
     }
 
-    async createExtendedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+    async createExtendedOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
@@ -2616,7 +2624,7 @@ export default class extended extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const postOnly = this.isPostOnly (uppercaseType === 'MARKET', undefined, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
@@ -2942,7 +2950,7 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
@@ -3089,7 +3097,7 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);

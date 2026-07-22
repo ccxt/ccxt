@@ -3,7 +3,7 @@ import Exchange from './abstract/hitbtc.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, Bool, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, Bool, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -964,7 +964,7 @@ export default class hitbtc extends Exchange {
         return this.parseCurrencies (enhancedArray);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const currencyId = currency['_coin_id'];
         const code = this.safeCurrencyCode (currencyId);
         const entry = currency;
@@ -975,22 +975,24 @@ export default class hitbtc extends Exchange {
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber (rawNetwork, 'payout_fee'),
-                'deposit': this.safeBool (rawNetwork, 'payin_enabled'),
-                'withdraw': this.safeBool (rawNetwork, 'payout_enabled'),
-                'precision': this.safeNumber (rawNetwork, 'precision_payout'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber (rawNetwork, 'payout_fee'),
+                    'deposit': this.safeBool (rawNetwork, 'payin_enabled'),
+                    'withdraw': this.safeBool (rawNetwork, 'payout_enabled'),
+                    'precision': this.safeNumber (rawNetwork, 'precision_payout'),
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': entry,
@@ -1106,7 +1108,9 @@ export default class hitbtc extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'reserved');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1125,7 +1129,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
+        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type as string), type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1351,7 +1355,7 @@ export default class hitbtc extends Exchange {
             request['from'] = since;
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         let response: Dict[] = [];
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
@@ -1541,7 +1545,7 @@ export default class hitbtc extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1981,7 +1985,7 @@ export default class hitbtc extends Exchange {
             request['limit'] = limit;
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2029,7 +2033,7 @@ export default class hitbtc extends Exchange {
             'client_order_id': id,
         };
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2098,7 +2102,7 @@ export default class hitbtc extends Exchange {
             'order_id': id, // exchange assigned order id as oppose to the client order id
         };
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2183,7 +2187,7 @@ export default class hitbtc extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2249,7 +2253,7 @@ export default class hitbtc extends Exchange {
             'client_order_id': id,
         };
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrder', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2294,7 +2298,7 @@ export default class hitbtc extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2341,7 +2345,7 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2381,7 +2385,7 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -2430,7 +2434,7 @@ export default class hitbtc extends Exchange {
         let request: Dict;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
         let response: Dict;
@@ -2444,7 +2448,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2715,7 +2719,7 @@ export default class hitbtc extends Exchange {
         return this.parseMarginModes (config, symbols, 'symbol');
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         return {
             'info': marginMode,
@@ -3030,7 +3034,7 @@ export default class hitbtc extends Exchange {
         }
         const request: Dict = {};
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (marketType === 'spot') {
             marketType = 'swap';
@@ -3109,7 +3113,7 @@ export default class hitbtc extends Exchange {
             'symbol': market['id'],
         };
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPosition', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -3468,7 +3472,7 @@ export default class hitbtc extends Exchange {
             request['leverage'] = leverage;
         }
         let marketType: Str = undefined;
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
         let response: Dict;
@@ -3599,7 +3603,7 @@ export default class hitbtc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
         let response: Dict;
@@ -3811,7 +3815,7 @@ export default class hitbtc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
         const market = this.market (symbol);
         const request: Dict = {

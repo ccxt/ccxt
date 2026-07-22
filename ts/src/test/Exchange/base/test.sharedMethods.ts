@@ -6,7 +6,7 @@ import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Bool, Num, Order, Str } from '../../../base/types.js';
 
-function logTemplate (exchange: Exchange, method: string, entry: object) {
+function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
@@ -53,7 +53,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any[] | undefined = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -169,6 +169,9 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
             const tsMs = entry['timestamp'];
+            if (dtParsed === undefined) {
+                assert (false, 'datetime is not parseable: ' + dt + logText);
+            }
             const diff = Math.abs (dtParsed - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601 (dtParsed);
@@ -234,7 +237,7 @@ function assertSymbol (exchange: Exchange, skippedProperties: object, method: st
 
 function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
-    assert ((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
+    assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
 
@@ -250,7 +253,7 @@ function assertGreater (exchange: Exchange, skippedProperties: object, method: s
     }
 }
 
-function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -274,7 +277,7 @@ function assertLess (exchange: Exchange, skippedProperties: object, method: stri
     }
 }
 
-function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -310,7 +313,7 @@ function assertNonEqual (exchange: Exchange, skippedProperties: object, method: 
     }
 }
 
-function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedArray: any[], allowNull: boolean = true) {
+function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object | undefined, key: string | number, expectedArray: any[], allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -350,7 +353,7 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending = true) {
+function assertTimestampOrder (exchange: Exchange, method: Str, codeOrSymbol: string, items: any[], ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const currentTs = items[i - 1]['timestamp'];
@@ -444,7 +447,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder: Order = undefined;
+    let fetchedOrder: Order | undefined = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -574,21 +577,21 @@ function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string) {
+function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
 
-function concat (a: any[] = undefined, b: any[] = undefined) {
+function concat (a: any[] | undefined = undefined, b: any[] | undefined = undefined) {
     // we use this method temporarily, because of ast-transpiler issue across langs
     if (a === undefined) {
         return b;
     } else if (b === undefined) {
         return a;
     } else {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < a.length; i++) {
             result.push (a[i]);
         }
@@ -646,7 +649,7 @@ async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(symbol in exchange.markets)) {
+            if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
             // if OHLCV supported

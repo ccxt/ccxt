@@ -8,6 +8,8 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict } from './base/types.js';
 
+;
+
 //  ---------------------------------------------------------------------------
 
 /**
@@ -331,7 +333,7 @@ export default class btcturk extends Exchange {
             }
         }
         const status = this.safeString (entry, 'status');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -379,7 +381,7 @@ export default class btcturk extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
 
     parseBalance (response): Balances {
@@ -397,7 +399,9 @@ export default class btcturk extends Exchange {
             account['total'] = this.safeString (entry, 'balance');
             account['free'] = this.safeString (entry, 'free');
             account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -591,7 +595,7 @@ export default class btcturk extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString2 (trade, 'side', 'orderType');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmountString = this.safeString (trade, 'fee');
         if (feeAmountString !== undefined) {
             const feeCurrency = this.safeString (trade, 'denominatorSymbol');
@@ -659,7 +663,11 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        let dataList: any[] = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades (dataList, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -765,8 +773,8 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
-        const results = [];
+    parseOHLCVs (ohlcvs, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+        const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
         const open = this.safeList (ohlcvs, 'o', []);
@@ -821,7 +829,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1050,7 +1058,11 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        let dataList: any[] = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades (dataList, market, since, limit);
     }
 
     nonce () {

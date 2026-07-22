@@ -618,6 +618,9 @@ export default class bydfi extends Exchange {
         const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
+            }
             if (limit <= limits[i]) {
                 result = limits[i];
                 break;
@@ -815,7 +818,7 @@ export default class bydfi extends Exchange {
             '2': 'market',
             '3': 'liquidation',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -858,6 +861,9 @@ export default class bydfi extends Exchange {
             startTime = now - timeDelta;
             until = now;
         } else if (until === undefined) {
+            if (startTime === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
+            }
             until = startTime + timeDelta;
             if (until > now) {
                 until = now;
@@ -1231,8 +1237,17 @@ export default class bydfi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -1452,7 +1467,7 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data);
     }
 
-    createEditOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {};
         if ((id === undefined) && (clientOrderId === undefined)) {
@@ -1900,7 +1915,7 @@ export default class bydfi extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'TRAILING_STOP_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTimeInForce (timeInForce: Str): Str {
@@ -2423,7 +2438,7 @@ export default class bydfi extends Exchange {
         [ wallet, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
         [ contractType, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'contractType', contractType);
-        let settleCoin = 'USDT';
+        let settleCoin: Str = 'USDT';
         [ settleCoin, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'settleCoin', settleCoin);
         const request: Dict = {
             'contractType': contractType,
@@ -2461,7 +2476,7 @@ export default class bydfi extends Exchange {
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
         [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'contractType', contractType);
-        let settleCoin = 'USDT';
+        let settleCoin: Str = 'USDT';
         if (symbol === undefined) {
             [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
         } else {
@@ -2592,7 +2607,9 @@ export default class bydfi extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString2 (balance, 'total', 'balance');
             account['free'] = this.safeString2 (balance, 'available', 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

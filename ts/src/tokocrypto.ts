@@ -1204,7 +1204,11 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        let responseList: any[] = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades (responseList, market, since, limit);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1511,7 +1515,7 @@ export default class tokocrypto extends Exchange {
         return this.parseBalanceCustom (response, type, marginMode);
     }
 
-    parseBalanceCustom (response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom (response, type: Str = undefined, marginMode: Str = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
         const result: Dict = {
             'info': response,
@@ -1527,7 +1531,9 @@ export default class tokocrypto extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'free');
             account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1808,7 +1814,7 @@ export default class tokocrypto extends Exchange {
         if (uppercaseType === 'MARKET') {
             if (side === 'buy') {
                 const precision = market['precision']['price'];
-                let quoteAmount = undefined;
+                let quoteAmount: Str | Num = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
@@ -2208,7 +2214,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        let tag = this.safeString (data, 'addressTag', '');
+        let tag: Str = this.safeString (data, 'addressTag', '');
         if (tag.length === 0) {
             tag = undefined;
         }
@@ -2346,7 +2352,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
+    parseTransactionStatusByType (status, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -2362,7 +2368,7 @@ export default class tokocrypto extends Exchange {
                 '10': 'ok', // Completed
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeValue (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2412,7 +2418,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        let tag: Str = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
@@ -2438,7 +2444,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        const fee = {
+        const fee: Dict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,

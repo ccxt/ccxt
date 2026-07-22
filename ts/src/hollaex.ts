@@ -3,10 +3,10 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hollaex.js';
-import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable } from './base/errors.js';
+import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Dictionary, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ export default class hollaex extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const withdrawalLimits = this.safeList (rawCurrency, 'withdrawal_limits', []);
@@ -510,22 +510,24 @@ export default class hollaex extends Exchange {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict (rawNetworks, networkId);
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': this.safeBool (networkEntry, 'active'),
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (networkEntry, 'value'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': this.safeBool (networkEntry, 'active'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (networkEntry, 'value'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1003,14 +1005,20 @@ export default class hollaex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const currencyIds = Object.keys (this.currencies_by_id);
+        const currenciesById = this.currencies_by_id;
+        if (currenciesById === undefined) {
+            throw new ExchangeError (this.id + ' currencies not loaded');
+        }
+        const currencyIds = Object.keys (currenciesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (response, currencyId + '_available');
             account['total'] = this.safeString (response, currencyId + '_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1994,6 +2002,9 @@ export default class hollaex extends Exchange {
                 const currencyId = this.safeString (value, 'symbol');
                 const currencyCode = this.safeCurrencyCode (currencyId);
                 const networkCode = this.networkIdToCode (key, currencyCode);
+                if (networkCode === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires a networkCode argument');
+                }
                 const networkCodeUpper = networkCode.toUpperCase (); // default to the upper case network code
                 const withdrawalFee = this.safeNumber (value, 'value');
                 result['networks'][networkCodeUpper] = {

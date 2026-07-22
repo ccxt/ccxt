@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -447,7 +447,7 @@ export default class gemini extends Exchange {
         return this.parseCurrencies (currenciesArray);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
         const type = this.safeString (rawCurrency, 7) ? 'fiat' : 'crypto';
@@ -457,26 +457,28 @@ export default class gemini extends Exchange {
         let networkCode: Str = undefined;
         if (networkId !== undefined) {
             networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,
@@ -828,7 +830,7 @@ export default class gemini extends Exchange {
         }
         const type = swap ? 'swap' : 'spot';
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -876,7 +878,7 @@ export default class gemini extends Exchange {
             },
             'created': undefined,
             'info': response,
-        };
+        });
     }
 
     /**
@@ -1233,7 +1235,9 @@ export default class gemini extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['total'] = this.safeString (balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1286,8 +1290,9 @@ export default class gemini extends Exchange {
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1599,7 +1604,7 @@ export default class gemini extends Exchange {
             clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
-        const amountString = this.amountToPrecision (symbol, amount);
+        const amountString: Str = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const request: Dict = {
             'client_order_id': clientOrderId,

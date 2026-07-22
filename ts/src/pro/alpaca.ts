@@ -3,7 +3,7 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -104,11 +104,13 @@ export default class alpaca extends alpacaRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
+        client.resolve (this.safeValue (this.tickers, symbol), messageHash);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //         "T": "q",
@@ -544,6 +546,9 @@ export default class alpaca extends alpacaRest {
             myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trade = this.parseMyTrade (rawOrder);
+        if (trade === undefined) {
+            return;
+        }
         myTrades.append (trade);
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve (myTrades, messageHash);
@@ -551,7 +556,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -592,6 +597,9 @@ export default class alpaca extends alpacaRest {
         const marketId = this.safeString (trade, 'symbol');
         const datetime = this.safeString (trade, 'filled_at');
         let type = this.safeString (trade, 'type');
+        if (type === undefined) {
+            return undefined;
+        }
         if (type.indexOf ('limit') >= 0) {
             // might be limit or stop-limit
             type = 'limit';

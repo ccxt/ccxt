@@ -771,7 +771,7 @@ export default class hashkey extends hashkeyRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -813,7 +813,9 @@ export default class hashkey extends hashkeyRest {
         const account = this.account ();
         account['free'] = this.safeString (balanceUpdate, 'f');
         account['used'] = this.safeString (balanceUpdate, 'l');
-        this.balance[type][code] = account;
+        if ((type !== undefined) && (code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance (this.balance[type]);
         const messageHash = 'balance:' + type;
         client.resolve (this.balance[type], messageHash);
