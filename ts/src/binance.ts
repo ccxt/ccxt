@@ -8948,12 +8948,12 @@ export default class binance extends Exchange {
         if (typeof response === 'string') {
             response = this.parseJson (response);
         }
-        for (let i = 0; i < response.length; i++) {
-            response[i]['type'] = 'withdrawal';
-        }
         let responseList: any[] = [];
         if (response !== undefined) {
             responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            responseList[i]['type'] = 'withdrawal';
         }
         return this.parseTransactions (responseList, currency, since, limit);
     }
