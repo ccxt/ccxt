@@ -121,7 +121,9 @@ To add accounts, create the config file (its path is reported by the `get_safety
 
 Account fields accept any credential from the exchange's `requiredCredentials` (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, …), plus `sandbox`/`demo`, `defaultType`, `options` (CCXT constructor options), `prediction: true` (for exchanges that exist in both the crypto and prediction namespaces, e.g. hyperliquid), and the safety switches below. `chmod 600` the file; the server warns otherwise (or refuses with `"settings": { "strictPermissions": true }`).
 
-Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing credentials, and the `CCXT_MCP_EXCHANGE` / `CCXT_MCP_APIKEY` / `CCXT_MCP_SECRET` / `CCXT_MCP_SANDBOX` / `CCXT_MCP_TRADING` set defines a single account named `default`.
+Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing credentials, and the `CCXT_MCP_EXCHANGE` / `CCXT_MCP_APIKEY` / `CCXT_MCP_SECRET` / `CCXT_MCP_SANDBOX` / `CCXT_MCP_TRADING` set defines a single account named `default`. The `accounts` map holds as many exchanges as you want.
+
+**Claude Desktop (`.mcpb` bundle):** the install form configures one exchange. To use several — or to enable live trading/withdrawals — set the **Config file** field to a `config.json` with an `accounts` map (as above), or create it at the default path and leave the form blank.
 
 ### Capability tiers
 

@@ -120,6 +120,8 @@ Account fields: any credential from the exchange's `requiredCredentials` (`apiKe
 
 Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing credentials, and the `CCXT_MCP_EXCHANGE`/`CCXT_MCP_APIKEY`/`CCXT_MCP_SECRET`/`CCXT_MCP_SANDBOX`/`CCXT_MCP_TRADING` set defines a single account named `default`.
 
+**Claude Desktop (`.mcpb` bundle):** the install form configures one exchange. To use **several** exchanges (or enable live trading/withdrawals), set the **Config file** field to a `config.json` with an `accounts` map like the one above — or just create it at the default path and leave the form fields blank.
+
 ### Capability tiers
 
 | Tier | Enables | Switch | Default |

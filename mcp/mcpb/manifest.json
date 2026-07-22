@@ -35,6 +35,7 @@
         "${__dirname}/server/js/server.js"
       ],
       "env": {
+        "CCXT_MCP_CONFIG": "${user_config.config_file}",
         "CCXT_MCP_EXCHANGE": "${user_config.exchange}",
         "CCXT_MCP_APIKEY": "${user_config.apiKey}",
         "CCXT_MCP_SECRET": "${user_config.secret}",
@@ -45,10 +46,16 @@
     }
   },
   "user_config": {
+    "config_file": {
+      "type": "file",
+      "title": "Config file (for multiple exchanges)",
+      "description": "To configure MORE THAN ONE exchange — or to enable live trading/withdrawals — point this at a ccxt-mcp config.json with an \"accounts\" map. See https://docs.ccxt.com/#/mcp. When set, the single-exchange fields below are not needed.",
+      "required": false
+    },
     "exchange": {
       "type": "string",
-      "title": "Exchange",
-      "description": "Exchange id to configure an account for, e.g. binance, kraken, okx. Leave blank to use public market data only (no keys).",
+      "title": "Exchange (single-exchange quick setup)",
+      "description": "Configure ONE exchange here instead of a config file, e.g. binance, kraken, okx. Leave blank for public market data only, or if you used the config file above.",
       "required": false
     },
     "apiKey": {

@@ -70,7 +70,9 @@ To use private data or trading, create the config file (its path is shown by the
 }
 ```
 
-Any credential the exchange needs works (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, …), plus `sandbox`/`demo`, `defaultType`, `options`, and `prediction: true` for exchanges that exist in both crypto and prediction namespaces (e.g. hyperliquid). `chmod 600` the file. Env vars also work: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing fields, and `CCXT_MCP_EXCHANGE`/`CCXT_MCP_APIKEY`/`CCXT_MCP_SECRET`/`CCXT_MCP_SANDBOX`/`CCXT_MCP_TRADING` define a single account named `default`.
+Any credential the exchange needs works (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, …), plus `sandbox`/`demo`, `defaultType`, `options`, and `prediction: true` for exchanges that exist in both crypto and prediction namespaces (e.g. hyperliquid). `chmod 600` the file. Env vars also work: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing fields, and `CCXT_MCP_EXCHANGE`/`CCXT_MCP_APIKEY`/`CCXT_MCP_SECRET`/`CCXT_MCP_SANDBOX`/`CCXT_MCP_TRADING` define a single account named `default`. The `accounts` map holds as many exchanges/accounts as you want — one entry each.
+
+On **Claude Desktop** the `.mcpb` install form has fields for a single exchange plus a **Config file** picker — point that at a `config.json` (as above) to configure multiple exchanges, or create the file at the default path and leave the form blank.
 
 ## Capability tiers (opt-in, off by default)
 

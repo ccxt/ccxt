@@ -223,7 +223,10 @@ export function loadConfig (): ResolvedConfig {
     const accounts: Record<string, AccountConfig> = {};
     let settingsRaw: any = {};
 
-    const explicitPath = process.env['CCXT_MCP_CONFIG'];
+    // an unset MCPB file field can arrive as "" or an unsubstituted "${...}" template —
+    // treat those as "no explicit path" and fall back to the default location
+    const rawExplicit = process.env['CCXT_MCP_CONFIG'];
+    const explicitPath = (rawExplicit !== undefined && rawExplicit.trim () !== '' && !rawExplicit.includes ('${')) ? rawExplicit : undefined;
     const configPath = explicitPath || defaultConfigPath ();
     let configPathUsed: string | undefined = undefined;
 

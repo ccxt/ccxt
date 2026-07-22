@@ -87,6 +87,26 @@ test ('unknown exchange id is rejected with suggestions', () => {
     });
 });
 
+test ('the accounts map holds multiple exchanges', () => {
+    withConfig ({ 'accounts': {
+        'binance-test': { 'exchange': 'binance', 'apiKey': 'FAKEKEY111111', 'secret': 'FAKESECRET111111', 'sandbox': true, 'trading': true },
+        'kraken-main': { 'exchange': 'kraken', 'apiKey': 'FAKEKEY222222', 'secret': 'FAKESECRET222222' },
+        'okx-main': { 'exchange': 'okx', 'apiKey': 'FAKEKEY333333', 'secret': 'FAKESECRET333333', 'password': 'FAKEPASS' },
+    } }, {}, () => {
+        const config = loadConfig ();
+        assert.deepEqual (Object.keys (config.accounts).sort (), [ 'binance-test', 'kraken-main', 'okx-main' ]);
+        assert.equal (config.accounts['okx-main'].exchange, 'okx');
+        assert.equal (config.problems.length, 0);
+    });
+});
+
+test ('an unsubstituted/empty CCXT_MCP_CONFIG is ignored, not treated as a missing file', () => {
+    withConfig ({}, { 'CCXT_MCP_CONFIG': '${user_config.config_file}' }, () => {
+        const config = loadConfig ();
+        assert.ok (!config.problems.some ((p) => p.includes ('CCXT_MCP_CONFIG')));
+    });
+});
+
 test ('CCXT_MCP_* env defines the implicit default account', () => {
     withConfig ({}, {
         'CCXT_MCP_EXCHANGE': 'binance',
