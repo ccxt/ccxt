@@ -9607,10 +9607,6 @@ public class BinanceCore extends BinanceApi
                 }
                 response = (this.sapiGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
             }
-            if (Helpers.isTrue((response instanceof String)))
-            {
-                response = this.parseJson(response);
-            }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(response, i), "type", "withdrawal");
