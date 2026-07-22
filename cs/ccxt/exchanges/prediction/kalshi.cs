@@ -2923,7 +2923,7 @@ public partial class kalshi : PredictionExchange
             object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
             object payload = add(add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
-            object keyParts = ((string)this.privateKey).Split(new [] {((string)"\n")}, StringSplitOptions.None).ToList<object>();
+            object keyParts = ((string)this.privateKey).Split(new [] {((string)"\\n")}, StringSplitOptions.None).ToList<object>();
             object cleanPrivateKey = String.Join("\n", ((IList<object>)keyParts).ToArray());
             object signature = rsa(payload, cleanPrivateKey, sha256, "pss");
             headers = this.extend(headers, new Dictionary<string, object>() {
