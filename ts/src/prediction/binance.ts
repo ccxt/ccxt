@@ -1,7 +1,7 @@
 import Exchange from '../abstract/prediction/binance.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported } from '../base/errors.js';
 import type {
     Int, int, Str, Dict, Strings,
     Market, PredictionOrderBook,
@@ -892,6 +892,198 @@ export default class binance extends Exchange {
             result[accountType] = account;
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name binance#fetchWallet
+     * @description fetch wallet for user and save the one match the walletAddress user provided
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#list-prediction-wallets
+     * @param {string} [methodName] method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a wallet
+     */
+    async fetchWallet (methodName: string, params: {}): Promise<any> {
+        let cachedWallet = this.safeDict (this.options, 'wallet');
+        if (cachedWallet !== undefined) {
+            return cachedWallet;
+        }
+        let walletAddress = undefined;
+        [ walletAddress, params ] = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress);
+        const response = await this.sapiPrivateGetWalletList ();
+        //
+        // {
+        //     "wallets": [
+        //         {
+        //             "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //             "walletId": "5b5c1ec3be4e4416a5872b21c1ca5d20",
+        //             "registeredTime": 1748000000000
+        //         }
+        //     ]
+        // }
+        //
+        const wallets = this.safeList (response, 'wallets', []);
+        if (walletAddress === undefined) {
+            cachedWallet = this.safeDict (wallets, 0);
+            this.options['wallet'] = cachedWallet;
+            return cachedWallet;
+        }
+        const walletLength = wallets.length;
+        for (let i = 0; i < walletLength; i++) {
+            const w = this.safeString (wallets[i], 'walletAddress', '');
+            if (w === walletAddress) {
+                cachedWallet = wallets[i];
+                break;
+            }
+        }
+        if (cachedWallet === undefined) {
+            throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
+        }
+        this.options['wallet'] = cachedWallet;
+        return cachedWallet;
+    }
+
+    /**
+     * @method
+     * @name binance#fetchQuote
+     * @description request for quote from binance server
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#get-quote
+     * @param {object} [request] request to the exchange API endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.chainId] Chain ID. Default 56 (BSC)
+     * @param {integer} [params.feeRateBps] Fee rate in basis points. Default 200, range 1–10000
+     * @param {string} [params.fundingSource] Funding source. Enum: MPC, CEX. Default MPC
+     * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
+     * @returns {object} a quote
+     */
+    async fetchQuote (request, params = {}): Promise<any> {
+        const response = this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
+        //
+        // {
+        //     "quoteId": "q_20260525_abc123xyz",
+        //     "tokenId": "112233",
+        //     "chance": "0.52",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTitle": "UP",
+        //     "marketExtId": "ext_001",
+        //     "side": "BUY",
+        //     "amountIn": "1000000000000000000",
+        //     "amountOut": "1923070000000000000",
+        //     "isMinAmountOut": false,
+        //     "feeAmount": "20000000000000000",
+        //     "feeDiscountBps": "0",
+        //     "averagePrice": 0.52,
+        //     "lastPrice": 0.52,
+        //     "priceImpact": 0.001,
+        //     "timestamp": 1748131500000,
+        //     "chainId": "56",
+        //     "userId": 100103755893,
+        //     "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //     "orderType": "MARKET",
+        //     "slippageBps": 1200,
+        //     "feeRateBps": 200,
+        //     "minReceive": "1900000000000000000",
+        //     "expireAt": 1748131800000,
+        //     "priceLimit": null
+        // }
+        //
+        return response;
+    }
+
+    priceToPrecision (outcome: string, price: any): string {
+        const market = this.market (outcome);
+        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
+        let decimals = 4;
+        if (prec > 0) {
+            decimals = this.precisionFromString (this.numberToString (prec));
+        }
+        return this.decimalToPrecision (price, 1, decimals, 2, this.paddingMode);
+    }
+
+    /**
+     * @method
+     * @name binance#createOrder
+     * @description creates a limit or market order for an outcome market
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#place-order
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount quantity of outcome tokens
+     * @param {float} [price] limit price (0–1 range for prediction markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] Must match orderType: FOK for MARKET, GTC for LIMIT
+     * @param {string} [params.slippage] slippage for market orders (default 5%)
+     * @param {string} [params.fundingSource] Funding source. Enum: MPC, CEX. Default MPC
+     * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
+     * @param {string} [params.accountType] Payment account type. Enum: SPOT, FUNDING
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
+        // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        const market = this.market (marketSymbol);
+        const typeUpper = type.toUpperCase ();
+        const sideUpper = side.toUpperCase ();
+        const wallet = await this.fetchWallet ('createOrder', params);
+        const defaultSlippage = this.safeString (this.options, 'defaultSlippage', '0.05');
+        const slippage = this.safeString (params, 'slippage', defaultSlippage);
+        const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
+        const commonRequest = {
+            "walletAddress": wallet['walletAddress'],
+            "orderType": typeUpper,
+            "slippageBps": slippageBps,
+        };
+        let defaultTif = 'FOK';
+        if (typeUpper === 'LIMIT') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + 'createOrder requires price for limit order');
+            }
+            commonRequest['priceLimit'] = this.priceToPrecision (marketSymbol, price);
+            defaultTif = 'GTC';
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTif);
+        const accountType = this.safeStringUpper (params, 'accountType');
+        if (accountType === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
+        }
+        params = this.omit (params, [ 'timeInForce', 'accountType' ]);
+        const quoteRequest = this.extend (commonRequest, {
+            "tokenId": outcomeObj['id'],
+            "side": sideUpper,
+            "amountIn": Precise.stringMul (amount.toString (), '1000000000000000000'),
+        });
+        const quote = await this.fetchQuote (quoteRequest, params);
+        const orderRequest = this.extend (commonRequest, {
+            'walletId': wallet['walletId'],
+            'quoteId': quote['quoteId'],
+            'timeInForce': timeInForce,
+            'accountType': accountType,
+        });
+        const response = await this.sapiPrivatePostTradePlaceOrderBundle (this.extend (orderRequest, params));
+        return this.safePredictionOrder ({
+            'id': this.safeString (response, 'orderId'),
+            'clientOrderId': undefined,
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': undefined,
+            'outcome': this.safeString (outcomeObj, 'outcome', outcome),
+            'outcomeId': this.safeString (outcomeObj, 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'trades': [],
+        }, market);
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
