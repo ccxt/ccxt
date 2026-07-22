@@ -235,7 +235,7 @@ public partial class Exchange
 
         var extendedProperties = this.deepExtend(properties, userConfig);
 
-        this.version = SafeString(extendedProperties, "version", null);
+        this.version = SafeString(extendedProperties, "version", "");
 
         // credentials initis
         this.requiredCredentials = SafeValue(extendedProperties, "requiredCredentials") as dict;
