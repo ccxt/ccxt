@@ -138,7 +138,7 @@ class BaseExchange(object):
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
-    symbols = None
+    symbols = []
     codes = None
     timeframes = {}
     tokenBucket = None
@@ -2943,7 +2943,7 @@ class BaseExchange(object):
         self.ids = None
         self.markets = None
         self.markets_by_id = None
-        self.symbols = None
+        self.symbols = []
         self.codes = None
         self.currencies = self.create_safe_dictionary()
         self.currencies_by_id = None
