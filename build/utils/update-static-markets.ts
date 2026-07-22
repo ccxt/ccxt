@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path'
 import { platform } from 'process'
-import ccxt from '../ts/ccxt.js';
+import ccxt from '../../ts/ccxt.js';
 
 const [,, ...args] = process.argv;
 
