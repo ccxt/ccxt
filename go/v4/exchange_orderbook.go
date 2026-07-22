@@ -506,12 +506,38 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 		copy = NewWsOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
 	}
 	ob := copy.(*WsOrderBook)
+	lockSide(this.Asks)
+	lockSide(this.Bids)
 	ob.Asks = this.Asks.CopySide()
 	ob.Bids = this.Bids.CopySide()
+	unlockSide(this.Bids)
+	unlockSide(this.Asks)
 	ob.Nonce = this.Nonce
 	ob.Timestamp = this.Timestamp
 	ob.Datetime = this.Datetime
 	return copy
+}
+
+func lockSide(side IOrderBookSide) {
+	switch s := side.(type) {
+	case *OrderBookSide:
+		s.Mutex.RLock()
+	case *CountedOrderBookSide:
+		s.OrderBookSide.Mutex.RLock()
+	case *IndexedOrderBookSide:
+		s.Mutex.RLock()
+	}
+}
+
+func unlockSide(side IOrderBookSide) {
+	switch s := side.(type) {
+	case *OrderBookSide:
+		s.Mutex.RUnlock()
+	case *CountedOrderBookSide:
+		s.OrderBookSide.Mutex.RUnlock()
+	case *IndexedOrderBookSide:
+		s.Mutex.RUnlock()
+	}
 }
 
 func (this *WsOrderBook) GetNonce() any {

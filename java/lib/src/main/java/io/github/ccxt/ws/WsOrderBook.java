@@ -168,8 +168,12 @@ public class WsOrderBook {
         } else {
             copy = new WsOrderBook(snapshot, this.asks.depth);
         }
-        copy.asks = (OrderBookSide.Asks) this.asks.copy();
-        copy.bids = (OrderBookSide.Bids) this.bids.copy();
+        synchronized (this.asks) {
+            synchronized (this.bids) {
+                copy.asks = (OrderBookSide.Asks) this.asks.copy();
+                copy.bids = (OrderBookSide.Bids) this.bids.copy();
+            }
+        }
         copy.nonce = this.nonce;
         copy.timestamp = this.timestamp;
         copy.datetime = this.datetime;
