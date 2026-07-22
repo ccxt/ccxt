@@ -504,7 +504,10 @@ public partial class whitebit : ccxt.whitebit
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -534,7 +537,10 @@ public partial class whitebit : ccxt.whitebit
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         object orderId = this.safeString(trade, 3);
@@ -548,9 +554,11 @@ public partial class whitebit : ccxt.whitebit
         object feeCost = this.safeString(trade, 6);
         if (isTrue(!isEqual(feeCost, null)))
         {
+            object feeCurrencyId = this.safeString(trade, 10);
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(feeCurrencyId, null)))) ? this.safeCurrencyCode(feeCurrencyId) : getValue(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", feeCurrencyCode },
             };
         }
         object rawSide = this.safeInteger(trade, 8);
