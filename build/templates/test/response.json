@@ -1,0 +1,69 @@
+{
+    "exchange": "template_exchange_name",
+    "options": {},
+    "methods": {
+        "fetchMarkets": [
+
+        ],
+        "fetchBalance": [
+
+        ],
+        "fetchOrderBook": [
+
+        ],
+        "fetchStatus": [
+
+        ],
+        "fetchTicker": [
+
+        ],
+        "fetchTickers": [
+
+        ],
+        "fetchOHLCV": [
+
+        ],
+        "fetchTrades": [
+
+        ],
+        "editOrder": [
+
+        ],
+        "createOrder": [
+
+        ],
+        "fetchOrder": [
+
+        ],
+        "fetchOpenOrders": [
+
+        ],
+        "fetchClosedOrders": [
+
+        ],
+        "fetchCanceledOrders": [
+
+        ],
+        "cancelOrder": [
+
+        ],
+        "cancelAllOrders": [
+
+        ],
+        "fetchMyTrades": [
+
+        ],
+        "fetchDepositsWithdrawals": [
+
+        ],
+        "fetchDepositAddress": [
+
+        ],
+        "withdraw": [
+
+        ],
+        "fetchLedger": [
+
+        ]
+    }
+}
