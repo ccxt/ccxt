@@ -383,7 +383,8 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     if (key in skippedProperties) {
         return;
     }
-    if (exchange.isTickPrecision ()) {
+    // TICK_SIZE is 4
+    if (exchange.precision === 4) {
         // TICK_SIZE should be above zero
         assertGreater (exchange, skippedProperties, method, entry, key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
