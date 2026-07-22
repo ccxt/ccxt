@@ -36,6 +36,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -89,7 +90,14 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // hit the per-test timeout despite passing on their own.
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
-
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
