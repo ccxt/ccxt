@@ -5772,6 +5772,235 @@
         ],
         "fetchTickers": [
             {
+                "description": "spot tickers containing an unknown instrument id with a -P substring, must not be parsed as an expired option",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": 0,
+                    "retMsg": "OK",
+                    "result": {
+                        "category": "spot",
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "bid1Price": "61643.2",
+                                "bid1Size": "0.319848",
+                                "ask1Price": "61643.3",
+                                "ask1Size": "0.704901",
+                                "lastPrice": "61644.3",
+                                "prevPrice24h": "63119.8",
+                                "price24hPcnt": "-0.0234",
+                                "highPrice24h": "63157.6",
+                                "lowPrice24h": "60763.8",
+                                "turnover24h": "942922053.13879256",
+                                "volume24h": "15207.86178",
+                                "usdIndexPrice": "61603.478031"
+                            },
+                            {
+                                "symbol": "PERFTESTA-PERFTESTB",
+                                "bid1Price": "1.4",
+                                "bid1Size": "10",
+                                "ask1Price": "1.6",
+                                "ask1Size": "10",
+                                "lastPrice": "1.5",
+                                "prevPrice24h": "1.5",
+                                "price24hPcnt": "0",
+                                "highPrice24h": "1.6",
+                                "lowPrice24h": "1.4",
+                                "turnover24h": "150",
+                                "volume24h": "100",
+                                "usdIndexPrice": "1.5"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": 1781078585535
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 63157.6,
+                        "low": 60763.8,
+                        "bid": 61643.2,
+                        "bidVolume": 0.319848,
+                        "ask": 61643.3,
+                        "askVolume": 0.704901,
+                        "vwap": 62002.276636866736,
+                        "open": 63119.8,
+                        "close": 61644.3,
+                        "last": 61644.3,
+                        "previousClose": null,
+                        "change": -1475.5,
+                        "percentage": -2.34,
+                        "average": 62382,
+                        "baseVolume": 15207.86178,
+                        "quoteVolume": 942922053.1387925,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "bid1Price": "61643.2",
+                            "bid1Size": "0.319848",
+                            "ask1Price": "61643.3",
+                            "ask1Size": "0.704901",
+                            "lastPrice": "61644.3",
+                            "prevPrice24h": "63119.8",
+                            "price24hPcnt": "-0.0234",
+                            "highPrice24h": "63157.6",
+                            "lowPrice24h": "60763.8",
+                            "turnover24h": "942922053.13879256",
+                            "volume24h": "15207.86178",
+                            "usdIndexPrice": "61603.478031"
+                        }
+                    },
+                    "PERFTESTA-PERFTESTB": {
+                        "symbol": "PERFTESTA-PERFTESTB",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 1.6,
+                        "low": 1.4,
+                        "bid": 1.4,
+                        "bidVolume": 10,
+                        "ask": 1.6,
+                        "askVolume": 10,
+                        "vwap": 1.5,
+                        "open": 1.5,
+                        "close": 1.5,
+                        "last": 1.5,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 1.5,
+                        "baseVolume": 100,
+                        "quoteVolume": 150,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "PERFTESTA-PERFTESTB",
+                            "bid1Price": "1.4",
+                            "bid1Size": "10",
+                            "ask1Price": "1.6",
+                            "ask1Size": "10",
+                            "lastPrice": "1.5",
+                            "prevPrice24h": "1.5",
+                            "price24hPcnt": "0",
+                            "highPrice24h": "1.6",
+                            "lowPrice24h": "1.4",
+                            "turnover24h": "150",
+                            "volume24h": "100",
+                            "usdIndexPrice": "1.5"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "expired USDT option ticker absent from loaded markets must still be parsed as an option",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "option"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": 0,
+                    "retMsg": "SUCCESS",
+                    "result": {
+                        "category": "option",
+                        "list": [
+                            {
+                                "symbol": "BTC-30MAY25-68000-P-USDT",
+                                "bid1Price": "1975",
+                                "bid1Size": "3",
+                                "bid1Iv": "0.547",
+                                "ask1Price": "2050",
+                                "ask1Size": "0.11",
+                                "ask1Iv": "0.556",
+                                "lastPrice": "2030",
+                                "highPrice24h": "2030",
+                                "lowPrice24h": "1660",
+                                "markPrice": "2015.39438867",
+                                "indexPrice": "78750.38868972",
+                                "markIv": "0.552",
+                                "underlyingPrice": "79369.63",
+                                "openInterest": "11.35",
+                                "turnover24h": "77346.8492",
+                                "volume24h": "0.96",
+                                "totalVolume": "27",
+                                "totalTurnover": "2287307",
+                                "delta": "-0.19818258",
+                                "gamma": "0.00001689",
+                                "vega": "83.17386614",
+                                "theta": "-44.39180536",
+                                "predictedDeliveryPrice": "0",
+                                "change24h": "-0.19284295"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": 1781078585535
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT-250530-68000-P": {
+                        "symbol": "BTC/USDT:USDT-250530-68000-P",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 2030,
+                        "low": 1660,
+                        "bid": 1975,
+                        "bidVolume": 3,
+                        "ask": 2050,
+                        "askVolume": 0.11,
+                        "vwap": 80569.63458333333,
+                        "open": null,
+                        "close": 2030,
+                        "last": 2030,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 0.96,
+                        "quoteVolume": 77346.8492,
+                        "markPrice": 2015.39438867,
+                        "indexPrice": 78750.38868972,
+                        "info": {
+                            "symbol": "BTC-30MAY25-68000-P-USDT",
+                            "bid1Price": "1975",
+                            "bid1Size": "3",
+                            "bid1Iv": "0.547",
+                            "ask1Price": "2050",
+                            "ask1Size": "0.11",
+                            "ask1Iv": "0.556",
+                            "lastPrice": "2030",
+                            "highPrice24h": "2030",
+                            "lowPrice24h": "1660",
+                            "markPrice": "2015.39438867",
+                            "indexPrice": "78750.38868972",
+                            "markIv": "0.552",
+                            "underlyingPrice": "79369.63",
+                            "openInterest": "11.35",
+                            "turnover24h": "77346.8492",
+                            "volume24h": "0.96",
+                            "totalVolume": "27",
+                            "totalTurnover": "2287307",
+                            "delta": "-0.19818258",
+                            "gamma": "0.00001689",
+                            "vega": "83.17386614",
+                            "theta": "-44.39180536",
+                            "predictedDeliveryPrice": "0",
+                            "change24h": "-0.19284295"
+                        }
+                    }
+                }
+            },
+            {
                 "description": "Fetch tickers for a BTC option symbol",
                 "method": "fetchTickers",
                 "input": [
