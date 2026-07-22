@@ -336,6 +336,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'ctfExchangeVersion': '2',
                 'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
+                'builder': '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
+                'builderFee': True,  # when True, feeRate below is packed into the builder code's upper bytes
+                'feeRate': 0,  # builder fee in bps, applied only when builderFee is True
             },
         })
 
@@ -1789,6 +1792,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.salt]: order salt; defaults to the current time in ms(pin it for idempotent retries)
         :param str [params.timestamp]: order timestamp; defaults to the current time in ms
         :param str [params.expiration]: unix-seconds expiration for GTD orders; defaults to '0'(no expiry)
+        :param str [params.builderCode]: builder wallet address or full bytes32 builder code attached to the order for attribution(zero fee — tracking only); defaults to options.builder
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
@@ -1902,12 +1906,33 @@ class polymarket(PredictionExchange, ImplicitAPI):
         expiration = self.safe_string(params, 'expiration', '0')
         # a market buy can be sized by USDC cost instead of shares(see createMarketBuyOrderWithCost)
         cost = self.safe_number(params, 'cost')
-        rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost'])
+        rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode'])
         amounts = self.polymarket_order_raw_amounts(sideStr, amount, price, tickSize, cost)
         makerAmount = self.safe_string(amounts, 'makerAmount')
         takerAmount = self.safe_string(amounts, 'takerAmount')
         sideInt = 0 if (sideStr == 'BUY') else 1
         bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000'
+        # builder attribution: the order's bytes32 builder field packs the builder fee(bps,
+        # upper 12 bytes) and the builder wallet(lower 20 bytes); when options.builderFee is
+        # False the fee bytes stay zeroed, so orders are attributed for statistics only and
+        # the user is not charged; a full 32-byte builder code is passed through unchanged
+        builderRaw = self.safe_string_lower_2(params, 'builder', 'builderCode', self.safe_string_lower(self.options, 'builder'))
+        builderBytes32 = bytes32Zero
+        if builderRaw is not None:
+            builderHex = self.remove0x_prefix(builderRaw)
+            if len(builderHex) <= 40:
+                builderFeeEnabled = self.safe_bool(self.options, 'builderFee', True)
+                feeRate = 0
+                if builderFeeEnabled:
+                    feeRate = self.safe_integer(self.options, 'feeRate', 0)
+                feeHex = self.int_to_base16(feeRate)
+                feeHex = feeHex.rjust(24, '0')
+                addressHex = builderHex
+                addressHex = addressHex.rjust(40, '0')
+                builderHex = feeHex + addressHex
+            else:
+                builderHex = builderHex.rjust(64, '0')
+            builderBytes32 = '0x' + builderHex
         # POLY_1271(type 3): the order signer is the deposit wallet itself — the exchange calls
         # wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet(the EOA
         # still produces the signature and is checked on-chain wallet owner). Otherwise signer = EOA.
@@ -1924,7 +1949,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'signatureType': signatureType,
             'timestamp': timestamp,
             'metadata': bytes32Zero,
-            'builder': bytes32Zero,
+            'builder': builderBytes32,
         }
         exchangeV2 = self.safe_string(self.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B')
         negRiskExchangeV2 = self.safe_string(self.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59')
@@ -1948,7 +1973,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'expiration': expiration,
                 'metadata': bytes32Zero,
-                'builder': bytes32Zero,
+                'builder': builderBytes32,
                 'signature': signature,
             },
             'owner': owner,
