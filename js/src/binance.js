@@ -9017,9 +9017,6 @@ export default class binance extends Exchange {
             //       }
             //     ]
         }
-        if (typeof response === 'string') {
-            response = this.parseJson(response);
-        }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
         }
