@@ -1,0 +1,98 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
+  "name": "ccxt-mcp",
+  "display_name": "CCXT — Crypto Exchanges",
+  "version": "0.1.0",
+  "description": "Market data, balances and (opt-in) trading across 100+ crypto exchanges and prediction markets via CCXT.",
+  "long_description": "The official CCXT MCP server. Connect an AI agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API: prices, order books, candles, market search and prediction-market events with no keys; balances, orders and positions once you configure an account; and order placement when you explicitly enable it. Your API keys are stored in the OS keychain and are never visible to the model — it references accounts by name only. Trading is opt-in and sandbox-first: enabling it here allows orders on testnet/sandbox accounts only; live trading must be turned on in the config file.",
+  "author": {
+    "name": "CCXT",
+    "url": "https://ccxt.com"
+  },
+  "homepage": "https://ccxt.com",
+  "documentation": "https://docs.ccxt.com/#/mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccxt/ccxt"
+  },
+  "support": "https://github.com/ccxt/ccxt/issues",
+  "keywords": [
+    "ccxt",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "trading",
+    "market-data",
+    "prediction-markets"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "server/js/server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/js/server.js"
+      ],
+      "env": {
+        "CCXT_MCP_EXCHANGE": "${user_config.exchange}",
+        "CCXT_MCP_APIKEY": "${user_config.apiKey}",
+        "CCXT_MCP_SECRET": "${user_config.secret}",
+        "CCXT_MCP_PASSWORD": "${user_config.password}",
+        "CCXT_MCP_SANDBOX": "${user_config.sandbox}",
+        "CCXT_MCP_TRADING": "${user_config.enable_trading}"
+      }
+    }
+  },
+  "user_config": {
+    "exchange": {
+      "type": "string",
+      "title": "Exchange",
+      "description": "Exchange id to configure an account for, e.g. binance, kraken, okx. Leave blank to use public market data only (no keys).",
+      "required": false
+    },
+    "apiKey": {
+      "type": "string",
+      "title": "API key",
+      "description": "API key for the exchange above. Stored in your OS keychain, never shown to the model. Leave blank for market data only.",
+      "sensitive": true,
+      "required": false
+    },
+    "secret": {
+      "type": "string",
+      "title": "API secret",
+      "description": "API secret for the exchange above. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "password": {
+      "type": "string",
+      "title": "API passphrase",
+      "description": "Only some exchanges need a passphrase (OKX, KuCoin, Coinbase Advanced). Leave blank otherwise. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "sandbox": {
+      "type": "boolean",
+      "title": "Sandbox / testnet mode",
+      "description": "Use the exchange testnet (fake money). Strongly recommended. Requires testnet API keys from the exchange's testnet portal.",
+      "default": true
+    },
+    "enable_trading": {
+      "type": "boolean",
+      "title": "Allow placing orders (sandbox only)",
+      "description": "Enable order placement — on sandbox/testnet accounts only. Live trading and withdrawals must be enabled in the config file, not here.",
+      "default": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18"
+    }
+  }
+}

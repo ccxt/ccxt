@@ -12,7 +12,9 @@
     "build": "tsc && node scripts/build-doc-manifest.mjs",
     "test": "node --import tsx --test test/unit/*.test.ts test/schema/*.test.ts test/integration/*.test.ts",
     "prepublishOnly": "npm run build",
-    "publishPackage": "npm run build && npm publish"
+    "publishPackage": "npm run build && npm publish",
+    "sync-versions": "node scripts/sync-versions.mjs",
+    "mcpb": "npm run build && node scripts/build-mcpb.mjs"
   },
   "bin": {
     "ccxt-mcp": "js/server.js"

@@ -2,6 +2,7 @@ ts/
 test/
 scripts/
 mcpb/
+plugin/
 DESIGN.md
 server.json
 *.mcpb
