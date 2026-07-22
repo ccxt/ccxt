@@ -1,11 +1,11 @@
 import Exchange from '../abstract/prediction/binance.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
 import type {
     Int, int, Str, Dict, Strings,
     Market, PredictionOrderBook,
-    PredictionEvent, PredictionTicker, PredictionTickers,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder,
     fetchEventsParams,
 } from '../base/types.js';
 
@@ -44,6 +44,8 @@ export default class binance extends Exchange {
                 'fetchTickers': true,
                 'fetchBalance': true,
                 'createOrder': true,
+                'cancelOrders': true,
+                'cancelOrder': true,
                 'prediction': true,
             },
             'urls': {
@@ -1087,6 +1089,91 @@ export default class binance extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name binance#cancelOrder
+     * @description cancels a single open order
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#batch-cancel-orders
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        const orders = await this.cancelOrders ([ id ], outcome, params);
+        return this.safeDict (orders, 0) as PredictionOrder;
+    }
+
+    /**
+     * @method
+     * @name binance#cancelOrders
+     * @description cancels multiple open orders
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#batch-cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} [outcome] unified outcome (required)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        const wallet = await this.fetchWallet ('cancelOrders', params);
+        const cancelReq = [];
+        for (let i = 0; i < ids.length; i++) {
+            cancelReq.push ({ 'orderId': ids[i] });
+        }
+        const request = {
+            'walletAddress': wallet['walletAddress'],
+            'walletId': wallet['walletId'],
+            'cancelInfoList': cancelReq,
+        };
+        const response = await this.sapiPrivatePostTradeBatchCancel (this.extend (request, params));
+        //
+        // {
+        //     "canceled": [
+        //         "54124"
+        //     ],
+        //     "failed": [
+        //         {
+        //             "orderId": "54126",
+        //             "reason": "ORDER_NOT_FOUND"
+        //         }
+        //     ]
+        // }
+        //
+        const canceledOrders = this.safeList (response, 'canceled', []);
+        const outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
+        const failedOrders = this.safeList (response, 'failed', []);
+        const failedOrdersLength = failedOrders.length;
+        for (let i = 0; i < failedOrdersLength; i++) {
+            const failedOrder = failedOrders[i];
+            const error = this.safeString (failedOrder, 'reason');
+            throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + this.safeString (failedOrder, 'orderId') + ': ' + error);
+        }
+        const orders = [];
+        const canceledOrdersLength = canceledOrders.length;
+        for (let i = 0; i < canceledOrdersLength; i++) {
+            const status = canceledOrders[i];
+            const order = {
+                'id': status,
+                'clientOrderId': undefined,
+                'info': status,
+                'status': 'canceled',
+                'outcome': outcomeSymbol,
+                'outcomeId': this.safeString (outcomeObj, 'id'),
+                'label': this.safeString (outcomeObj, 'label'),
+                'market': this.safeString (outcomeObj, 'market'),
+                'timestamp': this.milliseconds (),
+                'datetime': this.iso8601 (this.milliseconds ()),
+            };
+            orders.push (this.safePredictionOrder (order) as PredictionOrder);
+        }
+        return orders;
+    }
+
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
@@ -1130,6 +1217,8 @@ export default class binance extends Exchange {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
         let querystring = this.urlencode (extendedParams);
+        querystring = querystring.replaceAll ('%5B', '[');
+        querystring = querystring.replaceAll ('%5D', ']');
         const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
         querystring = querystring + '&signature=' + signature;
         headers = {
