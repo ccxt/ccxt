@@ -6668,7 +6668,6 @@ export class BaseExchange {
         return value;
     }
 
-
     /* eslint-disable no-unused-vars */
     handleOptionAndParams <T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
     handleOptionAndParams (params: object, methodName: Str, optionName: string, defaultValue?: any): [any, Dict];
