@@ -1,0 +1,373 @@
+{
+    "exchange": "btse",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "closePosition": [
+            {
+                "description": "close one-way position with market order",
+                "method": "closePosition",
+                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "close isolated position with limit order",
+                "method": "closePosition",
+                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    {
+                        "positionId": "ETH-PERP-USDT|6#1",
+                        "type": "limit",
+                        "price": 1980
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"LIMIT\",\"price\":1980,\"positionId\":\"ETH-PERP-USDT|6#1\"}"
+            },
+            {
+                "description": "close isolated position",
+                "method": "closePosition",
+                "url": "https://api.btse.com/futures/api/v2.3/order/close_position",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    {
+                        "positionId": "ETH-PERP-USDT|4#1"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"type\":\"MARKET\",\"positionId\":\"ETH-PERP-USDT|4#1\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to cross and hedged",
+                "method": "setMarginMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "input": [
+                    "CROSS",
+                    "ETH/USDT:USDT",
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"HEDGE\"}"
+            },
+            {
+                "description": "set margin mode to cross and one-way",
+                "method": "setMarginMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "input": [
+                    "CROSS",
+                    "ETH/USDT:USDT",
+                    {
+                        "hedged": false
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
+            },
+            {
+                "description": "set margin mode to isolated",
+                "method": "setMarginMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "input": [
+                    "isolated",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ISOLATED\"}"
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "fetch margin modes",
+                "method": "fetchMarginModes",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode for market",
+                "method": "setPositionMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode",
+                "input": [
+                    false,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"positionMode\":\"ONE_WAY\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode for market",
+                "method": "fetchPositionMode",
+                "url": "https://api.btse.com/futures/api/v2.3/position_mode?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "fetch positions for market",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.btse.com/futures/api/v2.3/user/positions?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.btse.com/futures/api/v2.3/user/positions",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees for contract",
+                "method": "fetchTradingFees",
+                "url": "https://api.btse.com/futures/api/v2.3/user/fees",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trading fees for spot",
+                "method": "fetchTradingFees",
+                "url": "https://api.btse.com/spot/api/v3.3/user/fees",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee for spot",
+                "method": "fetchTradingFee",
+                "url": "https://api.btse.com/spot/api/v3.3/user/fees?symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.btse.com/futures/api/v2.3/trades?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.btse.com/spot/api/v3.3/trades?symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?listFullAttributes=true",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP&listFullAttributes=true",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch tickers for spot",
+                "method": "fetchTickers",
+                "url": "https://api.btse.com/spot/api/v3.3/market_summary",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for contract",
+                "method": "fetchTicker",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api.btse.com/spot/api/v3.3/market_summary?symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch leverage tiers for ETH/USDT:USDT",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.btse.com/futures/api/v2.3/market/risk_limit?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history with since",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.btse.com/futures/api/v2.3/funding_history?symbol=ETH-PERP&from=1770451200000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1770451200000
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook for contract",
+                "method": "fetchOrderBook",
+                "url": "https://api.btse.com/futures/api/v2.3/orderbook/L2?symbol=ETH-PERP&depth=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch orderbook for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.btse.com/spot/api/v3.3/orderbook/L2?symbol=ETH-USDT&depth=1",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV with since, until and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770451200000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770451200000,
+                    1,
+                    {
+                        "until": 1770454800000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for future",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260327&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT:USDT-260327",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for future",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260327&resolution=60",
+                "input": [
+                    "ETH/USDT:USDT-260327",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-PERP&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
