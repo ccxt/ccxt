@@ -1,0 +1,7 @@
+ts/
+test/
+scripts/
+mcpb/
+DESIGN.md
+server.json
+*.mcpb

@@ -93,6 +93,8 @@
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "cli.ts": "tsx ./cli/ts/cli.ts",
     "cli.js": "node ./cli/js/cli.js",
+    "mcp.ts": "tsx ./mcp/ts/server.ts",
+    "mcp.js": "node ./mcp/js/server.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",

@@ -52,3 +52,8 @@ __debug*
 go/main
 go/tests/main
 go/cli/cli
+
+# --- mcp sub-package build output ---
+mcp/js/
+mcp/*.mcpb
+mcp/mcpb/staging/
