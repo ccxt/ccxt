@@ -32,6 +32,14 @@
     <PackageReference Include="Newtonsoft.Json" Version="*" />
           </ItemGroup>
   <ItemGroup>
+    <!-- the vendored projects under static/ ship their own csproj; when an IDE restore or a
+         direct build populates their obj/ dirs, the SDK default glob would pick up the
+         generated AssemblyInfo.cs files and fail the build with duplicate-attribute CS0579
+         errors — exclude their build output from this project's compilation explicitly -->
+    <Compile Remove="static/**/obj/**;static/**/bin/**" />
+    <None Remove="static/**/obj/**;static/**/bin/**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
