@@ -486,7 +486,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ),
         //       "id" => null
         //   }
@@ -514,7 +517,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78", // $price
         //         "0.16717", // $amount
         //         "0.0094919126", // $fee
-        //         '' // client order $id
+        //         '', // client order $id
+        //         "2", // $side, 1 = sell, 2 = buy
+        //         "2", // $role, 1 = maker, 2 = taker
+        //         "LTC" // $fee asset
         //    )
         //
         $orderId = $this->safe_string($trade, 3);
@@ -527,9 +533,11 @@ class whitebit extends \ccxt\async\whitebit {
         $fee = null;
         $feeCost = $this->safe_string($trade, 6);
         if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 10);
+            $feeCurrencyCode = ($feeCurrencyId !== null) ? $this->safe_currency_code($feeCurrencyId) : $market['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $feeCurrencyCode,
             );
         }
         $rawSide = $this->safe_integer($trade, 8);
