@@ -256,7 +256,7 @@ func (this *KrakenCore) Describe() any {
 				"BTC":        "Bitcoin",
 				"CHZ":        Add(Add("Chiliz", " "), "(CHZ)"),
 				"COMP":       Add(Add("Compound", " "), "(COMP)"),
-				"CQT":        Add(Add("	Covalent Query Token", " "), "(CQT)"),
+				"CQT":        Add(Add("\tCovalent Query Token", " "), "(CQT)"),
 				"CRV":        Add(Add("Curve DAO Token", " "), "(CRV)"),
 				"CTSI":       Add(Add("Cartesi", " "), "(CTSI)"),
 				"DAI":        "Dai",
@@ -2731,7 +2731,7 @@ func (this *KrakenCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
 		var orderTrades any = this.SafeValue(params, "trades")
 		var tradeIds any = []any{}
 		if IsTrue(IsEqual(orderTrades, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a unified order structure in the params argument or a \\'trades\\' param (an array of trade id strings)")))
+			panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")))
 		} else {
 			for i := 0; IsLessThan(i, GetArrayLength(orderTrades)); i++ {
 				var orderTrade any = GetValue(orderTrades, i)
@@ -4000,7 +4000,7 @@ func (this *KrakenCore) Withdraw(code any, amount any, address any, optionalArgs
 			ch <- this.ParseTransaction(result, currency)
 			return nil
 		}
-		panic(ExchangeError(Add(this.Id, " withdraw() requires a \\'key\\' parameter (withdrawal key name, as set up on your account)")))
+		panic(ExchangeError(Add(this.Id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")))
 
 	}()
 	return ch

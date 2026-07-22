@@ -479,7 +479,7 @@ func (this *BydfiCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalAr
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 		}
 
 		retRes3478 := (<-this.LoadMarkets())
@@ -530,7 +530,7 @@ func (this *BydfiCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 		}
 
 		retRes3828 := (<-this.LoadMarkets())

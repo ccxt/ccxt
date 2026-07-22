@@ -2344,7 +2344,7 @@ func (this *KalshiCore) CreateOrder(outcome any, typeVar any, side any, amount a
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(price, nil)) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { \\'time_in_force\\': \\'immediate_or_cancel\\' }")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")))
 		}
 
 		retRes19598 := (<-this.LoadOutcome(outcome))
@@ -3205,7 +3205,7 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 		var pathForSigning any = ccxt.Add(ccxt.Add(versionPrefix, "/"), implodedPath)
 		var payload any = ccxt.Add(ccxt.Add(timestamp, method), pathForSigning)
 		// RSA-PSS SHA-256 signature with the private key PEM
-		var keyParts any = ccxt.Split(this.PrivateKey, "\n")
+		var keyParts any = ccxt.Split(this.PrivateKey, "\\n")
 		var cleanPrivateKey any = ccxt.Join(keyParts, "\n")
 		var signature any = ccxt.Rsa(payload, cleanPrivateKey, ccxt.Sha256, "pss")
 		headers = this.Extend(headers, map[string]any{

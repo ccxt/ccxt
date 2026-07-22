@@ -3532,7 +3532,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 							notional = this.ParseNumber(quoteAmount)
 						}
 					} else if IsTrue(IsEqual(notional, nil)) {
-						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\\'createMarketBuyOrderRequiresPrice\\'] = false and supply the total cost value in the \\'amount\\' argument or in the \\'cost\\' unified extra parameter or in exchange-specific \\'sz\\' extra parameter (the exchange-specific behaviour)")))
+						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")))
 					}
 				} else {
 					notional = Ternary(IsTrue((IsEqual(notional, nil))), amount, notional)

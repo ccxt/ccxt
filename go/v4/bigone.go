@@ -348,8 +348,8 @@ func (this *BigoneCore) Describe() any {
 			"exact": map[string]any{
 				"10001": BadRequest,
 				"10005": ExchangeError,
-				"Amount\\'s scale must greater than AssetPair\\'s base scale":              InvalidOrder,
-				"Price mulit with amount should larger than AssetPair\\'s min_quote_value": InvalidOrder,
+				"Amount's scale must greater than AssetPair's base scale":                InvalidOrder,
+				"Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
 				"10007": BadRequest,
 				"10011": ExchangeError,
 				"10013": BadSymbol,

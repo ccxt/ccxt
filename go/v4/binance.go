@@ -2645,7 +2645,7 @@ func (this *BinanceCore) Describe() any {
 				"Account has insufficient balance for requested action.":    InsufficientFunds,
 				"Rest API trading is not enabled.":                          PermissionDenied,
 				"This account may not place or cancel orders.":              PermissionDenied,
-				"You don\\'t have permission.":                              PermissionDenied,
+				"You don't have permission.":                                PermissionDenied,
 				"Market is closed.":                                         MarketClosed,
 				"Too many requests. Please try again later.":                RateLimitExceeded,
 				"This action is disabled on this account.":                  AccountSuspended,

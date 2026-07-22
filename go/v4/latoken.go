@@ -255,7 +255,7 @@ func (this *LatokenCore) Describe() any {
 				"request expired or bad":                                  InvalidNonce,
 				"For input string":                                        BadRequest,
 				"Unable to resolve currency by tag":                       BadSymbol,
-				"Can\\'t find currency with tag":                          BadSymbol,
+				"Can't find currency with tag":                            BadSymbol,
 				"Unable to place order because pair is in inactive state": BadSymbol,
 				"API keys are not available for":                          AccountSuspended,
 			},

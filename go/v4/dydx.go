@@ -931,7 +931,7 @@ func (this *DydxCore) HandlePublicAddress(methodName any, params any) any {
 	if IsTrue(IsTrue((!IsEqual(this.WalletAddress, nil))) && IsTrue((!IsEqual(this.WalletAddress, "")))) {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside \\'params\\' or the walletAddress set")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
 func (this *DydxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//

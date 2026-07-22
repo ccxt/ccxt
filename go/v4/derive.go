@@ -3015,7 +3015,7 @@ func (this *DeriveCore) HandleDeriveSubaccountId(methodName any, params any) any
 	if IsTrue(!IsEqual(optionsWallet, nil)) {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a subaccount_id parameter inside \\'params\\' or exchange.options[\\'subaccount_id\\']=ID.")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")))
 }
 func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) any {
 	var deriveWalletAddress any = nil
@@ -3030,7 +3030,7 @@ func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) an
 	if IsTrue(!IsEqual(optionsWallet, nil)) {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside \\'params\\' or exchange.options[\\'deriveWalletAddress\\'] = ADDRESS, the address can find in HOME => Developers tab.")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
 }
 func (this *DeriveCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if !IsTrue(response) {

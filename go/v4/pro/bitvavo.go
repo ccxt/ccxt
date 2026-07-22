@@ -1000,7 +1000,7 @@ func (this *BitvavoCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(!ccxt.IsEqual(operatorId, nil)) {
 			ccxt.AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 		} else {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 		}
 		var market any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {

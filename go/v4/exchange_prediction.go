@@ -442,7 +442,7 @@ func  (this *PredictionExchange) GetEvent(eventIdOrSlug any) any  {
     if IsTrue(IsTrue((!IsEqual(this.Events_by_slug, nil))) && IsTrue((InOp(this.Events_by_slug, eventIdOrSlug)))) {
         return GetValue(this.Events_by_slug, eventIdOrSlug)
     }
-    panic(BadSymbol(Add(Add(Add(this.Id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ \\'query\\': ... }) first")))
+    panic(BadSymbol(Add(Add(Add(this.Id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
 }
 func  (this *PredictionExchange) Outcome(outcomeSymbol any) any  {
     if IsTrue(IsTrue((IsEqual(this.Outcomes, nil))) || IsTrue(this.IsEmpty(this.Outcomes))) {
@@ -968,7 +968,7 @@ func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
                     return nil
                 }
             }
-            panic(BadSymbol(Add(Add(Add(this.Id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ \\'query\\': ... }) first, or pass a known outcomeId")))
+            panic(BadSymbol(Add(Add(Add(this.Id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
         
             }()
             return ch

@@ -738,7 +738,7 @@ func (this *KrakenfuturesCore) WatchBalance(optionalArgs ...any) <-chan any {
 		params = ccxt.GetValue(accountparamsVariable, 1)
 		if ccxt.IsTrue(!ccxt.IsEqual(account, nil)) {
 			if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(account, "futures")) && ccxt.IsTrue(!ccxt.IsEqual(account, "flex_futures"))) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchBalance account must be either \\'futures\\' or \\'flex_futures\\'")))
+				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchBalance account must be either 'futures' or 'flex_futures'")))
 			}
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
 		}

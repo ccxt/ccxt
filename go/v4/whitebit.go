@@ -317,7 +317,7 @@ func (this *WhitebitCore) Describe() any {
 				"Total is less than":                           InvalidOrder,
 				"fee must be no less than":                     InvalidOrder,
 				"Enable your key in API settings":              PermissionDenied,
-				"You don\\'t have such amount for transfer":    InsufficientFunds,
+				"You don't have such amount for transfer":      InsufficientFunds,
 			},
 		},
 	})
