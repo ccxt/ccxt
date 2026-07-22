@@ -784,7 +784,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->ids = null;
         $this->markets = null;
         $this->markets_by_id = null;
-        $this->symbols = null;
+        $this->symbols = array();
         $this->codes = null;
         $this->currencies = $this->create_safe_dictionary();
         $this->currencies_by_id = null;

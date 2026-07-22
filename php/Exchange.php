@@ -158,7 +158,7 @@ class BaseExchange {
     public $comment = null;
 
     public $markets = null;
-    public $symbols = null;
+    public $symbols = array();
     public $codes = null;
     public $ids = null;
     public $currencies = array();
@@ -3178,7 +3178,7 @@ class BaseExchange {
         $this->ids = null;
         $this->markets = null;
         $this->markets_by_id = null;
-        $this->symbols = null;
+        $this->symbols = array();
         $this->codes = null;
         $this->currencies = $this->create_safe_dictionary();
         $this->currencies_by_id = null;
