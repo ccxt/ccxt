@@ -50,6 +50,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "postcss": "$postcss"
+    "postcss": "$postcss",
+    "sharp": "0.35.0"
   }
 }
