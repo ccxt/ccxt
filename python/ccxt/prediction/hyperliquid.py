@@ -129,7 +129,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'builderFee': False,
+                'builderFee': True,
+                'builder': '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6',
+                'feeRate': '0%',  # max builder fee rate to approve
+                'feeInt': 0,  # builder fee attached per order, in tenths of a basis point
             },
             'exceptions': {
                 'exact': {
@@ -1131,6 +1134,14 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'orders': [orderObj],
             'grouping': 'na',
         }
+        if self.safe_bool(self.options, 'approvedBuilderFee', False):
+            wallet = self.safe_string_lower(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
+            # feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            # user is not charged; set options.feeInt(tenths of a bp) together with feeRate to charge
+            feeInt = self.safe_integer(self.options, 'feeInt', 0)
+            if not self.safe_bool(self.options, 'builderFee', True):
+                feeInt = 0
+            orderAction['builder'] = {'b': wallet, 'f': feeInt}
         signature = self.sign_l1_action(orderAction, nonce, vaultAddress)
         request = {
             'action': orderAction,
@@ -1833,6 +1844,63 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         msg = self.eth_encode_structured_data(domain, messageTypes, phantomAgent)
         return self.sign_message(msg, self.privateKey)
 
+    def sign_user_signed_action(self, messageTypes: dict, message: dict) -> dict:
+        zeroAddress = self.safe_string(self.options, 'zeroAddress')
+        chainId = 421614
+        domain = {
+            'chainId': chainId,
+            'name': 'HyperliquidSignTransaction',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        }
+        msg = self.eth_encode_structured_data(domain, messageTypes, message)
+        signature = self.sign_message(msg, self.privateKey)
+        return signature
+
+    def build_approve_builder_fee_sig(self, message: dict) -> dict:
+        messageTypes = {
+            'HyperliquidTransaction:ApproveBuilderFee': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
+                {'name': 'maxFeeRate', 'type': 'string'},
+                {'name': 'builder', 'type': 'address'},
+                {'name': 'nonce', 'type': 'uint64'},
+            ],
+        }
+        return self.sign_user_signed_action(messageTypes, message)
+
+    async def approve_builder_fee(self, builder: str, maxFeeRate: str) -> Any:
+        """
+ @ignore
+        approves the builder for the given max fee rate, required before orders can carry a builder attribution
+        :param str builder: the builder wallet address
+        :param str maxFeeRate: the maximum builder fee rate to approve, e.g. '0%'
+        :returns dict: the raw exchange response
+        """
+        nonce = self.milliseconds()
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        payload = {
+            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'maxFeeRate': maxFeeRate,
+            'builder': builder,
+            'nonce': nonce,
+        }
+        sig = self.build_approve_builder_fee_sig(payload)
+        action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'maxFeeRate': payload['maxFeeRate'],
+            'builder': payload['builder'],
+            'nonce': nonce,
+            'type': 'approveBuilderFee',
+        }
+        request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': None,
+        }
+        return await self.privatePostExchange(request)
+
     async def initialize_client(self) -> Any:
         # createOrder/createOrders call self before trading; load markets so the order builder can
         # resolve the outcome's market and precision. loading them also keeps self method genuinely
@@ -1841,7 +1909,17 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         buildFee = self.safe_bool(self.options, 'builderFee', False)
         if not buildFee:
             return None
-        # builder fee approval would go here if needed
+        if self.safe_bool(self.options, 'approvedBuilderFee', False):
+            return None  # already approved
+        try:
+            builder = self.safe_string(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
+            # the default feeRate is '0%': the builder is approved and attached for statistics
+            # purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            maxFeeRate = self.safe_string(self.options, 'feeRate', '0%')
+            await self.approve_builder_fee(builder, maxFeeRate)
+            self.options['approvedBuilderFee'] = True
+        except Exception as e:
+            self.options['builderFee'] = False  # disable builder fee if an error occurs
         return None
 
     def handle_public_address(self, methodName: str, params: dict) -> Any:
