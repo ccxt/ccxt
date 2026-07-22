@@ -43,6 +43,7 @@ export default class binance extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchBalance': true,
+                'createOrder': true,
                 'prediction': true,
             },
             'urls': {
