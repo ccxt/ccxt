@@ -891,7 +891,7 @@ export default class indodax extends Exchange {
                 };
             }
         }
-        const timestamp = this.safeInteger (order, 'submit_time');
+        const timestamp = this.safeTimestamp (order, 'submit_time');
         const id = this.safeString (order, 'order_id');
         return this.safeOrder ({
             'info': order,
