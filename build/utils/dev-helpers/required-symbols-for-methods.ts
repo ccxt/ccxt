@@ -3,7 +3,7 @@
 this script checks which methods (under 'features') requres symbol (or code) argument
 */
 
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../../ts/ccxt.js';
 
 const methodsDict = {
     'rest': {

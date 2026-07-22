@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { platform } from 'process';
-import ccxt from '../js/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 const [, , ...args] = process.argv;
 let __dirname = new URL('.', import.meta.url).pathname;
 if (platform === 'win32' && __dirname[0] === '/') {
