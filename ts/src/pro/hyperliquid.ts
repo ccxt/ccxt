@@ -455,7 +455,11 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        let subscribeHash: Str = 'myTrades';
+        if (userAddress !== undefined) {
+            subscribeHash = 'myTrades:user:' + userAddress;
+        }
+        const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -493,7 +497,11 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        let subscribeHash: Str = messageHash;
+        if (userAddress !== undefined) {
+            subscribeHash = messageHash + ':user:' + userAddress;
+        }
+        return await this.watch (url, subscribeHash, message, subscribeHash);
     }
 
     handleWsTickers (client: Client, message) {
@@ -1279,7 +1287,11 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const orders = await this.watch (url, messageHash, message, messageHash);
+        let subscribeHash: Str = 'order';
+        if (userAddress !== undefined) {
+            subscribeHash = 'order:user:' + userAddress;
+        }
+        const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1317,7 +1329,11 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        let subscribeHash: Str = messageHash;
+        if (userAddress !== undefined) {
+            subscribeHash = messageHash + ':user:' + userAddress;
+        }
+        return await this.watch (url, subscribeHash, message, subscribeHash);
     }
 
     handleOrder (client: Client, message) {
@@ -1495,8 +1511,13 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     handleOrderUnsubscription (client: Client, subscription: Dict) {
-        const subHash = 'order';
-        const unSubHash = 'unsubscribe:' + subHash;
+        const user = this.safeString (subscription, 'user');
+        let subHash = 'order';
+        let unSubHash = 'unsubscribe:order';
+        if (user !== undefined) {
+            subHash = 'order:user:' + user;
+            unSubHash = 'unsubscribe:order:user:' + user;
+        }
         this.cleanUnsubscription (client, subHash, unSubHash, true);
         const topicStructure = {
             'topic': 'orders',
@@ -1505,8 +1526,13 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     handleMyTradesUnsubscription (client: Client, subscription: Dict) {
-        const subHash = 'myTrades';
-        const unSubHash = 'unsubscribe:' + subHash;
+        const user = this.safeString (subscription, 'user');
+        let subHash = 'myTrades';
+        let unSubHash = 'unsubscribe:myTrades';
+        if (user !== undefined) {
+            subHash = 'myTrades:user:' + user;
+            unSubHash = 'unsubscribe:myTrades:user:' + user;
+        }
         this.cleanUnsubscription (client, subHash, unSubHash, true);
         const topicStructure = {
             'topic': 'myTrades',
