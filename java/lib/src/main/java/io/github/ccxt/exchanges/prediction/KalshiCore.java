@@ -3178,7 +3178,7 @@ final Object finalOi = oi;
             Object pathForSigning = Helpers.add(Helpers.add(versionPrefix, "/"), implodedPath);
             Object payload = Helpers.add(Helpers.add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
-            Object keyParts = Helpers.split(this.privateKey, "\n");
+            Object keyParts = Helpers.split(this.privateKey, "\\n");
             Object cleanPrivateKey = String.join((String)"\n", (java.util.List<String>)keyParts);
             Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             final Object finalTimestamp = timestamp;

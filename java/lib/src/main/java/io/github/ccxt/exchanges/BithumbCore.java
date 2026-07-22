@@ -1395,7 +1395,7 @@ public class BithumbCore extends BithumbApi
                 put( "endpoint", finalEndpoint );
             }}, query));
             Object nonce = String.valueOf(this.nonce());
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, " "), body), " "), nonce); // eslint-disable-line quotes
+            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
             Object signature64 = this.stringToBase64(signature);
             headers = new java.util.HashMap<String, Object>() {{
