@@ -328,6 +328,9 @@ class polymarket extends polymarket$1["default"] {
                 'ctfExchangeVersion': '2',
                 'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
+                'builder': '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
+                'builderFee': true, // when true, feeRate below is packed into the builder code's upper bytes
+                'feeRate': 0, // builder fee in bps, applied only when builderFee is true
             },
         });
     }
@@ -1912,6 +1915,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
@@ -2043,12 +2047,37 @@ class polymarket extends polymarket$1["default"] {
         const expiration = this.safeString(params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber(params, 'cost');
-        const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost']);
+        const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode']);
         const amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
         const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        const builderRaw = this.safeStringLower2(params, 'builder', 'builderCode', this.safeStringLower(this.options, 'builder'));
+        let builderBytes32 = bytes32Zero;
+        if (builderRaw !== undefined) {
+            let builderHex = this.remove0xPrefix(builderRaw);
+            if (builderHex.length <= 40) {
+                const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
+                let feeRate = 0;
+                if (builderFeeEnabled) {
+                    feeRate = this.safeInteger(this.options, 'feeRate', 0);
+                }
+                let feeHex = this.intToBase16(feeRate);
+                feeHex = feeHex.padStart(24, '0');
+                let addressHex = builderHex;
+                addressHex = addressHex.padStart(40, '0');
+                builderHex = feeHex + addressHex;
+            }
+            else {
+                builderHex = builderHex.padStart(64, '0');
+            }
+            builderBytes32 = '0x' + builderHex;
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
@@ -2065,7 +2094,7 @@ class polymarket extends polymarket$1["default"] {
             'signatureType': signatureType,
             'timestamp': timestamp,
             'metadata': bytes32Zero,
-            'builder': bytes32Zero,
+            'builder': builderBytes32,
         };
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
@@ -2089,7 +2118,7 @@ class polymarket extends polymarket$1["default"] {
                 'timestamp': timestamp,
                 'expiration': expiration,
                 'metadata': bytes32Zero,
-                'builder': bytes32Zero,
+                'builder': builderBytes32,
                 'signature': signature,
             },
             'owner': owner,

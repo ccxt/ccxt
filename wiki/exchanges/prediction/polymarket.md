@@ -452,6 +452,7 @@ places a limit or market order on the CLOB for the given outcome token
 | params.salt | <code>string</code> | No | order salt; defaults to the current time in ms (pin it for idempotent retries) |
 | params.timestamp | <code>string</code> | No | order timestamp; defaults to the current time in ms |
 | params.expiration | <code>string</code> | No | unix-seconds expiration for GTD orders; defaults to '0' (no expiry) |
+| params.builderCode | <code>string</code> | No | builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder |
 
 
 ```javascript
