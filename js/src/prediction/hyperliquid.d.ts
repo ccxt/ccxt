@@ -366,6 +366,18 @@ export default class hyperliquid extends Exchange {
     constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
     actionHash(action: Dict, vaultAddress: Str, nonce: number): any;
     signL1Action(action: Dict, nonce: number, vaultAddress?: Str): Dict;
+    signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
+    buildApproveBuilderFeeSig(message: Dict): Dict;
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): any;
     formatVaultAddress(address?: Str): Str;
