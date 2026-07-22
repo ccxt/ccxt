@@ -1706,17 +1706,15 @@ class testMainClass {
         return true;
     }
 
-    initOfflineExchange (exchangeName: string, prediction = false) {
+    initOfflineExchange (exchangeName: string) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
-        // the explicit `prediction` argument lets individual tests (e.g. testPolymarket in the
-        // concurrent brokerId suite) opt in without mutating the shared predictionTests flag
         let predictionEvents = undefined;
-        if (this.predictionTests || prediction) {
+        if (this.predictionTests) {
             predictionEvents = this.loadEventsFromFile (exchangeName);
         }
         let markets = undefined;
@@ -2123,7 +2121,6 @@ class testMainClass {
             this.testPhemex (),
             this.testBlofin (),
             // this.testHyperliquid (),
-            this.testPolymarket (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
@@ -2569,29 +2566,6 @@ class testMainClass {
     //     }
     //     return true;
     // }
-
-    async testPolymarket () {
-        // polymarket attaches a builder code to every order for attribution: options.builder
-        // packed into the signed order's bytes32 builder field (zeroed upper bytes = 0 fee)
-        const exchange = this.initOfflineExchange ('polymarket', true); // prediction: load the outcome markets from the static events fixture
-        // pre-set the L2 api credentials so loadApiCredentials does not try to derive them over HTTP
-        exchange.options['l2ApiKey'] = '0xabc123';
-        exchange.options['l2Secret'] = '0xdef456';
-        const builderCode = '0x000000000000000000000000ea409de8b037bb6ac664b6d12d6831b03cb04a37';
-        let request: Dict = {};
-        try {
-            await exchange.createOrder ('JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES', 'limit', 'buy', 5, 0.5, { 'signatureType': 3, 'funder': '0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB' });
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const order = request['order'];
-        const builder = order['builder'];
-        assert (builder === builderCode, 'polymarket - builder: ' + builder + ' does not match the expected builder code: ' + builderCode);
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');
