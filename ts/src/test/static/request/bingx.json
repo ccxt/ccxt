@@ -1396,25 +1396,24 @@
         ],
         "editOrder": [
             {
-                "disabled": true,
+                "disabledJava": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "editOrder",
-                "disabledJava": true,
-                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=2077750176533553152&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A75%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=79&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A87%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784209567935&type=TRIGGER_MARKET&signature=608016c0561e9c5e8283ec1aae998d872388dc20d101bce5fcd80e7d6e56f896",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=2077817338468081664&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A71%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=81&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A91%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784225949298&type=TRIGGER_MARKET&signature=a686c27dc5308b021780dd243a7d86d3cafa8abc520442e3f492c86d4edca232",
                 "input": [
-                    "2077750176533553152",
+                    "2077817338468081664",
                     "SOL/USDT:USDT",
                     "market",
                     "buy",
                     0.6,
                     0,
                     {
-                        "triggerPrice": 79,
+                        "triggerPrice": 81,
                         "stopLoss": {
-                            "triggerPrice": 75
+                            "triggerPrice": 71
                         },
                         "takeProfit": {
-                            "triggerPrice": 87
+                            "triggerPrice": 91
                         }
                     }
                 ],
