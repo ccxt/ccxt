@@ -333,7 +333,7 @@ export default class polymarket extends Exchange {
                 'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
                 'builder': '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
-                'builderFee': false, // when true, feeRate below is packed into the builder code's upper bytes
+                'builderFee': true, // when true, feeRate below is packed into the builder code's upper bytes
                 'feeRate': 0, // builder fee in bps, applied only when builderFee is true
             },
         });
@@ -2089,7 +2089,7 @@ export default class polymarket extends Exchange {
             let builderHex = this.remove0xPrefix (builderRaw);
             const builderHexLength = builderHex.length;
             if (builderHexLength <= 40) {
-                const builderFeeEnabled = this.safeBool (this.options, 'builderFee', false);
+                const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
                 let feeRate = 0;
                 if (builderFeeEnabled) {
                     feeRate = this.safeInteger (this.options, 'feeRate', 0);
