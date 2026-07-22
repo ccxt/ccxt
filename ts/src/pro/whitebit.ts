@@ -469,7 +469,10 @@ export default class whitebit extends whitebitRest {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
