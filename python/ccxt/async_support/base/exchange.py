@@ -17,6 +17,7 @@ import yarl
 import math
 from typing import Any, List
 from ccxt.base.types import Int, Str, Num, Strings
+from typing import TypeVar, Awaitable, Sequence
 
 # -----------------------------------------------------------------------------
 
@@ -47,6 +48,8 @@ try:
     aiohttp_fast_zlib.enable()
 except ImportError:
     pass
+
+TypeVarT = TypeVar('T')
 
 # -----------------------------------------------------------------------------
 
@@ -367,6 +370,25 @@ class BaseExchange(SyncExchange):
             raise e
         self.reloading_markets = False
         return result
+
+    async def promise_all(self, tasks: Sequence[Awaitable[TypeVarT]]) -> list[TypeVarT]:
+        """
+        Mimic TS Promise.all()
+        """
+        try:
+            async with asyncio.TaskGroup() as tg:
+                task_objects = [tg.create_task(task) for task in tasks]
+
+            return [task.result() for task in task_objects]
+        except BaseException as e:
+            if isinstance(e, ExceptionGroup):
+                # Re-raise the first actual exception instead of ExceptionGroup wrapper
+                raise e.exceptions[0]
+            raise
+
+    async def _wrap_task(task: asyncio.Task):
+        """Helper to await an existing task within TaskGroup"""
+        return await task
 
     async def load_fees(self, reload=False):
         if not reload:
