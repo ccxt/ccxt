@@ -21,9 +21,12 @@ ini_set('memory_limit', '2048M');
 
 define('rootDir', __DIR__ . '/../../');
 
-include_once rootDir .'/vendor/autoload.php';
-use React\Async;
-use React\Promise;
+$vendor_path = rootDir . '/vendor/autoload.php';
+if (file_exists($vendor_path)) {
+    include_once $vendor_path;
+} else {
+    include_once rootDir . '/ccxt.php';
+}
 
 // the below approach is being deprecated in PHP (keep this commented area for a while)
 //
@@ -298,7 +301,7 @@ function get_test_files_sync ($properties, $ws = false) {
     if (IS_SYNCHRONOUS) {
         return $func();
     } else {
-        return Async\async ($func)();
+        return \React\Async\async ($func)();
     }
 }
 
@@ -321,7 +324,7 @@ function close($exchange) {
     if (IS_SYNCHRONOUS) {
         return $func();
     } else {
-        return Async\async ($func)();
+        return \React\Async\async ($func)();
     }
 }
 
