@@ -126,7 +126,10 @@ class hyperliquid extends Exchange {
                 'outcomeQuoteCurrency' => 'USDH',
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
-                'builderFee' => false,
+                'builderFee' => true,
+                'builder' => '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6',
+                'feeRate' => '0%', // max builder fee rate to approve
+                'feeInt' => 0, // builder fee attached per order, in tenths of a basis point
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1249,6 +1252,16 @@ class hyperliquid extends Exchange {
                 'orders' => array( $orderObj ),
                 'grouping' => 'na',
             );
+            if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
+                $wallet = $this->safe_string_lower($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+                // $feeInt defaults to 0 => the builder is attached for statistics purposes only and the
+                // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+                $feeInt = $this->safe_integer($this->options, 'feeInt', 0);
+                if (!$this->safe_bool($this->options, 'builderFee', true)) {
+                    $feeInt = 0;
+                }
+                $orderAction['builder'] = array( 'b' => $wallet, 'f' => $feeInt );
+            }
             $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $orderAction,
@@ -2037,9 +2050,71 @@ class hyperliquid extends Exchange {
         return $this->sign_message($msg, $this->privateKey);
     }
 
+    public function sign_user_signed_action(array $messageTypes, array $message): array {
+        $zeroAddress = $this->safe_string($this->options, 'zeroAddress');
+        $chainId = 421614;
+        $domain = array(
+            'chainId' => $chainId,
+            'name' => 'HyperliquidSignTransaction',
+            'verifyingContract' => $zeroAddress,
+            'version' => '1',
+        );
+        $msg = $this->eth_encode_structured_data($domain, $messageTypes, $message);
+        $signature = $this->sign_message($msg, $this->privateKey);
+        return $signature;
+    }
+
+    public function build_approve_builder_fee_sig(array $message): array {
+        $messageTypes = array(
+            'HyperliquidTransaction:ApproveBuilderFee' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'maxFeeRate', 'type' => 'string' ),
+                array( 'name' => 'builder', 'type' => 'address' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function approve_builder_fee(string $builder, string $maxFeeRate): PromiseInterface {
+        return Async\async(function () use ($builder, $maxFeeRate) {
+            /**
+             * @ignore
+             * approves the $builder for the given max fee rate, required before orders can carry a $builder attribution
+             * @param {string} $builder the $builder wallet address
+             * @param {string} $maxFeeRate the maximum $builder fee rate to approve, e.g. '0%'
+             * @return {array} the raw exchange response
+             */
+            $nonce = $this->milliseconds();
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'maxFeeRate' => $maxFeeRate,
+                'builder' => $builder,
+                'nonce' => $nonce,
+            );
+            $sig = $this->build_approve_builder_fee_sig($payload);
+            $action = array(
+                'hyperliquidChain' => $payload['hyperliquidChain'],
+                'signatureChainId' => '0x66eee',
+                'maxFeeRate' => $payload['maxFeeRate'],
+                'builder' => $payload['builder'],
+                'nonce' => $nonce,
+                'type' => 'approveBuilderFee',
+            );
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $sig,
+                'vaultAddress' => null,
+            );
+            return Async\await($this->privatePostExchange($request));
+        })();
+    }
+
     public function initialize_client(): PromiseInterface {
         return Async\async(function () {
-            // createOrder/createOrders call this before trading; load markets so the order builder can
+            // createOrder/createOrders call this before trading; load markets so the order $builder can
             // resolve the outcome's market and precision. loading them also keeps this method genuinely
             // async for the PHP and typed transpilers, which mishandle an async body that never suspends
             Async\await($this->load_markets());
@@ -2047,7 +2122,19 @@ class hyperliquid extends Exchange {
             if (!$buildFee) {
                 return null;
             }
-            // builder fee approval would go here if needed
+            if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
+                return null; // already approved
+            }
+            try {
+                $builder = $this->safe_string($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+                // the default feeRate is '0%' => the $builder is approved and attached for statistics
+                // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+                $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0%');
+                Async\await($this->approve_builder_fee($builder, $maxFeeRate));
+                $this->options['approvedBuilderFee'] = true;
+            } catch (Exception $e) {
+                $this->options['builderFee'] = false; // disable $builder fee if an error occurs
+            }
             return null;
         })();
     }
