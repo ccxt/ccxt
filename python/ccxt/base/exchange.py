@@ -1818,6 +1818,10 @@ class BaseExchange(object):
             del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
+    def markets_mutex_locker(self, locked):
+        # stub in python
+        pass
+
     def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
