@@ -1,0 +1,3956 @@
+{
+  "TWD": {
+    "info": {
+      "currency": "twd",
+      "type": "fiat",
+      "precision": "0",
+      "m_wallet_supported": true,
+      "m_wallet_mortgageable": true,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "0",
+          "id": "twd",
+          "network_protocol": "fiat",
+          "deposit_confirmations": "0",
+          "withdrawal_fee": "15",
+          "min_withdrawal_amount": "100.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "twd",
+    "numericId": null,
+    "code": "TWD",
+    "precision": 1,
+    "type": "fiat",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 15,
+    "fees": {},
+    "networks": {
+      "fiat": {
+        "id": "twd",
+        "network": "fiat",
+        "name": "fiat",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 15,
+        "precision": 1,
+        "limits": {
+          "withdraw": {
+            "min": 100,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "0",
+          "id": "twd",
+          "network_protocol": "fiat",
+          "deposit_confirmations": "0",
+          "withdrawal_fee": "15",
+          "min_withdrawal_amount": "100.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": 100,
+        "max": null
+      }
+    },
+    "fiat": true,
+    "funding": {
+      "withdraw": {
+        "fee": 15
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": true,
+      "mortgageable": true,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "BTC": {
+    "info": {
+      "currency": "btc",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": true,
+      "m_wallet_mortgageable": true,
+      "m_wallet_borrowable": true,
+      "min_borrow_amount": "0.001",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "btc",
+          "network_protocol": "bitcoin",
+          "deposit_confirmations": "3",
+          "withdrawal_fee": "0.0001",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+          "precision": "8",
+          "id": "bscbtc",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "1.0e-05",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "btc",
+    "numericId": null,
+    "code": "BTC",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0001,
+    "fees": {},
+    "networks": {
+      "BTC": {
+        "id": "btc",
+        "network": "BTC",
+        "name": "bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0002,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "btc",
+          "network_protocol": "bitcoin",
+          "deposit_confirmations": "3",
+          "withdrawal_fee": "0.0001",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "BEP20": {
+        "id": "bscbtc",
+        "network": "BEP20",
+        "name": "bsc-bep20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00001,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0002,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+          "precision": "8",
+          "id": "bscbtc",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "1.0e-05",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.00008,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.0002,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0001
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": true,
+      "mortgageable": true,
+      "borrowable": true,
+      "minBorrowAmount": 0.001
+    }
+  },
+  "ETH": {
+    "info": {
+      "currency": "eth",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": true,
+      "m_wallet_mortgageable": true,
+      "m_wallet_borrowable": true,
+      "min_borrow_amount": "0.01",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "eth",
+          "network_protocol": "ethereum",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.0015",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+          "precision": "8",
+          "id": "bsceth",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "arbeth",
+          "network_protocol": "arbitrum",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "4.0e-05",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "eth",
+    "numericId": null,
+    "code": "ETH",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0015,
+    "fees": {},
+    "networks": {
+      "ETH": {
+        "id": "eth",
+        "network": "ETH",
+        "name": "ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0015,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.003,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "eth",
+          "network_protocol": "ethereum",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.0015",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "BEP20": {
+        "id": "bsceth",
+        "network": "BEP20",
+        "name": "bsc-bep20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0002,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.003,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+          "precision": "8",
+          "id": "bsceth",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "ARBITRUM": {
+        "id": "arbeth",
+        "network": "ARBITRUM",
+        "name": "arbitrum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00004,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.003,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "arbeth",
+          "network_protocol": "arbitrum",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "4.0e-05",
+          "min_withdrawal_amount": "0.003",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.002,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.003,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0015
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": true,
+      "mortgageable": true,
+      "borrowable": true,
+      "minBorrowAmount": 0.01
+    }
+  },
+  "LTC": {
+    "info": {
+      "currency": "ltc",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "ltc",
+          "network_protocol": "litecoin",
+          "deposit_confirmations": "3",
+          "withdrawal_fee": "0.0001",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "ltc",
+    "numericId": null,
+    "code": "LTC",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0001,
+    "fees": {},
+    "networks": {
+      "LTC": {
+        "id": "ltc",
+        "network": "LTC",
+        "name": "litecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0002,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "ltc",
+          "network_protocol": "litecoin",
+          "deposit_confirmations": "3",
+          "withdrawal_fee": "0.0001",
+          "min_withdrawal_amount": "0.0002",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.06,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.0002,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0001
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "BCH": {
+    "info": {
+      "currency": "bch",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "bch",
+          "network_protocol": "bitcoincash",
+          "deposit_confirmations": "12",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.0004",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "bch",
+    "numericId": null,
+    "code": "BCH",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "fees": {},
+    "networks": {
+      "BCH": {
+        "id": "bch",
+        "network": "BCH",
+        "name": "bitcoincash",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0002,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0004,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "bch",
+          "network_protocol": "bitcoincash",
+          "deposit_confirmations": "12",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.0004",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.014,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.0004,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0002
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "MITH": {
+    "info": {
+      "currency": "mith",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x3893b9422Cd5D70a81eDeFfe3d5A1c6A978310BB",
+          "precision": "8",
+          "id": "mith",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "100.0",
+          "min_withdrawal_amount": "200.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": false,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "mith",
+    "numericId": null,
+    "code": "MITH",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": false,
+    "withdraw": true,
+    "fee": 100,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "mith",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": false,
+        "deposit": false,
+        "withdraw": true,
+        "fee": 100,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 200,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x3893b9422Cd5D70a81eDeFfe3d5A1c6A978310BB",
+          "precision": "8",
+          "id": "mith",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "100.0",
+          "min_withdrawal_amount": "200.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": false,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": 200,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 100
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "USDT": {
+    "info": {
+      "currency": "usdt",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": true,
+      "m_wallet_mortgageable": true,
+      "m_wallet_borrowable": true,
+      "min_borrow_amount": "10.0",
+      "networks": [
+        {
+          "token_contract_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "precision": "6",
+          "id": "usdt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "7.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          "precision": "6",
+          "id": "trc20usdt",
+          "network_protocol": "tron-trc20",
+          "deposit_confirmations": "20",
+          "withdrawal_fee": "1.5",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+          "precision": "6",
+          "id": "polygonusdt",
+          "network_protocol": "polygon-erc20",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0x55d398326f99059fF775485246999027B3197955",
+          "precision": "8",
+          "id": "bscusdt",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+          "precision": "6",
+          "id": "arbusdt",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "usdt",
+    "numericId": null,
+    "code": "USDT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 7,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "usdt",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 7,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "precision": "6",
+          "id": "usdt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "7.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "TRC20": {
+        "id": "trc20usdt",
+        "network": "TRC20",
+        "name": "tron-trc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1.5,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+          "precision": "6",
+          "id": "trc20usdt",
+          "network_protocol": "tron-trc20",
+          "deposit_confirmations": "20",
+          "withdrawal_fee": "1.5",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "MATIC": {
+        "id": "polygonusdt",
+        "network": "MATIC",
+        "name": "polygon-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+          "precision": "6",
+          "id": "polygonusdt",
+          "network_protocol": "polygon-erc20",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "BEP20": {
+        "id": "bscusdt",
+        "network": "BEP20",
+        "name": "bsc-bep20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x55d398326f99059fF775485246999027B3197955",
+          "precision": "8",
+          "id": "bscusdt",
+          "network_protocol": "bsc-bep20",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "ARBITRUM": {
+        "id": "arbusdt",
+        "network": "ARBITRUM",
+        "name": "arbitrum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+          "precision": "6",
+          "id": "arbusdt",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 8,
+        "max": null
+      },
+      "withdraw": {
+        "min": 14,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 7
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": true,
+      "mortgageable": true,
+      "borrowable": true,
+      "minBorrowAmount": 10
+    }
+  },
+  "XRP": {
+    "info": {
+      "currency": "xrp",
+      "type": "crypto",
+      "precision": "6",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "xrp",
+          "network_protocol": "ripple",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.2",
+          "min_withdrawal_amount": "20.25",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": true
+        }
+      ],
+      "staking": null
+    },
+    "id": "xrp",
+    "numericId": null,
+    "code": "XRP",
+    "precision": 0.000001,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.2,
+    "fees": {},
+    "networks": {
+      "XRP": {
+        "id": "xrp",
+        "network": "XRP",
+        "name": "ripple",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.2,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 20.25,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "xrp",
+          "network_protocol": "ripple",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.2",
+          "min_withdrawal_amount": "20.25",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": true
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 3,
+        "max": null
+      },
+      "withdraw": {
+        "min": 20.25,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.2
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "MAX": {
+    "info": {
+      "currency": "max",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xe7976c4Efc60d9f4C200Cc1bCEF1A1e3B02c73e7",
+          "precision": "8",
+          "id": "max",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "21.0",
+          "min_withdrawal_amount": "42.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "max",
+    "numericId": null,
+    "code": "MAX",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 21,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "max",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 21,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 42,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xe7976c4Efc60d9f4C200Cc1bCEF1A1e3B02c73e7",
+          "precision": "8",
+          "id": "max",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "21.0",
+          "min_withdrawal_amount": "42.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 20,
+        "max": null
+      },
+      "withdraw": {
+        "min": 42,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 21
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "BCNT": {
+    "info": {
+      "currency": "bcnt",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x9669890e48f330acd88b78d63e1a6b3482652cd9",
+          "precision": "8",
+          "id": "bcnt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "1500.0",
+          "min_withdrawal_amount": "3000.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "bcnt",
+    "numericId": null,
+    "code": "BCNT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1500,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "bcnt",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1500,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 3000,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x9669890e48f330acd88b78d63e1a6b3482652cd9",
+          "precision": "8",
+          "id": "bcnt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "1500.0",
+          "min_withdrawal_amount": "3000.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 1700,
+        "max": null
+      },
+      "withdraw": {
+        "min": 3000,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 1500
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "SAND": {
+    "info": {
+      "currency": "sand",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x3845badAde8e6dFF049820680d1F14bD3903a5d0",
+          "precision": "8",
+          "id": "sand",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "10.0",
+          "min_withdrawal_amount": "20.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "sand",
+    "numericId": null,
+    "code": "SAND",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 10,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "sand",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 10,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 20,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x3845badAde8e6dFF049820680d1F14bD3903a5d0",
+          "precision": "8",
+          "id": "sand",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "10.0",
+          "min_withdrawal_amount": "20.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 11,
+        "max": null
+      },
+      "withdraw": {
+        "min": 20,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 10
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "USDC": {
+    "info": {
+      "currency": "usdc",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "precision": "6",
+          "id": "usdc",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "7.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+          "precision": "6",
+          "id": "polygonusdc",
+          "network_protocol": "polygon-erc20",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "precision": "8",
+          "id": "splusdc",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "1.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+          "precision": "6",
+          "id": "arbusdc",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "usdc",
+    "numericId": null,
+    "code": "USDC",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 7,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "usdc",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 7,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "precision": "6",
+          "id": "usdc",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "7.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "MATIC": {
+        "id": "polygonusdc",
+        "network": "MATIC",
+        "name": "polygon-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+          "precision": "6",
+          "id": "polygonusdc",
+          "network_protocol": "polygon-erc20",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "SOL": {
+        "id": "splusdc",
+        "network": "SOL",
+        "name": "solana-spl",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "precision": "8",
+          "id": "splusdc",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "1.0",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "ARBITRUM": {
+        "id": "arbusdc",
+        "network": "ARBITRUM",
+        "name": "arbitrum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 14,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+          "precision": "6",
+          "id": "arbusdc",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "14.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 8,
+        "max": null
+      },
+      "withdraw": {
+        "min": 14,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 7
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "LINK": {
+    "info": {
+      "currency": "link",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x514910771af9ca656af840dff83e8264ecf986ca",
+          "precision": "8",
+          "id": "link",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.35",
+          "min_withdrawal_amount": "0.7",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "link",
+    "numericId": null,
+    "code": "LINK",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.35,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "link",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.35,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.7,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x514910771af9ca656af840dff83e8264ecf986ca",
+          "precision": "8",
+          "id": "link",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.35",
+          "min_withdrawal_amount": "0.7",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.4,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.7,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.35
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "GRT": {
+    "info": {
+      "currency": "grt",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+          "precision": "8",
+          "id": "grt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "23.0",
+          "min_withdrawal_amount": "46.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "grt",
+    "numericId": null,
+    "code": "GRT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 23,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "grt",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 23,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 46,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xc944e90c64b2c07662a292be6244bdf05cda44a7",
+          "precision": "8",
+          "id": "grt",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "23.0",
+          "min_withdrawal_amount": "46.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 26,
+        "max": null
+      },
+      "withdraw": {
+        "min": 46,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 23
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "YFI": {
+    "info": {
+      "currency": "yfi",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+          "precision": "8",
+          "id": "yfi",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.0008",
+          "min_withdrawal_amount": "0.0017",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "yfi",
+    "numericId": null,
+    "code": "YFI",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0008,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "yfi",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0008,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0017,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+          "precision": "8",
+          "id": "yfi",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.0008",
+          "min_withdrawal_amount": "0.0017",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0009,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.0017,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0008
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "DOGE": {
+    "info": {
+      "currency": "doge",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "doge",
+          "network_protocol": "dogecoin",
+          "deposit_confirmations": "50",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "doge",
+    "numericId": null,
+    "code": "DOGE",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 4,
+    "fees": {},
+    "networks": {
+      "DOGE": {
+        "id": "doge",
+        "network": "DOGE",
+        "name": "dogecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 4,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 8,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "doge",
+          "network_protocol": "dogecoin",
+          "deposit_confirmations": "50",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 17,
+        "max": null
+      },
+      "withdraw": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 4
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "COMP": {
+    "info": {
+      "currency": "comp",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xc00e94cb662c3520282e6f5717214004a7f26888",
+          "precision": "8",
+          "id": "comp",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.09",
+          "min_withdrawal_amount": "0.19",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "comp",
+    "numericId": null,
+    "code": "COMP",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.09,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "comp",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.09,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.19,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xc00e94cb662c3520282e6f5717214004a7f26888",
+          "precision": "8",
+          "id": "comp",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.09",
+          "min_withdrawal_amount": "0.19",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.11,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.19,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.09
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "DOT": {
+    "info": {
+      "currency": "dot",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "dot",
+          "network_protocol": "polkadot",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.08",
+          "min_withdrawal_amount": "1.15",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "dot",
+    "numericId": null,
+    "code": "DOT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.08,
+    "fees": {},
+    "networks": {
+      "DOT": {
+        "id": "dot",
+        "network": "DOT",
+        "name": "polkadot",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.08,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 1.15,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "dot",
+          "network_protocol": "polkadot",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.08",
+          "min_withdrawal_amount": "1.15",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.8,
+        "max": null
+      },
+      "withdraw": {
+        "min": 1.15,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.08
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "ADA": {
+    "info": {
+      "currency": "ada",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "ada",
+          "network_protocol": "cardano",
+          "deposit_confirmations": "30",
+          "withdrawal_fee": "1.0",
+          "min_withdrawal_amount": "3.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "ada",
+    "numericId": null,
+    "code": "ADA",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "fees": {},
+    "networks": {
+      "ADA": {
+        "id": "ada",
+        "network": "ADA",
+        "name": "cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 3,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "ada",
+          "network_protocol": "cardano",
+          "deposit_confirmations": "30",
+          "withdrawal_fee": "1.0",
+          "min_withdrawal_amount": "3.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 7,
+        "max": null
+      },
+      "withdraw": {
+        "min": 3,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 1
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "SOL": {
+    "info": {
+      "currency": "sol",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "sol",
+          "network_protocol": "solana",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.008",
+          "min_withdrawal_amount": "0.016",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "sol",
+    "numericId": null,
+    "code": "SOL",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.008,
+    "fees": {},
+    "networks": {
+      "SOL": {
+        "id": "sol",
+        "network": "SOL",
+        "name": "solana",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.008,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.016,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "sol",
+          "network_protocol": "solana",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "0.008",
+          "min_withdrawal_amount": "0.016",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.032,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.016,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.008
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "SHIB": {
+    "info": {
+      "currency": "shib",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce",
+          "precision": "8",
+          "id": "shib",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "220000.0",
+          "min_withdrawal_amount": "440000.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "shib",
+    "numericId": null,
+    "code": "SHIB",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 220000,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "shib",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 220000,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 440000,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce",
+          "precision": "8",
+          "id": "shib",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "220000.0",
+          "min_withdrawal_amount": "440000.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 250000,
+        "max": null
+      },
+      "withdraw": {
+        "min": 440000,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 220000
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "GALA": {
+    "info": {
+      "currency": "gala",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xd1d2eb1b1e90b638588728b4130137d262c87cae",
+          "precision": "8",
+          "id": "gala",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "150.0",
+          "min_withdrawal_amount": "300.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "gala",
+    "numericId": null,
+    "code": "GALA",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 150,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "gala",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 150,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 300,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xd1d2eb1b1e90b638588728b4130137d262c87cae",
+          "precision": "8",
+          "id": "gala",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "150.0",
+          "min_withdrawal_amount": "300.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 170,
+        "max": null
+      },
+      "withdraw": {
+        "min": 300,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 150
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "MANA": {
+    "info": {
+      "currency": "mana",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942",
+          "precision": "8",
+          "id": "mana",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "10.0",
+          "min_withdrawal_amount": "20.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "mana",
+    "numericId": null,
+    "code": "MANA",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 10,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "mana",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 10,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 20,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942",
+          "precision": "8",
+          "id": "mana",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "10.0",
+          "min_withdrawal_amount": "20.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 12,
+        "max": null
+      },
+      "withdraw": {
+        "min": 20,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 10
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "ALICE": {
+    "info": {
+      "currency": "alice",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xAC51066d7bEC65Dc4589368da368b212745d63E8",
+          "precision": "8",
+          "id": "alice",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "alice",
+    "numericId": null,
+    "code": "ALICE",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 4,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "alice",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 4,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 8,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xAC51066d7bEC65Dc4589368da368b212745d63E8",
+          "precision": "8",
+          "id": "alice",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 5,
+        "max": null
+      },
+      "withdraw": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 4
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "POL": {
+    "info": {
+      "currency": "pol",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x455e53cbb86018ac2b8092fdcd39d8444affc3f6",
+          "precision": "8",
+          "id": "pol",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "11.0",
+          "min_withdrawal_amount": "22.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        },
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "polygonpol",
+          "network_protocol": "polygon",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.08",
+          "min_withdrawal_amount": "22.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": {
+        "stake_flag": true,
+        "unstake_flag": true
+      }
+    },
+    "id": "pol",
+    "numericId": null,
+    "code": "POL",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 11,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "pol",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 11,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 22,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x455e53cbb86018ac2b8092fdcd39d8444affc3f6",
+          "precision": "8",
+          "id": "pol",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "11.0",
+          "min_withdrawal_amount": "22.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      },
+      "MATIC": {
+        "id": "polygonpol",
+        "network": "MATIC",
+        "name": "polygon",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.08,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 22,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "polygonpol",
+          "network_protocol": "polygon",
+          "deposit_confirmations": "256",
+          "withdrawal_fee": "0.08",
+          "min_withdrawal_amount": "22.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 13,
+        "max": null
+      },
+      "withdraw": {
+        "min": 22,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 11
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "LOOKS": {
+    "info": {
+      "currency": "looks",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xf4d2888d29d722226fafa5d9b24f9164c092421e",
+          "precision": "8",
+          "id": "looks",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "120.0",
+          "min_withdrawal_amount": "240.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "looks",
+    "numericId": null,
+    "code": "LOOKS",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 120,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "looks",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 120,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 240,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xf4d2888d29d722226fafa5d9b24f9164c092421e",
+          "precision": "8",
+          "id": "looks",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "120.0",
+          "min_withdrawal_amount": "240.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 140,
+        "max": null
+      },
+      "withdraw": {
+        "min": 240,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 120
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "RLY": {
+    "info": {
+      "currency": "rly",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xf1f955016EcbCd7321c7266BccFB96c68ea5E49b",
+          "precision": "8",
+          "id": "rly",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "3100.0",
+          "min_withdrawal_amount": "6200.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": false,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "rly",
+    "numericId": null,
+    "code": "RLY",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": false,
+    "withdraw": true,
+    "fee": 3100,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "rly",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": false,
+        "deposit": false,
+        "withdraw": true,
+        "fee": 3100,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 6200,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xf1f955016EcbCd7321c7266BccFB96c68ea5E49b",
+          "precision": "8",
+          "id": "rly",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "3100.0",
+          "min_withdrawal_amount": "6200.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": false,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 3500,
+        "max": null
+      },
+      "withdraw": {
+        "min": 6200,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 3100
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "LOOT": {
+    "info": {
+      "currency": "loot",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x721A1B990699eE9D90b6327FaaD0A3E840aE8335",
+          "precision": "8",
+          "id": "loot",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "400.0",
+          "min_withdrawal_amount": "800.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "loot",
+    "numericId": null,
+    "code": "LOOT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 400,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "loot",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 400,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 800,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x721A1B990699eE9D90b6327FaaD0A3E840aE8335",
+          "precision": "8",
+          "id": "loot",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "400.0",
+          "min_withdrawal_amount": "800.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 460,
+        "max": null
+      },
+      "withdraw": {
+        "min": 800,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 400
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "MASK": {
+    "info": {
+      "currency": "mask",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x69af81e73a73b40adf4f3d4223cd9b1ece623074",
+          "precision": "8",
+          "id": "mask",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "1.8",
+          "min_withdrawal_amount": "3.6",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "mask",
+    "numericId": null,
+    "code": "MASK",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1.8,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "mask",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1.8,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 3.6,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x69af81e73a73b40adf4f3d4223cd9b1ece623074",
+          "precision": "8",
+          "id": "mask",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "1.8",
+          "min_withdrawal_amount": "3.6",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 2,
+        "max": null
+      },
+      "withdraw": {
+        "min": 3.6,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 1.8
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "APE": {
+    "info": {
+      "currency": "ape",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x4d224452801aced8b2f0aebe155379bb5d594381",
+          "precision": "8",
+          "id": "ape",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "ape",
+    "numericId": null,
+    "code": "APE",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 4,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "ape",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 4,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 8,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x4d224452801aced8b2f0aebe155379bb5d594381",
+          "precision": "8",
+          "id": "ape",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "4.0",
+          "min_withdrawal_amount": "8.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 5,
+        "max": null
+      },
+      "withdraw": {
+        "min": 8,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 4
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "XTZ": {
+    "info": {
+      "currency": "xtz",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "xtz",
+          "network_protocol": "tezos",
+          "deposit_confirmations": "10",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "0.2",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "xtz",
+    "numericId": null,
+    "code": "XTZ",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.1,
+    "fees": {},
+    "networks": {
+      "XTZ": {
+        "id": "xtz",
+        "network": "XTZ",
+        "name": "tezos",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 0.2,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "6",
+          "id": "xtz",
+          "network_protocol": "tezos",
+          "deposit_confirmations": "10",
+          "withdrawal_fee": "0.1",
+          "min_withdrawal_amount": "0.2",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 4.6,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.2,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.1
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "GMT": {
+    "info": {
+      "currency": "gmt",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx",
+          "precision": "8",
+          "id": "gmt",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "8.0",
+          "min_withdrawal_amount": "16.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "gmt",
+    "numericId": null,
+    "code": "GMT",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 8,
+    "fees": {},
+    "networks": {
+      "SOL": {
+        "id": "gmt",
+        "network": "SOL",
+        "name": "solana-spl",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 8,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 16,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx",
+          "precision": "8",
+          "id": "gmt",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "8.0",
+          "min_withdrawal_amount": "16.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 34,
+        "max": null
+      },
+      "withdraw": {
+        "min": 16,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 8
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "GST": {
+    "info": {
+      "currency": "gst",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "AFbX8oGjGpmVFywbVouvhQSRmiW2aR1mohfahi4Y2AdB",
+          "precision": "8",
+          "id": "gst",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "70.0",
+          "min_withdrawal_amount": "140.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "gst",
+    "numericId": null,
+    "code": "GST",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 70,
+    "fees": {},
+    "networks": {
+      "SOL": {
+        "id": "gst",
+        "network": "SOL",
+        "name": "solana-spl",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 70,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 140,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "AFbX8oGjGpmVFywbVouvhQSRmiW2aR1mohfahi4Y2AdB",
+          "precision": "8",
+          "id": "gst",
+          "network_protocol": "solana-spl",
+          "deposit_confirmations": "1",
+          "withdrawal_fee": "70.0",
+          "min_withdrawal_amount": "140.0",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 370,
+        "max": null
+      },
+      "withdraw": {
+        "min": 140,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 70
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "BNB": {
+    "info": {
+      "currency": "bnb",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "bnb",
+          "network_protocol": "bsc",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.0004",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "bnb",
+    "numericId": null,
+    "code": "BNB",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0002,
+    "fees": {},
+    "networks": {
+      "BEP20": {
+        "id": "bnb",
+        "network": "BEP20",
+        "name": "bsc",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0002,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.0004,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "bnb",
+          "network_protocol": "bsc",
+          "deposit_confirmations": "15",
+          "withdrawal_fee": "0.0002",
+          "min_withdrawal_amount": "0.0004",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.013,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.0004,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0002
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "ENS": {
+    "info": {
+      "currency": "ens",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+          "precision": "8",
+          "id": "ens",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.16",
+          "min_withdrawal_amount": "0.32",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "ens",
+    "numericId": null,
+    "code": "ENS",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.16,
+    "fees": {},
+    "networks": {
+      "ERC20": {
+        "id": "ens",
+        "network": "ERC20",
+        "name": "ethereum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.16,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.32,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+          "precision": "8",
+          "id": "ens",
+          "network_protocol": "ethereum-erc20",
+          "deposit_confirmations": "64",
+          "withdrawal_fee": "0.16",
+          "min_withdrawal_amount": "0.32",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.2,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.32,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.16
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "ETC": {
+    "info": {
+      "currency": "etc",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "etc",
+          "network_protocol": "ethereumclassic",
+          "deposit_confirmations": "500",
+          "withdrawal_fee": "0.004",
+          "min_withdrawal_amount": "0.008",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "etc",
+    "numericId": null,
+    "code": "ETC",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.004,
+    "fees": {},
+    "networks": {
+      "ETC": {
+        "id": "etc",
+        "network": "ETC",
+        "name": "ethereumclassic",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.004,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.008,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "etc",
+          "network_protocol": "ethereumclassic",
+          "deposit_confirmations": "500",
+          "withdrawal_fee": "0.004",
+          "min_withdrawal_amount": "0.008",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.23,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.008,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.004
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "ARB": {
+    "info": {
+      "currency": "arb",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+          "precision": "8",
+          "id": "arb",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.03",
+          "min_withdrawal_amount": "0.06",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "arb",
+    "numericId": null,
+    "code": "ARB",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.03,
+    "fees": {},
+    "networks": {
+      "ARBITRUM": {
+        "id": "arb",
+        "network": "ARBITRUM",
+        "name": "arbitrum-erc20",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.03,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.06,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+          "precision": "8",
+          "id": "arb",
+          "network_protocol": "arbitrum-erc20",
+          "deposit_confirmations": "120",
+          "withdrawal_fee": "0.03",
+          "min_withdrawal_amount": "0.06",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 7.9,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.06,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.03
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  },
+  "AVAX": {
+    "info": {
+      "currency": "avax",
+      "type": "crypto",
+      "precision": "8",
+      "m_wallet_supported": false,
+      "m_wallet_mortgageable": false,
+      "m_wallet_borrowable": false,
+      "min_borrow_amount": "",
+      "networks": [
+        {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "avax",
+          "network_protocol": "Avalanche C-Chain",
+          "deposit_confirmations": "30",
+          "withdrawal_fee": "0.0004",
+          "min_withdrawal_amount": "0.008",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      ],
+      "staking": null
+    },
+    "id": "avax",
+    "numericId": null,
+    "code": "AVAX",
+    "precision": 1e-8,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0004,
+    "fees": {},
+    "networks": {
+      "AVAX": {
+        "id": "avax",
+        "network": "AVAX",
+        "name": "Avalanche C-Chain",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0004,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.008,
+            "max": null
+          }
+        },
+        "info": {
+          "token_contract_address": null,
+          "precision": "8",
+          "id": "avax",
+          "network_protocol": "Avalanche C-Chain",
+          "deposit_confirmations": "30",
+          "withdrawal_fee": "0.0004",
+          "min_withdrawal_amount": "0.008",
+          "withdrawal_enabled": true,
+          "deposit_enabled": true,
+          "need_memo": false
+        }
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": 0.17,
+        "max": null
+      },
+      "withdraw": {
+        "min": 0.008,
+        "max": null
+      }
+    },
+    "fiat": false,
+    "funding": {
+      "withdraw": {
+        "fee": 0.0004
+      },
+      "deposit": {
+        "fee": null
+      }
+    },
+    "mWallet": {
+      "supported": false,
+      "mortgageable": false,
+      "borrowable": false,
+      "minBorrowAmount": 0
+    }
+  }
+}
