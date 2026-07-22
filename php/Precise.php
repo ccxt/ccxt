@@ -39,7 +39,7 @@ class Precise {
         return new Precise($integerResult, $this->decimals + $other->decimals);
     }
 
-    public function div($other, $precision = 18) {
+    public function div($other, $precision = 26) {
         $distance = $precision - $this->decimals + $other->decimals;
         if ($distance === 0) {
             $numerator = $this->integer;
@@ -177,7 +177,7 @@ class Precise {
         return strval((new Precise($string1))->mul(new Precise($string2)));
     }
 
-    public static function string_div($string1, $string2, $precision = 18) {
+    public static function string_div($string1, $string2, $precision = 26) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
