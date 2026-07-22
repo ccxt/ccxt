@@ -43,6 +43,7 @@
     "transpileJavaWs": "tsx build/javaTranspiler.ts --ws",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
+    "buildCSFast": "dotnet build cs/ccxt/ccxt.csproj -p:TargetFrameworks=netstandard2.1 -p:GeneratePackageOnBuild=false",
     "buildJava": "cd java/ && ./gradlew build && cd ../",
     "publishJava": "cd java && ./gradlew :lib:publishToMavenCentral --no-configuration-cache",
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro && go build -C go ./v4/prediction",
