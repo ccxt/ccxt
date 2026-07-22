@@ -906,6 +906,7 @@ export default class gate extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'rollingWindow': true,
                 },
                 'spot': {
                     'extends': 'default',

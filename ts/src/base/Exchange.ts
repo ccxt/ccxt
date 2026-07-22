@@ -3946,6 +3946,9 @@ export class BaseExchange {
             const extendObj = this.featuresMapper (initialFeatures, extendsStr);
             featuresObj = this.deepExtend (extendObj, featuresObj);
         }
+        if (!('rollingWindow' in featuresObj)) {
+            featuresObj['rollingWindow'] = undefined;
+        }
         //
         // ### corrections ###
         //
