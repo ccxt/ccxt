@@ -10,6 +10,9 @@
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "dependencies": {
     "@ai-sdk/react": "^3.0.197",
     "@openrouter/ai-sdk-provider": "^2.9.0",
