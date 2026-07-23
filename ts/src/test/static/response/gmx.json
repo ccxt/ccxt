@@ -1,0 +1,20 @@
+{
+    "exchange": "gmx",
+    "options": {
+        "bridgeUrl": "https://bridge.example.com"
+    },
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime bridge response",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "ok": true,
+                    "result": 1710000000000
+                },
+                "parsedResponse": 1710000000000
+            }
+        ]
+    }
+}
