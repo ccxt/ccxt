@@ -1000,12 +1000,21 @@ func TestFutureRaceResolveConcurrentNoHang(t *testing.T) {
 			futures[j] = NewFuture()
 		}
 
-		race := FutureRace(futures)
+		start := make(chan struct{})
+		raceCh := make(chan *Future, 1)
 
-		// Resolve the first future concurrently with FutureRace's subscribe
-		// loop — this is exactly the window that used to trigger the race.
-		futures[0].Resolve("value")
+		go func() {
+			<-start
+			raceCh <- FutureRace(futures)
+		}()
 
+		go func() {
+			<-start
+			futures[0].Resolve("value")
+		}()
+
+		close(start)
+		race := <-raceCh
 		select {
 		case got := <-race.Await():
 			if got != "value" {
