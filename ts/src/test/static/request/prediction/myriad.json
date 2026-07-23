@@ -158,15 +158,6 @@
                 "input": [
                     "2741:449"
                 ]
-            },
-            {
-                "description": "fetchEvent ob event",
-                "method": "fetchEvent",
-                "url": "https://api-v2.myriadprotocol.com/questions?793bfc47-ddcd-47d2-aad5-52c7002fc823",
-                "input": [
-                    "793bfc47-ddcd-47d2-aad5-52c7002fc823"
-                ],
-                "output": null
             }
         ],
         "fetchEvents": [
