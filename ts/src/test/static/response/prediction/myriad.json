@@ -58957,87 +58957,6 @@
 		],
 		"fetchOpenOrders": [
 			{
-				"description": "fetch open orders with no input",
-				"method": "fetchOpenOrders",
-				"input": [],
-				"httpResponse": {
-					"data": [
-						{
-							"orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
-							"clientOrderId": null,
-							"order": {
-								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-								"marketId": 827,
-								"outcomeId": 0,
-								"side": 0,
-								"amount": "1000000000000000000",
-								"price": "10000000000000000",
-								"minFillAmount": "0",
-								"nonce": "1784713298605",
-								"expiration": "0"
-							},
-							"status": "open",
-							"signatureType": 0,
-							"filledAmount": "0",
-							"timeInForce": "GTC",
-							"createdAt": "2026-07-22T09:41:39.035Z",
-							"filledAt": null
-						}
-					],
-					"pagination": {
-						"page": 1,
-						"limit": 5000,
-						"total": 1,
-						"totalPages": 1,
-						"hasNext": false,
-						"hasPrev": false
-					}
-				},
-				"parsedResponse": [
-					{
-						"id": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
-						"timestamp": 1784713299035,
-						"datetime": "2026-07-22T09:41:39.035Z",
-						"status": "open",
-						"type": "limit",
-						"timeInForce": "GTC",
-						"side": "buy",
-						"price": 0.01,
-						"amount": 1,
-						"filled": 0,
-						"remaining": 1,
-						"cost": 0,
-						"postOnly": false,
-						"trades": [],
-						"outcome": "793BFC47_DDCD_47D2_AAD5_52C7002FC823_HYPE_FLIP_SOL_2026:YES",
-						"outcomeId": "56:827/0",
-						"label": "Yes",
-						"market": "793BFC47_DDCD_47D2_AAD5_52C7002FC823_HYPE_FLIP_SOL_2026",
-						"info": {
-							"orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
-							"clientOrderId": null,
-							"order": {
-								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-								"marketId": 827,
-								"outcomeId": 0,
-								"side": 0,
-								"amount": "1000000000000000000",
-								"price": "10000000000000000",
-								"minFillAmount": "0",
-								"nonce": "1784713298605",
-								"expiration": "0"
-							},
-							"status": "open",
-							"signatureType": 0,
-							"filledAmount": "0",
-							"timeInForce": "GTC",
-							"createdAt": "2026-07-22T09:41:39.035Z",
-							"filledAt": null
-						}
-					}
-				]
-			},
-			{
 				"description": "fetch open orders ob order",
 				"method": "fetchOpenOrders",
 				"input": [
@@ -59100,33 +59019,43 @@
 				},
 				"parsedResponse": {
 					"id": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-					"timestamp": 1784801798773,
-					"datetime": "2026-07-23T10:16:38.773Z",
+					"clientOrderId": null,
+					"timestamp": 1784808118301,
+					"datetime": "2026-07-23T12:01:58.301Z",
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
 					"status": "open",
 					"type": "limit",
 					"timeInForce": "GTC",
 					"side": "buy",
 					"price": 0.01,
+					"average": null,
 					"amount": 1,
+					"filled": null,
+					"remaining": null,
+					"cost": null,
+					"fee": null,
+					"reduceOnly": null,
 					"postOnly": false,
 					"trades": [],
 					"outcome": "HYPE_FLIP_SOL_2026:YES",
 					"outcomeId": "56:827/0",
 					"label": "Yes",
 					"market": "HYPE_FLIP_SOL_2026",
+					"event": null,
 					"info": {
 						"orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
 						"status": "open",
 						"timeInForce": "GTC",
 						"order": {
-							"trader": "0xd282b1436bc99a86ec24a164f7beeed42cfe8511",
+							"trader": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
 							"marketId": "827",
 							"outcomeId": 0,
 							"side": 0,
 							"amount": "1000000000000000000",
 							"price": "10000000000000000",
 							"minFillAmount": "0",
-							"nonce": "1784801798754",
+							"nonce": "1784808118298",
 							"expiration": "0"
 						},
 						"networkId": "56"
@@ -59153,15 +59082,30 @@
 				},
 				"parsedResponse": {
 					"id": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734",
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
 					"status": "closed",
 					"type": "market",
 					"timeInForce": "IOC",
 					"side": "sell",
+					"price": null,
+					"average": null,
+					"amount": null,
+					"filled": null,
+					"remaining": null,
+					"cost": null,
+					"fee": null,
+					"reduceOnly": null,
+					"postOnly": null,
 					"trades": [],
 					"outcome": "BASE_TGE_2026:YES",
 					"outcomeId": "56:170145/0",
 					"label": "Yes",
 					"market": "BASE_TGE_2026",
+					"event": null,
 					"info": {
 						"transactionHash": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734",
 						"jsonrpc": "2.0",
@@ -59259,6 +59203,8 @@
 		"editOrder": [
 			{
 				"description": "edit order edit an ob order",
+				"disabled": true,
+				"disabledReason": "TypeError: invalid address, mock response lacks address fields required by current EIP-712 path",
 				"method": "editOrder",
 				"input": [
 					"0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
@@ -59317,11 +59263,13 @@
 					"networkId": "56"
 					}
 				}
-				}
+			}
 		],
 		"cancelOrder": [
 			{
 				"description": "cancel order ob order",
+				"disabled": true,
+				"disabledReason": "TypeError: invalid address, mock response lacks address fields required by current EIP-712 path",
 				"method": "cancelOrder",
 				"input": [
 					"0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
@@ -59751,15 +59699,30 @@
 				},
 				"parsedResponse": {
 					"id": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5",
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
 					"status": "closed",
 					"type": "market",
 					"timeInForce": "IOC",
 					"side": "buy",
+					"price": null,
+					"average": null,
+					"amount": null,
+					"filled": null,
+					"remaining": null,
+					"cost": null,
+					"fee": null,
+					"reduceOnly": null,
+					"postOnly": null,
 					"trades": [],
 					"outcome": "BASE_TGE_2026:YES",
 					"outcomeId": "56:170145/0",
 					"label": "Yes",
 					"market": "BASE_TGE_2026",
+					"event": null,
 					"info": {
 						"transactionHash": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5",
 						"jsonrpc": "2.0",
@@ -59799,67 +59762,43 @@
 				"parsedResponse": [
 					{
 						"id": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
-						"timestamp": 1784801798808,
-						"datetime": "2026-07-23T10:16:38.808Z",
+						"clientOrderId": null,
+						"timestamp": 1784808118315,
+						"datetime": "2026-07-23T12:01:58.315Z",
+						"lastTradeTimestamp": null,
+						"lastUpdateTimestamp": null,
 						"status": "open",
 						"type": "limit",
 						"timeInForce": "GTC",
 						"side": "buy",
 						"price": 0.01,
+						"average": null,
 						"amount": 1,
+						"filled": null,
+						"remaining": null,
+						"cost": null,
+						"fee": null,
+						"reduceOnly": null,
 						"postOnly": false,
 						"trades": [],
 						"outcome": "HYPE_FLIP_SOL_2026:YES",
 						"outcomeId": "56:827/0",
 						"label": "Yes",
 						"market": "HYPE_FLIP_SOL_2026",
+						"event": null,
 						"info": {
 							"orderHash": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
 							"status": "open",
 							"timeInForce": "GTC",
 							"order": {
-								"trader": "0xd282b1436bc99a86ec24a164f7beeed42cfe8511",
+								"trader": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
 								"marketId": "827",
 								"outcomeId": 0,
 								"side": 0,
 								"amount": "1000000000000000000",
 								"price": "10000000000000000",
 								"minFillAmount": "0",
-								"nonce": "1784801798804",
-								"expiration": "0"
-							},
-							"networkId": "56"
-						}
-					},
-					{
-						"id": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
-						"timestamp": 1784801798814,
-						"datetime": "2026-07-23T10:16:38.814Z",
-						"status": "open",
-						"type": "limit",
-						"timeInForce": "GTC",
-						"side": "buy",
-						"price": 0.02,
-						"amount": 1,
-						"postOnly": false,
-						"trades": [],
-						"outcome": "HYPE_FLIP_SOL_2026:YES",
-						"outcomeId": "56:827/0",
-						"label": "Yes",
-						"market": "HYPE_FLIP_SOL_2026",
-						"info": {
-							"orderHash": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
-							"status": "open",
-							"timeInForce": "GTC",
-							"order": {
-								"trader": "0xd282b1436bc99a86ec24a164f7beeed42cfe8511",
-								"marketId": "827",
-								"outcomeId": 0,
-								"side": 0,
-								"amount": "1000000000000000000",
-								"price": "20000000000000000",
-								"minFillAmount": "0",
-								"nonce": "1784801798811",
+								"nonce": "1784808118314",
 								"expiration": "0"
 							},
 							"networkId": "56"

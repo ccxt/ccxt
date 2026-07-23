@@ -425,12 +425,10 @@ export default class myriad extends Exchange {
                 const qId = this.safeString (q, 'id', '');
                 const qSlug = this.safeString (q, 'slug', '');
                 const qTitle = this.safeString (q, 'title', '');
-                if ((qId.toLowerCase () === idLower) || (qSlug.toLowerCase () === idLower) || (qTitle.toLowerCase () === idLower)) {
+                const qHandle = this.shortenSlug (qSlug);
+                if ((qId.toLowerCase () === idLower) || (qSlug.toLowerCase () === idLower) || (qTitle.toLowerCase () === idLower) || ((qHandle !== undefined) && (qHandle.toLowerCase () === idLower))) {
                     return q;
                 }
-            }
-            if (questionsLength > 0) {
-                return this.safeDict (questions, 0, {});
             }
             throw e;
         }
@@ -1803,6 +1801,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
      * @param {string} [params.network] alias for params.network_id
      * @param {string} [params.currency] output balance currency code override, e.g. 'USDC' or 'USDT'
+     * @param {int} [params.decimals] for USDC and USDT it's 6, default is 18 for USD1
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -1815,11 +1814,8 @@ export default class myriad extends Exchange {
             throw new NotSupported (this.id + ' fetchBalance() has no collateral token configured for network ' + networkId);
         }
         const currency = this.safeString (params, 'currency', this.safeString (chainConfig, 'collateralCurrency', 'USD1'));
-        let decimals = this.safeInteger (chainConfig, 'collateralDecimals', 18);
-        const currencyUpper = currency.toUpperCase ();
-        if ((currencyUpper === 'USDC') || (currencyUpper === 'USDT')) {
-            decimals = 6;
-        }
+        const decimals = this.safeInteger (params, 'decimals', this.safeInteger (chainConfig, 'collateralDecimals', 18));
+        params = this.omit (params, [ 'currency', 'decimals', 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'network_id', 'network' ]);
         const owner = this.walletAddressFromKeys ();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         const callData = '0x70a08231' + this.padHexAddress (owner);
