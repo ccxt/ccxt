@@ -2990,11 +2990,11 @@ public class PhemexCore extends PhemexApi
                         }
                     }
                     cost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? amount : cost;
-                    Object costString = this.numberToString(cost);
+                    Object costString = this.costToPrecision(symbol, cost);
                     Helpers.addElementToObject(request, "quoteQtyEv", this.toEv(costString, market));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
+                    Object amountString = this.amountToPrecision(symbol, amount);
                     Helpers.addElementToObject(request, "baseQtyEv", this.toEv(amountString, market));
                 }
             } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
