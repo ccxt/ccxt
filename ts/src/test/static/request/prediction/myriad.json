@@ -165,7 +165,8 @@
                 "url": "https://api-v2.myriadprotocol.com/questions?793bfc47-ddcd-47d2-aad5-52c7002fc823",
                 "input": [
                     "793bfc47-ddcd-47d2-aad5-52c7002fc823"
-                ]
+                ],
+                "output": "{\"keyword\":\"793bfc47-ddcd-47d2-aad5-52c7002fc823\",\"limit\":\"50\"}"
             }
         ],
         "fetchEvents": [
@@ -217,14 +218,6 @@
                 "input": [
                     "FEAR_GREED:FEAR"
                 ]
-            }
-        ],
-        "fetchBalance": [
-            {
-                "description": "fetchBalance static request test, uses https://bsc-dataseed.binance.org/",
-                "method": "fetchBalance",
-                "url": "",
-                "input": []
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -302,7 +295,7 @@
             {
                 "description": "edit order edit an ob order",
                 "method": "editOrder",
-                "url": "https://api-v2.myriadprotocol.com/orders",
+                "url": "https://api-v2.myriadprotocol.com/orders/0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
                 "input": [
                     "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
                     "HYPE_FLIP_SOL_2026:YES",
@@ -323,7 +316,7 @@
                     "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
                     "HYPE_FLIP_SOL_2026:YES"
                 ],
-                "output": "{\"order\":{\"trader\":\"0xd282B1436BC99A86eC24A164f7BEeed42CFE8511\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"20000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784803147948\",\"expiration\":\"0\"},\"signature\":\"0xb424c05b426b3366f0836e96e46e7a83af06815e48bb1f0edec8a4555918d83a74d2fb21a4744c5c796a08818f105c7975edee30adbc4cbe634571db0fff956f1b\",\"network_id\":56}"
+                "output": null
             }
         ],
         "fetchCanceledOrders": [
@@ -368,7 +361,7 @@
             {
                 "description": "cancelOrders multiple ob orders",
                 "method": "cancelOrders",
-                "url": "https://api-v2.myriadprotocol.com/orders/cancel-batch",
+                "url": "https://api-v2.myriadprotocol.com/orders/0x37735e8394e69a6eeff96d7354f088c5235abfd435f8f0f6d943bd9ac94b8153",
                 "input": [
                     [
                         "0x37735e8394e69a6eeff96d7354f088c5235abfd435f8f0f6d943bd9ac94b8153",
