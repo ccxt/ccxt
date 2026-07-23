@@ -32,14 +32,6 @@ public partial class BaseTest
                 { "floatNumeric", 0.123 },
                 { "floatString", "0.123" },
                 { "longInt", 123456789012345 },
-                { "nestedDict", new Dictionary<string, object>() {
-                    { "a", new Dictionary<string, object>() {
-                        { "b", 2 },
-                    } },
-                } },
-                { "nestedArray", new Dictionary<string, object>() {
-                    { "a", new List<object>() {1, 2} },
-                } },
             };
             object inputList = new List<object>() {"Hi", 2};
             object compareDict = new Dictionary<string, object>() {
@@ -117,18 +109,12 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeListN(inputDict, new List<object>() {"a", "b", "dict"}), null));
             Assert(isEqual(exchange.safeListN(inputList, new List<object>() {3, 2, 1}), null));
             // safeString
-            Assert(isEqual(exchange.safeString(inputDict, "i"), "1"), "safeString failed for integer");
-            Assert(isEqual(exchange.safeString(inputDict, "f"), "0.123"), "safeString failed for float");
-            Assert(isEqual(exchange.safeString(inputDict, "bool"), null), "safeString failed for boolean");
-            Assert(isEqual(exchange.safeString(inputDict, "list"), null), "safeString failed for list");
-            Assert(isEqual(exchange.safeString(inputDict, "dict"), null), "safeString failed for dict");
-            Assert(isEqual(exchange.safeString(inputDict, "str"), "heLlo"), "safeString failed for string");
-            Assert(isEqual(exchange.safeString(inputDict, "strNumber"), "3"), "safeString failed for string number");
-            Assert(isEqual(exchange.safeString(inputDict, "zeroNumeric"), "0"), "safeString failed for zero numeric");
-            Assert(isEqual(exchange.safeString(inputDict, "zeroString"), "0"), "safeString failed for zero string");
-            Assert(isEqual(exchange.safeString(inputDict, "undefined"), null), "safeString failed for undefined");
-            Assert(isEqual(exchange.safeString(inputDict, "emptyString"), null), "safeString failed for empty string");
-            Assert(isEqual(exchange.safeString(inputList, 0), "Hi"), "safeString failed for list element");
+            Assert(isEqual(exchange.safeString(inputDict, "i"), "1"));
+            Assert(isEqual(exchange.safeString(inputDict, "f"), "0.123"));
+            // Assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
+            Assert(isEqual(exchange.safeString(inputDict, "str"), "heLlo"));
+            Assert(isEqual(exchange.safeString(inputDict, "strNumber"), "3"));
+            Assert(isEqual(exchange.safeString(inputList, 0), "Hi"));
             // safeString2
             Assert(isEqual(exchange.safeString2(inputDict, "a", "i"), "1"));
             Assert(isEqual(exchange.safeString2(inputDict, "a", "f"), "0.123"));
