@@ -171,9 +171,7 @@ const safeValueN = (o: implicitReturnType, k: (IndexType)[], $default?: any) => 
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default: string): string;
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str;
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str {
-    if (o === undefined) {
-        return $default;
-    }
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k); 
     if (typeof x === 'string') return x;
     if (Number.isFinite(x)) return String(x);
@@ -181,6 +179,7 @@ function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string
 }
 
 const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
     if (typeof x === 'string') return x.toLowerCase ();
     if (Number.isFinite(x)) return String(x).toLowerCase ();
@@ -188,6 +187,7 @@ const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: st
 };
 
 const safeStringUpperN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
     if (typeof x === 'string') return x.toUpperCase ();
     if (Number.isFinite(x)) return String(x).toUpperCase ();
