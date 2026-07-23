@@ -464,23 +464,28 @@ class Exchange {
     }
 
     public static function safe_string($object, $key, $default_value = null) {
-        $val = $object[$key] ?? null;
-        if ($val !== null && $val !== '' && !is_bool($val) && (is_string($val) || is_numeric($val))) {
-            return (string)$val;
-        }
-        return $default_value;
+        return static::valid_object_value($object, $key) ? strval($object[$key]) : $default_value;
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        $val = self::safe_string($object, $key, $default_value);
-        // Only lowercase if a valid non-default string was found
-        return $val !== $default_value ? strtolower($val) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtolower(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
-        $val = self::safe_string($object, $key, $default_value);
-        // Only uppercase if a valid non-default string was found
-        return $val !== $default_value ? strtoupper($val) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtoupper(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
+        return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
 
     public static function safe_integer($object, $key, $default_value = null) {
