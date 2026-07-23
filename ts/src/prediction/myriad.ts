@@ -2900,6 +2900,7 @@ export default class myriad extends Exchange {
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
+                // might consider avoiding concurrent requests so static request tests see a deterministic request URL (the tests capture only the request that triggers InvalidProxySettings)
                 const responses = await Promise.all ([
                     this.fetchRawMarketsBySearch (tagQueries, rest),
                     this.fetchRawQuestionsBySearch (tagQueries, rest),
