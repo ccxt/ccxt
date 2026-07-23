@@ -166,7 +166,7 @@
                 "input": [
                     "793bfc47-ddcd-47d2-aad5-52c7002fc823"
                 ],
-                "output": "{\"keyword\":\"793bfc47-ddcd-47d2-aad5-52c7002fc823\",\"limit\":\"50\"}"
+                "output": null
             }
         ],
         "fetchEvents": [
@@ -304,7 +304,7 @@
                     1,
                     0.02
                 ],
-                "output": "{\"order\":{\"trader\":\"0xd282b1436bc99a86ec24a164f7beeed42cfe8511\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"20000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784803147948\",\"expiration\":\"0\"},\"signature\":\"0xb424c05b426b3366f0836e96e46e7a83af06815e48bb1f0edec8a4555918d83a74d2fb21a4744c5c796a08818f105c7975edee30adbc4cbe634571db0fff956f1b\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
+                "output": null
             }
         ],
         "cancelOrder": [
@@ -369,7 +369,7 @@
                     ],
                     "HYPE_FLIP_SOL_2026:YES"
                 ],
-                "output": "{\"orders\":[{\"order\":{\"trader\":\"0xd282B1436BC99A86eC24A164f7BEeed42CFE8511\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"10000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784802893752\",\"expiration\":\"0\"},\"signature\":\"0x2e3805392e96d2dba21e41348cce9e031e2f80c7d6779e3dcde0292b611f0b5d01e783f3a61795610ea984f57eee4aba77611878eee19e9b6baf28402af61a571c\"},{\"order\":{\"trader\":\"0xd282B1436BC99A86eC24A164f7BEeed42CFE8511\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"20000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784802894313\",\"expiration\":\"0\"},\"signature\":\"0x00107a413cd58b86058d71b6d76bfda39f314b2d6c04fbe45d53a2f16b95011044ac6cc7bcae3dabdfb33c1966472cfb2bafad2a813e19579de8e1caea994a7c1c\"}],\"network_id\":56}"
+                "output": null
             }
         ]
     }
