@@ -771,23 +771,30 @@ class Exchange(object):
         try:
             value = dictionary[key]
             if value is not None and value != '':
-                if type(value) is str:
-                    return value
-                if isinstance(value, Number) and type(value) is not bool:
-                    return str(value)
+                return str(value)
         except Exception:
             pass
         return default_value
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        val = Exchange.safe_string(dictionary, key)
-        return val.lower() if val is not None else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return str(value).lower()
+        except Exception:
+            pass
+        return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        val = Exchange.safe_string(dictionary, key)
-        return val.upper() if val is not None else default_value
+        try:
+            value = dictionary[key]
+            if value is not None and value != '':
+                return str(value).upper()
+        except Exception:
+            pass
+        return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
@@ -837,13 +844,13 @@ class Exchange(object):
     def safe_string_2(dictionary, key1, key2, default_value=None):
         try:
             value = dictionary[key1]
-            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
+            if value is not None and value != '':
                 return str(value)
         except Exception:
             pass
         try:
             value = dictionary[key2]
-            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
+            if value is not None and value != '':
                 return str(value)
         except Exception:
             pass
@@ -851,13 +858,13 @@ class Exchange(object):
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.lower() if value is not None else default_value
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.lower() if value is not None else value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.upper() if value is not None else default_value
+        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
+        return value.upper() if value is not None else value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
@@ -914,29 +921,27 @@ class Exchange(object):
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        try:
-            if value is not None and value != '':
-                if type(value) is str:
-                    return value
-                if isinstance(value, Number) and type(value) is not bool:
-                    return str(value)
-        except Exception:
-            pass
-        return default_value
+        return str(value) if value is not None else default_value
 
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
-        value = Exchange.safe_string_n(dictionary, key_list)
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
             return str(value).lower()
-        return default_value
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.lower()
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
-        value = Exchange.safe_string_n(dictionary, key_list)
+        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
             return str(value).upper()
-        return default_value
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.upper()
 
     @staticmethod
     def safe_integer_n(dictionary, key_list, default_value=None):
