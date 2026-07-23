@@ -71,14 +71,14 @@ function safeString (o: implicitReturnType, k: IndexType, $default?: string): St
 }
 
 const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
-    const x = prop(o, k);
+    const x = prop (o, k);
     if (typeof x === 'string') return x.toLowerCase ();
     if (Number.isFinite(x)) return String(x).toLowerCase ();
     return $default;
 };
 
 const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
-    const x = prop(o, k);
+    const x = prop (o, k);
     if (typeof x === 'string') return x.toUpperCase ();
     if (Number.isFinite(x)) return String(x).toUpperCase ();
     return $default;
