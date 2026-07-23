@@ -10,11 +10,11 @@ with the old Docsify site.
 The pages are **generated**, not hand-written here:
 
 ```
-ts/src/*.ts (JSDoc) ──jsdoc2md/examples2md──▶ wiki/*.md ──build/wiki-to-fumadocs.ts──▶ website/content/docs/** (gitignored)
+ts/src/*.ts (JSDoc) ──jsdoc2md/examples2md──▶ wiki/*.md ──build/wiki-to-fumadocs.ts──▶ docs/website/content/docs/** (gitignored)
 ```
 
 - `wiki/*.md` (committed) is the shared source for both this site and the GitHub wiki.
-- `build/wiki-to-fumadocs.ts` converts it to `website/content/docs/**` (gitignored — regenerate, don't edit).
+- `build/wiki-to-fumadocs.ts` converts it to `docs/website/content/docs/**` (gitignored — regenerate, don't edit).
 - `examples2md.js` generates the per-language example pages (JS/Python/TS/PHP/C#/Go/Java) under `wiki/examples/`.
 
 ## Local development
@@ -22,11 +22,11 @@ ts/src/*.ts (JSDoc) ──jsdoc2md/examples2md──▶ wiki/*.md ──build/wi
 From the **repo root**:
 
 ```bash
-npm run fumadocs-content   # wiki/*.md -> website/content/docs
-npm run fumadocs-dev       # the above + `next dev` in website/
+npm run fumadocs-content   # wiki/*.md -> docs/website/content/docs
+npm run fumadocs-dev       # the above + `next dev` in docs/website/
 ```
 
-Or directly in `website/` once content exists: `npm run dev` (http://localhost:3000).
+Or directly in `docs/website/` once content exists: `npm run dev` (http://localhost:3000).
 Full production build: `npm run fumadocs-build` (converter + `next build`).
 
 > The site is normally served under `/v2`. To preview that path locally, set

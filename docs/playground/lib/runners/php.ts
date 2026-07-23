@@ -7,7 +7,7 @@ import { runWithFile, type OnChunk, type RunResult } from "./sandbox";
 function resolveAutoload(): string | undefined {
   const vendorAutoload = path.join(process.cwd(), "runtime", "php", "vendor", "autoload.php");
   if (existsSync(vendorAutoload)) return vendorAutoload;
-  const monorepoAutoload = path.join(process.cwd(), "..", "ccxt.php");
+  const monorepoAutoload = path.join(process.cwd(), "..", "..", "ccxt.php");
   if (existsSync(monorepoAutoload)) return monorepoAutoload;
   return undefined;
 }

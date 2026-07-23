@@ -4,13 +4,13 @@ import { runWithFile, type OnChunk, type RunResult } from "./sandbox";
 
 // Prefer the provisioned venv (scripts/setup-runtimes.sh). Fall back to the
 // system python3 with PYTHONPATH pointed at the monorepo's python/ source, which
-// is importable as-is (verified: `PYTHONPATH=../python python3 -c "import ccxt"`).
+// is importable as-is (verified: `PYTHONPATH=../../python python3 -c "import ccxt"`).
 function resolvePython(): { cmd: string; env?: Record<string, string> } {
   const venvPython = path.join(process.cwd(), "runtime", "python", ".venv", "bin", "python");
   if (existsSync(venvPython)) {
     return { cmd: venvPython };
   }
-  const monorepoPython = path.join(process.cwd(), "..", "python");
+  const monorepoPython = path.join(process.cwd(), "..", "..", "python");
   return {
     cmd: "python3",
     env: existsSync(monorepoPython) ? { PYTHONPATH: monorepoPython } : undefined,

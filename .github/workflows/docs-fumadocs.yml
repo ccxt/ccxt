@@ -18,7 +18,7 @@ on:
       # "Failed to find Server Action" after each new build) and adds deploy-window blips. Docs
       # now redeploy on release (which bakes in the wiki as of that release) + docs-app changes
       # + manual dispatch — not on every wiki commit.
-      - 'website/**'
+      - 'docs/website/**'
       - 'build/wiki-to-fumadocs.ts'
       - '.github/workflows/docs-fumadocs.yml'
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: '20'
 
-      # committed wiki/*.md -> website/content/docs (baked into the image at build)
+      # committed wiki/*.md -> docs/website/content/docs (baked into the image at build)
       - name: Convert wiki to Fumadocs content
         run: npx -y tsx build/wiki-to-fumadocs.ts
 
@@ -60,7 +60,7 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: website
+          context: docs/website
           platforms: linux/arm64
           push: true
           # Consistent Server Actions encryption key across builds, so a client served by an
