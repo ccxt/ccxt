@@ -1,4 +1,5 @@
 name: Go
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 on:
   workflow_dispatch:
   push:

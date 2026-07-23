@@ -1,4 +1,5 @@
 name: Deploy Playground
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
 # Builds the CCXT Playground as a container (arm64, matching the docs box) and
 # deploys it as a long-running Next.js server behind nginx at /playground on
