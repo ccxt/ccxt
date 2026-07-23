@@ -1729,7 +1729,7 @@
             {
                 "description": "cancel swap orders",
                 "method": "cancelOrders",
-                "url": "https://api.gateio.ws/api/v4/futures/USDT/batch_cancel_orders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/batch_cancel_orders",
                 "input": [
                   [
                     "495649711905",
