@@ -3,7 +3,9 @@
 	"asyncOnly": true,
 	"skipKeys": [
 		"timestamp",
-		"datetime"
+		"datetime",
+		"trader",
+		"nonce"
 	],
 	"options": {},
 	"methods": {
@@ -58805,7 +58807,7 @@
 						"hasPrev": false
 					}
 				},
-				"parsedResponse": []
+				"parsedResponse": [{"id":"0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0","clientOrderId":null,"timestamp":1784793981279,"datetime":"2026-07-23T08:06:21.279Z","lastTradeTimestamp":null,"lastUpdateTimestamp":null,"status":"open","type":"limit","timeInForce":"GTC","side":"buy","price":0.01,"average":null,"amount":1,"filled":0,"remaining":1,"cost":0,"fee":null,"reduceOnly":null,"postOnly":false,"trades":[],"outcome":"HYPE_FLIP_SOL_2026:YES","outcomeId":"56:827/0","label":"Yes","market":"HYPE_FLIP_SOL_2026","event":null,"info":{"orderHash":"0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0","clientOrderId":null,"order":{"trader":"0xd282B1436BC99A86eC24A164f7BEeed42CFE8511","marketId":827,"outcomeId":0,"side":0,"amount":"1000000000000000000","price":"10000000000000000","minFillAmount":"0","nonce":"1784793980668","expiration":"0"},"status":"open","signatureType":0,"filledAmount":"0","timeInForce":"GTC","createdAt":"2026-07-23T08:06:21.279Z","filledAt":null}}]
 			}
 		],
 		"fetchClosedOrders": [
@@ -59074,7 +59076,7 @@
 						"hasPrev": false
 					}
 				},
-				"parsedResponse": []
+				"parsedResponse": [{"id":"0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0","clientOrderId":null,"timestamp":1784793981279,"datetime":"2026-07-23T08:06:21.279Z","lastTradeTimestamp":null,"lastUpdateTimestamp":null,"status":"open","type":"limit","timeInForce":"GTC","side":"buy","price":0.01,"average":null,"amount":1,"filled":0,"remaining":1,"cost":0,"fee":null,"reduceOnly":null,"postOnly":false,"trades":[],"outcome":"HYPE_FLIP_SOL_2026:YES","outcomeId":"56:827/0","label":"Yes","market":"HYPE_FLIP_SOL_2026","event":null,"info":{"orderHash":"0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0","clientOrderId":null,"order":{"trader":"0xd282B1436BC99A86eC24A164f7BEeed42CFE8511","marketId":827,"outcomeId":0,"side":0,"amount":"1000000000000000000","price":"10000000000000000","minFillAmount":"0","nonce":"1784793980668","expiration":"0"},"status":"open","signatureType":0,"filledAmount":"0","timeInForce":"GTC","createdAt":"2026-07-23T08:06:21.279Z","filledAt":null}}]
 			}
 		],
 		"createOrder": [
@@ -59394,6 +59396,174 @@
 				"httpResponse": {
 					"data": [
 						{
+							"orderHash": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803147948",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:39:08.383Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803103067",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:38:23.462Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0xf4ecd832254737396b0e69131afdcbf132fe54bcd6e5368ea9e92887f7aa491f",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784802894313",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:34:54.690Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0x37735e8394e69a6eeff96d7354f088c5235abfd435f8f0f6d943bd9ac94b8153",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784802893752",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:34:54.177Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0x88919175a7f0005885f3378e33e7d065f9a2bbfe8da61fe7dbe4d23da00c2859",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784796952238",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T08:55:52.646Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0x1a856ce6f570defd50de127aa57315216244277176b916ecb2ae4b2743e5e6f9",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784796951322",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T08:55:52.161Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784796433607",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T08:47:14.059Z",
+							"filledAt": null
+						},
+						{
+							"orderHash": "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784796432981",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T08:47:13.531Z",
+							"filledAt": null
+						},
+						{
 							"orderHash": "0x5ae5808fcd4e3ee918941de83d3c3d4ff3d1e03693abef9377bf61563c694c4d",
 							"clientOrderId": null,
 							"order": {
@@ -59460,13 +59630,110 @@
 					"pagination": {
 						"page": 1,
 						"limit": 5000,
-						"total": 3,
+						"total": 11,
 						"totalPages": 1,
 						"hasNext": false,
 						"hasPrev": false
 					}
 				},
-				"parsedResponse": []
+				"parsedResponse": [
+					{
+						"id": "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+						"clientOrderId": null,
+						"timestamp": 1784803103462,
+						"datetime": "2026-07-23T10:38:23.462Z",
+						"lastTradeTimestamp": null,
+						"lastUpdateTimestamp": null,
+						"status": "canceled",
+						"type": "limit",
+						"timeInForce": "GTC",
+						"side": "buy",
+						"price": 0.01,
+						"average": null,
+						"amount": 1,
+						"filled": 0,
+						"remaining": 1,
+						"cost": 0,
+						"fee": null,
+						"reduceOnly": null,
+						"postOnly": false,
+						"trades": [],
+						"outcome": "HYPE_FLIP_SOL_2026:YES",
+						"outcomeId": "56:827/0",
+						"label": "Yes",
+						"market": "HYPE_FLIP_SOL_2026",
+						"event": null,
+						"info": {
+							"orderHash": "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803103067",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:38:23.462Z",
+							"filledAt": null
+						}
+					},
+					{
+						"id": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+						"clientOrderId": null,
+						"timestamp": 1784803148383,
+						"datetime": "2026-07-23T10:39:08.383Z",
+						"lastTradeTimestamp": null,
+						"lastUpdateTimestamp": null,
+						"status": "canceled",
+						"type": "limit",
+						"timeInForce": "GTC",
+						"side": "buy",
+						"price": 0.02,
+						"average": null,
+						"amount": 1,
+						"filled": 0,
+						"remaining": 1,
+						"cost": 0,
+						"fee": null,
+						"reduceOnly": null,
+						"postOnly": false,
+						"trades": [],
+						"outcome": "HYPE_FLIP_SOL_2026:YES",
+						"outcomeId": "56:827/0",
+						"label": "Yes",
+						"market": "HYPE_FLIP_SOL_2026",
+						"event": null,
+						"info": {
+							"orderHash": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803147948",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:39:08.383Z",
+							"filledAt": null
+						}
+					}
+				]
 			}
 		],
 		"createMarketBuyOrderWithCost": [
