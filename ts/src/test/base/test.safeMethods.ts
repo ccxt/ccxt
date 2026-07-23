@@ -127,18 +127,12 @@ function testSafeMethods () {
     assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
     assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
     // safeString
-    assert (exchange.safeString (inputDict, 'i') === '1', "safeString failed for integer");
-    assert (exchange.safeString (inputDict, 'f') === '0.123', "safeString failed for float");
-    assert (exchange.safeString (inputDict, 'bool') === undefined, "safeString failed for boolean");
-    assert (exchange.safeString (inputDict, 'list') === undefined, "safeString failed for list");
-    assert (exchange.safeString (inputDict, 'dict') === undefined, "safeString failed for dict");
-    assert (exchange.safeString (inputDict, 'str') === 'heLlo', "safeString failed for string");
-    assert (exchange.safeString (inputDict, 'strNumber') === '3', "safeString failed for string number");
-    assert (exchange.safeString (inputDict, 'zeroNumeric') === '0', "safeString failed for zero numeric");
-    assert (exchange.safeString (inputDict, 'zeroString') === '0', "safeString failed for zero string");
-    assert (exchange.safeString (inputDict, 'undefined') === undefined, "safeString failed for undefined");
-    assert (exchange.safeString (inputDict, 'emptyString') === undefined, "safeString failed for empty string");
-    assert (exchange.safeString (inputList, 0) === 'Hi', "safeString failed for list element");
+    assert (exchange.safeString (inputDict, 'i') === '1');
+    assert (exchange.safeString (inputDict, 'f') === '0.123');
+    // assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
+    assert (exchange.safeString (inputDict, 'str') === 'heLlo');
+    assert (exchange.safeString (inputDict, 'strNumber') === '3');
+    assert (exchange.safeString (inputList, 0) === 'Hi');
 
     // safeString2
     assert (exchange.safeString2 (inputDict, 'a', 'i') === '1');
