@@ -2892,10 +2892,10 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 					}
 				}
 				cost = Ternary(IsTrue((IsEqual(cost, nil))), amount, cost)
-				var costString any = this.NumberToString(cost)
+				var costString any = this.CostToPrecision(symbol, cost)
 				AddElementToObject(request, "quoteQtyEv", this.ToEv(costString, market))
 			} else {
-				var amountString any = this.NumberToString(amount)
+				var amountString any = this.AmountToPrecision(symbol, amount)
 				AddElementToObject(request, "baseQtyEv", this.ToEv(amountString, market))
 			}
 		} else if IsTrue(GetValue(market, "swap")) {
