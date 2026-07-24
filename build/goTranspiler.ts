@@ -3104,13 +3104,13 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // [ /void function/g, 'void'],
             ];
 
-            // if (isWs) {
-            //     // add ws-tests specific regeces
-            //     regexes = regexes.concat([
-            //         [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
-            //         [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
-            //     ]);
-            // }
+            if (isWs) {
+                // add ws-tests specific regeces
+                regexes = regexes.concat([
+                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
+                ]);
+            }
 
             contentIndentend = this.regexAll (contentIndentend, regexes);
             const namespace = 'package base';
