@@ -44,6 +44,7 @@ export default class binance extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchBalance': true,
+                'fetchOpenOrders': true,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -900,6 +901,73 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @name binance#fetchOpenOrders
+     * @description fetches currently open orders for the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-active-orders
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradeSide] Filter by trade side. Enum: BUY, SELL
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        // TODO: pagination
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+            const market = this.market (outcomeObj['market']);
+            request['marketId'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const wallet = await this.fetchWallet ('fetchOpenOrders', params);
+        request['walletAddress'] = wallet['walletAddress'];
+        const response = await this.sapiPrivateGetOrderList (this.extend (request, params));
+        //
+        // {
+        //     "total": 2,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
+        //         {
+        //             "orderId": "54124",
+        //             "vendorOrderId": "0x1234abcd...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229564,
+        //             "slug": "btc-price-1h-up-or-down",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567895,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "OPENING",
+        //             "side": "BUY",
+        //             "orderType": "LIMIT",
+        //             "createTime": 1748131500000,
+        //             "modifyTime": 1748131500000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "2000.00",
+        //             "filledUsdtAmount": "0.00",
+        //             "filledShareQty": "0.00",
+        //             "fillPercentage": "0.00",
+        //             "price": "0.50",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
+        //         }
+        //     ]
+        // }
+        //
+        // TODO: parse orders
+        return response;
+    }
+
+    /**
+     * @method
      * @name binance#fetchWallet
      * @description fetch wallet for user and save the one match the walletAddress user provided
      * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#list-prediction-wallets
@@ -1218,9 +1286,9 @@ export default class binance extends Exchange {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
         let querystring = this.urlencode (extendedParams);
-        querystring = querystring.replaceAll ('%5B', '[');
-        querystring = querystring.replaceAll ('%5D', ']');
-        const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
+        let signQuerystring = querystring.replaceAll ('%5B', '[');
+        signQuerystring = signQuerystring.replaceAll ('%5D', ']');
+        const signature = this.hmac (this.encode (signQuerystring), this.encode (this.secret), sha256);
         querystring = querystring + '&signature=' + signature;
         headers = {
             'X-MBX-APIKEY': this.apiKey,
