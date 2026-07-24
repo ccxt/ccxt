@@ -709,8 +709,6 @@ func (ords *OrderBookSide) GetSide() bool {
 }
 
 func (obs *OrderBookSide) CopySide() IOrderBookSide {
-	obs.Mutex.RLock()
-	defer obs.Mutex.RUnlock()
 
 	out := NewOrderBookSide(obs.Side, [][]any{}, obs.Depth)
 	base := out
