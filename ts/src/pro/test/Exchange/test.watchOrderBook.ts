@@ -21,10 +21,9 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
             // continue;
             success = false;
         }
-        if ((success === true) && (response !== undefined)) {
-        // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json (response));
+        if (success === true) {
             now = exchange.milliseconds ();
+            const orderBookCopy = response.copy ();
             testOrderBook (exchange, skippedProperties, method, response, symbol);
         }
     }

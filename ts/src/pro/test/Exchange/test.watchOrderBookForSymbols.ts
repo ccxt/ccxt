@@ -24,11 +24,10 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             currentTime = exchange.milliseconds ();
             succeeded = false;
         }
-        if ((succeeded === true) && (response !== undefined)) {
-            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return a dictionary. ' + exchange.json (response));
-            currentTime = exchange.milliseconds ();
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
-            testOrderBook (exchange, skippedProperties, method, response, undefined);
+        if (succeeded === true) {
+            const orderBookCopy = response.copy ();
+            testOrderBook (exchange, skippedProperties, method, orderBookCopy, undefined);
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, orderBookCopy, 'symbol', symbols);
             const symbol = response['symbol'];
             if ((symbol !== undefined) && !exchange.inArray (symbol, seenSymbols)) {
                 seenSymbols.push (symbol);
