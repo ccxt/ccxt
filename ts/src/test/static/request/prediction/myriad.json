@@ -1,7 +1,12 @@
 {
     "exchange": "myriad",
     "asyncOnly": true,
-    "skipKeys": [],
+    "skipKeys": [
+        "trader",
+        "signature",
+        "nonce"
+    ],
+    "walletAddress": "0xd282b1436bc99a86ec24a164f7beeed42cfe8511",
     "outputType": "json",
     "methods": {
         "fetchTicker": [
@@ -77,6 +82,38 @@
                     }
                 ],
                 "output": "{\"order\":{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"marketId\":\"730\",\"outcomeId\":0,\"side\":0,\"amount\":\"2000000000000000000\",\"price\":\"500000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1700000000000\",\"expiration\":\"0\"},\"signature\":\"0xdb503f38a9ea6b940e59f95bc8255057cd1788bf47fb7021f3c5d982d456e36b48e8165867f1e4ccb0f1d09d6852700bc1a26a5973a35bffde5e3142fc586baa1c\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
+            },
+            {
+                "description": "createOrder tradingModel ob",
+                "method": "createOrder",
+                "url": "https://api-v2.myriadprotocol.com/orders",
+                "input": [
+                    "HYPE_FLIP_SOL_2026:YES",
+                    "limit",
+                    "buy",
+                    1,
+                    0.01,
+                    {
+                        "tradingModel": "ob"
+                    }
+                ],
+                "output": "{\"order\":{\"trader\":\"0xd282b1436bc99a86ec24a164f7beeed42cfe8511\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"10000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784793980668\",\"expiration\":\"0\"},\"signature\":\"0x9aa1cc6c756d8897465975e132e898f31381a23d564f23041602f58c568d7df16b94f8c9504bae7540515829ad0a89f9a8de1476c38795a328ac70aa6206f54a1c\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
+            },
+            {
+                "description": "createOrder amm market sell order",
+                "method": "createOrder",
+                "url": "https://api-v2.myriadprotocol.com/markets/quote",
+                "input": [
+                    "BASE_TGE_2026:YES",
+                    "market",
+                    "sell",
+                    7.206,
+                    null,
+                    {
+                        "enableAmm": true
+                    }
+                ],
+                "output": "{\"market_id\":170145,\"network_id\":56,\"outcome_id\":0,\"action\":\"sell\",\"slippage\":0.005,\"shares\":7.206}"
             }
         ],
         "cancelAllOrders": [
@@ -103,20 +140,203 @@
                     null,
                     10
                 ]
+            },
+            {
+                "description": "fetchOrders amm",
+                "method": "fetchOrders",
+                "url": "https://api-v2.myriadprotocol.com/users/0xd282b1436bc99a86ec24a164f7beeed42cfe8511/events?market_id=170145&network_id=56",
+                "input": [
+                    "BASE_TGE_2026:YES"
+                ]
             }
         ],
-        "fetchEvents": [
+        "fetchTradeQuote": [
             {
-                "description": "fetchEvents scoped by tags maps each tag to a server-side keyword search",
-                "method": "fetchEvents",
-                "url": "https://api-v2.myriadprotocol.com/markets?keyword=bitcoin&state=open&limit=50",
+                "description": "fetchTradeQuote buy",
+                "method": "fetchTradeQuote",
+                "url": "https://api-v2.myriadprotocol.com/markets/quote",
                 "input": [
+                    "FEAR_GREED:FEAR",
+                    "buy",
+                    10
+                ],
+                "output": "{\"market_id\":449,\"network_id\":2741,\"outcome_id\":0,\"action\":\"buy\",\"slippage\":0.005,\"value\":10}"
+            },
+            {
+                "description": "fetchTradeQuote sell with slippage parameter",
+                "method": "fetchTradeQuote",
+                "url": "https://api-v2.myriadprotocol.com/markets/quote",
+                "input": [
+                    "FEAR_GREED:FEAR",
+                    "sell",
+                    10,
                     {
-                        "tags": [
-                            "bitcoin"
-                        ]
+                        "slippage": 0.006
                     }
+                ],
+                "output": "{\"market_id\":449,\"network_id\":2741,\"outcome_id\":0,\"action\":\"sell\",\"slippage\":0.006,\"shares\":10}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee FEAR_GREED:FEAR",
+                "method": "fetchTradingFee",
+                "url": "https://api-v2.myriadprotocol.com/markets/449?network_id=2741",
+                "input": [
+                    "FEAR_GREED:FEAR"
                 ]
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "createMarketBuyOrderWithCost static request test",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api-v2.myriadprotocol.com/markets/quote",
+                "input": [
+                    "BASE_TGE_2026:YES",
+                    1
+                ],
+                "output": "{\"market_id\":170145,\"network_id\":56,\"outcome_id\":0,\"action\":\"buy\",\"slippage\":0.005,\"value\":1}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions static request test",
+                "method": "fetchPositions",
+                "url": "https://api-v2.myriadprotocol.com/users/0xd282b1436bc99a86ec24a164f7beeed42cfe8511/portfolio",
+                "input": [
+                    [
+                        "BASE_TGE_2026:YES"
+                    ]
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades static request test",
+                "method": "fetchMyTrades",
+                "url": "https://api-v2.myriadprotocol.com/users/0xd282b1436bc99a86ec24a164f7beeed42cfe8511/events?market_id=170145&network_id=56",
+                "input": [
+                    "BASE_TGE_2026:YES"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders amm",
+                "method": "fetchClosedOrders",
+                "url": "https://api-v2.myriadprotocol.com/users/0xd282b1436bc99a86ec24a164f7beeed42cfe8511/events?market_id=170145&network_id=56",
+                "input": [
+                    "BASE_TGE_2026:YES"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders with no input",
+                "method": "fetchOpenOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xd282b1436bc99a86ec24a164f7beeed42cfe8511&status=open",
+                "input": []
+            },
+            {
+                "description": "fetch open orders ob order",
+                "method": "fetchOpenOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xd282b1436bc99a86ec24a164f7beeed42cfe8511&status=open",
+                "input": [
+                    "HYPE_FLIP_SOL_2026:YES"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder ob order",
+                "method": "fetchOrder",
+                "url": "https://api-v2.myriadprotocol.com/orders/0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+                "input": [
+                    "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+                    "HYPE_FLIP_SOL_2026:YES"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order edit an ob order",
+                "method": "editOrder",
+                "url": "https://api-v2.myriadprotocol.com/orders/0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+                "input": [
+                    "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+                    "HYPE_FLIP_SOL_2026:YES",
+                    "limit",
+                    "buy",
+                    1,
+                    0.02
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder ob order",
+                "method": "cancelOrder",
+                "url": "https://api-v2.myriadprotocol.com/orders/0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+                "input": [
+                    "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+                    "HYPE_FLIP_SOL_2026:YES"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders with a limit argument",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders?trader=0xd282b1436bc99a86ec24a164f7beeed42cfe8511&status=cancelled",
+                "input": [
+                    "HYPE_FLIP_SOL_2026:YES",
+                    null,
+                    2
+                ]
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "createOrders multiple ob orders",
+                "method": "createOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders",
+                "input": [
+                    [
+                        {
+                            "outcome": "HYPE_FLIP_SOL_2026:YES",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 0.01
+                        },
+                        {
+                            "outcome": "HYPE_FLIP_SOL_2026:YES",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 0.02
+                        }
+                    ]
+                ],
+                "output": "{\"order\":{\"trader\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"marketId\":\"827\",\"outcomeId\":0,\"side\":0,\"amount\":\"1000000000000000000\",\"price\":\"10000000000000000\",\"minFillAmount\":\"0\",\"nonce\":\"1784801666547\",\"expiration\":\"0\"},\"signature\":\"0xe8dceab6611a8b41f5082b6771c55236be739bf5fceea6a1861fff52459e6124628da7dd570fee6007f59f2ec1aebe929b26c81a27a0b316cd4fa17c92ea57291b\",\"network_id\":56,\"time_in_force\":\"GTC\"}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders multiple ob orders",
+                "method": "cancelOrders",
+                "url": "https://api-v2.myriadprotocol.com/orders/0x37735e8394e69a6eeff96d7354f088c5235abfd435f8f0f6d943bd9ac94b8153",
+                "input": [
+                    [
+                        "0x37735e8394e69a6eeff96d7354f088c5235abfd435f8f0f6d943bd9ac94b8153",
+                        "0xf4ecd832254737396b0e69131afdcbf132fe54bcd6e5368ea9e92887f7aa491f"
+                    ],
+                    "HYPE_FLIP_SOL_2026:YES"
+                ],
+                "output": null
             }
         ]
     }

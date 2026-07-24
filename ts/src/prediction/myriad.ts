@@ -27,7 +27,7 @@ import type {
     PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -193,6 +193,9 @@ export default class myriad extends Exchange {
             'options': {
                 'defaultFetchMarketsLimit': 50,
                 'defaultFetchEventsLimit': 50,
+                // allow unscoped fetchEvents() for this venue; we fetch bounded open lists
+                // from both markets and questions and merge them with overlap filtering
+                'allowUnscopedFetchEvents': true,
                 'defaultMarketStatus': 'open',   // 'open' | 'closed' | 'resolved'
                 'defaultTradingModel': 'all',    // 'amm' | 'ob' | 'all' — markets listing includes both models
                 // network used for order-book trading when a market does not pin one (OB lives on BNB Chain)
@@ -350,13 +353,19 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchEvent
-     * @description fetches a single prediction-market event by its market id
+     * @description fetches a single prediction-market event by its market id, or orderbook slug
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} id the market id
+     * @param {string} id the market id, or orderbook slug
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        if (id.indexOf (':') < 0) {
+            const rawQuestion = await this.fetchRawQuestionById (id, params);
+            const orderBookEvent = this.parseEvent (rawQuestion);
+            this.indexEventOutcomes (orderBookEvent);
+            return orderBookEvent;
+        }
         const response = await this.fetchRawMarketById (id, params);
         const market = this.parseMyriadMarket (response);
         const event: any = this.parseMarketToEvent (response, market);
@@ -388,6 +397,133 @@ export default class myriad extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawQuestionById
+     * @description fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
+     * @param {string} id the question id or slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw question object
+     */
+    async fetchRawQuestionById (id: string, params = {}): Promise<any> {
+        const request: Dict = {
+            'id': id,
+        };
+        try {
+            return await this.myriadPublicGetQuestionsId (this.extend (request, params));
+        } catch (e) {
+            const keywordRequest: Dict = {
+                'keyword': id,
+                'limit': 50,
+            };
+            const response = await this.myriadPublicGetQuestions (this.extend (keywordRequest, params));
+            const questions = this.safeList (response, 'data', []);
+            const questionsLength = questions.length;
+            const idLower = id.toLowerCase ();
+            for (let i = 0; i < questionsLength; i++) {
+                const q = this.safeDict (questions, i, {});
+                const qId = this.safeString (q, 'id', '');
+                const qSlug = this.safeString (q, 'slug', '');
+                const qTitle = this.safeString (q, 'title', '');
+                const qHandle = this.shortenSlug (qSlug);
+                if ((qId.toLowerCase () === idLower) || (qSlug.toLowerCase () === idLower) || (qTitle.toLowerCase () === idLower) || ((qHandle !== undefined) && (qHandle.toLowerCase () === idLower))) {
+                    return q;
+                }
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawQuestionsBySearch
+     * @description fetches raw myriad question objects matching the given search terms via the questions keyword filter
+     * @param {string[]} queries search terms
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of raw myriad question objects
+     */
+    async fetchRawQuestionsBySearch (queries: string[], params = {}): Promise<any[]> {
+        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
+        const rest = this.omit (params, [ 'limit' ]);
+        const seen: Dict = {};
+        const rawQuestions: any[] = [];
+        for (let i = 0; i < queries.length; i++) {
+            const q = queries[i];
+            const response = await this.myriadPublicGetQuestions (this.extend ({
+                'keyword': q,
+                'limit': limit,
+            }, rest));
+            const foundList = this.safeList (response, 'data', response as any);
+            const found = (foundList !== undefined) ? foundList : [];
+            for (let j = 0; j < found.length; j++) {
+                const raw = found[j];
+                const questionId = this.safeString (raw, 'id');
+                if ((questionId !== undefined) && !(questionId in seen)) {
+                    seen[questionId] = true;
+                    rawQuestions.push (raw);
+                }
+            }
+        }
+        return rawQuestions;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawQuestionsList
+     * @description fetches raw myriad question objects from the paginated questions listing
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.state] optional question state filter when supported by the backend
+     * @returns {object[]} an array of raw myriad question objects
+     */
+    async fetchRawQuestionsList (params = {}): Promise<any[]> {
+        const limit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 50);
+        const maxQuestions = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchEventsLimit', 1000));
+        const state = this.safeString2 (params, 'state', 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
+        const rest = this.omit (params, [ 'state', 'status', 'limit', 'tradingModel', 'trading_model' ]);
+        const allRawQuestions: any[] = [];
+        const seen: Dict = {};
+        let collected = 0;
+        let page = 1;
+        while (true) {
+            const request: Dict = {
+                'limit': limit,
+                'page': page,
+            };
+            if (state !== undefined) {
+                request['state'] = state;
+            }
+            const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
+            const rawQuestionsList = this.safeList (response, 'data', response as any);
+            const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
+            const rawQuestionsLength = rawQuestions.length;
+            if (rawQuestionsLength === 0) {
+                break;
+            }
+            for (let i = 0; i < rawQuestionsLength; i++) {
+                const rawQuestion = rawQuestions[i];
+                const questionId = this.safeString (rawQuestion, 'id');
+                if ((questionId !== undefined) && (questionId in seen)) {
+                    continue;
+                }
+                if (questionId !== undefined) {
+                    seen[questionId] = true;
+                }
+                if (collected < maxQuestions) {
+                    allRawQuestions.push (rawQuestion);
+                    collected = this.sum (collected, 1);
+                }
+            }
+            page = this.sum (page, 1);
+            if ((rawQuestionsLength < limit) || (collected >= maxQuestions)) {
+                break;
+            }
+        }
+        return allRawQuestions;
+    }
+
+    /**
      * @method
      * @name myriad#fetchPositions
      * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -406,6 +542,49 @@ export default class myriad extends Exchange {
         }
         const rest = this.omit (params, [ 'address', 'user' ]);
         const response = await this.myriadPublicGetUsersAddressPortfolio (this.extend ({ 'address': address }, rest));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "marketId": 170145,
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "outcomeId": 0,
+        //                 "outcomeTitle": "Yes",
+        //                 "networkId": 56,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "tokenId": null,
+        //                 "shares": 8.23666644,
+        //                 "price": 0.1214083400468503,
+        //                 "value": 0.9823048396344001,
+        //                 "profit": -0.017695160365599896,
+        //                 "roi": -0.017695160365599896,
+        //                 "totalProfit": -0.017695160365599927,
+        //                 "totalRoi": -0.017695160365599927,
+        //                 "positionFees": 0.02,
+        //                 "totalFees": 0.02,
+        //                 "winningsToClaim": false,
+        //                 "winningsClaimed": false,
+        //                 "voidedWinningsToClaim": false,
+        //                 "voidedWinningsClaimed": false,
+        //                 "status": "ongoing",
+        //                 "claimed": false,
+        //                 "executionMode": 0,
+        //                 "expiresAt": "2026-12-31 23:59:00",
+        //                 "eventId": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
         const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -435,10 +614,10 @@ export default class myriad extends Exchange {
         const shares = this.safeNumber (position, 'shares');
         const value = this.safeNumber (position, 'value');
         const profit = this.safeNumber (position, 'profit');
-        const roi = this.safeNumber (position, 'roi');
-        let percentage: Num = undefined;
+        const roi = this.safeString (position, 'roi');
+        let percentage = undefined;
         if (roi !== undefined) {
-            percentage = roi * 100;
+            percentage = Precise.stringMul (roi, '100');
         }
         return this.safePredictionPosition ({
             'info': position,
@@ -452,7 +631,7 @@ export default class myriad extends Exchange {
             'notional': value,
             'markPrice': this.safeNumber (position, 'price'),
             'unrealizedPnl': profit,
-            'percentage': percentage,
+            'percentage': this.parseNumber (percentage),
             'marginMode': 'cash',
             'hedged': false,
         });
@@ -492,7 +671,24 @@ export default class myriad extends Exchange {
         }
         const rest = this.omit (params, [ 'slippage' ]);
         const response = await this.myriadPublicPostMarketsQuote (this.extend (request, rest));
-        return this.parseTradeQuote (response, outcomeObj as any);
+        //
+        //     {
+        //         "value": 10,
+        //         "shares": 21.566766528674936,
+        //         "shares_threshold": 21.45893269603156,
+        //         "price_average": 0.4636763692278168,
+        //         "price_before": 0.46100295,
+        //         "price_after": 0.46635187379825593,
+        //         "calldata": "0x1...680",
+        //         "net_amount": 10,
+        //         "fees": {
+        //             "treasury": 0,
+        //             "distributor": 0,
+        //             "fee": 0
+        //         }
+        //     }
+        //
+        return this.parseTradeQuote (this.extend (response, { 'action': sideStr }), outcomeObj as any);
     }
 
     /**
@@ -505,6 +701,23 @@ export default class myriad extends Exchange {
      * @returns {object} a quote object
      */
     parseTradeQuote (quote: Dict, market: any = undefined): Dict {
+        //
+        //     {
+        //         "value": 10,
+        //         "shares": 21.566766528674936,
+        //         "shares_threshold": 21.45893269603156,
+        //         "price_average": 0.4636763692278168,
+        //         "price_before": 0.46100295,
+        //         "price_after": 0.46635187379825593,
+        //         "calldata": "0x1...680",
+        //         "net_amount": 10,
+        //         "fees": {
+        //             "treasury": 0,
+        //             "distributor": 0,
+        //             "fee": 0
+        //         }
+        //     }
+        //
         return {
             'outcome': this.safeString (market, 'outcome'),
             'side': this.safeStringLower (quote, 'action'),
@@ -642,6 +855,13 @@ export default class myriad extends Exchange {
             'time_in_force': timeInForce,
         };
         const response = await this.myriadPublicPostOrders (request);
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "open",
+        //         "timeInForce": "GTC"
+        //     }
+        //
         const wrapper = this.extend (response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome (outcome);
         const parsed = this.parsePredictionOrder (wrapper, outcomeObj as any);
@@ -832,6 +1052,9 @@ export default class myriad extends Exchange {
         const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ]);
         const quote = await this.fetchTradeQuote (outcome, sideStr, amount, quoteParams);
         const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata');
+        if (calldata === undefined) {
+            throw new BadRequest (this.id + ' createAmmOrder is missing calldata from fetchTradeQuote');
+        }
         const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
         // a buy spends the collateral token, so the prediction-market contract must be approved first
         if ((sideStr === 'buy') && (tokenAddress !== undefined)) {
@@ -1042,6 +1265,168 @@ export default class myriad extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name myriad#parseAmmEventToOrder
+     * @description parses a user event row from the AMM activity feed into a closed prediction order structure
+     * @param {object} trade the raw user event row
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parseAmmEventToOrder (trade: Dict, market: Market = undefined): PredictionOrder {
+        const networkId = this.safeString (trade, 'networkId');
+        const marketId = this.safeString (trade, 'marketId');
+        const rawOutcomeId = this.safeString (trade, 'outcomeId');
+        let composite = undefined;
+        if ((networkId !== undefined) && (marketId !== undefined) && (rawOutcomeId !== undefined)) {
+            composite = networkId + ':' + marketId + '/' + rawOutcomeId;
+        }
+        const outcomeObj = this.safeOutcome (composite, market as any);
+        const marketSlug = this.safeString (trade, 'marketSlug', marketId);
+        const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
+        let outcome = this.safeString (outcomeObj, 'outcome');
+        if (outcome === undefined) {
+            outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
+        }
+        let marketSymbol = this.safeString (outcomeObj, 'market');
+        if (marketSymbol === undefined) {
+            marketSymbol = this.slugToMarketSymbol (marketSlug, marketSlug);
+        }
+        let label = this.safeString (outcomeObj, 'label');
+        if (label === undefined) {
+            label = outcomeTitle;
+        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const amountStr = this.safeString (trade, 'shares');
+        const costStr = this.safeString (trade, 'value');
+        let priceStr = undefined;
+        if ((amountStr !== undefined) && (costStr !== undefined) && !Precise.stringEq (amountStr, '0')) {
+            priceStr = Precise.stringDiv (costStr, amountStr);
+        }
+        return this.safePredictionOrder ({
+            'id': this.safeString2 (trade, 'txId', 'id'),
+            'clientOrderId': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': timestamp,
+            'outcome': outcome,
+            'outcomeId': composite,
+            'label': label,
+            'market': marketSymbol,
+            'type': 'market',
+            'timeInForce': undefined,
+            'postOnly': false,
+            'side': this.safeStringLower (trade, 'action'),
+            'price': this.parseNumber (priceStr),
+            'triggerPrice': undefined,
+            'amount': this.parseNumber (amountStr),
+            'filled': this.parseNumber (amountStr),
+            'remaining': 0,
+            'cost': this.parseNumber (costStr),
+            'average': this.parseNumber (priceStr),
+            'status': 'closed',
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchAmmOrders
+     * @description fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
+     * @param {string} [outcome] unified outcome to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchAmmOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const requestedStatus = this.safeStringLower (params, 'status');
+        if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
+            return [];
+        }
+        let trader = this.safeString2 (params, 'trader', 'address');
+        if (trader === undefined) {
+            trader = this.walletAddressOrUndefined ();
+        }
+        if (trader === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
+        }
+        const request: Dict = {
+            'address': trader,
+        };
+        let outcomeObj = undefined;
+        let outcomeSymbol = undefined;
+        let rowOutcomeId = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome (outcome);
+            outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
+            const info = this.safeDict (outcomeObj, 'info', {});
+            request['market_id'] = this.safeString (info, 'marketId');
+            request['network_id'] = this.safeString (info, 'networkId');
+            rowOutcomeId = this.safeString (info, 'outcomeId');
+        }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        params = this.omit (params, [ 'trader', 'address', 'status' ]);
+        const response = await this.myriadPublicGetUsersAddressEvents (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                 "action": "sell",
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "marketId": 170145,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "Yes",
+        //                 "outcomeId": 0,
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "shares": 8.22739948,
+        //                 "value": 0.9789,
+        //                 "timestamp": 1784708801,
+        //                 "blockNumber": 111442601,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 2,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
+        const rows = this.safeList (response, 'data', []);
+        const result = [];
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const row = rows[i];
+            const action = this.safeStringLower (row, 'action');
+            if ((action !== 'buy') && (action !== 'sell')) {
+                continue;
+            }
+            const currentOutcomeId = this.safeString (row, 'outcomeId');
+            if ((rowOutcomeId !== undefined) && (currentOutcomeId !== rowOutcomeId)) {
+                continue;
+            }
+            result.push (this.parseAmmEventToOrder (row, outcomeObj as any));
+        }
+        const sorted = this.sortBy (result, 'timestamp', true);
+        return this.filterByOutcomeSinceLimit (sorted, outcomeSymbol, since, limit) as PredictionOrder[];
+    }
+
+    /**
      * @method
      * @name myriad#cancelOrder
      * @description cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
@@ -1067,6 +1452,12 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt (networkId),
         };
         const response = await this.myriadPublicDeleteOrdersHash (request);
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "cancelled"
+        //     }
+        //
         const status = this.safeString (response, 'status', 'canceled');
         const wrapper = this.extend (fetched, { 'status': status, 'networkId': networkId });
         let market = undefined;
@@ -1114,6 +1505,12 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt (networkId),
         };
         return await this.myriadPublicPostOrdersCancelAll (request);
+        //
+        //     {
+        //         "cancelled_count": 2,
+        //         "market_ids_affected": [ "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
+        //     }
+        //
     }
 
     /**
@@ -1149,6 +1546,15 @@ export default class myriad extends Exchange {
             'network_id': this.parseToInt (networkId),
         };
         await this.myriadPublicPostOrdersCancelBatch (this.extend (request, params));
+        //
+        //     {
+        //         "cancelled": [
+        //             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+        //             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
+        //         ],
+        //         "errors": []
+        //     }
+        //
         return this.parsePredictionOrders (wrappers);
     }
 
@@ -1164,6 +1570,32 @@ export default class myriad extends Exchange {
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const response = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "clientOrderId": null,
+        //         "order": {
+        //             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //             "marketId": 827,
+        //             "outcomeId": 0,
+        //             "side": 0,
+        //             "amount": "1000000000000000000",
+        //             "price": "10000000000000000",
+        //             "minFillAmount": "0",
+        //             "nonce": "1784793980668",
+        //             "expiration": "0"
+        //         },
+        //         "status": "cancelled",
+        //         "signatureType": 0,
+        //         "filledAmount": "0",
+        //         "timeInForce": "GTC",
+        //         "createdAt": "2026-07-23T08:06:21.279Z",
+        //         "filledAt": null,
+        //         "networkId": 56,
+        //         "updatedAt": "2026-07-23T08:22:23.987Z",
+        //         "cancelledAt": "2026-07-23T08:22:23.987Z"
+        //     }
+        //
         let market = undefined;
         if (outcome !== undefined) {
             market = await this.loadOutcome (outcome);
@@ -1174,7 +1606,7 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchOrders
-     * @description fetches order book orders for the wallet (or any trader passed via params.trader)
+     * @description fetches order book orders for the wallet (or any trader passed via params.trader), or amm closed orders
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
      * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
@@ -1194,12 +1626,57 @@ export default class myriad extends Exchange {
                 request['trader'] = this.walletAddress;
             }
         }
+        let requestedTradingModel = this.safeStringLower2 (params, 'tradingModel', 'trading_model');
+        params = this.omit (params, [ 'tradingModel', 'trading_model' ]);
+        let outcomeObj = undefined;
         let outcomeSymbol = undefined;
         if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome (outcome);
+            outcomeObj = await this.loadOutcome (outcome);
             outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
+            if (requestedTradingModel === undefined) {
+                const info = this.safeDict (outcomeObj, 'info', {});
+                requestedTradingModel = this.safeString (info, 'tradingModel');
+            }
+        }
+        if (requestedTradingModel === 'amm') {
+            return await this.fetchAmmOrders (outcome, since, limit, params);
         }
         const response = await this.myriadPublicGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+        //                 "clientOrderId": null,
+        //                 "order": {
+        //                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                     "marketId": 827,
+        //                     "outcomeId": 0,
+        //                     "side": 0,
+        //                     "amount": "1000000000000000000",
+        //                     "price": "10000000000000000",
+        //                     "minFillAmount": "0",
+        //                     "nonce": "1784713298605",
+        //                     "expiration": "0"
+        //                 },
+        //                 "status": "open",
+        //                 "signatureType": 0,
+        //                 "filledAmount": "0",
+        //                 "timeInForce": "GTC",
+        //                 "createdAt": "2026-07-22T09:41:39.035Z",
+        //                 "filledAt": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 5000,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
         const data = this.safeList (response, 'data', []);
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
@@ -1325,10 +1802,13 @@ export default class myriad extends Exchange {
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network_id] the network id (defaults to options.defaultNetworkId, '56')
+     * @param {string} [params.network] alias for params.network_id
+     * @param {string} [params.currency] output balance currency code override, e.g. 'USDC' or 'USDT'
+     * @param {int} [params.decimals] for USDC and USDT it's 6, default is 18 for USD1
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const networkId = this.safeString (params, 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
+        const networkId = this.safeString2 (params, 'network_id', 'network', this.safeString (this.options, 'defaultNetworkId', '56'));
         const chains = this.safeDict (this.options, 'chains', {});
         const chainConfig = this.safeDict (chains, networkId, {});
         const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', this.safeString (chainConfig, 'rpcUrl'));
@@ -1336,8 +1816,9 @@ export default class myriad extends Exchange {
         if (token === undefined) {
             throw new NotSupported (this.id + ' fetchBalance() has no collateral token configured for network ' + networkId);
         }
-        const currency = this.safeString (chainConfig, 'collateralCurrency', 'USD1');
-        const decimals = this.safeInteger (chainConfig, 'collateralDecimals', 18);
+        const currency = this.safeString (params, 'currency', this.safeString (chainConfig, 'collateralCurrency', 'USD1'));
+        const decimals = this.safeInteger (params, 'decimals', this.safeInteger (chainConfig, 'collateralDecimals', 18));
+        params = this.omit (params, [ 'currency', 'decimals', 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'network_id', 'network' ]);
         const owner = this.walletAddressFromKeys ();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         const callData = '0x70a08231' + this.padHexAddress (owner);
@@ -2363,7 +2844,7 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchEvents
-     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
@@ -2375,7 +2856,10 @@ export default class myriad extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        this.requireEventQuery (params);
+        const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
+        if (!allowUnscopedFetchEvents) {
+            this.requireEventQuery (params);
+        }
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
         const queriesLength = queries.length;
@@ -2384,31 +2868,95 @@ export default class myriad extends Exchange {
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
         let rawMarkets: any[] = [];
+        let rawQuestions: any[] = [];
         if (queriesLength > 0) {
-            rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
+            // some markets are only discoverable through the questions search endpoint
+            const responses = await Promise.all ([
+                this.fetchRawMarketsBySearch (queries, rest),
+                this.fetchRawQuestionsBySearch (queries, rest),
+            ]);
+            rawMarkets = this.safeList (responses, 0, []);
+            rawQuestions = this.safeList (responses, 1, []);
         } else if (eventId !== undefined) {
-            const rawMarket = await this.fetchRawMarketById (eventId, rest);
-            rawMarkets = [ rawMarket ];
+            if (eventId.indexOf (':') > -1) {
+                const rawMarket = await this.fetchRawMarketById (eventId, rest);
+                rawMarkets = [ rawMarket ];
+            } else {
+                const rawQuestion = await this.fetchRawQuestionById (eventId, rest);
+                rawQuestions = [ rawQuestion ];
+            }
         } else {
             const requestedTags = this.safeList (params, 'tags', []);
-            const tagQueries = [];
             const requestedTagsLength = requestedTags.length;
-            for (let i = 0; i < requestedTagsLength; i++) {
-                // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                const tagSlug = requestedTags[i];
-                tagQueries.push (tagSlug.replaceAll ('-', ' '));
+            if (requestedTagsLength === 0) {
+                // unscoped mode: fetch bounded open lists from both sources and merge
+                const listResponses = await Promise.all ([
+                    this.fetchRawMarketsList (rest),
+                    this.fetchRawQuestionsList (rest),
+                ]);
+                rawMarkets = this.safeList (listResponses, 0, []);
+                rawQuestions = this.safeList (listResponses, 1, []);
+            } else {
+                const tagQueries = [];
+                for (let i = 0; i < requestedTagsLength; i++) {
+                    // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
+                    const tagSlug = requestedTags[i];
+                    tagQueries.push (tagSlug.replaceAll ('-', ' '));
+                }
+                // run both searches in parallel; some events are only discoverable from questions,
+                // while market search is still the primary source for market-level data
+                // might consider avoiding concurrent requests so static request tests see a deterministic request URL (the tests capture only the request that triggers InvalidProxySettings)
+                const responses = await Promise.all ([
+                    this.fetchRawMarketsBySearch (tagQueries, rest),
+                    this.fetchRawQuestionsBySearch (tagQueries, rest),
+                ]);
+                rawMarkets = this.safeList (responses, 0, []);
+                rawQuestions = this.safeList (responses, 1, []);
             }
-            rawMarkets = await this.fetchRawMarketsBySearch (tagQueries, rest);
         }
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
+        const seenMarketHandles: Dict = {};
         const result: any[] = [];
+        const rawQuestionsLength = rawQuestions.length;
+        for (let i = 0; i < rawQuestionsLength; i++) {
+            const rawQuestion = rawQuestions[i];
+            const ev = this.parseEvent (rawQuestion);
+            const evMarkets = this.safeList (ev, 'markets', []);
+            const evMarketsLength = evMarkets.length;
+            const filteredMarkets = [];
+            for (let j = 0; j < evMarketsLength; j++) {
+                const m = this.safeDict (evMarkets, j, {});
+                const marketHandle = this.safeString (m, 'market');
+                if (marketHandle !== undefined) {
+                    if (marketHandle in seenMarketHandles) {
+                        continue;
+                    }
+                    seenMarketHandles[marketHandle] = true;
+                    this.markets[marketHandle] = m;
+                }
+                filteredMarkets.push (m);
+            }
+            // skip question events that contribute no new markets after de-duplicating by market handle
+            if ((evMarketsLength > 0) && (filteredMarkets.length === 0)) {
+                continue;
+            }
+            ev['markets'] = filteredMarkets;
+            result.push (ev);
+        }
         const rawMarketsLength = rawMarkets.length;
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const m = this.parseMyriadMarket (raw);
-            this.markets[m['market'] as string] = m;
+            const marketHandle = this.safeString (m, 'market');
+            if ((marketHandle !== undefined) && (marketHandle in seenMarketHandles)) {
+                continue;
+            }
+            if (marketHandle !== undefined) {
+                seenMarketHandles[marketHandle] = true;
+                this.markets[marketHandle] = m;
+            }
             const ev = this.parseMarketToEvent (raw, m);
             result.push (ev);
         }

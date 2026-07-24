@@ -480,5 +480,669 @@
                 ]
             }
         ]
+    },
+    {
+        "id": "56:170145",
+        "slug": "will-base-tge-in-2026",
+        "event": "BASE_TGE_2026",
+        "title": "Will Base TGE in 2026?",
+        "description": "## **Market Dates:**\n\n- **Market Period:** From market publication until December 31, 2026, at 11:59 PM UTC.\n- **Market Close:** December 31, 2026, at 11:59 PM UTC.\n- **Resolution Time:** By Market Close or earlier if the outcome is determined.\n\n## **Yes/No Criteria:**\n\n- Resolves to **“Yes”** if Base officially launches a token on or before the Market Close.\n- The token must be **publicly announced** by Base and **transferable on a blockchain** within the Market Period.\n- If the token launch or announcement occurs **outside of the Market Period**, the market will resolve to **“No.”**\n- Resolves to **“No”** if no eligible token launch is announced or occurs by the Market Close.\n\n## **Resolution Details:**\n\n- The outcome will be determined based on **public announcements from Base**, including but not limited to:\n  - Base’s verified X (formerly Twitter) account\n  - Base’s official website or app\n  - Other official company communication channels\n- Unverified reports, leaks, or third-party speculation will not be considered for resolution.\n- The token launched must be branded as Base’s official token or similar to resolve “**Yes.**”\n- Stablecoins do not count towards resolution.\n\n## **Cancellation Conditions:**\n\n- The platform ceases operations before the resolution date.\n- The resolution source becomes unavailable or compromised.\n- Any other circumstance makes it impossible to determine the outcome undisputably.\n\nIf the market is canceled, participants can claim their stakes at the then-current market value of their shares, which could result in a profit or a loss depending on the price of those shares at cancellation.",
+        "markets": [
+            {
+                "id": "56:170145",
+                "market": "BASE_TGE_2026",
+                "marketType": "binary",
+                "executionModel": "amm",
+                "base": "will-base-tge-in-2026",
+                "quote": "USD1",
+                "baseId": "56:170145",
+                "quoteId": "USD1",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1798761540000,
+                "expiryDatetime": "2026-12-31T23:59:00.000Z",
+                "taker": 0.01,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "id": "56:170145/0",
+                        "outcomeId": "56:170145/0",
+                        "outcome": "BASE_TGE_2026:YES",
+                        "market": "BASE_TGE_2026",
+                        "label": "Yes",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "170145",
+                            "slug": "will-base-tge-in-2026",
+                            "outcomeId": "0",
+                            "outcomeLabel": "Yes",
+                            "outcomePrice": 0.11870092,
+                            "volume24h": 10.983,
+                            "state": "open",
+                            "tradingModel": "amm",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    },
+                    {
+                        "id": "56:170145/1",
+                        "outcomeId": "56:170145/1",
+                        "outcome": "BASE_TGE_2026:NO",
+                        "market": "BASE_TGE_2026",
+                        "label": "No",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "170145",
+                            "slug": "will-base-tge-in-2026",
+                            "outcomeId": "1",
+                            "outcomeLabel": "No",
+                            "outcomePrice": 0.88129908,
+                            "volume24h": 10.983,
+                            "state": "open",
+                            "tradingModel": "amm",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 170145,
+                    "networkId": "56",
+                    "slug": "will-base-tge-in-2026",
+                    "title": "Will Base TGE in 2026?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "## **Market Dates:**\n\n- **Market Period:** From market publication until December 31, 2026, at 11:59 PM UTC.\n- **Market Close:** December 31, 2026, at 11:59 PM UTC.\n- **Resolution Time:** By Market Close or earlier if the outcome is determined.\n\n## **Yes/No Criteria:**\n\n- Resolves to **“Yes”** if Base officially launches a token on or before the Market Close.\n- The token must be **publicly announced** by Base and **transferable on a blockchain** within the Market Period.\n- If the token launch or announcement occurs **outside of the Market Period**, the market will resolve to **“No.”**\n- Resolves to **“No”** if no eligible token launch is announced or occurs by the Market Close.\n\n## **Resolution Details:**\n\n- The outcome will be determined based on **public announcements from Base**, including but not limited to:\n  - Base’s verified X (formerly Twitter) account\n  - Base’s official website or app\n  - Other official company communication channels\n- Unverified reports, leaks, or third-party speculation will not be considered for resolution.\n- The token launched must be branded as Base’s official token or similar to resolve “**Yes.**”\n- Stablecoins do not count towards resolution.\n\n## **Cancellation Conditions:**\n\n- The platform ceases operations before the resolution date.\n- The resolution source becomes unavailable or compromised.\n- Any other circumstance makes it impossible to determine the outcome undisputably.\n\nIf the market is canceled, participants can claim their stakes at the then-current market value of their shares, which could result in a profit or a loss depending on the price of those shares at cancellation.",
+                    "publishedAt": "2026-04-10T09:44:41.000Z",
+                    "expiresAt": "2026-12-31T23:59:00.000Z",
+                    "resolvesAt": null,
+                    "fees": {
+                        "buy": {
+                            "fee": 0.01,
+                            "treasury_fee": 0,
+                            "distributor_fee": 0.01
+                        },
+                        "sell": {
+                            "fee": 0,
+                            "treasury_fee": 0,
+                            "distributor_fee": 0
+                        },
+                        "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                        "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+                    },
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": -1,
+                    "topics": [
+                        "Crypto"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://www.base.org/",
+                    "resolutionTitle": "Base",
+                    "token": {
+                        "name": "World Liberty Financial USD",
+                        "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                        "symbol": "USD1",
+                        "decimals": 18
+                    },
+                    "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/1fef43b3-c4da-4954-fbfc-061dbea13300/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/f8cc0c72-fcda-4b85-095c-c9e516fee300/public",
+                    "liquidity": 1000,
+                    "liquidityPrice": 0.64687251,
+                    "volume": 4532.07615144,
+                    "volume24h": 10.983,
+                    "volumeNotional": 7841.42007053,
+                    "volumeNotional24h": 85.53165395,
+                    "users": 80,
+                    "shares": 3091.79934896,
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": false,
+                    "moneyline": false,
+                    "executionMode": 0,
+                    "tradingModel": "amm",
+                    "topHolders": [
+                        "0x6fD3a753943802d0F42B6b885d0Ee496116550b3",
+                        "0xCEe198c0e83a969768e061c5f5aFD59700087AE2",
+                        "0xF7161633812d283e31e552757f62B51358c8Cc5E"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": 0,
+                            "title": "Yes",
+                            "shares": 2724.79992622,
+                            "sharesHeld": 742.88882634,
+                            "price": 0.11870092,
+                            "closingPrice": null,
+                            "priceChange24h": 0.04829648,
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+                            "holders": 40,
+                            "tokenId": "340290"
+                        },
+                        {
+                            "id": 1,
+                            "title": "No",
+                            "shares": 366.99942274,
+                            "sharesHeld": 3100.68932982,
+                            "price": 0.88129908,
+                            "closingPrice": null,
+                            "priceChange24h": -0.00616702,
+                            "bestBid": null,
+                            "bestAsk": null,
+                            "imageUrl": null,
+                            "holders": 16,
+                            "tokenId": "340291"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": null,
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "scoreboard": null,
+                    "externalSources": [],
+                    "marketId": "170145"
+                }
+            }
+        ],
+        "volume": 85.53165395,
+        "liquidity": 1000,
+        "image": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        "active": true,
+        "resolved": false,
+        "tags": [
+            "Crypto"
+        ],
+        "created": 1775814281000,
+        "createdDatetime": "2026-04-10T09:44:41.000Z",
+        "end": 1798761540000,
+        "endDatetime": "2026-12-31T23:59:00.000Z",
+        "resolutionSource": "https://www.base.org/",
+        "info": {
+            "id": 170145,
+            "networkId": 56,
+            "slug": "will-base-tge-in-2026",
+            "title": "Will Base TGE in 2026?",
+            "shortName": null,
+            "ctaName": null,
+            "description": "## **Market Dates:**\n\n- **Market Period:** From market publication until December 31, 2026, at 11:59 PM UTC.\n- **Market Close:** December 31, 2026, at 11:59 PM UTC.\n- **Resolution Time:** By Market Close or earlier if the outcome is determined.\n\n## **Yes/No Criteria:**\n\n- Resolves to **“Yes”** if Base officially launches a token on or before the Market Close.\n- The token must be **publicly announced** by Base and **transferable on a blockchain** within the Market Period.\n- If the token launch or announcement occurs **outside of the Market Period**, the market will resolve to **“No.”**\n- Resolves to **“No”** if no eligible token launch is announced or occurs by the Market Close.\n\n## **Resolution Details:**\n\n- The outcome will be determined based on **public announcements from Base**, including but not limited to:\n  - Base’s verified X (formerly Twitter) account\n  - Base’s official website or app\n  - Other official company communication channels\n- Unverified reports, leaks, or third-party speculation will not be considered for resolution.\n- The token launched must be branded as Base’s official token or similar to resolve “**Yes.**”\n- Stablecoins do not count towards resolution.\n\n## **Cancellation Conditions:**\n\n- The platform ceases operations before the resolution date.\n- The resolution source becomes unavailable or compromised.\n- Any other circumstance makes it impossible to determine the outcome undisputably.\n\nIf the market is canceled, participants can claim their stakes at the then-current market value of their shares, which could result in a profit or a loss depending on the price of those shares at cancellation.",
+            "publishedAt": "2026-04-10T09:44:41.000Z",
+            "expiresAt": "2026-12-31T23:59:00.000Z",
+            "resolvesAt": null,
+            "fees": {
+                "buy": {
+                    "fee": 0.01,
+                    "treasury_fee": 0,
+                    "distributor_fee": 0.01
+                },
+                "sell": {
+                    "fee": 0,
+                    "treasury_fee": 0,
+                    "distributor_fee": 0
+                },
+                "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+                "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+            },
+            "state": "open",
+            "voided": false,
+            "resolvedOutcomeId": -1,
+            "topics": [
+                "Crypto"
+            ],
+            "tags": [],
+            "resolutionSource": "https://www.base.org/",
+            "resolutionTitle": "Base",
+            "token": {
+                "name": "World Liberty Financial USD",
+                "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                "symbol": "USD1",
+                "decimals": 18
+            },
+            "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+            "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/1fef43b3-c4da-4954-fbfc-061dbea13300/public",
+            "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/f8cc0c72-fcda-4b85-095c-c9e516fee300/public",
+            "liquidity": 1000,
+            "liquidityPrice": 0.64687251,
+            "volume": 4532.07615144,
+            "volume24h": 10.983,
+            "volumeNotional": 7841.42007053,
+            "volumeNotional24h": 85.53165395,
+            "users": 80,
+            "shares": 3091.79934896,
+            "featured": false,
+            "featuredAt": null,
+            "inPlay": false,
+            "inPlayStartsAt": null,
+            "perpetual": false,
+            "moneyline": false,
+            "executionMode": 0,
+            "tradingModel": "amm",
+            "topHolders": [
+                "0x6fD3a753943802d0F42B6b885d0Ee496116550b3",
+                "0xCEe198c0e83a969768e061c5f5aFD59700087AE2",
+                "0xF7161633812d283e31e552757f62B51358c8Cc5E"
+            ],
+            "outcomes": [
+                {
+                    "id": 0,
+                    "title": "Yes",
+                    "shares": 2724.79992622,
+                    "sharesHeld": 742.88882634,
+                    "price": 0.11870092,
+                    "closingPrice": null,
+                    "priceChange24h": 0.04829648,
+                    "bestBid": null,
+                    "bestAsk": null,
+                    "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+                    "holders": 40,
+                    "tokenId": "340290"
+                },
+                {
+                    "id": 1,
+                    "title": "No",
+                    "shares": 366.99942274,
+                    "sharesHeld": 3100.68932982,
+                    "price": 0.88129908,
+                    "closingPrice": null,
+                    "priceChange24h": -0.00616702,
+                    "bestBid": null,
+                    "bestAsk": null,
+                    "imageUrl": null,
+                    "holders": 16,
+                    "tokenId": "340291"
+                }
+            ],
+            "eventId": null,
+            "outcomeIndex": null,
+            "negRisk": false,
+            "oracle": {
+                "address": null,
+                "name": "Myriad",
+                "url": "https://myriad.markets",
+                "image_url": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                "data": null
+            },
+            "scoreboard": null,
+            "externalSources": []
+        }
+    },
+    {
+        "id": "793bfc47-ddcd-47d2-aad5-52c7002fc823",
+        "slug": "will-hype-flip-sol-in-2026",
+        "event": "HYPE_FLIP_SOL_2026",
+        "title": "Will HYPE flip SOL in 2026?",
+        "description": "### **Market Dates:**\n\n- **Market Period:** From the markets publication until December 31, 2026, at 11:59 PM ET.\n- **Market Close:** December 31, 2026, at 11:59 PM ET.\n- **Resolution Time:** December 31, 2026, at 11:59 PM ET.\n\n### **Resolution Criteria:**\n\n- Resolves to **\"Yes\"** if, **at any point before or at Resolution Time**, HYPE **surpasses** SOL in market capitalization.\n- Resolves to **\"No\"** otherwise.\n\nMarket capitalization values will be compared using CoinGecko\\*\\*:\\*\\*\n\n- **HYPE:** [https://www.coingecko.com/en/coins/hyperliquid](https://www.coingecko.com/en/coins/hyperliquid)\n- **SOL:** [https://www.coingecko.com/en/coins/solana](https://www.coingecko.com/en/coins/solana)\n\nIn case CoinGecko becomes unreliable, unavailable, or stops showing relevant data, CoinMarketCap may be used as a secondary resolution source.\n\n### **Resolution Details:**\n\n- The comparison will be made using the market capitalization as displayed on CoinGecko during the Market Period.\n\n### **Cancellation Conditions:**\n\n- All available resolution sources become unreliable, unavailable or stop showing relevant data.\n\nIf cancelled, participants may claim their stakes at the then-current market value of their open positions, which could result in a profit or a loss depending on share prices at cancellation.",
+        "markets": [
+            {
+                "id": "56:827",
+                "market": "HYPE_FLIP_SOL_2026",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "base": "will-hype-flip-sol-in-2026",
+                "quote": "USD1",
+                "baseId": "56:827",
+                "quoteId": "USD1",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1798779540000,
+                "expiryDatetime": "2027-01-01T04:59:00.000Z",
+                "taker": 0.01,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "id": "56:827/0",
+                        "outcomeId": "56:827/0",
+                        "outcome": "HYPE_FLIP_SOL_2026:YES",
+                        "market": "HYPE_FLIP_SOL_2026",
+                        "label": "Yes",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "827",
+                            "slug": "will-hype-flip-sol-in-2026",
+                            "outcomeId": "0",
+                            "outcomeLabel": "Yes",
+                            "outcomePrice": 0.075,
+                            "volume24h": 1.07526882,
+                            "state": "open",
+                            "tradingModel": "ob",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    },
+                    {
+                        "id": "56:827/1",
+                        "outcomeId": "56:827/1",
+                        "outcome": "HYPE_FLIP_SOL_2026:NO",
+                        "market": "HYPE_FLIP_SOL_2026",
+                        "label": "No",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "networkId": "56",
+                            "marketId": "827",
+                            "slug": "will-hype-flip-sol-in-2026",
+                            "outcomeId": "1",
+                            "outcomeLabel": "No",
+                            "outcomePrice": 0.925,
+                            "volume24h": 1.07526882,
+                            "state": "open",
+                            "tradingModel": "ob",
+                            "tokenAddress": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                            "tokenDecimals": 18
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 827,
+                    "networkId": "56",
+                    "slug": "will-hype-flip-sol-in-2026",
+                    "title": "Will HYPE flip SOL in 2026?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "### **Market Dates:**\n\n- **Market Period:** From the markets publication until December 31, 2026, at 11:59 PM ET.\n- **Market Close:** December 31, 2026, at 11:59 PM ET.\n- **Resolution Time:** December 31, 2026, at 11:59 PM ET.\n\n### **Resolution Criteria:**\n\n- Resolves to **\"Yes\"** if, **at any point before or at Resolution Time**, HYPE **surpasses** SOL in market capitalization.\n- Resolves to **\"No\"** otherwise.\n\nMarket capitalization values will be compared using CoinGecko\\*\\*:\\*\\*\n\n- **HYPE:** [https://www.coingecko.com/en/coins/hyperliquid](https://www.coingecko.com/en/coins/hyperliquid)\n- **SOL:** [https://www.coingecko.com/en/coins/solana](https://www.coingecko.com/en/coins/solana)\n\nIn case CoinGecko becomes unreliable, unavailable, or stops showing relevant data, CoinMarketCap may be used as a secondary resolution source.\n\n### **Resolution Details:**\n\n- The comparison will be made using the market capitalization as displayed on CoinGecko during the Market Period.\n\n### **Cancellation Conditions:**\n\n- All available resolution sources become unreliable, unavailable or stop showing relevant data.\n\nIf cancelled, participants may claim their stakes at the then-current market value of their open positions, which could result in a profit or a loss depending on share prices at cancellation.",
+                    "publishedAt": "2026-06-01T10:48:48.000Z",
+                    "expiresAt": "2027-01-01T04:59:00.000Z",
+                    "resolvesAt": null,
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": -1,
+                    "topics": [
+                        "Crypto"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://www.coingecko.com/",
+                    "resolutionTitle": "CoinGecko",
+                    "token": {
+                        "name": "World Liberty Financial USD",
+                        "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                        "symbol": "USD1",
+                        "decimals": 18
+                    },
+                    "imageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/QmX5APdzB9bPo6HfRDsyZ3eycg3Dhh5owzJeQQd7izg33z/public",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/QmUcDWjuC39L7vSStsrm8KTCaoZFtjKeoS1uEaW73YL9PL/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/005873f4-574d-4603-44bc-1f8908869100/public",
+                    "liquidity": 9883.10698139,
+                    "liquidityPrice": 0,
+                    "volume": 5282.30890576,
+                    "volume24h": 1.07526882,
+                    "volumeNotional": 10038.3917535,
+                    "volumeNotional24h": 2.15053764,
+                    "users": 27,
+                    "shares": 4842.07852854,
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": false,
+                    "moneyline": false,
+                    "executionMode": 1,
+                    "tradingModel": "ob",
+                    "topHolders": [
+                        "0xCEe198c0e83a969768e061c5f5aFD59700087AE2",
+                        "0xe38FcB488A6e3e694cEFc87f05E5fF35848854c5",
+                        "0x9f72CF402d765826d96493BaF076088630f29CB1"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": 0,
+                            "title": "Yes",
+                            "shares": 2421.03926427,
+                            "sharesHeld": 2421.03926427,
+                            "price": 0.075,
+                            "closingPrice": null,
+                            "priceChange24h": 0,
+                            "bestBid": 0.07,
+                            "bestAsk": 0.08,
+                            "imageUrl": null,
+                            "holders": 13,
+                            "tokenId": "1654"
+                        },
+                        {
+                            "id": 1,
+                            "title": "No",
+                            "shares": 2421.03926427,
+                            "sharesHeld": 2421.03926427,
+                            "price": 0.925,
+                            "closingPrice": null,
+                            "priceChange24h": 0,
+                            "bestBid": 0.92,
+                            "bestAsk": 0.93,
+                            "imageUrl": null,
+                            "holders": 11,
+                            "tokenId": "1655"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": "0x0000000000000000000000000000000000000000",
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "imageUrl": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "scoreboard": null,
+                    "externalSources": [
+                        {
+                            "id": "4a174364-f439-4b2f-8420-85a37b23ab8d",
+                            "providerName": "polymarket",
+                            "externalMarketId": "2109822",
+                            "externalMarketUrl": "https://polymarket.com/event/will-hype-flip-sol-by-december-31",
+                            "externalMarketTitle": "Will HYPE flip SOL by December 31?"
+                        }
+                    ],
+                    "marketId": "827"
+                }
+            }
+        ],
+        "volume": 2.15053764,
+        "liquidity": 9883.10698139,
+        "image": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/QmX5APdzB9bPo6HfRDsyZ3eycg3Dhh5owzJeQQd7izg33z/public",
+        "active": true,
+        "resolved": false,
+        "tags": [
+            "Crypto"
+        ],
+        "created": 1780310928000,
+        "createdDatetime": "2026-06-01T10:48:48.000Z",
+        "end": 1798779540000,
+        "endDatetime": "2027-01-01T04:59:00.000Z",
+        "resolutionSource": "https://www.coingecko.com/",
+        "info": {
+            "id": "793bfc47-ddcd-47d2-aad5-52c7002fc823",
+            "title": "Will HYPE flip SOL in 2026?",
+            "expiresAt": "2027-01-01T04:59:00.000Z",
+            "marketCount": 1,
+            "markets": [
+                {
+                    "id": 827,
+                    "networkId": 56,
+                    "slug": "will-hype-flip-sol-in-2026",
+                    "title": "Will HYPE flip SOL in 2026?",
+                    "shortName": null,
+                    "ctaName": null,
+                    "description": "### **Market Dates:**\n\n- **Market Period:** From the markets publication until December 31, 2026, at 11:59 PM ET.\n- **Market Close:** December 31, 2026, at 11:59 PM ET.\n- **Resolution Time:** December 31, 2026, at 11:59 PM ET.\n\n### **Resolution Criteria:**\n\n- Resolves to **\"Yes\"** if, **at any point before or at Resolution Time**, HYPE **surpasses** SOL in market capitalization.\n- Resolves to **\"No\"** otherwise.\n\nMarket capitalization values will be compared using CoinGecko\\*\\*:\\*\\*\n\n- **HYPE:** [https://www.coingecko.com/en/coins/hyperliquid](https://www.coingecko.com/en/coins/hyperliquid)\n- **SOL:** [https://www.coingecko.com/en/coins/solana](https://www.coingecko.com/en/coins/solana)\n\nIn case CoinGecko becomes unreliable, unavailable, or stops showing relevant data, CoinMarketCap may be used as a secondary resolution source.\n\n### **Resolution Details:**\n\n- The comparison will be made using the market capitalization as displayed on CoinGecko during the Market Period.\n\n### **Cancellation Conditions:**\n\n- All available resolution sources become unreliable, unavailable or stop showing relevant data.\n\nIf cancelled, participants may claim their stakes at the then-current market value of their open positions, which could result in a profit or a loss depending on share prices at cancellation.",
+                    "publishedAt": "2026-06-01T10:48:48.000Z",
+                    "expiresAt": "2027-01-01T04:59:00.000Z",
+                    "resolvesAt": null,
+                    "state": "open",
+                    "voided": false,
+                    "resolvedOutcomeId": -1,
+                    "topics": [
+                        "Crypto"
+                    ],
+                    "tags": [],
+                    "resolutionSource": "https://www.coingecko.com/",
+                    "resolutionTitle": "CoinGecko",
+                    "token": {
+                        "name": "World Liberty Financial USD",
+                        "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+                        "symbol": "USD1",
+                        "decimals": 18
+                    },
+                    "imageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/QmX5APdzB9bPo6HfRDsyZ3eycg3Dhh5owzJeQQd7izg33z/public",
+                    "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/QmUcDWjuC39L7vSStsrm8KTCaoZFtjKeoS1uEaW73YL9PL/public",
+                    "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/005873f4-574d-4603-44bc-1f8908869100/public",
+                    "liquidity": 9883.10698139,
+                    "liquidityPrice": 0,
+                    "volume": 5282.30890576,
+                    "volume24h": 1.07526882,
+                    "volumeNotional": 10038.3917535,
+                    "volumeNotional24h": 2.15053764,
+                    "users": 27,
+                    "shares": 4842.07852854,
+                    "featured": false,
+                    "featuredAt": null,
+                    "inPlay": false,
+                    "inPlayStartsAt": null,
+                    "perpetual": false,
+                    "moneyline": false,
+                    "executionMode": 1,
+                    "tradingModel": "ob",
+                    "topHolders": [
+                        "0xCEe198c0e83a969768e061c5f5aFD59700087AE2",
+                        "0xe38FcB488A6e3e694cEFc87f05E5fF35848854c5",
+                        "0x9f72CF402d765826d96493BaF076088630f29CB1"
+                    ],
+                    "outcomes": [
+                        {
+                            "id": 0,
+                            "title": "Yes",
+                            "shares": 2421.03926427,
+                            "sharesHeld": 2421.03926427,
+                            "price": 0.075,
+                            "closingPrice": null,
+                            "priceChange24h": 0,
+                            "bestBid": 0.07,
+                            "bestAsk": 0.08,
+                            "imageUrl": null,
+                            "holders": 13,
+                            "tokenId": "1654"
+                        },
+                        {
+                            "id": 1,
+                            "title": "No",
+                            "shares": 2421.03926427,
+                            "sharesHeld": 2421.03926427,
+                            "price": 0.925,
+                            "closingPrice": null,
+                            "priceChange24h": 0,
+                            "bestBid": 0.92,
+                            "bestAsk": 0.93,
+                            "imageUrl": null,
+                            "holders": 11,
+                            "tokenId": "1655"
+                        }
+                    ],
+                    "eventId": null,
+                    "outcomeIndex": null,
+                    "negRisk": false,
+                    "oracle": {
+                        "address": "0x0000000000000000000000000000000000000000",
+                        "name": "Myriad",
+                        "url": "https://myriad.markets",
+                        "imageUrl": "https://wp.decrypt.co/wp-content/uploads/2026/05/myriad.png",
+                        "data": null
+                    },
+                    "scoreboard": null,
+                    "externalSources": [
+                        {
+                            "id": "4a174364-f439-4b2f-8420-85a37b23ab8d",
+                            "providerName": "polymarket",
+                            "externalMarketId": "2109822",
+                            "externalMarketUrl": "https://polymarket.com/event/will-hype-flip-sol-by-december-31",
+                            "externalMarketTitle": "Will HYPE flip SOL by December 31?"
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]
