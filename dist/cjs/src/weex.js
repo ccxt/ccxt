@@ -1245,6 +1245,7 @@ class weex extends weex$1["default"] {
         }
         market = this.safeMarket(marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2(ticker, 'closeTime', 'time');
+        const percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChangePercent'), '100');
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1261,7 +1262,7 @@ class weex extends weex$1["default"] {
             'last': this.safeString(ticker, 'lastPrice'),
             'previousClose': undefined,
             'change': this.safeString(ticker, 'priceChange'),
-            'percentage': this.safeString(ticker, 'priceChangePercent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
