@@ -1271,6 +1271,7 @@ public class WeexCore extends WeexApi
         }
         market = this.safeMarket(marketId, market, null, marketType);
         Object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        Object percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         final Object finalMarket = market;
         final Object finalMarkPrice = markPrice;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1289,7 +1290,7 @@ public class WeexCore extends WeexApi
             put( "last", WeexCore.this.safeString(ticker, "lastPrice") );
             put( "previousClose", null );
             put( "change", WeexCore.this.safeString(ticker, "priceChange") );
-            put( "percentage", WeexCore.this.safeString(ticker, "priceChangePercent") );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", WeexCore.this.safeString(ticker, "volume") );
             put( "quoteVolume", WeexCore.this.safeString(ticker, "quoteVolume") );
