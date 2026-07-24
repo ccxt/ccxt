@@ -47,30 +47,30 @@ function testSafeString () {
     const inputList = [ 'Hi', 2 ];
 
     // safeString
-    assert (exchange.safeString (inputDict, 'i') === '1', "safeString failed for integer");
-    assert (exchange.safeString (inputDict, 'f') === '0.123', "safeString failed for float");
-    assert (exchange.safeString (inputDict, 'bool') === undefined, "safeString failed for boolean");
-    assert (exchange.safeString (inputDict, 'list') === undefined, "safeString failed for list");
-    assert (exchange.safeString (inputDict, 'dict') === undefined, "safeString failed for dict");
-    assert (exchange.safeString (inputDict, 'str') === 'heLlo', "safeString failed for string");
-    assert (exchange.safeString (inputDict, 'strNumber') === '3', "safeString failed for string number");
-    assert (exchange.safeString (inputDict, 'zeroNumeric') === '0', "safeString failed for zero numeric");
-    assert (exchange.safeString (inputDict, 'zeroString') === '0', "safeString failed for zero string");
-    assert (exchange.safeString (inputDict, 'undefined') === undefined, "safeString failed for undefined");
-    assert (exchange.safeString (inputDict, 'emptyString') === undefined, "safeString failed for empty string");
-    assert (exchange.safeString (inputList, 0) === 'Hi', "safeString failed for list element");
-    assert (exchange.safeString (inputDict, 'floatNumeric') === '0.123', "safeString failed for float numeric");
-    assert (exchange.safeString (inputDict, 'floatString') === '0.123', "safeString failed for float string");
-    assert (exchange.safeString (inputDict, 'longInt') === '123456789012345', "safeString failed for long integer");
+    assert (exchange.safeString (inputDict, 'i') === '1', 'safeString failed for integer');
+    assert (exchange.safeString (inputDict, 'f') === '0.123', 'safeString failed for float');
+    assert (exchange.safeString (inputDict, 'bool') === undefined, 'safeString failed for boolean');
+    assert (exchange.safeString (inputDict, 'list') === undefined, 'safeString failed for list');
+    assert (exchange.safeString (inputDict, 'dict') === undefined, 'safeString failed for dict');
+    assert (exchange.safeString (inputDict, 'str') === 'heLlo', 'safeString failed for string');
+    assert (exchange.safeString (inputDict, 'strNumber') === '3', 'safeString failed for string number');
+    assert (exchange.safeString (inputDict, 'zeroNumeric') === '0', 'safeString failed for zero numeric');
+    assert (exchange.safeString (inputDict, 'zeroString') === '0', 'safeString failed for zero string');
+    assert (exchange.safeString (inputDict, 'undefined') === undefined, 'safeString failed for undefined');
+    assert (exchange.safeString (inputDict, 'emptyString') === undefined, 'safeString failed for empty string');
+    assert (exchange.safeString (inputList, 0) === 'Hi', 'safeString failed for list element');
+    assert (exchange.safeString (inputDict, 'floatNumeric') === '0.123', 'safeString failed for float numeric');
+    assert (exchange.safeString (inputDict, 'floatString') === '0.123', 'safeString failed for float string');
+    assert (exchange.safeString (inputDict, 'longInt') === '123456789012345', 'safeString failed for long integer');
     // With defaults
-    assert (exchange.safeString (inputDict, 'nonexistent', 'MiXed_Case') === 'MiXed_Case', "safeString failed for nonexistent key with default");
+    assert (exchange.safeString (inputDict, 'nonexistent', 'MiXed_Case') === 'MiXed_Case', 'safeString failed for nonexistent key with default');
     // the below fails in other langs
     // // @ts-expect-error
-    // assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, "safeString failed for nonexistent key with default integer");
+    // assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
     // // @ts-expect-error
-    // assert (exchange.safeString (inputDict, 'nonexistent', true) === true, "safeString failed for nonexistent key with default bool");
+    // assert (exchange.safeString (inputDict, 'nonexistent', true) === true, 'safeString failed for nonexistent key with default bool');
     // // @ts-expect-error
-    // assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , "safeString failed for nonexistent key with default float");
+    // assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
     
 
 
