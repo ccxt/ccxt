@@ -887,18 +887,18 @@ func TestFutureSubscribersCleanedAfterResolve(t *testing.T) {
 		f.Await()
 	}
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countBefore := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countBefore != 10 {
 		t.Fatalf("expected 10 subscribers before resolve, got %d", countBefore)
 	}
 
 	f.Resolve("done")
 
-	f.subscribersMu.Lock()
+	f.mu.Lock()
 	countAfter := len(f.subscribers)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	if countAfter != 0 {
 		t.Errorf("expected 0 subscribers after resolve, got %d", countAfter)
 	}
@@ -980,4 +980,71 @@ func TestRaceConcurrentStress(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+// ---------------------------------------------------------------------------
+// Regression test: Await must never miss a wakeup when Resolve races with
+// FutureRace's subscribe loop (issue #29282).
+// ---------------------------------------------------------------------------
+
+// TestFutureRaceResolveConcurrentNoHang reproduces the check-then-subscribe
+// race described in issue #29282: Resolve() running between the resolved-check
+// and the subscriber-append in FutureRace would drain an empty list, leaving
+// the newly-appended subscriber unnotified and blocking forever.
+func TestFutureRaceResolveConcurrentNoHang(t *testing.T) {
+	const iterations = 200
+
+	for i := 0; i < iterations; i++ {
+		futures := make([]*Future, 10)
+		for j := range futures {
+			futures[j] = NewFuture()
+		}
+
+		start := make(chan struct{})
+		raceCh := make(chan *Future, 1)
+
+		go func() {
+			<-start
+			raceCh <- FutureRace(futures)
+		}()
+
+		go func() {
+			<-start
+			futures[0].Resolve("value")
+		}()
+
+		close(start)
+		race := <-raceCh
+		select {
+		case got := <-race.Await():
+			if got != "value" {
+				t.Fatalf("iteration %d: expected \"value\", got %v", i, got)
+			}
+		case <-time.After(2 * time.Second):
+			t.Fatalf("iteration %d: Await blocked forever (missed wakeup)", i)
+		}
+	}
+}
+
+// TestFutureAwaitResolveConcurrentNoHang is the simpler single-Future variant:
+// Resolve races directly with Await's check-then-subscribe path.
+func TestFutureAwaitResolveConcurrentNoHang(t *testing.T) {
+	const iterations = 500
+
+	for i := 0; i < iterations; i++ {
+		f := NewFuture()
+
+		// Resolve concurrently so it may land in the gap between the
+		// resolved-check and the subscriber-append inside Await.
+		go f.Resolve("hello")
+
+		select {
+		case got := <-f.Await():
+			if got != "hello" {
+				t.Fatalf("iteration %d: expected \"hello\", got %v", i, got)
+			}
+		case <-time.After(2 * time.Second):
+			t.Fatalf("iteration %d: Await blocked forever (missed wakeup)", i)
+		}
+	}
 }
