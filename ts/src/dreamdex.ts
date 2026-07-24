@@ -132,7 +132,7 @@ export default class dreamdex extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://dreamdex.io/favicon.ico',
+                'logo': 'https://github.com/user-attachments/assets/dd79f230-3892-4f9f-9892-ed70ef60b9c7',
                 'api': {
                     'rest': 'https://api.dreamdex.io',
                 },
