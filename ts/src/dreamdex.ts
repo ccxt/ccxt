@@ -268,7 +268,7 @@ export default class dreamdex extends Exchange {
                 'authTokenExpires': undefined,
                 'chainId': 5031,
                 'builderFee': true,
-                'builder': '0x7121f9204980ea8DC50226CeDe990bA8698b69E8', // TODO(maintainers): replace placeholder builder wallet before merge
+                'builder': '0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39',
                 'builderFeeBpsTimes1k': 1000, // 1 bps (unit: 1000 = 1 bps)
             },
             'exceptions': {
