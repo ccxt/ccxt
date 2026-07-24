@@ -96,9 +96,8 @@ public partial class BaseExchange
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
         var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? null : (string)res;
+        return res == null ? defaultValue as string : (string)res;
     }
-
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
     public string? safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
