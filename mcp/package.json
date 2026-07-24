@@ -1,0 +1,53 @@
+{
+  "name": "ccxt-mcp",
+  "version": "0.1.0",
+  "description": "Official CCXT MCP server — unified access to 100+ cryptocurrency exchanges for AI agents via the Model Context Protocol",
+  "main": "./js/server.js",
+  "type": "module",
+  "mcpName": "io.github.ccxt/ccxt-mcp",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/build-doc-manifest.mjs",
+    "test": "node --import tsx --test test/unit/*.test.ts test/schema/*.test.ts test/integration/*.test.ts",
+    "prepublishOnly": "npm run build",
+    "publishPackage": "npm run build && npm publish",
+    "sync-versions": "node scripts/sync-versions.mjs",
+    "mcpb": "npm run build && node scripts/build-mcpb.mjs"
+  },
+  "bin": {
+    "ccxt-mcp": "js/server.js"
+  },
+  "author": "CCXT",
+  "license": "MIT",
+  "keywords": [
+    "ccxt",
+    "mcp",
+    "model-context-protocol",
+    "crypto",
+    "exchange",
+    "trading",
+    "ai",
+    "agent"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ccxt": "^4.5.67",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccxt/ccxt.git"
+  },
+  "readme": "README.md",
+  "bugs": {
+    "url": "https://github.com/ccxt/ccxt/issues"
+  },
+  "homepage": "https://ccxt.com"
+}

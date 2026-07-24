@@ -926,6 +926,22 @@ Arguments:
 
 You can easily provide API keys by setting them as environment varibales eg: `BINANCE_APIKEY="XXXX"` or adding them to the config file located at `$CACHE/config.json`
 
+## CCXT MCP Server
+
+Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/mcp/README.md)
+
+CCXT ships an official [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, so AI agents — Claude Desktop, Claude Code, Cursor, VS Code, Windsurf and any other MCP host — can access market data, balances, and (opt-in) trading on 100+ exchanges and prediction markets. It runs locally over stdio: your API keys stay on your machine and are never visible to the AI model, which references accounts by name only. Trading, withdrawals and raw endpoints are separate opt-in capability tiers, off by default, with confirmation flows, notional caps and an audit journal.
+
+```bash
+claude mcp add ccxt -- npx -y ccxt-mcp
+```
+
+Or in any host's MCP config:
+
+```json
+{ "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
+```
+
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.

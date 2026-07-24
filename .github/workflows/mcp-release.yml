@@ -1,0 +1,42 @@
+name: MCP Release
+
+# Publishes the ccxt-mcp sub-package to npm, mirroring the main release workflow
+# (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
+# Bump mcp/package.json first and run `npm run sync-versions` so manifest/server.json match,
+# then dispatch this workflow. npm auth uses OIDC trusted publishing — configure a trusted
+# publisher for the `ccxt-mcp` package on npmjs pointing at this workflow (one-time setup).
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: Prod
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
+      - name: Install
+        run: npm ci
+      - name: Verify manifest/server.json versions match package.json
+        run: node scripts/sync-versions.mjs --check
+      - name: Build (tsc + doc manifest)
+        run: npm run build
+      - name: Test
+        run: npm test
+      - run: node -v && npm -v
+      - name: Publish to npm (provenance)
+        run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
