@@ -609,10 +609,10 @@ class NewTranspiler {
             // OrderBook
             [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
             [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
-            [/orderbook(s)?\.(Reset|Limit)/g, 'orderbook$1.(OrderBookInterface).$2'],
+            [/(orderbook|bboBook)(s)?\.(Reset|Limit)/g, '$1$2.(OrderBookInterface).$3'],
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
             [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
-            [/this.ParseWsBidAsk\(GetValue\(this.Orderbooks, symbol\)/g, 'this.ParseWsBidAsk(UnWrapType(ccxt.GetValue(this.Orderbooks, symbol))'],
+            [/this.ParseWsBidAsk\(GetValue\(this.Orderbooks, (symbol|bboKey)\)/g, 'this.ParseWsBidAsk(UnWrapType(ccxt.GetValue(this.Orderbooks, $1))'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
