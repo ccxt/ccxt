@@ -5,7 +5,7 @@
 # Python and PHP get isolated, pinned CCXT installs under runtime/.
 #
 # Both runners fall back to the monorepo's in-repo CCXT if these are missing
-# (system python3 + PYTHONPATH=../python, and ../ccxt.php), so this script is a
+# (system python3 + PYTHONPATH=../../python, and ../../ccxt.php), so this script is a
 # nice-to-have for a clean, decoupled install rather than a hard requirement.
 
 # No `set -e`: provisioning a runtime is best-effort. If one language fails to
@@ -38,7 +38,7 @@ if command -v python3 >/dev/null 2>&1; then
     || echo "    warning: python ccxt import failed on this arch (Python runner will be unavailable; works on amd64)"
   deactivate || true
 else
-  echo "    python3 not found — runner will fall back to monorepo ../python"
+  echo "    python3 not found — runner will fall back to monorepo ../../python"
 fi
 
 echo "==> PHP runtime (runtime/php/vendor)"
@@ -57,7 +57,7 @@ JSON
     echo "    warning: php composer install failed (PHP runner will be unavailable)"
   fi
 else
-  echo "    composer not found — runner will fall back to monorepo ../ccxt.php"
+  echo "    composer not found — runner will fall back to monorepo ../../ccxt.php"
 fi
 
 CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.56}"

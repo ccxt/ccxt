@@ -227,7 +227,7 @@ export default [
     {
         ignores: [
             'build/**',
-            'playground/**',
+            'docs/playground/**',
         ],
     },
     {

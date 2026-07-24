@@ -1,5 +1,5 @@
 # CCXT Fumadocs — containerized Next.js server (standalone output).
-# Build: docker build -t ccxt-fumadocs website
+# Build: docker build -t ccxt-fumadocs docs/website
 # Run:   docker run -d --restart=always -p 127.0.0.1:3005:3005 --name ccxt-docs ccxt-fumadocs
 
 FROM node:20-slim AS builder

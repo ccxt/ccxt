@@ -15,7 +15,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'playground/**'
+      - 'docs/playground/**'
       - '.github/workflows/deploy-playground.yml'
   workflow_dispatch:
 
@@ -56,7 +56,7 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: playground
+          context: docs/playground
           platforms: linux/arm64
           push: true
           # Go stays install-only on this 7.5 GB shared box: compiling ccxt-go needs
@@ -73,7 +73,7 @@ jobs:
       - name: Build & push egress proxy image
         uses: docker/build-push-action@v7
         with:
-          context: playground/proxy
+          context: docs/playground/proxy
           platforms: linux/arm64
           push: true
           tags: |
