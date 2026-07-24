@@ -150,16 +150,6 @@
                 ]
             }
         ],
-        "fetchEvent": [
-            {
-                "description": "fetchEvent by the provided id argument",
-                "method": "fetchEvent",
-                "url": "https://api-v2.myriadprotocol.com/markets/449?network_id=2741",
-                "input": [
-                    "2741:449"
-                ]
-            }
-        ],
         "fetchTradeQuote": [
             {
                 "description": "fetchTradeQuote buy",

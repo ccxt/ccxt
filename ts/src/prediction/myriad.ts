@@ -690,7 +690,7 @@ export default class myriad extends Exchange {
         //         }
         //     }
         //
-        return this.parseTradeQuote (response, outcomeObj as any);
+        return this.parseTradeQuote (this.extend (response, { 'action': sideStr }), outcomeObj as any);
     }
 
     /**
@@ -2869,11 +2869,13 @@ export default class myriad extends Exchange {
         let rawMarkets: any[] = [];
         let rawQuestions: any[] = [];
         if (queriesLength > 0) {
-            rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
-            if (rawMarkets.length === 0) {
-                // some markets are only discoverable through the questions search endpoint
-                rawQuestions = await this.fetchRawQuestionsBySearch (queries, rest);
-            }
+            // some markets are only discoverable through the questions search endpoint
+            const responses = await Promise.all ([
+                this.fetchRawMarketsBySearch (queries, rest),
+                this.fetchRawQuestionsBySearch (queries, rest),
+            ]);
+            rawMarkets = this.safeList (responses, 0, []);
+            rawQuestions = this.safeList (responses, 1, []);
         } else if (eventId !== undefined) {
             if (eventId.indexOf (':') > -1) {
                 const rawMarket = await this.fetchRawMarketById (eventId, rest);
