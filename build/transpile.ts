@@ -1036,7 +1036,7 @@ class Transpiler {
         const defaultDescribe = baseExchange.describe ();
         const defaultHas = defaultDescribe.has;
         const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
-        const specialMethods = [
+        const derivedMethods = [
             // ohlcv-related
             'fetchMarkOHLCV',
             'fetchPremiumOHLCV',
@@ -1084,7 +1084,7 @@ class Transpiler {
                 if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
                     features[methodName] = 'true,';
                 }
-            } else if (!exclusions.includes (methodName) && !specialMethods.includes (methodName)) {
+            } else if (!exclusions.includes (methodName) && !derivedMethods.includes (methodName)) {
                 // if code does not contain unified method definition, then we remove (unless false)
                 if (!(methodName in features) || features[methodName] !== 'false,') {
                     delete features[methodName];
