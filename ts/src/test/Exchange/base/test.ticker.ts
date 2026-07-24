@@ -108,7 +108,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             const mPrecision = exchange.safeDict (market, 'precision');
             const amountPrecision = exchange.safeString (mPrecision, 'amount');
-            const tolerance = '1.0001';
+            const tolerance = '1.01'; // let's allow 1 percent
             if (amountPrecision !== undefined) {
                 baseLow = Precise.stringMul (Precise.stringSub (baseVolume, amountPrecision), low);
                 baseHigh = Precise.stringMul (Precise.stringAdd (baseVolume, amountPrecision), high);
@@ -151,6 +151,16 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
         if (quoteVolume !== undefined) {
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
+        }
+        // check baseVolume / quoteVolume ratio with vwap
+        if (baseVolume !== undefined && quoteVolume !== undefined) {
+            const tolerance = '1.0001';
+            const quoteVolumeDivBaseVolume = Precise.stringDiv (quoteVolume, baseVolume);
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated vwap
+            const vwapLow = Precise.stringDiv (vwap, tolerance);
+            const vwapHigh = Precise.stringMul (vwap, tolerance);
+            assert (Precise.stringGe (quoteVolumeDivBaseVolume, vwapLow), 'quoteVolume / baseVolume should be >= vwap' + logText);
+            assert (Precise.stringLe (quoteVolumeDivBaseVolume, vwapHigh), 'quoteVolume / baseVolume should be <= vwap' + logText);
         }
     }
     const askString = exchange.safeString (entry, 'ask');
