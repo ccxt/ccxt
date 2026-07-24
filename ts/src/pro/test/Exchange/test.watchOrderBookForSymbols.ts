@@ -25,9 +25,8 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             succeeded = false;
         }
         if (succeeded === true) {
-            const orderBookCopy = response.copy ();
-            testOrderBook (exchange, skippedProperties, method, orderBookCopy, undefined);
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, orderBookCopy, 'symbol', symbols);
+            testOrderBook (exchange, skippedProperties, method, response, undefined);
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             const symbol = response['symbol'];
             if ((symbol !== undefined) && !exchange.inArray (symbol, seenSymbols)) {
                 seenSymbols.push (symbol);
