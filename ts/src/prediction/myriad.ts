@@ -353,9 +353,9 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchEvent
-     * @description fetches a single prediction-market event by its market id
+     * @description fetches a single prediction-market event by its market id, or orderbook slug
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string} id the market id
+     * @param {string} id the market id, or orderbook slug
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
@@ -480,7 +480,7 @@ export default class myriad extends Exchange {
     async fetchRawQuestionsList (params = {}): Promise<any[]> {
         const limit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 50);
         const maxQuestions = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchEventsLimit', 1000));
-        const state = this.safeString2 (params, 'state', 'status');
+        const state = this.safeString2 (params, 'state', 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
         const rest = this.omit (params, [ 'state', 'status', 'limit', 'tradingModel', 'trading_model' ]);
         const allRawQuestions: any[] = [];
         const seen: Dict = {};
