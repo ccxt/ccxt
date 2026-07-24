@@ -1035,7 +1035,7 @@ class Transpiler {
         const baseExchange = this.getBaseClass ()
         const defaultDescribe = baseExchange.describe ();
         const defaultHas = defaultDescribe.has;
-        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
+        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox', 'CORS', 'WS' ];
         const derivedMethods = [
             // ohlcv-related
             'fetchMarkOHLCV',
@@ -1079,7 +1079,7 @@ class Transpiler {
             'createStopMarketOrderWs',
         ];
         for (const methodName of Object.keys (defaultHas)) {
-            // if code contains unified method defition, then it should be true
+            // if code contains unified method definition, then it should be true
             if (code.includes ('\n    async ' + methodName + ' (')) {
                 if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
                     features[methodName] = 'true,';
