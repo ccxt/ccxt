@@ -360,9 +360,7 @@ export default class myriad extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const intId = this.parseToInt (id);
-        const isNumericId = (intId !== undefined) && (this.numberToString (intId) === id);
-        if ((id.indexOf (':') < 0) && !isNumericId) {
+        if (id.indexOf (':') < 0) {
             const rawQuestion = await this.fetchRawQuestionById (id, params);
             const orderBookEvent = this.parseEvent (rawQuestion);
             this.indexEventOutcomes (orderBookEvent);
@@ -616,10 +614,10 @@ export default class myriad extends Exchange {
         const shares = this.safeNumber (position, 'shares');
         const value = this.safeNumber (position, 'value');
         const profit = this.safeNumber (position, 'profit');
-        const roi = this.safeNumber (position, 'roi');
-        let percentage: Num = undefined;
+        const roi = this.safeString (position, 'roi');
+        let percentage = undefined;
         if (roi !== undefined) {
-            percentage = roi * 100;
+            percentage = Precise.stringMul (roi, '100');
         }
         return this.safePredictionPosition ({
             'info': position,
@@ -633,7 +631,7 @@ export default class myriad extends Exchange {
             'notional': value,
             'markPrice': this.safeNumber (position, 'price'),
             'unrealizedPnl': profit,
-            'percentage': percentage,
+            'percentage': this.parseNumber (percentage),
             'marginMode': 'cash',
             'hedged': false,
         });
