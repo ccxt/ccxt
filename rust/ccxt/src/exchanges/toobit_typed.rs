@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::toobit::ToobitCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Toobit {
     // Private + pinned: the Core is self-referential (its embedded

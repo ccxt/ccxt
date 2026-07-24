@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::p2b::P2bCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct P2b {
     // Private + pinned: the Core is self-referential (its embedded

@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::binance::BinanceCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Binance {
     // Private + pinned: the Core is self-referential (its embedded

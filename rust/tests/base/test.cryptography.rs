@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
+use ccxt::exchange_generated::ExchangeBase;
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 fn equals(a: Value, b: Value) -> Value {

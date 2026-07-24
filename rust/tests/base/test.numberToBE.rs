@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
+use ccxt::exchange_generated::ExchangeBase;
 
 pub fn testNumberToBE() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

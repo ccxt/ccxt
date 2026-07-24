@@ -9,830 +9,831 @@
 
 use crate::Value;
 use super::aster::AsterCore;
+use crate::exchange::ExchangeRuntime;
 
 impl AsterCore {
     /// Auto-generated wrapper for the `fapiPublicGetV1Ping` implicit endpoint.
-    pub async fn fapi_public_get_v1_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Ping` implicit endpoint.
-    pub async fn fapi_public_get_v3_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1Time` implicit endpoint.
-    pub async fn fapi_public_get_v1_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Time` implicit endpoint.
-    pub async fn fapi_public_get_v3_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1ExchangeInfo` implicit endpoint.
-    pub async fn fapi_public_get_v1_exchange_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_exchange_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3ExchangeInfo` implicit endpoint.
-    pub async fn fapi_public_get_v3_exchange_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_exchange_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1Depth` implicit endpoint.
-    pub async fn fapi_public_get_v1_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Depth` implicit endpoint.
-    pub async fn fapi_public_get_v3_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1Trades` implicit endpoint.
-    pub async fn fapi_public_get_v1_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Trades` implicit endpoint.
-    pub async fn fapi_public_get_v3_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1HistoricalTrades` implicit endpoint.
-    pub async fn fapi_public_get_v1_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3HistoricalTrades` implicit endpoint.
-    pub async fn fapi_public_get_v3_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1AggTrades` implicit endpoint.
-    pub async fn fapi_public_get_v1_agg_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_agg_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_agg_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3AggTrades` implicit endpoint.
-    pub async fn fapi_public_get_v3_agg_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_agg_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_agg_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1Klines` implicit endpoint.
-    pub async fn fapi_public_get_v1_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Klines` implicit endpoint.
-    pub async fn fapi_public_get_v3_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1IndexPriceKlines` implicit endpoint.
-    pub async fn fapi_public_get_v1_index_price_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_index_price_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_index_price_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3IndexPriceKlines` implicit endpoint.
-    pub async fn fapi_public_get_v3_index_price_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_index_price_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_index_price_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1MarkPriceKlines` implicit endpoint.
-    pub async fn fapi_public_get_v1_mark_price_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_mark_price_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_mark_price_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3MarkPriceKlines` implicit endpoint.
-    pub async fn fapi_public_get_v3_mark_price_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_mark_price_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_mark_price_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1PremiumIndex` implicit endpoint.
-    pub async fn fapi_public_get_v1_premium_index(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_premium_index(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_premium_index".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3PremiumIndex` implicit endpoint.
-    pub async fn fapi_public_get_v3_premium_index(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_premium_index(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_premium_index".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1FundingRate` implicit endpoint.
-    pub async fn fapi_public_get_v1_funding_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_funding_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3FundingRate` implicit endpoint.
-    pub async fn fapi_public_get_v3_funding_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_funding_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1FundingInfo` implicit endpoint.
-    pub async fn fapi_public_get_v1_funding_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_funding_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_funding_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3FundingInfo` implicit endpoint.
-    pub async fn fapi_public_get_v3_funding_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_funding_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_funding_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1Ticker24hr` implicit endpoint.
-    pub async fn fapi_public_get_v1_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Ticker24hr` implicit endpoint.
-    pub async fn fapi_public_get_v3_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1TickerPrice` implicit endpoint.
-    pub async fn fapi_public_get_v1_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3TickerPrice` implicit endpoint.
-    pub async fn fapi_public_get_v3_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1TickerBookTicker` implicit endpoint.
-    pub async fn fapi_public_get_v1_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3TickerBookTicker` implicit endpoint.
-    pub async fn fapi_public_get_v3_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1AdlQuantile` implicit endpoint.
-    pub async fn fapi_public_get_v1_adl_quantile(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_adl_quantile(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_adl_quantile".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV1ForceOrders` implicit endpoint.
-    pub async fn fapi_public_get_v1_force_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v1_force_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_force_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetV3Indexreferences` implicit endpoint.
-    pub async fn fapi_public_get_v3_indexreferences(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_public_get_v3_indexreferences(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v3_indexreferences".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1PositionSideDual` implicit endpoint.
-    pub async fn fapi_private_get_v1_position_side_dual(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_position_side_dual(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_position_side_dual".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3PositionSideDual` implicit endpoint.
-    pub async fn fapi_private_get_v3_position_side_dual(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_position_side_dual(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_position_side_dual".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1MultiAssetsMargin` implicit endpoint.
-    pub async fn fapi_private_get_v1_multi_assets_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_multi_assets_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_multi_assets_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3MultiAssetsMargin` implicit endpoint.
-    pub async fn fapi_private_get_v3_multi_assets_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_multi_assets_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_multi_assets_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1Order` implicit endpoint.
-    pub async fn fapi_private_get_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Order` implicit endpoint.
-    pub async fn fapi_private_get_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1OpenOrder` implicit endpoint.
-    pub async fn fapi_private_get_v1_open_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_open_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_open_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3OpenOrder` implicit endpoint.
-    pub async fn fapi_private_get_v3_open_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_open_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_open_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1OpenOrders` implicit endpoint.
-    pub async fn fapi_private_get_v1_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3OpenOrders` implicit endpoint.
-    pub async fn fapi_private_get_v3_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1AllOrders` implicit endpoint.
-    pub async fn fapi_private_get_v1_all_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_all_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3AllOrders` implicit endpoint.
-    pub async fn fapi_private_get_v3_all_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_all_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV2Balance` implicit endpoint.
-    pub async fn fapi_private_get_v2_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v2_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v2_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Balance` implicit endpoint.
-    pub async fn fapi_private_get_v3_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Account` implicit endpoint.
-    pub async fn fapi_private_get_v3_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1PositionMarginHistory` implicit endpoint.
-    pub async fn fapi_private_get_v1_position_margin_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_position_margin_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_position_margin_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3PositionMarginHistory` implicit endpoint.
-    pub async fn fapi_private_get_v3_position_margin_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_position_margin_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_position_margin_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV2PositionRisk` implicit endpoint.
-    pub async fn fapi_private_get_v2_position_risk(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v2_position_risk(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v2_position_risk".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3PositionRisk` implicit endpoint.
-    pub async fn fapi_private_get_v3_position_risk(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_position_risk(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_position_risk".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1UserTrades` implicit endpoint.
-    pub async fn fapi_private_get_v1_user_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_user_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_user_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3UserTrades` implicit endpoint.
-    pub async fn fapi_private_get_v3_user_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_user_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_user_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1Income` implicit endpoint.
-    pub async fn fapi_private_get_v1_income(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_income(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_income".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Income` implicit endpoint.
-    pub async fn fapi_private_get_v3_income(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_income(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_income".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1LeverageBracket` implicit endpoint.
-    pub async fn fapi_private_get_v1_leverage_bracket(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_leverage_bracket(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_leverage_bracket".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3LeverageBracket` implicit endpoint.
-    pub async fn fapi_private_get_v3_leverage_bracket(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_leverage_bracket(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_leverage_bracket".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV1CommissionRate` implicit endpoint.
-    pub async fn fapi_private_get_v1_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v1_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v1_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3CommissionRate` implicit endpoint.
-    pub async fn fapi_private_get_v3_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3AdlQuantile` implicit endpoint.
-    pub async fn fapi_private_get_v3_adl_quantile(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_adl_quantile(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_adl_quantile".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3ForceOrders` implicit endpoint.
-    pub async fn fapi_private_get_v3_force_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_force_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_force_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Mmp` implicit endpoint.
-    pub async fn fapi_private_get_v3_mmp(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_mmp(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_mmp".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3AccountWithJoinMargin` implicit endpoint.
-    pub async fn fapi_private_get_v3_account_with_join_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_account_with_join_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_account_with_join_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV4Account` implicit endpoint.
-    pub async fn fapi_private_get_v4_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v4_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v4_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Agent` implicit endpoint.
-    pub async fn fapi_private_get_v3_agent(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_agent(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_agent".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetV3Builder` implicit endpoint.
-    pub async fn fapi_private_get_v3_builder(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_get_v3_builder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_get_v3_builder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1PositionSideDual` implicit endpoint.
-    pub async fn fapi_private_post_v1_position_side_dual(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_position_side_dual(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_position_side_dual".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3PositionSideDual` implicit endpoint.
-    pub async fn fapi_private_post_v3_position_side_dual(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_position_side_dual(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_position_side_dual".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1MultiAssetsMargin` implicit endpoint.
-    pub async fn fapi_private_post_v1_multi_assets_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_multi_assets_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_multi_assets_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3MultiAssetsMargin` implicit endpoint.
-    pub async fn fapi_private_post_v3_multi_assets_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_multi_assets_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_multi_assets_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1Order` implicit endpoint.
-    pub async fn fapi_private_post_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3Order` implicit endpoint.
-    pub async fn fapi_private_post_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1OrderTest` implicit endpoint.
-    pub async fn fapi_private_post_v1_order_test(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_order_test(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_order_test".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3OrderTest` implicit endpoint.
-    pub async fn fapi_private_post_v3_order_test(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_order_test(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_order_test".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1BatchOrders` implicit endpoint.
-    pub async fn fapi_private_post_v1_batch_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_batch_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3BatchOrders` implicit endpoint.
-    pub async fn fapi_private_post_v3_batch_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_batch_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1AssetWalletTransfer` implicit endpoint.
-    pub async fn fapi_private_post_v1_asset_wallet_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_asset_wallet_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_asset_wallet_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3AssetWalletTransfer` implicit endpoint.
-    pub async fn fapi_private_post_v3_asset_wallet_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_asset_wallet_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_asset_wallet_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1CountdownCancelAll` implicit endpoint.
-    pub async fn fapi_private_post_v1_countdown_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_countdown_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_countdown_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3CountdownCancelAll` implicit endpoint.
-    pub async fn fapi_private_post_v3_countdown_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_countdown_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_countdown_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1Leverage` implicit endpoint.
-    pub async fn fapi_private_post_v1_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3Leverage` implicit endpoint.
-    pub async fn fapi_private_post_v3_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1MarginType` implicit endpoint.
-    pub async fn fapi_private_post_v1_margin_type(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_margin_type(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_margin_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3MarginType` implicit endpoint.
-    pub async fn fapi_private_post_v3_margin_type(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_margin_type(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_margin_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1PositionMargin` implicit endpoint.
-    pub async fn fapi_private_post_v1_position_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_position_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3PositionMargin` implicit endpoint.
-    pub async fn fapi_private_post_v3_position_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_position_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV1ListenKey` implicit endpoint.
-    pub async fn fapi_private_post_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3ListenKey` implicit endpoint.
-    pub async fn fapi_private_post_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3Mmp` implicit endpoint.
-    pub async fn fapi_private_post_v3_mmp(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_mmp(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_mmp".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3MmpReset` implicit endpoint.
-    pub async fn fapi_private_post_v3_mmp_reset(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_mmp_reset(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_mmp_reset".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3Noop` implicit endpoint.
-    pub async fn fapi_private_post_v3_noop(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_noop(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_noop".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3ApproveAgent` implicit endpoint.
-    pub async fn fapi_private_post_v3_approve_agent(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_approve_agent(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_approve_agent".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3UpdateAgent` implicit endpoint.
-    pub async fn fapi_private_post_v3_update_agent(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_update_agent(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_update_agent".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3ApproveBuilder` implicit endpoint.
-    pub async fn fapi_private_post_v3_approve_builder(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_approve_builder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_approve_builder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostV3UpdateBuilder` implicit endpoint.
-    pub async fn fapi_private_post_v3_update_builder(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_post_v3_update_builder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v3_update_builder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePutV1ListenKey` implicit endpoint.
-    pub async fn fapi_private_put_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_put_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_put_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePutV3ListenKey` implicit endpoint.
-    pub async fn fapi_private_put_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_put_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_put_v3_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV1Order` implicit endpoint.
-    pub async fn fapi_private_delete_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3Order` implicit endpoint.
-    pub async fn fapi_private_delete_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV1AllOpenOrders` implicit endpoint.
-    pub async fn fapi_private_delete_v1_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v1_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v1_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3AllOpenOrders` implicit endpoint.
-    pub async fn fapi_private_delete_v3_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV1BatchOrders` implicit endpoint.
-    pub async fn fapi_private_delete_v1_batch_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v1_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v1_batch_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3BatchOrders` implicit endpoint.
-    pub async fn fapi_private_delete_v3_batch_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_batch_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3Mmp` implicit endpoint.
-    pub async fn fapi_private_delete_v3_mmp(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_mmp(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_mmp".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV1ListenKey` implicit endpoint.
-    pub async fn fapi_private_delete_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3ListenKey` implicit endpoint.
-    pub async fn fapi_private_delete_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3Agent` implicit endpoint.
-    pub async fn fapi_private_delete_v3_agent(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_agent(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_agent".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3Builder` implicit endpoint.
-    pub async fn fapi_private_delete_v3_builder(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_private_delete_v3_builder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_builder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Ping` implicit endpoint.
-    pub async fn sapi_public_get_v1_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Time` implicit endpoint.
-    pub async fn sapi_public_get_v1_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1ExchangeInfo` implicit endpoint.
-    pub async fn sapi_public_get_v1_exchange_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_exchange_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Depth` implicit endpoint.
-    pub async fn sapi_public_get_v1_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Trades` implicit endpoint.
-    pub async fn sapi_public_get_v1_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1HistoricalTrades` implicit endpoint.
-    pub async fn sapi_public_get_v1_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1AggTrades` implicit endpoint.
-    pub async fn sapi_public_get_v1_agg_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_agg_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_agg_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Klines` implicit endpoint.
-    pub async fn sapi_public_get_v1_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1Ticker24hr` implicit endpoint.
-    pub async fn sapi_public_get_v1_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1TickerPrice` implicit endpoint.
-    pub async fn sapi_public_get_v1_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1TickerBookTicker` implicit endpoint.
-    pub async fn sapi_public_get_v1_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV1AsterWithdrawEstimateFee` implicit endpoint.
-    pub async fn sapi_public_get_v1_aster_withdraw_estimate_fee(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v1_aster_withdraw_estimate_fee(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v1_aster_withdraw_estimate_fee".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Ping` implicit endpoint.
-    pub async fn sapi_public_get_v3_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Time` implicit endpoint.
-    pub async fn sapi_public_get_v3_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3ExchangeInfo` implicit endpoint.
-    pub async fn sapi_public_get_v3_exchange_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_exchange_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Depth` implicit endpoint.
-    pub async fn sapi_public_get_v3_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Trades` implicit endpoint.
-    pub async fn sapi_public_get_v3_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3HistoricalTrades` implicit endpoint.
-    pub async fn sapi_public_get_v3_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3AggTrades` implicit endpoint.
-    pub async fn sapi_public_get_v3_agg_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_agg_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_agg_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Klines` implicit endpoint.
-    pub async fn sapi_public_get_v3_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3Ticker24hr` implicit endpoint.
-    pub async fn sapi_public_get_v3_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3TickerPrice` implicit endpoint.
-    pub async fn sapi_public_get_v3_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3TickerBookTicker` implicit endpoint.
-    pub async fn sapi_public_get_v3_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPublicGetV3AsterWithdrawEstimateFee` implicit endpoint.
-    pub async fn sapi_public_get_v3_aster_withdraw_estimate_fee(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_public_get_v3_aster_withdraw_estimate_fee(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_public_get_v3_aster_withdraw_estimate_fee".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1CommissionRate` implicit endpoint.
-    pub async fn sapi_private_get_v1_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1Order` implicit endpoint.
-    pub async fn sapi_private_get_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1OpenOrders` implicit endpoint.
-    pub async fn sapi_private_get_v1_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1AllOrders` implicit endpoint.
-    pub async fn sapi_private_get_v1_all_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_all_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1TransactionHistory` implicit endpoint.
-    pub async fn sapi_private_get_v1_transaction_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_transaction_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_transaction_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1Account` implicit endpoint.
-    pub async fn sapi_private_get_v1_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV1UserTrades` implicit endpoint.
-    pub async fn sapi_private_get_v1_user_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v1_user_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v1_user_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3CommissionRate` implicit endpoint.
-    pub async fn sapi_private_get_v3_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3Order` implicit endpoint.
-    pub async fn sapi_private_get_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3OpenOrders` implicit endpoint.
-    pub async fn sapi_private_get_v3_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3AllOrders` implicit endpoint.
-    pub async fn sapi_private_get_v3_all_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_all_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3Account` implicit endpoint.
-    pub async fn sapi_private_get_v3_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3UserTrades` implicit endpoint.
-    pub async fn sapi_private_get_v3_user_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_user_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_user_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetV3OpenOrder` implicit endpoint.
-    pub async fn sapi_private_get_v3_open_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_get_v3_open_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_v3_open_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV1Order` implicit endpoint.
-    pub async fn sapi_private_post_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV1AssetWalletTransfer` implicit endpoint.
-    pub async fn sapi_private_post_v1_asset_wallet_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v1_asset_wallet_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v1_asset_wallet_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV1AssetSendToAddress` implicit endpoint.
-    pub async fn sapi_private_post_v1_asset_send_to_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v1_asset_send_to_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v1_asset_send_to_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV1ListenKey` implicit endpoint.
-    pub async fn sapi_private_post_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV3Order` implicit endpoint.
-    pub async fn sapi_private_post_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV3AssetWalletTransfer` implicit endpoint.
-    pub async fn sapi_private_post_v3_asset_wallet_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v3_asset_wallet_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v3_asset_wallet_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV3AsterUserWithdraw` implicit endpoint.
-    pub async fn sapi_private_post_v3_aster_user_withdraw(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v3_aster_user_withdraw(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v3_aster_user_withdraw".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostV3ListenKey` implicit endpoint.
-    pub async fn sapi_private_post_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_post_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_post_v3_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePutV1ListenKey` implicit endpoint.
-    pub async fn sapi_private_put_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_put_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_put_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePutV3ListenKey` implicit endpoint.
-    pub async fn sapi_private_put_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_put_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_put_v3_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV1Order` implicit endpoint.
-    pub async fn sapi_private_delete_v1_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v1_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v1_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV1AllOpenOrders` implicit endpoint.
-    pub async fn sapi_private_delete_v1_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v1_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v1_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV1ListenKey` implicit endpoint.
-    pub async fn sapi_private_delete_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV3AllOpenOrders` implicit endpoint.
-    pub async fn sapi_private_delete_v3_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v3_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v3_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV3Order` implicit endpoint.
-    pub async fn sapi_private_delete_v3_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v3_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v3_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateDeleteV3ListenKey` implicit endpoint.
-    pub async fn sapi_private_delete_v3_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn sapi_private_delete_v3_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_delete_v3_listen_key".to_string()), optional_args).await
     }
 

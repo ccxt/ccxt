@@ -9,295 +9,296 @@
 
 use crate::Value;
 use super::limitless::LimitlessCore;
+use crate::exchange::ExchangeRuntime;
 
 impl LimitlessCore {
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActive` implicit endpoint.
-    pub async fn limitless_public_get_markets_active(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_active(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_active".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActiveCategoryId` implicit endpoint.
-    pub async fn limitless_public_get_markets_active_category_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_active_category_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_active_category_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetCategories` implicit endpoint.
-    pub async fn limitless_public_get_categories(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_categories(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_categories".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsAddressOrSlug` implicit endpoint.
-    pub async fn limitless_public_get_markets_address_or_slug(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_address_or_slug(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_address_or_slug".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsCategoriesCount` implicit endpoint.
-    pub async fn limitless_public_get_markets_categories_count(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_categories_count(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_categories_count".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActiveSlugs` implicit endpoint.
-    pub async fn limitless_public_get_markets_active_slugs(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_active_slugs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_active_slugs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSearch` implicit endpoint.
-    pub async fn limitless_public_get_markets_search(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_search(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_search".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugOrderbook` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_slug_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_slug_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugHistoricalPrice` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_historical_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_slug_historical_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_slug_historical_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetAuthSigningMessage` implicit endpoint.
-    pub async fn limitless_public_get_auth_signing_message(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_auth_signing_message(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_auth_signing_message".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsAddressOrSlugOracleCandles` implicit endpoint.
-    pub async fn limitless_public_get_markets_address_or_slug_oracle_candles(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_address_or_slug_oracle_candles(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_address_or_slug_oracle_candles".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugGetFeedEvents` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_get_feed_events(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_slug_get_feed_events(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_slug_get_feed_events".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugEvents` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_events(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_slug_events(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_slug_events".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsTimeline` implicit endpoint.
-    pub async fn limitless_public_get_markets_timeline(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_timeline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_timeline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugTimeline` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_timeline(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_markets_slug_timeline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_slug_timeline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetNavigation` implicit endpoint.
-    pub async fn limitless_public_get_navigation(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_navigation(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_navigation".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketPagesByPath` implicit endpoint.
-    pub async fn limitless_public_get_market_pages_by_path(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_market_pages_by_path(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_market_pages_by_path".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketPagesIdMarkets` implicit endpoint.
-    pub async fn limitless_public_get_market_pages_id_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_market_pages_id_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_market_pages_id_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeys` implicit endpoint.
-    pub async fn limitless_public_get_property_keys(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_property_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_property_keys".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeysId` implicit endpoint.
-    pub async fn limitless_public_get_property_keys_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_property_keys_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_property_keys_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeysIdOptions` implicit endpoint.
-    pub async fn limitless_public_get_property_keys_id_options(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_property_keys_id_options(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_property_keys_id_options".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPortfolioAccountTradedVolume` implicit endpoint.
-    pub async fn limitless_public_get_portfolio_account_traded_volume(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_portfolio_account_traded_volume(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_portfolio_account_traded_volume".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPortfolioAccountPositions` implicit endpoint.
-    pub async fn limitless_public_get_portfolio_account_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_portfolio_account_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_portfolio_account_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPortfolioAccountPnlChart` implicit endpoint.
-    pub async fn limitless_public_get_portfolio_account_pnl_chart(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_public_get_portfolio_account_pnl_chart(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_portfolio_account_pnl_chart".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetAuthApiKeys` implicit endpoint.
-    pub async fn limitless_private_get_auth_api_keys(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_auth_api_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_auth_api_keys".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesPartnerAccounts` implicit endpoint.
-    pub async fn limitless_private_get_profiles_partner_accounts(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_profiles_partner_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_profiles_partner_accounts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetMarketsSlugUserOrders` implicit endpoint.
-    pub async fn limitless_private_get_markets_slug_user_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_markets_slug_user_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_markets_slug_user_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPositions` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioTrades` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetMarketsSlugLockedBalance` implicit endpoint.
-    pub async fn limitless_private_get_markets_slug_locked_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_markets_slug_locked_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_markets_slug_locked_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesMe` implicit endpoint.
-    pub async fn limitless_private_get_profiles_me(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_profiles_me(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_profiles_me".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesAccount` implicit endpoint.
-    pub async fn limitless_private_get_profiles_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_profiles_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_profiles_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPnlChart` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_pnl_chart(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_pnl_chart(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_pnl_chart".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioHistory` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPoints` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_points(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_points(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_points".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioTradingAllowance` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_trading_allowance(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_portfolio_trading_allowance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_portfolio_trading_allowance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetAuthApiTokensCapabilities` implicit endpoint.
-    pub async fn limitless_private_get_auth_api_tokens_capabilities(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_auth_api_tokens_capabilities(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_auth_api_tokens_capabilities".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetAuthApiTokens` implicit endpoint.
-    pub async fn limitless_private_get_auth_api_tokens(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_auth_api_tokens(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_auth_api_tokens".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances` implicit endpoint.
-    pub async fn limitless_private_get_profiles_partner_accounts_profile_id_allowances(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_get_profiles_partner_accounts_profile_id_allowances(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_get_profiles_partner_accounts_profile_id_allowances".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostAuthLogout` implicit endpoint.
-    pub async fn limitless_private_post_auth_logout(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_auth_logout(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_auth_logout".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostAuthApiKeys` implicit endpoint.
-    pub async fn limitless_private_post_auth_api_keys(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_auth_api_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_auth_api_keys".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostAuthLogin` implicit endpoint.
-    pub async fn limitless_private_post_auth_login(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_auth_login(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_auth_login".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrders` implicit endpoint.
-    pub async fn limitless_private_post_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersCancel` implicit endpoint.
-    pub async fn limitless_private_post_orders_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_orders_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_orders_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersCancelBatch` implicit endpoint.
-    pub async fn limitless_private_post_orders_cancel_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_orders_cancel_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_orders_cancel_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersBatchCancel` implicit endpoint.
-    pub async fn limitless_private_post_orders_batch_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_orders_batch_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_orders_batch_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersStatusBatch` implicit endpoint.
-    pub async fn limitless_private_post_orders_status_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_orders_status_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_orders_status_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostPortfolioRedeem` implicit endpoint.
-    pub async fn limitless_private_post_portfolio_redeem(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_portfolio_redeem(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_portfolio_redeem".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostPortfolioWithdraw` implicit endpoint.
-    pub async fn limitless_private_post_portfolio_withdraw(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_portfolio_withdraw(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_portfolio_withdraw".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostPortfolioWithdrawalAddresses` implicit endpoint.
-    pub async fn limitless_private_post_portfolio_withdrawal_addresses(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_portfolio_withdrawal_addresses(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_portfolio_withdrawal_addresses".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostAuthApiTokensDerive` implicit endpoint.
-    pub async fn limitless_private_post_auth_api_tokens_derive(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_auth_api_tokens_derive(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_auth_api_tokens_derive".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostProfilesPartnerAccounts` implicit endpoint.
-    pub async fn limitless_private_post_profiles_partner_accounts(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_profiles_partner_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_profiles_partner_accounts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry` implicit endpoint.
-    pub async fn limitless_private_post_profiles_partner_accounts_profile_id_allowances_retry(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_post_profiles_partner_accounts_profile_id_allowances_retry(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_post_profiles_partner_accounts_profile_id_allowances_retry".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteAuthApiKeys` implicit endpoint.
-    pub async fn limitless_private_delete_auth_api_keys(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_delete_auth_api_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_delete_auth_api_keys".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteOrdersOrderId` implicit endpoint.
-    pub async fn limitless_private_delete_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_delete_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_delete_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteOrdersAllSlug` implicit endpoint.
-    pub async fn limitless_private_delete_orders_all_slug(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_delete_orders_all_slug(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_delete_orders_all_slug".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteAuthApiTokensTokenId` implicit endpoint.
-    pub async fn limitless_private_delete_auth_api_tokens_token_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_delete_auth_api_tokens_token_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_delete_auth_api_tokens_token_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeletePortfolioWithdrawalAddressesAddress` implicit endpoint.
-    pub async fn limitless_private_delete_portfolio_withdrawal_addresses_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn limitless_private_delete_portfolio_withdrawal_addresses_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_private_delete_portfolio_withdrawal_addresses_address".to_string()), optional_args).await
     }
 

@@ -53,10 +53,13 @@ use ccxt::exchanges::{
 // Prediction-market venue Cores live in a separate module (they Deref through
 // PredictionExchange). `hyperliquid` shares an id with the regular exchange, so
 // it is not imported here.
+// Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
     myriad::MyriadCore, polymarket::PolymarketCore,
 };
+// call_dynamic is an ExchangeBase trait method now (review #1).
+use ccxt::exchange_generated::ExchangeBase;
 use indexmap::IndexMap as HashMap;
 use std::panic;
 use futures::FutureExt;
@@ -173,9 +176,9 @@ macro_rules! for_each_core {
         $cb!(gateeu, GateeuCore);
         $cb!(kucoineu, KucoineuCore);
         $cb!(mudrex, MudrexCore);
-        // Prediction-market venues (crate::prediction). `hyperliquid` is
-        // intentionally omitted here — its id collides with the regular
-        // exchange of the same name (see `for_each_prediction_extra!`).
+        // Prediction-market venues (Deref through PredictionExchange). `hyperliquid`
+        // shares an id with the regular exchange, so it is resolved separately in
+        // prediction mode (see live_dispatch.rs) rather than listed here.
         $cb!(kalshi, KalshiCore);
         $cb!(limitless, LimitlessCore);
         $cb!(myriad, MyriadCore);
@@ -216,7 +219,7 @@ pub async fn dispatch(id: &str, method: &str, args: Vec<Value>, fixture_options:
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
             let _ = panic::AssertUnwindSafe(ex.call_dynamic(&m, args.clone())).catch_unwind().await;
-            return capture(&ex.exchange);
+            return capture(&**ex);
         }
     }; }
     for_each_core!(arm);
@@ -234,7 +237,7 @@ pub async fn dispatch_response(
         if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
-            ex.exchange.mock_response = mock.clone();
+            ex.mock_response = mock.clone();
             return match panic::AssertUnwindSafe(ex.call_dynamic(&m, args.clone())).catch_unwind().await {
                 Ok(v)  => v,
                 Err(_) => Value::Null,
@@ -256,7 +259,7 @@ pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
         if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
-            return ex.exchange.to_value();
+            return ex.to_value();
         }
     }; }
     for_each_core!(arm);

@@ -9,355 +9,356 @@
 
 use crate::Value;
 use super::alpaca::AlpacaCore;
+use crate::exchange::ExchangeRuntime;
 
 impl AlpacaCore {
     /// Auto-generated wrapper for the `traderPrivateGetV2Account` implicit endpoint.
-    pub async fn trader_private_get_v2_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Orders` implicit endpoint.
-    pub async fn trader_private_get_v2_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2OrdersOrderId` implicit endpoint.
-    pub async fn trader_private_get_v2_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Positions` implicit endpoint.
-    pub async fn trader_private_get_v2_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2PositionsSymbolOrAssetId` implicit endpoint.
-    pub async fn trader_private_get_v2_positions_symbol_or_asset_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_positions_symbol_or_asset_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_positions_symbol_or_asset_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountPortfolioHistory` implicit endpoint.
-    pub async fn trader_private_get_v2_account_portfolio_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_account_portfolio_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account_portfolio_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Watchlists` implicit endpoint.
-    pub async fn trader_private_get_v2_watchlists(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_watchlists(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_watchlists".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2WatchlistsWatchlistId` implicit endpoint.
-    pub async fn trader_private_get_v2_watchlists_watchlist_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_watchlists_watchlist_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_watchlists_watchlist_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2WatchlistsByName` implicit endpoint.
-    pub async fn trader_private_get_v2_watchlists_by_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_watchlists_by_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_watchlists_by_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountConfigurations` implicit endpoint.
-    pub async fn trader_private_get_v2_account_configurations(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_account_configurations(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account_configurations".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountActivities` implicit endpoint.
-    pub async fn trader_private_get_v2_account_activities(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_account_activities(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account_activities".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountActivitiesActivityType` implicit endpoint.
-    pub async fn trader_private_get_v2_account_activities_activity_type(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_account_activities_activity_type(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account_activities_activity_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Calendar` implicit endpoint.
-    pub async fn trader_private_get_v2_calendar(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_calendar(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_calendar".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Clock` implicit endpoint.
-    pub async fn trader_private_get_v2_clock(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_clock(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_clock".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Assets` implicit endpoint.
-    pub async fn trader_private_get_v2_assets(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_assets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AssetsSymbolOrAssetId` implicit endpoint.
-    pub async fn trader_private_get_v2_assets_symbol_or_asset_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_assets_symbol_or_asset_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_assets_symbol_or_asset_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2CorporateActionsAnnouncementsId` implicit endpoint.
-    pub async fn trader_private_get_v2_corporate_actions_announcements_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_corporate_actions_announcements_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_corporate_actions_announcements_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2CorporateActionsAnnouncements` implicit endpoint.
-    pub async fn trader_private_get_v2_corporate_actions_announcements(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_corporate_actions_announcements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_corporate_actions_announcements".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Wallets` implicit endpoint.
-    pub async fn trader_private_get_v2_wallets(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_wallets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_wallets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2WalletsTransfers` implicit endpoint.
-    pub async fn trader_private_get_v2_wallets_transfers(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_get_v2_wallets_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_wallets_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePostV2Orders` implicit endpoint.
-    pub async fn trader_private_post_v2_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_post_v2_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePostV2Watchlists` implicit endpoint.
-    pub async fn trader_private_post_v2_watchlists(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_post_v2_watchlists(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_watchlists".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePostV2WatchlistsWatchlistId` implicit endpoint.
-    pub async fn trader_private_post_v2_watchlists_watchlist_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_post_v2_watchlists_watchlist_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_watchlists_watchlist_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePostV2WatchlistsByName` implicit endpoint.
-    pub async fn trader_private_post_v2_watchlists_by_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_post_v2_watchlists_by_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_watchlists_by_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePostV2WalletsTransfers` implicit endpoint.
-    pub async fn trader_private_post_v2_wallets_transfers(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_post_v2_wallets_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_wallets_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePutV2OrdersOrderId` implicit endpoint.
-    pub async fn trader_private_put_v2_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_put_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_put_v2_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePutV2WatchlistsWatchlistId` implicit endpoint.
-    pub async fn trader_private_put_v2_watchlists_watchlist_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_put_v2_watchlists_watchlist_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_put_v2_watchlists_watchlist_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePutV2WatchlistsByName` implicit endpoint.
-    pub async fn trader_private_put_v2_watchlists_by_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_put_v2_watchlists_by_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_put_v2_watchlists_by_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePatchV2OrdersOrderId` implicit endpoint.
-    pub async fn trader_private_patch_v2_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_patch_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_patch_v2_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivatePatchV2AccountConfigurations` implicit endpoint.
-    pub async fn trader_private_patch_v2_account_configurations(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_patch_v2_account_configurations(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_patch_v2_account_configurations".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2Orders` implicit endpoint.
-    pub async fn trader_private_delete_v2_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2OrdersOrderId` implicit endpoint.
-    pub async fn trader_private_delete_v2_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2Positions` implicit endpoint.
-    pub async fn trader_private_delete_v2_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2PositionsSymbolOrAssetId` implicit endpoint.
-    pub async fn trader_private_delete_v2_positions_symbol_or_asset_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_positions_symbol_or_asset_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_positions_symbol_or_asset_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2WatchlistsWatchlistId` implicit endpoint.
-    pub async fn trader_private_delete_v2_watchlists_watchlist_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_watchlists_watchlist_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_watchlists_watchlist_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2WatchlistsByName` implicit endpoint.
-    pub async fn trader_private_delete_v2_watchlists_by_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_watchlists_by_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_watchlists_by_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2WatchlistsWatchlistIdSymbol` implicit endpoint.
-    pub async fn trader_private_delete_v2_watchlists_watchlist_id_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn trader_private_delete_v2_watchlists_watchlist_id_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_delete_v2_watchlists_watchlist_id_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocBars` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_bars(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_bars(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_bars".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocLatestBars` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_latest_bars(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_latest_bars(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_latest_bars".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocLatestOrderbooks` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_latest_orderbooks(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_latest_orderbooks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_latest_orderbooks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocLatestQuotes` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_latest_quotes(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_latest_quotes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_latest_quotes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocLatestTrades` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_latest_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_latest_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_latest_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocQuotes` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_quotes(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_quotes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_quotes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocSnapshots` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_snapshots(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_snapshots(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_snapshots".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPublicGetV1beta3CryptoLocTrades` implicit endpoint.
-    pub async fn market_public_get_v1beta3_crypto_loc_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_public_get_v1beta3_crypto_loc_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_public_get_v1beta3_crypto_loc_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1CorporateActions` implicit endpoint.
-    pub async fn market_private_get_v1beta1_corporate_actions(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_corporate_actions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_corporate_actions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1ForexLatestRates` implicit endpoint.
-    pub async fn market_private_get_v1beta1_forex_latest_rates(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_forex_latest_rates(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_forex_latest_rates".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1ForexRates` implicit endpoint.
-    pub async fn market_private_get_v1beta1_forex_rates(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_forex_rates(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_forex_rates".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1LogosSymbol` implicit endpoint.
-    pub async fn market_private_get_v1beta1_logos_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_logos_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_logos_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1News` implicit endpoint.
-    pub async fn market_private_get_v1beta1_news(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_news(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_news".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1ScreenerStocksMostActives` implicit endpoint.
-    pub async fn market_private_get_v1beta1_screener_stocks_most_actives(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_screener_stocks_most_actives(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_screener_stocks_most_actives".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1ScreenerMarketTypeMovers` implicit endpoint.
-    pub async fn market_private_get_v1beta1_screener_market_type_movers(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v1beta1_screener_market_type_movers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_screener_market_type_movers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksAuctions` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_auctions(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_auctions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_auctions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksBars` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_bars(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_bars(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_bars".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksBarsLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_bars_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_bars_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_bars_latest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksMetaConditionsTicktype` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_meta_conditions_ticktype(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_meta_conditions_ticktype(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_meta_conditions_ticktype".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksMetaExchanges` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_meta_exchanges(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_meta_exchanges(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_meta_exchanges".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksQuotes` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_quotes(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_quotes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_quotes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksQuotesLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_quotes_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_quotes_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_quotes_latest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSnapshots` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_snapshots(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_snapshots(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_snapshots".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksTrades` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksTradesLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_trades_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_trades_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_trades_latest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolAuctions` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_auctions(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_auctions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_auctions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolBars` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_bars(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_bars(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_bars".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolBarsLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_bars_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_bars_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_bars_latest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolQuotes` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_quotes(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_quotes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_quotes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolQuotesLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_quotes_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_quotes_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_quotes_latest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolSnapshot` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_snapshot(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_snapshot(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_snapshot".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolTrades` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV2StocksSymbolTradesLatest` implicit endpoint.
-    pub async fn market_private_get_v2_stocks_symbol_trades_latest(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_private_get_v2_stocks_symbol_trades_latest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v2_stocks_symbol_trades_latest".to_string()), optional_args).await
     }
 

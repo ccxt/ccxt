@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::hashkey::HashkeyCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Hashkey {
     // Private + pinned: the Core is self-referential (its embedded

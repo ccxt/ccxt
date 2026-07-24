@@ -9,185 +9,186 @@
 
 use crate::Value;
 use super::bitbns::BitbnsCore;
+use crate::exchange::ExchangeRuntime;
 
 impl BitbnsCore {
     /// Auto-generated wrapper for the `wwwGetOrderFetchMarkets` implicit endpoint.
-    pub async fn www_get_order_fetch_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_order_fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_order_fetch_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderFetchTickers` implicit endpoint.
-    pub async fn www_get_order_fetch_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_order_fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_order_fetch_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderFetchOrderbook` implicit endpoint.
-    pub async fn www_get_order_fetch_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_order_fetch_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_order_fetch_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderGetTickerWithVolume` implicit endpoint.
-    pub async fn www_get_order_get_ticker_with_volume(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_order_get_ticker_with_volume(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_order_get_ticker_with_volume".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOhlc` implicit endpoint.
-    pub async fn www_get_exchange_data_ohlc(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_exchange_data_ohlc(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_exchange_data_ohlc".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOrderBook` implicit endpoint.
-    pub async fn www_get_exchange_data_order_book(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_exchange_data_order_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_exchange_data_order_book".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataTradedetails` implicit endpoint.
-    pub async fn www_get_exchange_data_tradedetails(&self, optional_args: &[Value]) -> Value {
+    pub async fn www_get_exchange_data_tradedetails(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_exchange_data_tradedetails".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetPlatformStatus` implicit endpoint.
-    pub async fn v1_get_platform_status(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_get_platform_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_get_platform_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetTickers` implicit endpoint.
-    pub async fn v1_get_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_get_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_get_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetOrderbookSellSymbol` implicit endpoint.
-    pub async fn v1_get_orderbook_sell_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_get_orderbook_sell_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_get_orderbook_sell_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetOrderbookBuySymbol` implicit endpoint.
-    pub async fn v1_get_orderbook_buy_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_get_orderbook_buy_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_get_orderbook_buy_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostCurrentCoinBalanceEVERYTHING` implicit endpoint.
-    pub async fn v1_post_current_coin_balance_everything(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_current_coin_balance_everything(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_current_coin_balance_everything".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostGetApiUsageStatusUSAGE` implicit endpoint.
-    pub async fn v1_post_get_api_usage_status_usage(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_get_api_usage_status_usage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_get_api_usage_status_usage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostGetOrderSocketTokenUSAGE` implicit endpoint.
-    pub async fn v1_post_get_order_socket_token_usage(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_get_order_socket_token_usage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_get_order_socket_token_usage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostCurrentCoinBalanceSymbol` implicit endpoint.
-    pub async fn v1_post_current_coin_balance_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_current_coin_balance_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_current_coin_balance_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostOrderStatusSymbol` implicit endpoint.
-    pub async fn v1_post_order_status_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_order_status_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_order_status_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostDepositHistorySymbol` implicit endpoint.
-    pub async fn v1_post_deposit_history_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_deposit_history_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_deposit_history_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostWithdrawHistorySymbol` implicit endpoint.
-    pub async fn v1_post_withdraw_history_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_withdraw_history_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_withdraw_history_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostWithdrawHistoryAllSymbol` implicit endpoint.
-    pub async fn v1_post_withdraw_history_all_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_withdraw_history_all_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_withdraw_history_all_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostDepositHistoryAllSymbol` implicit endpoint.
-    pub async fn v1_post_deposit_history_all_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_deposit_history_all_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_deposit_history_all_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostListOpenOrdersSymbol` implicit endpoint.
-    pub async fn v1_post_list_open_orders_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_list_open_orders_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_list_open_orders_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostListOpenStopOrdersSymbol` implicit endpoint.
-    pub async fn v1_post_list_open_stop_orders_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_list_open_stop_orders_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_list_open_stop_orders_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostGetCoinAddressSymbol` implicit endpoint.
-    pub async fn v1_post_get_coin_address_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_get_coin_address_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_get_coin_address_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceSellOrderSymbol` implicit endpoint.
-    pub async fn v1_post_place_sell_order_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_place_sell_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_place_sell_order_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceBuyOrderSymbol` implicit endpoint.
-    pub async fn v1_post_place_buy_order_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_place_buy_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_place_buy_order_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostBuyStopLossSymbol` implicit endpoint.
-    pub async fn v1_post_buy_stop_loss_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_buy_stop_loss_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_buy_stop_loss_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostSellStopLossSymbol` implicit endpoint.
-    pub async fn v1_post_sell_stop_loss_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_sell_stop_loss_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_sell_stop_loss_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostCancelOrderSymbol` implicit endpoint.
-    pub async fn v1_post_cancel_order_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_cancel_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_cancel_order_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostCancelStopLossOrderSymbol` implicit endpoint.
-    pub async fn v1_post_cancel_stop_loss_order_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_cancel_stop_loss_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_cancel_stop_loss_order_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostListExecutedOrdersSymbol` implicit endpoint.
-    pub async fn v1_post_list_executed_orders_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_list_executed_orders_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_list_executed_orders_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceMarketOrderSymbol` implicit endpoint.
-    pub async fn v1_post_place_market_order_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_place_market_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_place_market_order_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceMarketOrderQntySymbol` implicit endpoint.
-    pub async fn v1_post_place_market_order_qnty_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn v1_post_place_market_order_qnty_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_place_market_order_qnty_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostOrders` implicit endpoint.
-    pub async fn v2_post_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn v2_post_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_post_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostCancel` implicit endpoint.
-    pub async fn v2_post_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn v2_post_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_post_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostGetordersnew` implicit endpoint.
-    pub async fn v2_post_getordersnew(&self, optional_args: &[Value]) -> Value {
+    pub async fn v2_post_getordersnew(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_post_getordersnew".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostMarginOrders` implicit endpoint.
-    pub async fn v2_post_margin_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn v2_post_margin_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_post_margin_orders".to_string()), optional_args).await
     }
 

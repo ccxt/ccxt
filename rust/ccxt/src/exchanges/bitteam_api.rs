@@ -9,130 +9,131 @@
 
 use crate::Value;
 use super::bitteam::BitteamCore;
+use crate::exchange::ExchangeRuntime;
 
 impl BitteamCore {
     /// Auto-generated wrapper for the `historyGetApiTwHistoryPairNameResolution` implicit endpoint.
-    pub async fn history_get_api_tw_history_pair_name_resolution(&self, optional_args: &[Value]) -> Value {
+    pub async fn history_get_api_tw_history_pair_name_resolution(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("history_get_api_tw_history_pair_name_resolution".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiAsset` implicit endpoint.
-    pub async fn public_get_trade_api_asset(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_asset(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_asset".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCurrencies` implicit endpoint.
-    pub async fn public_get_trade_api_currencies(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_currencies".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiOrderbooksSymbol` implicit endpoint.
-    pub async fn public_get_trade_api_orderbooks_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_orderbooks_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_orderbooks_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiOrders` implicit endpoint.
-    pub async fn public_get_trade_api_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiPairName` implicit endpoint.
-    pub async fn public_get_trade_api_pair_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_pair_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_pair_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiPairs` implicit endpoint.
-    pub async fn public_get_trade_api_pairs(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_pairs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_pairs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiPairsPrecisions` implicit endpoint.
-    pub async fn public_get_trade_api_pairs_precisions(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_pairs_precisions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_pairs_precisions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiRates` implicit endpoint.
-    pub async fn public_get_trade_api_rates(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_rates(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_rates".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiTradeId` implicit endpoint.
-    pub async fn public_get_trade_api_trade_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_trade_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_trade_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiTrades` implicit endpoint.
-    pub async fn public_get_trade_api_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCcxtPairs` implicit endpoint.
-    pub async fn public_get_trade_api_ccxt_pairs(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_ccxt_pairs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_ccxt_pairs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcAssets` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_assets(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_cmc_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_cmc_assets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcOrderbookPair` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_orderbook_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_cmc_orderbook_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_cmc_orderbook_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcSummary` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_summary(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_cmc_summary(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_cmc_summary".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcTicker` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_cmc_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_cmc_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcTradesPair` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_trades_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trade_api_cmc_trades_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_cmc_trades_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtBalance` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_trade_api_ccxt_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_api_ccxt_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtOrderId` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_trade_api_ccxt_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_api_ccxt_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtOrdersOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_orders_of_user(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_trade_api_ccxt_orders_of_user(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_api_ccxt_orders_of_user".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtTradesOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_trades_of_user(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_trade_api_ccxt_trades_of_user(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_api_ccxt_trades_of_user".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiTransactionsOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_transactions_of_user(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_trade_api_transactions_of_user(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_api_transactions_of_user".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtCancelAllOrder` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_cancel_all_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_api_ccxt_cancel_all_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_api_ccxt_cancel_all_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtCancelorder` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_cancelorder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_api_ccxt_cancelorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_api_ccxt_cancelorder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtOrdercreate` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_ordercreate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_api_ccxt_ordercreate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_api_ccxt_ordercreate".to_string()), optional_args).await
     }
 

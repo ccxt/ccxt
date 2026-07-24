@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
+use ccxt::exchange_generated::ExchangeBase;
 
 fn preciseEqualStr(mut exchange: ccxt::exchange::Exchange, mut result: Value, mut key: Value, mut expected: Value) -> Value {
     return ccxt::precise::Precise::stringEq(&exchange.safe_string(result.clone(), key.clone(), &[]), &expected);

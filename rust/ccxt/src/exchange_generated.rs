@@ -10,11 +10,46 @@
 use crate::Value;
 use crate::ExchangeError;
 use crate::exchange::Exchange;
+use crate::exchange::ExchangeRuntime;
+
+
 
 use crate::runtime::*;
 
-impl Exchange {
-    pub fn describe(&self) -> Value {
+pub trait ExchangeBase:
+    crate::exchange::DerivedExchange
+    + std::ops::DerefMut<Target = Exchange>
+    + Send
+    + Sized
+{
+    /// Dispatch a snake_case method name to this core's inherent async
+    /// methods, falling through to `call_dynamic_base` for base-only methods.
+    /// The single required method — every override reaches the core statically.
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>;
+
+    /// Route `method(args)` to the derived override by name, with a per-method
+    /// re-entry guard (so a base method calling its own name falls through to
+    /// the base body instead of looping). Replaces `Exchange::dispatch_to_derived`
+    /// — no stored pointer; `call_dynamic` is a static trait call.
+    fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + 'a>>
+    {
+        Box::pin(async move {
+            if !self.dispatch_guard_enter(method) { return None; }
+            let out = futures::FutureExt::catch_unwind(
+                std::panic::AssertUnwindSafe(self.call_dynamic(method, args))
+            ).await;
+            self.dispatch_guard_exit();
+            match out {
+                Ok(v)  => Some(v),
+                Err(p) => std::panic::resume_unwind(p),
+            }
+        })
+    }
+
+
+    fn describe(&self) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.id.clone());
@@ -412,7 +447,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn clean_rest_data(&mut self) {
+    fn clean_rest_data(&mut self) {
         self.ids = Value::Null;
         self.markets = Value::Null;
         self.markets_by_id = Value::Null;
@@ -428,7 +463,7 @@ impl Exchange {
         self.last_request_headers = Value::Null;
 }
 
-    pub fn clean_ws_data(&mut self) {
+    fn clean_ws_data(&mut self) {
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.balance = __t; }
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.orderbooks = __t; }
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.tickers = __t; }
@@ -442,7 +477,7 @@ impl Exchange {
         self.positions = Value::Null;
 }
 
-    pub fn safe_bool_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -459,7 +494,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_bool2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -480,7 +515,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_bool(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -497,7 +532,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_dict_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -517,7 +552,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_dict(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -537,7 +572,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_dict2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -558,7 +593,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_list_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_list_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -578,13 +613,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn is_dictionary(&self, mut value: Value) -> Value {
+    fn is_dictionary(&self, mut value: Value) -> Value {
         return Value::Bool(is_true(&(!is_equal(&value, &Value::Null))) && is_true(&(is_object(&value))) && !is_true(&Value::Bool(is_array(&value))));
 
     Value::Null
 }
 
-    pub fn safe_list2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_list2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -605,7 +640,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_list(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_list(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -625,7 +660,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
+    fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_70: bool = true;
@@ -635,11 +670,11 @@ impl Exchange {
         }
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" handleDelta not supported yet".to_string()))));
 }
 
-    pub fn handle_deltas_with_keys(&self, mut bookSide: Value, mut deltas: Value, optional_args: &[Value]) {
+    fn handle_deltas_with_keys(&self, mut bookSide: Value, mut deltas: Value, optional_args: &[Value]) {
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -653,13 +688,13 @@ impl Exchange {
         }
 }
 
-    pub fn get_cache_index(&self, mut orderbook: Value, mut deltas: Value) -> Value {
+    fn get_cache_index(&self, mut orderbook: Value, mut deltas: Value) -> Value {
         return negate(&Value::Int(1));
 
     Value::Null
 }
 
-    pub fn arrays_concat(&self, mut arraysOfArrays: Value) -> Value {
+    fn arrays_concat(&self, mut arraysOfArrays: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -673,7 +708,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Value {
+    fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Value {
         let mut timeframes = get_arg(optional_args, 0, Value::Null);
         if is_equal(&timeframes, &Value::Null) {
             timeframes = self.timeframes.clone();
@@ -695,7 +730,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn check_proxy_url_settings(&self, optional_args: &[Value]) -> Value {
+    fn check_proxy_url_settings(&self, optional_args: &[Value]) -> Value {
         let mut url = get_arg(optional_args, 0, Value::Null);
         let mut method = get_arg(optional_args, 1, Value::Null);
         let mut headers = get_arg(optional_args, 2, Value::Null);
@@ -737,7 +772,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
+    fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
         // to be overriden
         let mut includesQuery: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&targetUrl, &Value::Str("?".to_string())), &Value::Int(0)));
         let mut finalUrl: Value = ternary(is_true(&includesQuery), self.encode_uri_component(targetUrl.clone()), targetUrl.clone());
@@ -746,7 +781,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn check_proxy_settings(&self, optional_args: &[Value]) -> Value {
+    fn check_proxy_settings(&self, optional_args: &[Value]) -> Value {
         let mut url = get_arg(optional_args, 0, Value::Null);
         let mut method = get_arg(optional_args, 1, Value::Null);
         let mut headers = get_arg(optional_args, 2, Value::Null);
@@ -805,7 +840,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn check_ws_proxy_settings(&self) -> Value {
+    fn check_ws_proxy_settings(&self) -> Value {
         let mut usedProxies: Value = Value::List(vec![]);
         let mut wsProxy: Value = Value::Null;
         let mut wssProxy: Value = Value::Null;
@@ -842,13 +877,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn check_conflicting_proxies(&self, mut proxyAgentSet: Value, mut proxyUrlSet: Value) {
+    fn check_conflicting_proxies(&self, mut proxyAgentSet: Value, mut proxyUrlSet: Value) {
         if is_true(&proxyAgentSet) && is_true(&proxyUrlSet) {
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&self.id, &Value::Str(" you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy".to_string()))));
         }
 }
 
-    pub fn check_address(&self, optional_args: &[Value]) -> Value {
+    fn check_address(&self, optional_args: &[Value]) -> Value {
         let mut address = get_arg(optional_args, 0, Value::Null);
         if is_equal(&address, &Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(add(&self.id, &Value::Str(" address is undefined".to_string()))));
@@ -864,7 +899,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn find_message_hashes(&self, mut client: Value, mut element: Value) -> Value {
+    fn find_message_hashes(&self, mut client: Value, mut element: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
@@ -883,7 +918,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut key = get_arg(optional_args, 1, Value::Str("timestamp".to_string()));
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
@@ -923,7 +958,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut key = get_arg(optional_args, 2, Value::Str("timestamp".to_string()));
@@ -957,7 +992,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_value_since_limit(&self, mut array: Value, mut field: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_value_since_limit(&self, mut array: Value, mut field: Value, optional_args: &[Value]) -> Value {
         let mut value = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1003,7 +1038,7 @@ impl Exchange {
  * @description set the sandbox mode for the exchange
  * @param {boolean} enabled true to enable sandbox mode, false to disable it
  */
-    pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
+    fn set_sandbox_mode(&mut self, mut enabled: Value) {
         if is_true(&enabled) {
             if is_true(&Value::Bool(in_op(&self.urls, &Value::Str("test".to_string())))) {
                 if is_string(&get_value(&self.urls, &Value::Str("api".to_string()))) {
@@ -1037,7 +1072,7 @@ impl Exchange {
  * @description enables or disables demo trading mode
  * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
  */
-    pub fn enable_demo_trading(&mut self, mut enable: Value) {
+    fn enable_demo_trading(&mut self, mut enable: Value) {
         if is_true(&self.isSandboxModeEnabled) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".to_string()))));
         }
@@ -1052,9 +1087,9 @@ impl Exchange {
         add_element_to_object(&mut self.options, &Value::Str("enableDemoTrading".to_string()), enable.clone());
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.sign(...))
-        { let __v = self.derived().sign(path.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::sign(self, ...))
+        { let __v = crate::exchange::DerivedExchange::sign(self, path.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
@@ -1076,7 +1111,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1086,7 +1121,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1101,7 +1136,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1113,7 +1148,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_my_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_my_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1128,7 +1163,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_my_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_my_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1140,7 +1175,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1151,7 +1186,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1161,7 +1196,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1171,7 +1206,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+    async fn watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1183,7 +1218,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1193,7 +1228,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1203,7 +1238,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_positions(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1214,7 +1249,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1224,7 +1259,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1234,7 +1269,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1245,7 +1280,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1261,7 +1296,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1281,7 +1316,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_margin_modes", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1297,7 +1332,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1307,7 +1342,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_time", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1322,7 +1357,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1333,16 +1368,16 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_currency(...))
-        { let __v = self.derived().parse_currency(rawCurrency.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_currency(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_currency(self, rawCurrency.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseCurrency() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
+    fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1352,7 +1387,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_77: bool = true;
             while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&arr)) } {
-            let mut parsed: Value = self.parse_currency(get_value(&arr, &i));
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_currency(self, get_value(&arr, &i));
             if is_equal(&parsed, &Value::Null) {
                 continue;
             }
@@ -1365,22 +1400,22 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_market(&self, mut market: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_market(...))
-        { let __v = self.derived().parse_market(market.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_market(&self, mut market: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_market(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_market(self, market.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarket() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_markets(&self, mut markets: Value) -> Value {
+    fn parse_markets(&self, mut markets: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_78: bool = true;
             while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&markets)) } {
-            append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
+            append_to_array(&mut result, <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, get_value(&markets, &i)));
         }
         }
         return result;
@@ -1388,9 +1423,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_ticker(...))
-        { let __v = self.derived().parse_ticker(ticker.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_ticker(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_ticker(self, ticker.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTicker() is not supported yet".to_string()))));
@@ -1398,9 +1433,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_deposit_address(...))
-        { let __v = self.derived().parse_deposit_address(depositAddress.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_deposit_address(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_deposit_address(self, depositAddress.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositAddress() is not supported yet".to_string()))));
@@ -1408,9 +1443,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_trade(...))
-        { let __v = self.derived().parse_trade(trade.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_trade(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_trade(self, trade.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTrade() is not supported yet".to_string()))));
@@ -1418,9 +1453,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_transaction(...))
-        { let __v = self.derived().parse_transaction(transaction.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_transaction(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_transaction(self, transaction.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransaction() is not supported yet".to_string()))));
@@ -1428,9 +1463,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_transfer(...))
-        { let __v = self.derived().parse_transfer(transfer.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_transfer(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_transfer(self, transfer.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransfer() is not supported yet".to_string()))));
@@ -1438,18 +1473,18 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_account(&self, mut account: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_account(...))
-        { let __v = self.derived().parse_account(account.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_account(&self, mut account: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_account(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_account(self, account.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseAccount() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_ledger_entry(...))
-        { let __v = self.derived().parse_ledger_entry(item.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_ledger_entry(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_ledger_entry(self, item.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLedgerEntry() is not supported yet".to_string()))));
@@ -1457,9 +1492,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_order(...))
-        { let __v = self.derived().parse_order(order.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_order(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_order(self, order.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOrder() is not supported yet".to_string()))));
@@ -1467,7 +1502,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1477,7 +1512,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1487,9 +1522,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_market_leverage_tiers(...))
-        { let __v = self.derived().parse_market_leverage_tiers(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_market_leverage_tiers(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_market_leverage_tiers(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarketLeverageTiers() is not supported yet".to_string()))));
@@ -1497,7 +1532,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverage_tiers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1513,9 +1548,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_position(...))
-        { let __v = self.derived().parse_position(position.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_position(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_position(self, position.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePosition() is not supported yet".to_string()))));
@@ -1523,9 +1558,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_funding_rate_history(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_funding_rate_history(...))
-        { let __v = self.derived().parse_funding_rate_history(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_funding_rate_history(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_funding_rate_history(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_funding_rate_history(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRateHistory() is not supported yet".to_string()))));
@@ -1533,9 +1568,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_borrow_interest(...))
-        { let __v = self.derived().parse_borrow_interest(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_borrow_interest(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_borrow_interest(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowInterest() is not supported yet".to_string()))));
@@ -1543,42 +1578,42 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_isolated_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    fn parse_isolated_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIsolatedBorrowRate() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrderTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return self.parse_ohlcv(ohlcv.clone(), &[market.clone()]);
+        return <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, ohlcv.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rates", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1594,7 +1629,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_intervals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1610,7 +1645,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1620,7 +1655,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1631,7 +1666,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn un_watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1642,7 +1677,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_funding_rates_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_funding_rates_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1652,7 +1687,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("transfer", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.push(fromAccount.clone()); __args.push(toAccount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1667,7 +1702,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("withdraw", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.push(address.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1683,7 +1718,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1693,7 +1728,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
+    async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_leverage", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(leverage.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1709,7 +1744,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverage", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1729,7 +1764,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverages", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1745,7 +1780,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_position_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(hedged.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1761,7 +1796,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("add_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1776,7 +1811,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("reduce_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1791,7 +1826,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn set_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn set_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1801,7 +1836,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_long_short_ratio(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_long_short_ratio(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1812,7 +1847,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -1826,7 +1861,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -1840,7 +1875,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+    async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(marginMode.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1856,7 +1891,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses_by_network", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1871,7 +1906,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1h".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1884,7 +1919,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interests", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1900,7 +1935,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn sign_in(&mut self, optional_args: &[Value]) -> Value {
+    async fn sign_in(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("sign_in", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1915,7 +1950,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_payment_methods(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_payment_methods(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1925,7 +1960,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_to_int(&self, mut number: Value) -> Value {
+    fn parse_to_int(&self, mut number: Value) -> Value {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         let mut stringifiedNumber: Value = self.number_to_string(number.clone());
@@ -1935,7 +1970,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_to_numeric(&self, mut number: Value) -> Value {
+    fn parse_to_numeric(&self, mut number: Value) -> Value {
         let mut stringVersion: Value = self.number_to_string(number.clone()); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
@@ -1949,7 +1984,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn is_round_number(&self, mut value: Value) -> Value {
+    fn is_round_number(&self, mut value: Value) -> Value {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         let mut res: Value = self.parse_to_numeric((mod_val(&value, &Value::Int(1))));
@@ -1958,13 +1993,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn is_empty_string(&self, mut value: Value) -> Value {
+    fn is_empty_string(&self, mut value: Value) -> Value {
         return Value::Bool(!is_true(&self.value_is_defined(value.clone())) || is_equal(&value, &Value::Str("".to_string())));
 
     Value::Null
 }
 
-    pub fn safe_number_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_number_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string(obj.clone(), key.clone(), &[]);
         let mut final_val: Value = self.parse_number(self.omit_zero(value.clone()), &[]);
@@ -1973,7 +2008,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_integer_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_integer_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer(obj.clone(), key.clone(), &[defaultValue.clone()]);
         if is_equal(&timestamp, &Value::Null) || is_equal(&timestamp, &Value::Int(0)) {
@@ -1984,7 +2019,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn after_construct(&mut self) {
+    fn after_construct(&mut self) {
         // networks
         self.create_networks_by_id_object();
         self.features_generator();
@@ -2001,7 +2036,7 @@ impl Exchange {
         }
 }
 
-    pub fn init_rest_rate_limiter(&mut self) {
+    fn init_rest_rate_limiter(&mut self) {
         if is_equal(&self.rateLimit, &Value::Null) || is_true(&(!is_equal(&self.id, &Value::Null) && is_equal(&self.rateLimit, &negate(&Value::Int(1))))) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(".rateLimit property is not configured".to_string()))));
         }
@@ -2030,7 +2065,7 @@ impl Exchange {
         self.init_throttler();
 }
 
-    pub fn features_generator(&mut self) {
+    fn features_generator(&mut self) {
         //
         // in the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
@@ -2088,7 +2123,7 @@ impl Exchange {
         }
 }
 
-    pub fn features_mapper(&mut self, mut initialFeatures: Value, mut marketType: Value, optional_args: &[Value]) -> Value {
+    fn features_mapper(&mut self, mut initialFeatures: Value, mut marketType: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
         let mut featuresObj: Value = ternary(is_true(&(!is_equal(&subType, &Value::Null))), get_value(&get_value(&initialFeatures, &marketType), &subType), get_value(&initialFeatures, &marketType));
         // if exchange does not have that market-type (eg. future>inverse)
@@ -2145,7 +2180,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn feature_value(&self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn feature_value(&self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut methodName = get_arg(optional_args, 0, Value::Null);
         let mut paramName = get_arg(optional_args, 1, Value::Null);
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
@@ -2165,7 +2200,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn feature_value_by_type(&self, mut marketType: Value, mut subType: Value, optional_args: &[Value]) -> Value {
+    fn feature_value_by_type(&self, mut marketType: Value, mut subType: Value, optional_args: &[Value]) -> Value {
         let mut methodName = get_arg(optional_args, 0, Value::Null);
         let mut paramName = get_arg(optional_args, 1, Value::Null);
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
@@ -2250,13 +2285,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn orderbook_checksum_message(&self, mut symbol: Value) -> Value {
+    fn orderbook_checksum_message(&self, mut symbol: Value) -> Value {
         return add(&add(&symbol, &Value::Str(" : ".to_string())), &Value::Str("orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false".to_string()));
 
     Value::Null
 }
 
-    pub fn create_networks_by_id_object(&mut self) {
+    fn create_networks_by_id_object(&mut self) {
         // automatically generate network-id-to-code mappings
         let mut networkIdsToCodesGenerated: Value = self.invert_flat_string_dictionary(self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2268,7 +2303,7 @@ impl Exchange {
 })])]); add_element_to_object(&mut self.options, &Value::Str("networksById".to_string()), __be_tmp); }; // support manually overriden "networksById" dictionary too
 }
 
-    pub fn get_default_options(&self) -> Value {
+    fn get_default_options(&self) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultNetworkCodeReplacements".to_string(), Value::Map({
@@ -2309,7 +2344,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_ledger_entry(&self, mut entry: Value, optional_args: &[Value]) -> Value {
+    fn safe_ledger_entry(&self, mut entry: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         currency = self.safe_currency(Value::Null, &[currency.clone()]);
         let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
@@ -2365,7 +2400,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_currency_structure(&self, mut currency: Value) -> Value {
+    fn safe_currency_structure(&self, mut currency: Value) -> Value {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2501,7 +2536,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_market_structure(&self, optional_args: &[Value]) -> Value {
+    fn safe_market_structure(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut cleanStructure: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2607,7 +2642,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
+    fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let mut currencies = get_arg(optional_args, 0, Value::Null);
         let mut values: Value = Value::List(vec![]);
         { let __t = self.create_safe_dictionary(&[]); self.markets_by_id = __t; }
@@ -2737,7 +2772,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn set_markets_from_exchange(&mut self, mut sourceExchange: Value) -> Value {
+    fn set_markets_from_exchange(&mut self, mut sourceExchange: Value) -> Value {
         // Validate that both exchanges are of the same type
         if !is_equal(&self.id, &get_value(&sourceExchange, &Value::Str("id".to_string()))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" shareMarkets() can only share markets with exchanges of the same type (got ".to_string())), &get_value(&sourceExchange, &Value::Str("id".to_string()))), &Value::Str(")".to_string()))));
@@ -2774,7 +2809,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn get_describe_for_extended_ws_exchange(&self, mut currentRestInstance: Value, mut parentRestInstance: Value, mut wsBaseDescribe: Value) -> Value {
+    fn get_describe_for_extended_ws_exchange(&self, mut currentRestInstance: Value, mut parentRestInstance: Value, mut wsBaseDescribe: Value) -> Value {
         let mut extendedRestDescribe: Value = self.deep_extend(parentRestInstance.describe(), &[currentRestInstance.describe()]);
         let mut superWithRestDescribe: Value = self.deep_extend(extendedRestDescribe.clone(), &[wsBaseDescribe.clone()]);
         return superWithRestDescribe;
@@ -2782,7 +2817,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_balance(&self, mut balance: Value) -> Value {
+    fn safe_balance(&self, mut balance: Value) -> Value {
         let mut balances: Value = self.omit(balance.clone(), Value::List(vec![Value::Str("info".to_string()), Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("free".to_string()), Value::Str("used".to_string()), Value::Str("total".to_string())]), &[]);
         let mut codes: Value = object_keys(&balances);
         add_element_to_object(&mut balance, &Value::Str("free".to_string()), Value::Map({
@@ -2842,7 +2877,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    fn safe_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
@@ -3146,7 +3181,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_orders(&self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn parse_orders(&self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3181,7 +3216,7 @@ impl Exchange {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_94: bool = true;
                 while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&orders)) } {
-                let mut parsed: Value = self.parse_order(get_value(&orders, &i), &[market.clone()]); // don't inline this call
+                let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, get_value(&orders, &i), &[market.clone()]); // don't inline this call
                 let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
             }
@@ -3199,7 +3234,7 @@ impl Exchange {
                         m.insert("id".to_string(), id.clone());
                     m
                 }), &[get_value(&orders, &id)]);
-                let mut parsedOrder: Value = self.parse_order(idExtended.clone(), &[market.clone()]); // don't  inline these calls
+                let mut parsedOrder: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, idExtended.clone(), &[market.clone()]); // don't  inline these calls
                 let mut order: Value = self.extend(parsedOrder.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
             }
@@ -3212,7 +3247,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn calculate_fee_with_rate(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn calculate_fee_with_rate(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".to_string()));
         let mut feeRate = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -3266,7 +3301,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".to_string()));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3277,7 +3312,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
+    fn safe_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut contracts: Value = self.safe_string_k(liquidation.clone(), "contracts", &[]);
         let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
@@ -3300,7 +3335,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    fn safe_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -3331,7 +3366,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn create_ccxt_trade_id(&self, optional_args: &[Value]) -> Value {
+    fn create_ccxt_trade_id(&self, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut side = get_arg(optional_args, 1, Value::Null);
         let mut amount = get_arg(optional_args, 2, Value::Null);
@@ -3359,7 +3394,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parsed_fee_and_fees(&self, mut container: Value) -> Value {
+    fn parsed_fee_and_fees(&self, mut container: Value) -> Value {
         let mut fee: Value = self.safe_dict_k(container.clone(), "fee", &[]);
         let mut fees: Value = self.safe_list_k(container.clone(), "fees", &[]);
         let mut feeDefined: Value = Value::Bool(!is_equal(&fee, &Value::Null));
@@ -3408,7 +3443,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_fee_numeric(&self, mut fee: Value) -> Value {
+    fn parse_fee_numeric(&self, mut fee: Value) -> Value {
         { let __be_tmp = self.safe_number_k(fee.clone(), "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".to_string()), __be_tmp); }; // ensure numeric
         if is_true(&Value::Bool(in_op(&fee, &Value::Str("rate".to_string())))) {
             { let __be_tmp = self.safe_number_k(fee.clone(), "rate", &[]); add_element_to_object(&mut fee, &Value::Str("rate".to_string()), __be_tmp); };
@@ -3418,7 +3453,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn find_nearest_ceiling(&self, mut arr: Value, mut providedValue: Value) -> Value {
+    fn find_nearest_ceiling(&self, mut arr: Value, mut providedValue: Value) -> Value {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         let mut length: Value = get_array_length(&arr);
         {
@@ -3437,7 +3472,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn add_key_in_array_items(&self, mut obj: Value, mut keyName: Value) -> Value {
+    fn add_key_in_array_items(&self, mut obj: Value, mut keyName: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         let mut keys: Value = object_keys(&obj);
         {
@@ -3464,7 +3499,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn invert_flat_string_dictionary(&self, mut dict: Value) -> Value {
+    fn invert_flat_string_dictionary(&self, mut dict: Value) -> Value {
         let mut reversed: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3488,13 +3523,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn string_to_base16(&self, mut str_val: Value) -> Value {
+    fn string_to_base16(&self, mut str_val: Value) -> Value {
         return add(&Value::Str("0x".to_string()), &self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str_val.clone(), &[]), &[]), &[]));
 
     Value::Null
 }
 
-    pub fn reduce_fees_by_currency(&self, mut fees: Value) -> Value {
+    fn reduce_fees_by_currency(&self, mut fees: Value) -> Value {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -3596,7 +3631,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    fn safe_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut open: Value = self.omit_zero(self.safe_string_k(ticker.clone(), "open", &[]));
         let mut close: Value = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("close".to_string()), Value::Str("last".to_string()), &[]));
@@ -3695,7 +3730,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_borrow_rate(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_borrow_rate(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3705,7 +3740,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("repay_cross_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3720,7 +3755,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("repay_isolated_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3735,7 +3770,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("borrow_cross_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3750,7 +3785,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("borrow_isolated_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3765,7 +3800,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn borrow_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn borrow_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3776,7 +3811,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn repay_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn repay_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3787,7 +3822,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ohlcv", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3809,7 +3844,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_spot_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_spot_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3822,7 +3857,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_contract_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_contract_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3835,7 +3870,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_ohlcv_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_ohlcv_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3852,7 +3887,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3865,7 +3900,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn convert_trading_view_to_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn convert_trading_view_to_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Str("t".to_string()));
         let mut open = get_arg(optional_args, 1, Value::Str("o".to_string()));
         let mut high = get_arg(optional_args, 2, Value::Str("h".to_string()));
@@ -3892,7 +3927,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn convert_ohlcv_to_trading_view(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn convert_ohlcv_to_trading_view(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Str("t".to_string()));
         let mut open = get_arg(optional_args, 1, Value::Str("o".to_string()));
         let mut high = get_arg(optional_args, 2, Value::Str("h".to_string()));
@@ -3940,7 +3975,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> Value {
         let mut startRegex = get_arg(optional_args, 0, Value::Null);
         let mut endRegex = get_arg(optional_args, 1, Value::Null);
         let mut errorMessage: Value = Value::Str("".to_string());
@@ -3998,7 +4033,7 @@ impl Exchange {
         }
 }
 
-    pub fn market_ids(&self, optional_args: &[Value]) -> Value {
+    fn market_ids(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if is_equal(&symbols, &Value::Null) {
             return symbols;
@@ -4016,7 +4051,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn currency_ids(&self, optional_args: &[Value]) -> Value {
+    fn currency_ids(&self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         if is_equal(&codes, &Value::Null) {
             return codes;
@@ -4034,7 +4069,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn markets_for_symbols(&self, optional_args: &[Value]) -> Value {
+    fn markets_for_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if is_equal(&symbols, &Value::Null) {
             return symbols;
@@ -4052,7 +4087,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn market_symbols(&self, optional_args: &[Value]) -> Value {
+    fn market_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
         let mut allowEmpty = get_arg(optional_args, 2, Value::Bool(true));
@@ -4105,7 +4140,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn market_codes(&self, optional_args: &[Value]) -> Value {
+    fn market_codes(&self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         if is_equal(&codes, &Value::Null) {
             return codes;
@@ -4123,7 +4158,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_order_book_bids_asks(&self, mut bidasks: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book_bids_asks(&self, mut bidasks: Value, optional_args: &[Value]) -> Value {
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -4141,7 +4176,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_key(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_key(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut value = get_arg(optional_args, 0, Value::Null);
         if is_equal(&value, &Value::Null) {
             return objects;
@@ -4162,16 +4197,16 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_symbol(&self, mut objects: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_symbol(&self, mut objects: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         return self.filter_by_key(objects.clone(), Value::Str("symbol".to_string()), &[symbol.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_ohlcv(...))
-        { let __v = self.derived().parse_ohlcv(ohlcv.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_ohlcv(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_ohlcv(self, ohlcv.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         if is_true(&Value::Bool(is_array(&ohlcv))) {
@@ -4182,7 +4217,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_network(&self, mut network: Value) -> Value {
+    fn safe_network(&self, mut network: Value) -> Value {
         let mut withdrawEnabled: Value = self.safe_bool_k(network.clone(), "withdraw", &[]);
         let mut depositEnabled: Value = self.safe_bool_k(network.clone(), "deposit", &[]);
         let mut limits: Value = self.safe_dict_k(network.clone(), "limits", &[]);
@@ -4222,7 +4257,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn prioritized_network_aliases(&self, optional_args: &[Value]) -> Value {
+    fn prioritized_network_aliases(&self, optional_args: &[Value]) -> Value {
         let mut networkCode = get_arg(optional_args, 0, Value::Null);
         let mut currencyCode = get_arg(optional_args, 1, Value::Null);
         let mut allowDefault = get_arg(optional_args, 2, Value::Bool(false));
@@ -4285,7 +4320,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn network_code_to_id(&self, mut networkCode: Value, optional_args: &[Value]) -> Value {
+    fn network_code_to_id(&self, mut networkCode: Value, optional_args: &[Value]) -> Value {
         let mut currencyCode = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -4336,7 +4371,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn network_id_to_code(&self, optional_args: &[Value]) -> Value {
+    fn network_id_to_code(&self, optional_args: &[Value]) -> Value {
         let mut networkId = get_arg(optional_args, 0, Value::Null);
         let mut currencyCode = get_arg(optional_args, 1, Value::Null);
         /*
@@ -4375,7 +4410,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_network_code_and_params(&self, mut params: Value) -> Value {
+    fn handle_network_code_and_params(&self, mut params: Value) -> Value {
         let mut networkCodeInParams: Value = self.safe_string2(params.clone(), Value::Str("networkCode".to_string()), Value::Str("network".to_string()), &[]);
         if !is_equal(&networkCodeInParams, &Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("networkCode".to_string()), Value::Str("network".to_string())]), &[]);
@@ -4385,7 +4420,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn default_network_code(&self, mut currencyCode: Value) -> Value {
+    fn default_network_code(&self, mut currencyCode: Value) -> Value {
         let mut defaultNetworkCode: Value = Value::Null;
         let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4406,19 +4441,19 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn select_network_code_from_unified_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
+    fn select_network_code_from_unified_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
         return self.select_network_key_from_networks(currencyCode.clone(), networkCode.clone(), indexedNetworkEntries.clone(), &[Value::Bool(true)]);
 
     Value::Null
 }
 
-    pub fn select_network_id_from_raw_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
+    fn select_network_id_from_raw_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value) -> Value {
         return self.select_network_key_from_networks(currencyCode.clone(), networkCode.clone(), indexedNetworkEntries.clone(), &[Value::Bool(false)]);
 
     Value::Null
 }
 
-    pub fn select_network_key_from_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value, optional_args: &[Value]) -> Value {
+    fn select_network_key_from_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value, optional_args: &[Value]) -> Value {
         let mut isIndexedByUnifiedNetworkCode = get_arg(optional_args, 0, Value::Bool(false));
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let mut chosenNetworkId: Value = Value::Null;
@@ -4454,7 +4489,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_number2(&self, mut dictionary: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_number2(&self, mut dictionary: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut d = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string2(dictionary.clone(), key1.clone(), key2.clone(), &[]);
         return self.parse_number(value.clone(), &[d.clone()]);
@@ -4462,9 +4497,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_order_book(...))
-        { let __v = self.derived().parse_order_book(orderbook.clone(), symbol.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null), crate::runtime::get_arg(optional_args, 5, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_order_book(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null), crate::runtime::get_arg(optional_args, 5, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".to_string()));
@@ -4488,7 +4523,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn parse_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -4499,7 +4534,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_113: bool = true;
             while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
-            append_to_array(&mut results, self.parse_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
+            append_to_array(&mut results, <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
         let mut sorted: Value = self.sort_by(results.clone(), Value::Int(0), &[]);
@@ -4508,7 +4543,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_leverage_tiers(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_leverage_tiers(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut marketIdKey = get_arg(optional_args, 1, Value::Null);
         // marketIdKey should only be undefined when response is a dictionary.
@@ -4534,7 +4569,7 @@ impl Exchange {
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
                 if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
-                    add_element_to_object(&mut tiers, &symbol, self.parse_market_leverage_tiers(item.clone(), &[market.clone()]));
+                    add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
             }
@@ -4552,7 +4587,7 @@ impl Exchange {
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
                 if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
-                    add_element_to_object(&mut tiers, &symbol, self.parse_market_leverage_tiers(item.clone(), &[market.clone()]));
+                    add_element_to_object(&mut tiers, &symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()]));
                 }
             }
             }
@@ -4562,7 +4597,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn load_trading_limits(&mut self, optional_args: &[Value]) -> Value {
+    async fn load_trading_limits(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut reload = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4589,7 +4624,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_position(&self, mut position: Value) -> Value {
+    fn safe_position(&self, mut position: Value) -> Value {
         // simplified version of: /pull/12765/
         let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unrealizedPnl", &[]);
         let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
@@ -4618,7 +4653,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_positions(&self, mut positions: Value, optional_args: &[Value]) -> Value {
+    fn parse_positions(&self, mut positions: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4631,7 +4666,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&positions)) } {
-            let mut position: Value = self.extend(self.parse_position(get_value(&positions, &i), &[]), &[params.clone()]);
+            let mut position: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, get_value(&positions, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
         }
         }
@@ -4640,9 +4675,9 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_adl_rank(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_adl_rank(...))
-        { let __v = self.derived().parse_adl_rank(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_adl_rank(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_adl_rank(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_adl_rank(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseADLRank() is not supported yet".to_string()))));
@@ -4650,7 +4685,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_adl_ranks(&self, mut ranks: Value, optional_args: &[Value]) -> Value {
+    fn parse_adl_ranks(&self, mut ranks: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4663,7 +4698,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_118: bool = true;
             while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&ranks)) } {
-            let mut rank: Value = self.extend(self.parse_adl_rank(get_value(&ranks, &i), &[]), &[params.clone()]);
+            let mut rank: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, get_value(&ranks, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
         }
         }
@@ -4672,7 +4707,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_accounts(&self, mut accounts: Value, optional_args: &[Value]) -> Value {
+    fn parse_accounts(&self, mut accounts: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4683,7 +4718,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_119: bool = true;
             while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&accounts)) } {
-            let mut account: Value = self.extend(self.parse_account(get_value(&accounts, &i)), &[params.clone()]);
+            let mut account: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_account(self, get_value(&accounts, &i)), &[params.clone()]);
             append_to_array(&mut result, account.clone());
         }
         }
@@ -4692,7 +4727,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_trades_helper(&self, mut isWs: Value, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn parse_trades_helper(&self, mut isWs: Value, mut trades: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4710,7 +4745,7 @@ impl Exchange {
             if is_true(&isWs) {
                 parsed = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
             }  else {
-                parsed = self.parse_trade(get_value(&trades, &i), &[market.clone()]);
+                parsed = <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, get_value(&trades, &i), &[market.clone()]);
             }
             let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut result, trade.clone());
@@ -4723,7 +4758,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn parse_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4736,7 +4771,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_ws_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4749,7 +4784,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_transactions(&self, mut transactions: Value, optional_args: &[Value]) -> Value {
+    fn parse_transactions(&self, mut transactions: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4763,7 +4798,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_121: bool = true;
             while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&transactions)) } {
-            let mut transaction: Value = self.extend(self.parse_transaction(get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
+            let mut transaction: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transaction.clone());
         }
         }
@@ -4774,7 +4809,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_transfers(&self, mut transfers: Value, optional_args: &[Value]) -> Value {
+    fn parse_transfers(&self, mut transfers: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4788,7 +4823,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_122: bool = true;
             while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transfers)) } {
-            let mut transfer: Value = self.extend(self.parse_transfer(get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
+            let mut transfer: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transfer.clone());
         }
         }
@@ -4799,7 +4834,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn parse_ledger(&self, mut data: Value, optional_args: &[Value]) -> Value {
+    fn parse_ledger(&self, mut data: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4813,7 +4848,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_124: bool = true;
             while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
-            let mut itemOrItems: Value = self.parse_ledger_entry(get_value(&arrayData, &i), &[currency.clone()]);
+            let mut itemOrItems: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, get_value(&arrayData, &i), &[currency.clone()]);
             if is_true(&Value::Bool(is_array(&itemOrItems))) {
                 {
                                         let mut j: Value = Value::Int(0);
@@ -4834,19 +4869,19 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn nonce(&self) -> Value {
+    fn nonce(&self) -> Value {
         return self.seconds();
 
     Value::Null
 }
 
-    pub fn set_headers(&self, mut headers: Value) -> Value {
+    fn set_headers(&self, mut headers: Value) -> Value {
         return headers;
 
     Value::Null
 }
 
-    pub fn currency_id(&self, mut code: Value) -> Value {
+    fn currency_id(&self, mut code: Value) -> Value {
         let mut currency: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[]);
         if is_equal(&currency, &Value::Null) {
             currency = self.safe_currency(code.clone(), &[]);
@@ -4859,7 +4894,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn market_id(&self, mut symbol: Value) -> Value {
+    fn market_id(&self, mut symbol: Value) -> Value {
         let mut market: Value = self.market(symbol.clone());
         if !is_equal(&market, &Value::Null) {
             return get_value(&market, &Value::Str("id".to_string()));
@@ -4869,14 +4904,14 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn symbol(&self, mut symbol: Value) -> Value {
+    fn symbol(&self, mut symbol: Value) -> Value {
         let mut market: Value = self.market(symbol.clone());
         return self.safe_string_k(market.clone(), "symbol", &[symbol.clone()]);
 
     Value::Null
 }
 
-    pub fn handle_param_string(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_string(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string(params.clone(), paramName.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4887,7 +4922,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_param_string2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_string2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4898,7 +4933,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_param_integer(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_integer(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_integer(params.clone(), paramName.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4909,7 +4944,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_param_integer2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_integer2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_integer2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4920,7 +4955,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_param_bool(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_bool(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_bool(params.clone(), paramName.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4931,7 +4966,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn handle_param_bool2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_bool2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_bool2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue.clone()]);
         if !is_equal(&value, &Value::Null) {
@@ -4950,7 +4985,7 @@ impl Exchange {
  * @param {boolean} isRequired - (optional) whether that param is required to be present
  * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
  */
-    pub fn handle_request_network(&self, mut params: Value, mut request: Value, mut exchangeSpecificKey: Value, optional_args: &[Value]) -> Value {
+    fn handle_request_network(&self, mut params: Value, mut request: Value, mut exchangeSpecificKey: Value, optional_args: &[Value]) -> Value {
         let mut currencyCode = get_arg(optional_args, 0, Value::Null);
         let mut isRequired = get_arg(optional_args, 1, Value::Bool(false));
         let mut networkCode: Value = Value::Null;
@@ -4965,13 +5000,13 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn resolve_path(&self, mut path: Value, mut params: Value) -> Value {
+    fn resolve_path(&self, mut path: Value, mut params: Value) -> Value {
         return Value::List(vec![self.implode_params(path.clone(), params.clone()), self.omit(params.clone(), self.extract_params(path.clone()), &[])]);
 
     Value::Null
 }
 
-    pub fn get_list_from_object_values(&self, mut objects: Value, mut key: Value) -> Value {
+    fn get_list_from_object_values(&self, mut objects: Value, mut key: Value) -> Value {
         let mut newArray: Value = objects.clone();
         if !is_true(&Value::Bool(is_array(&objects))) {
             newArray = self.to_array(objects.clone());
@@ -4989,7 +5024,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn get_symbols_for_market_type(&self, optional_args: &[Value]) -> Value {
+    fn get_symbols_for_market_type(&self, optional_args: &[Value]) -> Value {
         let mut marketType = get_arg(optional_args, 0, Value::Null);
         let mut subType = get_arg(optional_args, 1, Value::Null);
         let mut symbolWithActiveStatus = get_arg(optional_args, 2, Value::Bool(true));
@@ -5015,7 +5050,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         objects = self.to_array(objects.clone());
@@ -5047,7 +5082,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn filter_out_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_out_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         objects = self.to_array(objects.clone());
@@ -5079,7 +5114,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch2(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
+    async fn fetch2(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5121,7 +5156,7 @@ impl Exchange {
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
-                let mut request: Value = self.sign(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
+                let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
                 if is_true(&fetchDataCacheEnabled) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".to_string()), request.clone());
                 }
@@ -5161,7 +5196,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn request(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
+    async fn request(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5179,7 +5214,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn load_accounts(&mut self, optional_args: &[Value]) -> Value {
+    async fn load_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5200,7 +5235,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn build_ohlcvc(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn build_ohlcvc(&self, mut trades: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Int(0));
         let mut limit = get_arg(optional_args, 2, Value::Int(2147483647));
@@ -5261,7 +5296,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_trading_view_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn parse_trading_view_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -5272,7 +5307,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -5286,7 +5321,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ledger", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5304,7 +5339,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5315,7 +5350,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_order_book_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -5331,7 +5366,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_currency(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
+    fn safe_currency(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         if is_true(&(is_equal(&currencyId, &Value::Null))) && is_true(&(!is_equal(&currency, &Value::Null))) {
             return currency;
@@ -5354,7 +5389,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_market(&self, optional_args: &[Value]) -> Value {
+    fn safe_market(&self, optional_args: &[Value]) -> Value {
         let mut marketId = get_arg(optional_args, 0, Value::Null);
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
@@ -5417,7 +5452,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn market_or_null(&self, optional_args: &[Value]) -> Value {
+    fn market_or_null(&self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         if is_equal(&symbol, &Value::Null) {
             return Value::Null;
@@ -5427,7 +5462,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn check_required_credentials(&self, optional_args: &[Value]) -> Value {
+    fn check_required_credentials(&self, optional_args: &[Value]) -> Value {
         let mut error = get_arg(optional_args, 0, Value::Bool(true));
         /*
          * @ignore
@@ -5456,7 +5491,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn oath(&self) -> Value {
+    fn oath(&self) -> Value {
         if !is_equal(&self.twofa, &Value::Null) {
             return totp(self.twofa.clone());
         }  else {
@@ -5466,7 +5501,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_balance", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5481,7 +5516,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5491,16 +5526,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_balance(...))
-        { let __v = self.derived().parse_balance(response.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_balance(&self, mut response: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_balance(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_balance(self, response.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBalance() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5510,7 +5545,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5521,7 +5556,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_free_balance(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_free_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5531,7 +5566,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_used_balance(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_used_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5541,7 +5576,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_total_balance(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_total_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5551,7 +5586,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_status", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5566,7 +5601,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5579,7 +5614,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5590,7 +5625,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5606,7 +5641,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5625,7 +5660,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn get_supported_mapping(&self, mut key: Value, optional_args: &[Value]) -> Value {
+    fn get_supported_mapping(&self, mut key: Value, optional_args: &[Value]) -> Value {
         let mut mapping = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5639,7 +5674,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5658,7 +5693,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5677,7 +5712,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_option_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         let mut defaultOptionName: Value = add(&Value::Str("default".to_string()), &self.capitalize(optionName.clone())); // we also need to check the 'defaultXyzWhatever'
@@ -5706,7 +5741,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_option_and_params2(&self, mut params: Value, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_and_params2(&self, mut params: Value, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName1.clone(), optionName1.clone(), &[]); value = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -5723,7 +5758,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_option(&self, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option(&self, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut res: Value = self.handle_option_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5734,7 +5769,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_market_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
+    fn handle_market_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5784,7 +5819,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_sub_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
+    fn handle_sub_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5821,7 +5856,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
+    fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5832,7 +5867,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn throw_exactly_matched_exception(&self, mut exact: Value, mut string: Value, mut message: Value) {
+    fn throw_exactly_matched_exception(&self, mut exact: Value, mut string: Value, mut message: Value) {
         if is_equal(&string, &Value::Null) {
             return;
         }
@@ -5841,14 +5876,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn throw_broadly_matched_exception(&self, mut broad: Value, mut string: Value, mut message: Value) {
+    fn throw_broadly_matched_exception(&self, mut broad: Value, mut string: Value, mut message: Value) {
         let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), string.clone());
         if !is_equal(&broadKey, &Value::Null) {
             panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(message))));
         }
 }
 
-    pub fn find_broadly_matched_key(&self, mut broad: Value, mut string: Value) -> Value {
+    fn find_broadly_matched_key(&self, mut broad: Value, mut string: Value) -> Value {
         // a helper for matching error strings exactly vs broadly
         let mut keys: Value = object_keys(&broad);
         {
@@ -5869,16 +5904,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut statusCode: Value, mut statusText: Value, mut url: Value, mut method: Value, mut responseHeaders: Value, mut responseBody: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.handle_errors(...))
-        { let __v = self.derived().handle_errors(statusCode.clone(), statusText.clone(), url.clone(), method.clone(), responseHeaders.clone(), responseBody.clone(), response.clone(), requestHeaders.clone(), requestBody.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn handle_errors(&self, mut statusCode: Value, mut statusText: Value, mut url: Value, mut method: Value, mut responseHeaders: Value, mut responseBody: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::handle_errors(self, ...))
+        { let __v = crate::exchange::DerivedExchange::handle_errors(self, statusCode.clone(), statusText.clone(), url.clone(), method.clone(), responseHeaders.clone(), responseBody.clone(), response.clone(), requestHeaders.clone(), requestBody.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         return Value::Null;
 
     Value::Null
 }
 
-    pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5888,7 +5923,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5899,7 +5934,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5910,7 +5945,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_books(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_order_books(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5922,7 +5957,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn un_watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5933,7 +5968,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5943,7 +5978,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
+    async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5953,7 +5988,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
+    async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5964,7 +5999,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5975,7 +6010,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -5988,7 +6023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6004,7 +6039,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6014,7 +6049,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions_adl_rank", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6030,7 +6065,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_position_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_position_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_adl_rank", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6058,7 +6093,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -6121,7 +6156,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6131,7 +6166,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6141,7 +6176,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6152,7 +6187,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6163,7 +6198,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6174,7 +6209,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6185,7 +6220,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6195,7 +6230,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6205,7 +6240,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6218,7 +6253,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -6230,7 +6265,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6240,7 +6275,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6251,7 +6286,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6261,7 +6296,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6271,7 +6306,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6282,7 +6317,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposits_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6300,7 +6335,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposits", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6318,7 +6353,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6336,7 +6371,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6349,7 +6384,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_withdrawals_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_withdrawals_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6362,7 +6397,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rate_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6380,7 +6415,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6393,9 +6428,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_last_price(&self, mut price: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_last_price(...))
-        { let __v = self.derived().parse_last_price(price.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_last_price(&self, mut price: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_last_price(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_last_price(self, price.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLastPrice() is not supported yet".to_string()))));
@@ -6403,7 +6438,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_address", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6439,7 +6474,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6449,7 +6484,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn account(&self) -> Value {
+    fn account(&self) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), Value::Null);
@@ -6461,7 +6496,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn common_currency_code(&self, mut code: Value) -> Value {
+    fn common_currency_code(&self, mut code: Value) -> Value {
         if !is_true(&self.substituteCommonCurrencyCodes) {
             return code;
         }
@@ -6470,7 +6505,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn currency(&self, mut code: Value) -> Value {
+    fn currency(&self, mut code: Value) -> Value {
         let mut keys: Value = object_keys(&self.currencies);
         let mut numCurrencies: Value = get_array_length(&keys);
         if is_equal(&numCurrencies, &Value::Int(0)) {
@@ -6488,7 +6523,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn market(&self, mut symbol: Value) -> Value {
+    fn market(&self, mut symbol: Value) -> Value {
         if is_equal(&self.markets, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
         }
@@ -6510,23 +6545,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             return get_value(&markets, &Value::Int(0));
         }  else if is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("P-".to_string()))))) {
-            return self.create_expired_option_market(symbol.clone());
+            return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }
         panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" does not have market symbol ".to_string())), &symbol)));
 
     Value::Null
 }
 
-    pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.create_expired_option_market(...))
-        { let __v = self.derived().create_expired_option_market(symbol.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn create_expired_option_market(&self, mut symbol: Value) -> Value {
+        // virtual-dispatch (static: DerivedExchange::create_expired_option_market(self, ...))
+        { let __v = crate::exchange::DerivedExchange::create_expired_option_market(self, symbol.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createExpiredOptionMarket () is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn is_leveraged_currency(&self, mut currencyCode: Value, optional_args: &[Value]) -> Value {
+    fn is_leveraged_currency(&self, mut currencyCode: Value, optional_args: &[Value]) -> Value {
         let mut checkBaseCoin = get_arg(optional_args, 0, Value::Bool(false));
         let mut existingCurrencies = get_arg(optional_args, 1, Value::Null);
         let mut leverageSuffixes: Value = Value::List(vec![Value::Str("2L".to_string()), Value::Str("2S".to_string()), Value::Str("3L".to_string()), Value::Str("3S".to_string()), Value::Str("4L".to_string()), Value::Str("4S".to_string()), Value::Str("5L".to_string()), Value::Str("5S".to_string()), Value::Str("UP".to_string()), Value::Str("DOWN".to_string()), Value::Str("BULL".to_string()), Value::Str("BEAR".to_string())]);
@@ -6554,7 +6589,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_withdraw_tag_and_params(&self, mut tag: Value, mut params: Value) -> Value {
+    fn handle_withdraw_tag_and_params(&self, mut tag: Value, mut params: Value) -> Value {
         if is_true(&self.is_dictionary(tag.clone())) {
             params = self.extend(tag.clone(), &[params.clone()]);
             tag = Value::Null;
@@ -6570,7 +6605,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Value {
+    fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Value {
         if is_equal(&cost, &Value::Null) {
             return Value::Null;
         }
@@ -6580,7 +6615,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
+    fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
         if is_equal(&price, &Value::Null) {
             return Value::Null;
         }
@@ -6594,7 +6629,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
+    fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
         if is_equal(&amount, &Value::Null) {
             return Value::Null;
         }
@@ -6608,7 +6643,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Value {
+    fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Value {
         if is_equal(&fee, &Value::Null) {
             return Value::Null;
         }
@@ -6618,7 +6653,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Value {
+    fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut networkCode = get_arg(optional_args, 0, Value::Null);
         let mut currency: Value = get_value(&self.currencies, &code);
         let mut precision: Value = self.safe_value_k(currency.clone(), "precision", &[]);
@@ -6643,7 +6678,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn force_string(&self, mut value: Value) -> Value {
+    fn force_string(&self, mut value: Value) -> Value {
         if !is_string(&value) {
             return self.number_to_string(value.clone());
         }
@@ -6652,25 +6687,25 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn is_tick_precision(&self) -> Value {
+    fn is_tick_precision(&self) -> Value {
         return Value::Bool(is_equal(&self.precisionMode, &Value::Int(crate::runtime::TICK_SIZE)));
 
     Value::Null
 }
 
-    pub fn is_decimal_precision(&self) -> Value {
+    fn is_decimal_precision(&self) -> Value {
         return Value::Bool(is_equal(&self.precisionMode, &Value::Int(crate::runtime::DECIMAL_PLACES)));
 
     Value::Null
 }
 
-    pub fn is_significant_precision(&self) -> Value {
+    fn is_significant_precision(&self) -> Value {
         return Value::Bool(is_equal(&self.precisionMode, &Value::Int(crate::runtime::SIGNIFICANT_DIGITS)));
 
     Value::Null
 }
 
-    pub fn safe_number(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_number(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string(obj.clone(), key.clone(), &[]);
         return self.parse_number(value.clone(), &[defaultNumber.clone()]);
@@ -6678,7 +6713,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_number_n(&self, mut obj: Value, mut arr: Value, optional_args: &[Value]) -> Value {
+    fn safe_number_n(&self, mut obj: Value, mut arr: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string_n(obj.clone(), arr.clone(), &[]);
         return self.parse_number(value.clone(), &[defaultNumber.clone()]);
@@ -6686,7 +6721,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_precision(&self, optional_args: &[Value]) -> Value {
+    fn parse_precision(&self, optional_args: &[Value]) -> Value {
         let mut precision = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -6726,7 +6761,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn integer_precision_to_amount(&self, mut precision: Value) -> Value {
+    fn integer_precision_to_amount(&self, mut precision: Value) -> Value {
         /*
          * @ignore
          * @method
@@ -6754,7 +6789,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn load_time_difference(&mut self, optional_args: &[Value]) -> Value {
+    async fn load_time_difference(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6767,7 +6802,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn implode_hostname(&self, mut url: Value) -> Value {
+    fn implode_hostname(&self, mut url: Value) -> Value {
         return self.implode_params(url.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
@@ -6777,7 +6812,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_market_leverage_tiers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6801,7 +6836,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6811,7 +6846,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_currency_code(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
+    fn safe_currency_code(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         return get_value(&currency, &Value::Str("code".to_string()));
@@ -6819,7 +6854,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn filter_by_symbol_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_symbol_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6829,7 +6864,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn filter_by_currency_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_currency_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6839,7 +6874,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn filter_by_symbols_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_symbols_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6850,7 +6885,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_last_prices(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
+    fn parse_last_prices(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6881,7 +6916,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_138: bool = true;
                 while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
-                let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &i), &[]), &[params.clone()]);
+                let mut priceData: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &i), &[]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
             }
             }
@@ -6894,7 +6929,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
-                let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &marketId), &[market.clone()]), &[params.clone()]);
+                let mut priceData: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &marketId), &[market.clone()]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
             }
             }
@@ -6905,7 +6940,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_tickers(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
+    fn parse_tickers(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6939,7 +6974,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_140: bool = true;
                 while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&tickers)) } {
-                let mut parsedTicker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
+                let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &i), &[]);
                 let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
             }
@@ -6953,7 +6988,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
-                let mut parsed: Value = self.parse_ticker(get_value(&tickers, &marketId), &[market.clone()]);
+                let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &marketId), &[market.clone()]);
                 let mut ticker: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
             }
@@ -6965,7 +7000,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_deposit_addresses(&self, mut addresses: Value, optional_args: &[Value]) -> Value {
+    fn parse_deposit_addresses(&self, mut addresses: Value, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -6977,7 +7012,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_142: bool = true;
             while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&addresses)) } {
-            let mut address: Value = self.extend(self.parse_deposit_address(get_value(&addresses, &i), &[]), &[params.clone()]);
+            let mut address: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, get_value(&addresses, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, address.clone());
         }
         }
@@ -6992,7 +7027,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_borrow_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_borrow_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut interests: Value = Value::List(vec![]);
         {
@@ -7001,7 +7036,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             let mut row: Value = get_value(&response, &i);
-            append_to_array(&mut interests, self.parse_borrow_interest(row.clone(), &[market.clone()]));
+            append_to_array(&mut interests, <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row.clone(), &[market.clone()]));
         }
         }
         return interests;
@@ -7009,9 +7044,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_borrow_rate(...))
-        { let __v = self.derived().parse_borrow_rate(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_borrow_rate(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_borrow_rate(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowRate() is not supported yet".to_string()))));
@@ -7019,7 +7054,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_borrow_rate_history(&self, mut response: Value, mut code: Value, mut since: Value, mut limit: Value) -> Value {
+    fn parse_borrow_rate_history(&self, mut response: Value, mut code: Value, mut since: Value, mut limit: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -7027,7 +7062,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
-            let mut borrowRate: Value = self.parse_borrow_rate(item.clone(), &[]);
+            let mut borrowRate: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, item.clone(), &[]);
             append_to_array(&mut result, borrowRate.clone());
         }
         }
@@ -7037,7 +7072,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
+    fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7058,7 +7093,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_funding_rate_histories(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_funding_rate_histories(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7069,7 +7104,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
-            append_to_array(&mut rates, self.parse_funding_rate_history(entry.clone(), &[market.clone()]));
+            append_to_array(&mut rates, <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry.clone(), &[market.clone()]));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -7079,7 +7114,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_symbol(&self, mut marketId: Value, optional_args: &[Value]) -> Value {
+    fn safe_symbol(&self, mut marketId: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut delimiter = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
@@ -7089,9 +7124,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_funding_rate(&self, mut contract: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_funding_rate(...))
-        { let __v = self.derived().parse_funding_rate(contract.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_funding_rate(&self, mut contract: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_funding_rate(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_funding_rate(self, contract.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRate() is not supported yet".to_string()))));
@@ -7099,7 +7134,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_funding_rates(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_funding_rates(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fundingRates: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7111,7 +7146,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
-            let mut parsed: Value = self.parse_funding_rate(entry.clone(), &[]);
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, entry.clone(), &[]);
             add_element_to_object(&mut fundingRates, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
         }
         }
@@ -7120,14 +7155,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLongShortRatio() is not supported yet".to_string()))));
 
     Value::Null
 }
 
-    pub fn parse_long_short_ratio_history(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_long_short_ratio_history(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7148,7 +7183,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_trigger_prices_and_params(&self, mut symbol: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_trigger_prices_and_params(&self, mut symbol: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut omitParams = get_arg(optional_args, 0, Value::Bool(true));
         //
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -7181,7 +7216,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_trigger_direction_and_params(&self, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_trigger_direction_and_params(&self, mut params: Value, optional_args: &[Value]) -> Value {
         let mut exchangeSpecificKey = get_arg(optional_args, 0, Value::Null);
         let mut allowEmpty = get_arg(optional_args, 1, Value::Bool(false));
         /*
@@ -7211,7 +7246,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_trigger_and_params(&self, mut params: Value) -> Value {
+    fn handle_trigger_and_params(&self, mut params: Value) -> Value {
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         if is_true(&isTrigger) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
@@ -7221,13 +7256,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn is_trigger_order(&self, mut params: Value) -> Value {
+    fn is_trigger_order(&self, mut params: Value) -> Value {
         return self.handle_trigger_and_params(params.clone());
 
     Value::Null
 }
 
-    pub fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> Value {
+    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7262,7 +7297,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> Value {
+    fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7299,7 +7334,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_last_prices(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_last_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7310,7 +7345,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trading_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7325,7 +7360,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7335,7 +7370,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7345,9 +7380,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_open_interest(...))
-        { let __v = self.derived().parse_open_interest(interest.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_open_interest(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_open_interest(self, interest.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOpenInterest () is not supported yet".to_string()))));
@@ -7355,7 +7390,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_open_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_open_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7367,7 +7402,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
-            let mut parsed: Value = self.parse_open_interest(entry.clone(), &[]);
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[]);
             add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
         }
         }
@@ -7376,7 +7411,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_open_interests_history(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_open_interests_history(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7387,7 +7422,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
-            let mut interest: Value = self.parse_open_interest(entry.clone(), &[market.clone()]);
+            let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[market.clone()]);
             append_to_array(&mut interests, interest.clone());
         }
         }
@@ -7398,7 +7433,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rate", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7429,7 +7464,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_interval", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7460,7 +7495,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_mark_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_mark_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7491,7 +7526,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn fetch_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7522,7 +7557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn fetch_premium_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_premium_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_premium_index_ohlcv", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7558,7 +7593,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn handle_time_in_force(&self, optional_args: &[Value]) -> Value {
+    fn handle_time_in_force(&self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7582,7 +7617,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn convert_type_to_account(&self, mut account: Value) -> Value {
+    fn convert_type_to_account(&self, mut account: Value) -> Value {
         /*
          * @ignore
          * @method
@@ -7607,7 +7642,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn check_required_argument(&self, mut methodName: Value, mut argument: Value, mut argumentName: Value, optional_args: &[Value]) {
+    fn check_required_argument(&self, mut methodName: Value, mut argument: Value, mut argumentName: Value, optional_args: &[Value]) {
         let mut options = get_arg(optional_args, 0, Value::List(vec![]));
         /*
          * @ignore
@@ -7629,7 +7664,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn check_required_margin_argument(&self, mut methodName: Value, mut symbol: Value, mut marginMode: Value) {
+    fn check_required_margin_argument(&self, mut methodName: Value, mut symbol: Value, mut marginMode: Value) {
         /*
          * @ignore
          * @method
@@ -7644,7 +7679,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn parse_deposit_withdraw_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_deposit_withdraw_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut currencyIdKey = get_arg(optional_args, 1, Value::Null);
         /*
@@ -7678,7 +7713,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut currency: Value = self.safe_currency(currencyId.clone(), &[]);
             let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
-                add_element_to_object(&mut depositWithdrawFees, &code, self.parse_deposit_withdraw_fee(dictionary.clone(), &[currency.clone()]));
+                add_element_to_object(&mut depositWithdrawFees, &code, <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary.clone(), &[currency.clone()]));
             }
         }
         }
@@ -7687,9 +7722,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_deposit_withdraw_fee(...))
-        { let __v = self.derived().parse_deposit_withdraw_fee(fee.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_deposit_withdraw_fee(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(self, fee.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositWithdrawFee() is not supported yet".to_string()))));
@@ -7697,7 +7732,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn deposit_withdraw_fee(&self, mut info: Value) -> Value {
+    fn deposit_withdraw_fee(&self, mut info: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
@@ -7723,7 +7758,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn assign_default_deposit_withdraw_fees(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+    fn assign_default_deposit_withdraw_fees(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -7758,9 +7793,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_income(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_income(...))
-        { let __v = self.derived().parse_income(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_income(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_income(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_income(self, info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIncome () is not supported yet".to_string()))));
@@ -7768,7 +7803,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_incomes(&self, mut incomes: Value, optional_args: &[Value]) -> Value {
+    fn parse_incomes(&self, mut incomes: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7789,7 +7824,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&incomes)) } {
             let mut entry: Value = get_value(&incomes, &i);
             let mut entry: Value = get_value(&incomes, &i);
-            let mut parsed: Value = self.parse_income(entry.clone(), &[market.clone()]);
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
         }
         }
@@ -7800,7 +7835,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn get_market_from_symbols(&self, optional_args: &[Value]) -> Value {
+    fn get_market_from_symbols(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if is_equal(&symbols, &Value::Null) {
             return Value::Null;
@@ -7812,7 +7847,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_ws_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -7830,7 +7865,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_transactions(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_transactions(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7856,7 +7891,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         return self.filter_by_array(objects.clone(), key.clone(), &[values.clone(), indexed.clone()]);
@@ -7864,7 +7899,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn filter_by_array_tickers(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_array_tickers(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         return self.filter_by_array(objects.clone(), key.clone(), &[values.clone(), indexed.clone()]);
@@ -7872,7 +7907,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn filter_by_array_adl_ranks(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn filter_by_array_adl_ranks(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         return self.filter_by_array(objects.clone(), key.clone(), &[values.clone(), indexed.clone()]);
@@ -7880,7 +7915,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
+    fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
         let mut res: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7895,7 +7930,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_max_entries_per_request_and_params(&self, mut method: Value, optional_args: &[Value]) -> Value {
+    fn handle_max_entries_per_request_and_params(&self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut maxEntriesPerRequest = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7914,7 +7949,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_paginated_call_dynamic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_paginated_call_dynamic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8007,7 +8042,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn safe_deterministic_call(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    async fn safe_deterministic_call(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8042,7 +8077,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_paginated_call_deterministic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_paginated_call_deterministic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8102,7 +8137,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_paginated_call_cursor(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_paginated_call_cursor(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8189,7 +8224,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_paginated_call_incremental(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_paginated_call_incremental(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8232,7 +8267,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn sort_cursor_paginated_result(&self, mut result: Value) -> Value {
+    fn sort_cursor_paginated_result(&self, mut result: Value) -> Value {
         let mut first: Value = self.safe_value(result.clone(), Value::Int(0), &[]);
         if !is_equal(&first, &Value::Null) {
             if is_true(&Value::Bool(in_op(&first, &Value::Str("timestamp".to_string())))) {
@@ -8247,7 +8282,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn remove_repeated_elements_from_array(&self, mut input: Value, optional_args: &[Value]) -> Value {
+    fn remove_repeated_elements_from_array(&self, mut input: Value, optional_args: &[Value]) -> Value {
         let mut fallbackToTimestamp = get_arg(optional_args, 0, Value::Bool(true));
         let mut uniqueDic: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -8276,7 +8311,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn remove_repeated_trades_from_array(&self, mut input: Value) -> Value {
+    fn remove_repeated_trades_from_array(&self, mut input: Value) -> Value {
         let mut uniqueResult: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -8307,7 +8342,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
+    fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
         let mut keys: Value = object_keys(&dict);
         let mut newDict: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -8329,7 +8364,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_until_option(&self, mut key: Value, mut request: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_until_option(&self, mut key: Value, mut request: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut multiplier = get_arg(optional_args, 0, Value::Int(1));
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]);
         if !is_equal(&until, &Value::Null) {
@@ -8341,7 +8376,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn safe_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
+    fn safe_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         if is_equal(&symbol, &Value::Null) {
@@ -8363,9 +8398,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_liquidation(...))
-        { let __v = self.derived().parse_liquidation(liquidation.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_liquidation(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_liquidation(self, liquidation.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLiquidation () is not supported yet".to_string()))));
@@ -8373,7 +8408,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_liquidations(&self, mut liquidations: Value, optional_args: &[Value]) -> Value {
+    fn parse_liquidations(&self, mut liquidations: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8394,7 +8429,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
             let mut entry: Value = get_value(&liquidations, &i);
             let mut entry: Value = get_value(&liquidations, &i);
-            let mut parsed: Value = self.parse_liquidation(entry.clone(), &[market.clone()]);
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
         }
         }
@@ -8405,9 +8440,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_greeks(...))
-        { let __v = self.derived().parse_greeks(greeks.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_greeks(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_greeks(self, greeks.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseGreeks () is not supported yet".to_string()))));
@@ -8415,7 +8450,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_all_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+    fn parse_all_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8430,7 +8465,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_162: bool = true;
                 while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&greeks)) } {
-                let mut parsedTicker: Value = self.parse_greeks(get_value(&greeks, &i), &[]);
+                let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &i), &[]);
                 let mut greek: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
             }
@@ -8444,7 +8479,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
-                let mut parsed: Value = self.parse_greeks(get_value(&greeks, &marketId), &[market.clone()]);
+                let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &marketId), &[market.clone()]);
                 let mut greek: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
             }
@@ -8456,7 +8491,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_option(&self, mut chain: Value, optional_args: &[Value]) -> Value {
+    fn parse_option(&self, mut chain: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut market = get_arg(optional_args, 1, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOption () is not supported yet".to_string()))));
@@ -8464,7 +8499,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_option_chain(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_option_chain(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut currencyKey = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut optionStructures: Value = Value::Map({
@@ -8489,7 +8524,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_margin_modes(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_margin_modes(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
@@ -8509,7 +8544,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
-                add_element_to_object(&mut marginModeStructures, &get_value(&market, &Value::Str("symbol".to_string())), self.parse_margin_mode(info.clone(), &[market.clone()]));
+                add_element_to_object(&mut marginModeStructures, &get_value(&market, &Value::Str("symbol".to_string())), <Self as crate::exchange_generated::ExchangeBase>::parse_margin_mode(self, info.clone(), &[market.clone()]));
             }
         }
         }
@@ -8518,9 +8553,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_margin_mode(...))
-        { let __v = self.derived().parse_margin_mode(marginMode.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_margin_mode(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_margin_mode(self, marginMode.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginMode () is not supported yet".to_string()))));
@@ -8528,7 +8563,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_leverages(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_leverages(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
@@ -8548,7 +8583,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
-                add_element_to_object(&mut leverageStructures, &get_value(&market, &Value::Str("symbol".to_string())), self.parse_leverage(info.clone(), &[market.clone()]));
+                add_element_to_object(&mut leverageStructures, &get_value(&market, &Value::Str("symbol".to_string())), <Self as crate::exchange_generated::ExchangeBase>::parse_leverage(self, info.clone(), &[market.clone()]));
             }
         }
         }
@@ -8557,9 +8592,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_leverage(...))
-        { let __v = self.derived().parse_leverage(leverage.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_leverage(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_leverage(self, leverage.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLeverage () is not supported yet".to_string()))));
@@ -8567,7 +8602,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_conversions(&self, mut conversions: Value, optional_args: &[Value]) -> Value {
+    fn parse_conversions(&self, mut conversions: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut fromCurrencyKey = get_arg(optional_args, 1, Value::Null);
         let mut toCurrencyKey = get_arg(optional_args, 2, Value::Null);
@@ -8595,7 +8630,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if !is_equal(&toId, &Value::Null) {
                 toCurrency = self.safe_currency(toId.clone(), &[]);
             }
-            let mut conversion: Value = self.extend(self.parse_conversion(entry.clone(), &[fromCurrency.clone(), toCurrency.clone()]), &[params.clone()]);
+            let mut conversion: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_conversion(self, entry.clone(), &[fromCurrency.clone(), toCurrency.clone()]), &[params.clone()]);
             append_to_array(&mut result, conversion.clone());
         }
         }
@@ -8616,9 +8651,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_conversion(&self, mut conversion: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_conversion(...))
-        { let __v = self.derived().parse_conversion(conversion.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_conversion(&self, mut conversion: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_conversion(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_conversion(self, conversion.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut fromCurrency = get_arg(optional_args, 0, Value::Null);
         let mut toCurrency = get_arg(optional_args, 1, Value::Null);
@@ -8627,7 +8662,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn convert_expire_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date(&self, mut date: Value) -> Value {
         // parse YYMMDD to datetime string
         let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
         let mut month: Value = slice(&date, &Value::Int(2), &Value::Int(4));
@@ -8638,7 +8673,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn convert_expire_date_to_market_id_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date_to_market_id_date(&self, mut date: Value) -> Value {
         // parse 240119 to 19JAN24
         let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
         let mut monthRaw: Value = slice(&date, &Value::Int(2), &Value::Int(4));
@@ -8675,7 +8710,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
+    fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
         // parse 03JAN24 to 240103.
         let mut monthMappping: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -8707,15 +8742,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn load_markets_and_sign_in(&mut self) -> Value {
+    async fn load_markets_and_sign_in(&mut self) -> Value {
         promise_all(&Value::List(vec![self.load_markets(&[]).await, self.sign_in(&[]).await])).await;
 
     Value::Null
 }
 
-    pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
-        // virtual-dispatch (Go-style: this.DerivedExchange.parse_margin_modification(...))
-        { let __v = self.derived().parse_margin_modification(data.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+    fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (static: DerivedExchange::parse_margin_modification(self, ...))
+        { let __v = crate::exchange::DerivedExchange::parse_margin_modification(self, data.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginModification() is not supported yet".to_string()))));
@@ -8723,7 +8758,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_margin_modifications(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_margin_modifications(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
@@ -8737,7 +8772,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
-                append_to_array(&mut marginModifications, self.parse_margin_modification(info.clone(), &[market.clone()]));
+                append_to_array(&mut marginModifications, <Self as crate::exchange_generated::ExchangeBase>::parse_margin_modification(self, info.clone(), &[market.clone()]));
             }
         }
         }
@@ -8746,7 +8781,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8757,7 +8792,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8770,7 +8805,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8781,7 +8816,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8792,7 +8827,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8803,7 +8838,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_orders_by_status_ws(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_orders_by_status_ws(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8816,7 +8851,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn un_watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    async fn un_watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8827,7 +8862,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn clean_unsubscription(&self, mut client: Value, mut subHash: Value, mut unsubHash: Value, optional_args: &[Value]) {
+    fn clean_unsubscription(&self, mut client: Value, mut subHash: Value, mut unsubHash: Value, optional_args: &[Value]) {
         let mut subHashIsPrefix = get_arg(optional_args, 0, Value::Bool(false));
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &unsubHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &unsubHash);
@@ -8870,7 +8905,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         client.resolve(&[Value::Bool(true), unsubHash.clone()]);
 }
 
-    pub fn clean_cache(&mut self, mut subscription: Value) {
+    fn clean_cache(&mut self, mut subscription: Value) {
         let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
         let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -8967,7 +9002,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn timeframe_from_milliseconds(&self, mut ms: Value) -> Value {
+    fn timeframe_from_milliseconds(&self, mut ms: Value) -> Value {
         if is_less_than_or_equal(&ms, &Value::Int(0)) {
             return Value::Str("".to_string());
         }
@@ -8996,7 +9031,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn is_uta_enabled(&mut self, optional_args: &[Value]) -> Value {
+    async fn is_uta_enabled(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9005,7 +9040,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     Value::Null
 }
-    pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9016,7 +9051,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
+    async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9026,7 +9061,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9036,7 +9071,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9049,7 +9084,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9079,7 +9114,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9097,7 +9132,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9108,7 +9143,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9118,7 +9153,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9128,7 +9163,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9139,7 +9174,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9151,7 +9186,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9163,7 +9198,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9174,7 +9209,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9197,7 +9232,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9208,7 +9243,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9219,7 +9254,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9229,7 +9264,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9240,7 +9275,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9251,7 +9286,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9262,7 +9297,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    async fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9274,7 +9309,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9285,7 +9320,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9296,7 +9331,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9307,7 +9342,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9317,7 +9352,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9327,7 +9362,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9337,7 +9372,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9347,7 +9382,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9370,7 +9405,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9381,7 +9416,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9391,7 +9426,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -9430,7 +9465,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9441,7 +9476,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9451,7 +9486,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9470,7 +9505,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9489,7 +9524,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9507,7 +9542,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9543,7 +9578,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9561,7 +9596,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9584,7 +9619,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9620,7 +9655,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -9657,7 +9692,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -9694,7 +9729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9730,7 +9765,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9743,7 +9778,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9760,7 +9795,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9773,7 +9808,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9790,7 +9825,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9801,7 +9836,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9812,7 +9847,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9825,7 +9860,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9835,7 +9870,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9846,7 +9881,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9869,7 +9904,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9880,7 +9915,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9893,7 +9928,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
 
-    pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9910,7 +9945,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9922,7 +9957,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_order_book", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9938,7 +9973,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9965,7 +10000,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9976,7 +10011,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9996,7 +10031,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10013,7 +10048,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10024,7 +10059,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10035,7 +10070,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10046,7 +10081,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("edit_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10064,7 +10099,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    async fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10081,7 +10116,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10096,7 +10131,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10109,7 +10144,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10122,7 +10157,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10138,7 +10173,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ticker", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10166,7 +10201,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10176,7 +10211,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_tickers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10192,7 +10227,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10203,7 +10238,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10228,7 +10263,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10244,7 +10279,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10258,7 +10293,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10268,7 +10303,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10284,7 +10319,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -10321,7 +10356,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -10358,7 +10393,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10381,7 +10416,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10403,7 +10438,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10425,7 +10460,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10461,7 +10496,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10497,7 +10532,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10533,7 +10568,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -10572,7 +10607,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(orders.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10587,7 +10622,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10612,7 +10647,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10628,7 +10663,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(ids.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10653,7 +10688,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10669,7 +10704,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10685,7 +10720,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10695,7 +10730,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10716,7 +10751,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10729,7 +10764,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10742,7 +10777,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10764,7 +10799,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10786,7 +10821,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10799,7 +10834,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10817,7 +10852,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10830,7 +10865,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10840,7 +10875,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10851,7 +10886,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10861,7 +10896,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10871,7 +10906,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10881,7 +10916,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10891,7 +10926,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10910,7 +10945,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10929,7 +10964,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10952,7 +10987,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10970,7 +11005,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10988,7 +11023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11006,12 +11041,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     Value::Null
 }
-    /// Dispatch by method name. Mirrors Go's CallInternal /
-    /// C#'s callInternal — lets the CLI call any method without
-    /// hard-coding signatures. Accepts the canonical snake_case name.
-    /// Returns Value::Null for unknown names.
-    pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
-        match method {
+    /// Base-method fall-through for a core's `call_dynamic`.
+    fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
             "account" => self.account(),
             "add_key_in_array_items" => self.add_key_in_array_items(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "add_margin" => self.add_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
@@ -11060,7 +11095,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "create_contract_orders" => self.create_contract_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "create_convert_trade" => self.create_convert_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_expired_option_market" => self.create_expired_option_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "create_expired_option_market" => <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "create_limit_buy_order" => self.create_limit_buy_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "create_limit_buy_order_ws" => self.create_limit_buy_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "create_limit_order" => self.create_limit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
@@ -11277,7 +11312,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "get_market_from_symbols" => self.get_market_from_symbols(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
             "get_supported_mapping" => self.get_supported_mapping(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "get_symbols_for_market_type" => self.get_symbols_for_market_type(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
-            "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+            "handle_errors" => <Self as crate::exchange_generated::ExchangeBase>::handle_errors(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "handle_margin_mode_and_params" => self.handle_margin_mode_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "handle_market_type_and_params" => self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "handle_max_entries_per_request_and_params" => self.handle_max_entries_per_request_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -11330,78 +11365,78 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "nonce" => self.nonce(),
             "oath" => self.oath(),
             "orderbook_checksum_message" => self.orderbook_checksum_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_account" => <Self as crate::exchange_generated::ExchangeBase>::parse_account(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_accounts" => self.parse_accounts(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_adl_rank" => <Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_adl_ranks" => self.parse_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_all_greeks" => self.parse_all_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_balance" => <Self as crate::exchange_generated::ExchangeBase>::parse_balance(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_borrow_interest" => <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_borrow_interests" => self.parse_borrow_interests(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_borrow_rate" => <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_borrow_rate_history" => self.parse_borrow_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
-            "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_conversion" => <Self as crate::exchange_generated::ExchangeBase>::parse_conversion(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_conversions" => self.parse_conversions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_currencies" => self.parse_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_currency" => <Self as crate::exchange_generated::ExchangeBase>::parse_currency(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_deposit_address" => <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_addresses" => self.parse_deposit_addresses(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_deposit_withdraw_fee" => <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_fee_numeric" => self.parse_fee_numeric(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_funding_rate" => <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate_histories" => self.parse_funding_rate_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_funding_rate_history" => <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rates" => self.parse_funding_rates(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_greeks" => <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_income" => <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_incomes" => self.parse_incomes(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_isolated_borrow_rate" => self.parse_isolated_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_isolated_borrow_rates" => self.parse_isolated_borrow_rates(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_last_price" => <Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_last_prices" => self.parse_last_prices(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger" => self.parse_ledger(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_ledger_entry" => <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_leverage" => <Self as crate::exchange_generated::ExchangeBase>::parse_leverage(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_leverage_tiers" => self.parse_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_leverages" => self.parse_leverages(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_liquidation" => <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_liquidations" => self.parse_liquidations(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_long_short_ratio" => self.parse_long_short_ratio(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_long_short_ratio_history" => self.parse_long_short_ratio_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_margin_mode" => self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_margin_mode" => <Self as crate::exchange_generated::ExchangeBase>::parse_margin_mode(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_margin_modes" => self.parse_margin_modes(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_margin_modification" => <Self as crate::exchange_generated::ExchangeBase>::parse_margin_modification(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_margin_modifications" => self.parse_margin_modifications(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_market" => <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_market_leverage_tiers" => <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_markets" => self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ohlc_vs" => self.parse_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_ohlcv" => <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_open_interest" => <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_open_interests" => self.parse_open_interests(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_open_interests_history" => self.parse_open_interests_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_option_chain" => self.parse_option_chain(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_order_book" => self.parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
+            "parse_order" => <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_order_book" => <Self as crate::exchange_generated::ExchangeBase>::parse_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_book_bid_ask" => self.parse_order_book_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_orders" => self.parse_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_position" => <Self as crate::exchange_generated::ExchangeBase>::parse_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_positions" => self.parse_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_precision" => self.parse_precision(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_ticker" => <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_tickers" => self.parse_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_to_int" => self.parse_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_to_numeric" => self.parse_to_numeric(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_trade" => <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_trades_helper" => self.parse_trades_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "parse_trading_view_ohlcv" => self.parse_trading_view_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_transaction" => <Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_transactions" => self.parse_transactions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_transfer" => <Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_transfers" => self.parse_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ws_ohlc_vs" => self.parse_ws_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -11463,7 +11498,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_markets_from_exchange" => self.set_markets_from_exchange(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "set_take_profit_and_stop_loss_params" => self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
-            "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "sign_in" => self.sign_in(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "sort_cursor_paginated_result" => self.sort_cursor_paginated_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "string_to_base16" => self.string_to_base16(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -11515,7 +11550,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "withdraw_ws" => self.withdraw_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
-            _ => crate::Value::Null,
-        }
+                _ => crate::Value::Null,
+            }
+        })
     }
 }

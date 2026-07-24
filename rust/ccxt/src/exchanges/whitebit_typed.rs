@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::whitebit::WhitebitCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Whitebit {
     // Private + pinned: the Core is self-referential (its embedded

@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::hyperliquid::HyperliquidCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Hyperliquid {
     // Private + pinned: the Core is self-referential (its embedded

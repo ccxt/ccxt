@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::bit2c::Bit2cCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Bit2c {
     // Private + pinned: the Core is self-referential (its embedded

@@ -9,345 +9,346 @@
 
 use crate::Value;
 use super::bitrue::BitrueCore;
+use crate::exchange::ExchangeRuntime;
 
 impl BitrueCore {
     /// Auto-generated wrapper for the `spotKlinePublicGetPublicJson` implicit endpoint.
-    pub async fn spot_kline_public_get_public_json(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_kline_public_get_public_json(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_kline_public_get_public_json".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotKlinePublicGetPublicCurrencyJson` implicit endpoint.
-    pub async fn spot_kline_public_get_public_currency_json(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_kline_public_get_public_currency_json(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_kline_public_get_public_currency_json".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetPing` implicit endpoint.
-    pub async fn spot_v1_public_get_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTime` implicit endpoint.
-    pub async fn spot_v1_public_get_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetExchangeInfo` implicit endpoint.
-    pub async fn spot_v1_public_get_exchange_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_exchange_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetDepth` implicit endpoint.
-    pub async fn spot_v1_public_get_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetHistoricalTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetAggTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_agg_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_agg_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_agg_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTicker24hr` implicit endpoint.
-    pub async fn spot_v1_public_get_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTickerPrice` implicit endpoint.
-    pub async fn spot_v1_public_get_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTickerBookTicker` implicit endpoint.
-    pub async fn spot_v1_public_get_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetMarketKline` implicit endpoint.
-    pub async fn spot_v1_public_get_market_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_public_get_market_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_public_get_market_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetOrder` implicit endpoint.
-    pub async fn spot_v1_private_get_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetOpenOrders` implicit endpoint.
-    pub async fn spot_v1_private_get_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetAllOrders` implicit endpoint.
-    pub async fn spot_v1_private_get_all_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_all_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetAccount` implicit endpoint.
-    pub async fn spot_v1_private_get_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetMyTrades` implicit endpoint.
-    pub async fn spot_v1_private_get_my_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_my_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetEtfNetValueSymbol` implicit endpoint.
-    pub async fn spot_v1_private_get_etf_net_value_symbol(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_etf_net_value_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_etf_net_value_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetWithdrawHistory` implicit endpoint.
-    pub async fn spot_v1_private_get_withdraw_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_withdraw_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_withdraw_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetDepositHistory` implicit endpoint.
-    pub async fn spot_v1_private_get_deposit_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_get_deposit_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_get_deposit_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivatePostOrder` implicit endpoint.
-    pub async fn spot_v1_private_post_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_post_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_post_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivatePostWithdrawCommit` implicit endpoint.
-    pub async fn spot_v1_private_post_withdraw_commit(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_post_withdraw_commit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_post_withdraw_commit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateDeleteOrder` implicit endpoint.
-    pub async fn spot_v1_private_delete_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v1_private_delete_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v1_private_delete_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV2PrivateGetMyTrades` implicit endpoint.
-    pub async fn spot_v2_private_get_my_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn spot_v2_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v2_private_get_my_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetPing` implicit endpoint.
-    pub async fn fapi_v1_public_get_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetTime` implicit endpoint.
-    pub async fn fapi_v1_public_get_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetContracts` implicit endpoint.
-    pub async fn fapi_v1_public_get_contracts(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_contracts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetDepth` implicit endpoint.
-    pub async fn fapi_v1_public_get_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetTicker` implicit endpoint.
-    pub async fn fapi_v1_public_get_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetKlines` implicit endpoint.
-    pub async fn fapi_v1_public_get_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v1_public_get_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetMyTrades` implicit endpoint.
-    pub async fn fapi_v2_private_get_my_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_my_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetOpenOrders` implicit endpoint.
-    pub async fn fapi_v2_private_get_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetOrder` implicit endpoint.
-    pub async fn fapi_v2_private_get_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetAccount` implicit endpoint.
-    pub async fn fapi_v2_private_get_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetLeverageBracket` implicit endpoint.
-    pub async fn fapi_v2_private_get_leverage_bracket(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_leverage_bracket(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_leverage_bracket".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetCommissionRate` implicit endpoint.
-    pub async fn fapi_v2_private_get_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetFuturesTransferHistory` implicit endpoint.
-    pub async fn fapi_v2_private_get_futures_transfer_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_futures_transfer_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_futures_transfer_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetForceOrdersHistory` implicit endpoint.
-    pub async fn fapi_v2_private_get_force_orders_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_get_force_orders_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_get_force_orders_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostPositionMargin` implicit endpoint.
-    pub async fn fapi_v2_private_post_position_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_position_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostLevelEdit` implicit endpoint.
-    pub async fn fapi_v2_private_post_level_edit(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_level_edit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_level_edit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostCancel` implicit endpoint.
-    pub async fn fapi_v2_private_post_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostOrder` implicit endpoint.
-    pub async fn fapi_v2_private_post_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostAllOpenOrders` implicit endpoint.
-    pub async fn fapi_v2_private_post_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivatePostFuturesTransfer` implicit endpoint.
-    pub async fn fapi_v2_private_post_futures_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_v2_private_post_futures_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_v2_private_post_futures_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetPing` implicit endpoint.
-    pub async fn dapi_v1_public_get_ping(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_ping".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetTime` implicit endpoint.
-    pub async fn dapi_v1_public_get_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetContracts` implicit endpoint.
-    pub async fn dapi_v1_public_get_contracts(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_contracts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetDepth` implicit endpoint.
-    pub async fn dapi_v1_public_get_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetTicker` implicit endpoint.
-    pub async fn dapi_v1_public_get_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetKlines` implicit endpoint.
-    pub async fn dapi_v1_public_get_klines(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v1_public_get_klines".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetMyTrades` implicit endpoint.
-    pub async fn dapi_v2_private_get_my_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_my_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetOpenOrders` implicit endpoint.
-    pub async fn dapi_v2_private_get_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetOrder` implicit endpoint.
-    pub async fn dapi_v2_private_get_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetAccount` implicit endpoint.
-    pub async fn dapi_v2_private_get_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetLeverageBracket` implicit endpoint.
-    pub async fn dapi_v2_private_get_leverage_bracket(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_leverage_bracket(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_leverage_bracket".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetCommissionRate` implicit endpoint.
-    pub async fn dapi_v2_private_get_commission_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_commission_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_commission_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetFuturesTransferHistory` implicit endpoint.
-    pub async fn dapi_v2_private_get_futures_transfer_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_futures_transfer_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_futures_transfer_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetForceOrdersHistory` implicit endpoint.
-    pub async fn dapi_v2_private_get_force_orders_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_get_force_orders_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_get_force_orders_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostPositionMargin` implicit endpoint.
-    pub async fn dapi_v2_private_post_position_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_position_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostLevelEdit` implicit endpoint.
-    pub async fn dapi_v2_private_post_level_edit(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_level_edit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_level_edit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostCancel` implicit endpoint.
-    pub async fn dapi_v2_private_post_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostOrder` implicit endpoint.
-    pub async fn dapi_v2_private_post_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostAllOpenOrders` implicit endpoint.
-    pub async fn dapi_v2_private_post_all_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivatePostFuturesTransfer` implicit endpoint.
-    pub async fn dapi_v2_private_post_futures_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn dapi_v2_private_post_futures_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_v2_private_post_futures_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `openV1PrivatePostPoseidonApiV1ListenKey` implicit endpoint.
-    pub async fn open_v1_private_post_poseidon_api_v1_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn open_v1_private_post_poseidon_api_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("open_v1_private_post_poseidon_api_v1_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `openV1PrivatePutPoseidonApiV1ListenKeyListenKey` implicit endpoint.
-    pub async fn open_v1_private_put_poseidon_api_v1_listen_key_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn open_v1_private_put_poseidon_api_v1_listen_key_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("open_v1_private_put_poseidon_api_v1_listen_key_listen_key".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `openV1PrivateDeletePoseidonApiV1ListenKeyListenKey` implicit endpoint.
-    pub async fn open_v1_private_delete_poseidon_api_v1_listen_key_listen_key(&self, optional_args: &[Value]) -> Value {
+    pub async fn open_v1_private_delete_poseidon_api_v1_listen_key_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("open_v1_private_delete_poseidon_api_v1_listen_key_listen_key".to_string()), optional_args).await
     }
 

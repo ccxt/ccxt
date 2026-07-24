@@ -5,6 +5,11 @@
 use crate::Value;
 use crate::get_value;
 use crate::runtime::*;
+// Base methods are now trait methods (review #1: static dispatch). Bring the
+// traits into scope so `self.market(...)`, `self.safe_market(...)`,
+// `self.load_markets(...)`, … on this Core resolve to the base defaults.
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 use crate::pro::*;
 
 
@@ -23,19 +28,17 @@ impl OkxCore {
     /// builds the implicit API table. Idempotent — calling more than once is
     /// safe.
     ///
-    /// Deliberately does NOT install the derived-dispatch pointers: new()
-    /// runs init() while self is still a movable local, so binding here
-    /// would capture a soon-invalid address (review P0 #1). An un-bound Core
-    /// is safe-but-inert — derived_ptr defaults to DEFAULT_DERIVED and
-    /// derived_core_ptr is null, so virtual calls fall back to the base.
-    /// Binding happens later at a pinned/boxed address via bind(), which the
-    /// sanctioned constructors call once the Core is heap-stable.
+    /// Dispatch is now fully static (review #1: pointer removal) — virtual
+    /// calls resolve through the DerivedExchange/ExchangeBase trait impls
+    /// on the concrete Core type, so there is no address to bind and init()
+    /// needs no self-referential setup. It runs safely while self is still a
+    /// movable local in new().
     pub fn init(&mut self) {
         // Populate describe()-derived fields.
         let described = OkxCore::describe(self);
-        self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
-        self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
-        self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
+        self.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
+        self.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
+        self.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
         // rateLimit drives the throttle spacing. describe() usually declares a
         // venue-specific value (binance 50ms, …); new() ran apply_config before
         // init(), so a config-supplied rateLimit is already in place. Only fall
@@ -44,8 +47,8 @@ impl OkxCore {
         // to drop describe().rateLimit, leaving every venue at 2000ms).
         let __described_rate_limit = crate::get_value(&described, &crate::Value::Str("rateLimit".to_string()));
         if matches!(__described_rate_limit, crate::Value::Int(_) | crate::Value::Float(_))
-            && matches!(self.exchange.rateLimit, crate::Value::Int(2000)) {
-            self.exchange.rateLimit = __described_rate_limit;
+            && matches!(self.rateLimit, crate::Value::Int(2000)) {
+            self.rateLimit = __described_rate_limit;
         }
         // Merge describe() options INTO whatever apply_config (or
         // earlier setup) already populated. Caller-supplied options
@@ -58,13 +61,13 @@ impl OkxCore {
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
         if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
-            (&self.exchange.options.clone(), &__described_options)
+            (&self.options.clone(), &__described_options)
         {
             let mut merged = (**defaults).clone();
             for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
-            self.exchange.options = __described_options;
+            self.options = crate::Value::Map(merged);
+        } else if !matches!(self.options, crate::Value::Dict(_)) {
+            self.options = __described_options;
         }
         // Derive options.networksById (CCXT's createNetworksByIdObject):
         // start from the auto-inverted networks (generated), then overlay
@@ -73,7 +76,7 @@ impl OkxCore {
         // overlay, an exchange whose networks defines both BSC to BSC and
         // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
         // order instead of the intended BSC to BEP20.
-        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+        if let crate::Value::Dict(opts_arc) = self.options.clone() {
             let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
             let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
             if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
@@ -88,127 +91,46 @@ impl OkxCore {
                 for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
             }
             opts.insert("networksById".to_string(), crate::Value::Map(by_id));
-            self.exchange.options = crate::Value::Map(opts);
+            self.options = crate::Value::Map(opts);
         }
-        self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
-        self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
-        self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
-        self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
-        self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
+        self.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
+        self.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
+        self.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
+        self.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
+        self.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
         // Only override the base-default requiredCredentials when the
         // exchange's describe() actually provides them (super.describe()
         // is stubbed, so most exchanges' describe() omits this).
-        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.requiredCredentials = __rc; } }
         // Merge describe()'s commonCurrencies over the base defaults so
         // exchange-specific aliases (bitfinex UST to USDT, onetrading
         // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
-        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
-        self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
-        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
-        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.commonCurrencies = crate::Value::Map(extra); } } }
+        self.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
         // `features` carries the describe() block that drives
         // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
         // tells testFetchCurrencies to skip the length check). It's set
         // after `Exchange::new` because `features_generator` (in
         // `after_construct`) bails when `features == Null` — so we
         // assign and re-run the generator here.
-        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
-        if !matches!(self.exchange.features, crate::Value::Null) {
-            self.exchange.features_generator();
+        self.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.features, crate::Value::Null) {
+            self.features_generator();
         }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
-        self.exchange.build_implicit_api();
+        self.build_implicit_api();
     }
 
-    /// Re-bind the derived-exchange pointer. Needed if the struct's
-    /// address moves after `new()` (e.g. `Box::new` the value).
-    pub fn bind(&mut self) {
-        let ptr: *const (dyn crate::exchange::DerivedExchange + 'static) =
-            self as &Self as *const dyn crate::exchange::DerivedExchange;
-        self.exchange.bind_derived(ptr);
-        // Async dispatch hook: lets base Exchange methods route async
-        // calls (cancel_order, fetch_order, …) to this Core's
-        // call_dynamic, bypassing the base stubs.
-        let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, OkxCore::__call_dynamic_dispatch);
-    }
-
-    /// Type-erased trampoline used by Exchange::dispatch_to_derived.
-    /// Casts the void pointer back to `*mut Self` and forwards to the
-    /// real `call_dynamic`. Safety: the pointer must come from the
-    /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    pub fn __call_dynamic_dispatch<'a>(
-        ptr: *mut (),
-        method: &'a str,
-        args: Vec<crate::Value>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>> {
-        Box::pin(async move {
-            let s: &mut Self = unsafe { &mut *(ptr as *mut Self) };
-            s.call_dynamic(method, args).await
-        })
-    }
-
-    /// Dispatch by method name. Mirrors Go's CallInternal /
-    /// C#'s callInternal — lets the CLI call any method without
-    /// hard-coding signatures. Accepts the canonical snake_case name.
-    /// Returns Value::Null for unknown names.
-    pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
-        match method {
-            "authenticate" => self.authenticate(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "get_url" => self.get_url(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_order_book" => self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
-            "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
-            "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_ohlcv_for_symbols" => self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_order_book_for_symbols" => self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_tickers" => self.un_watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_balance" => self.watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_bids_asks" => self.watch_bids_asks(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_funding_rates" => self.watch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_liquidations_for_symbols" => self.watch_liquidations_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_mark_price" => self.watch_mark_price(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_mark_prices" => self.watch_mark_prices(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_my_liquidations_for_symbols" => self.watch_my_liquidations_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_ohlcv_for_symbols" => self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_orders" => self.watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_positions" => self.watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            // Go-style inheritance: an un-overridden method dispatches
-            // to the parent exchange Core.
-            _ => self.parent.call_dynamic(method, args).await,
-        }
-    }
+    /// Compatibility no-op. The old pointer-based dispatch needed a post-move
+    /// `bind()`; static trait dispatch (review #1) needs no binding, so this
+    /// just exists so callers that still call it keep compiling.
+    #[inline]
+    pub fn bind(&mut self) {}
 }
 
 impl crate::exchange::DerivedExchange for OkxCore {
@@ -334,13 +256,73 @@ impl crate::exchange::DerivedExchange for OkxCore {
     }
 }
 
+impl crate::exchange_generated::ExchangeBase for OkxCore {
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
+                "authenticate" => self.authenticate(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "get_url" => self.get_url(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_order_book" => self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
+                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "request_id" => self.request_id(),
+                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ohlcv_for_symbols" => self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_order_book_for_symbols" => self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_tickers" => self.un_watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_balance" => self.watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_bids_asks" => self.watch_bids_asks(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_funding_rates" => self.watch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_liquidations_for_symbols" => self.watch_liquidations_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_mark_price" => self.watch_mark_price(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_mark_prices" => self.watch_mark_prices(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_my_liquidations_for_symbols" => self.watch_my_liquidations_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ohlcv_for_symbols" => self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_orders" => self.watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_positions" => self.watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                // Go-style inheritance: an un-overridden method dispatches to the parent core.
+                _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
+            }
+        })
+    }
+}
+
 impl std::ops::Deref for OkxCore {
-    type Target = crate::exchanges::okx::OkxCore;
-    fn deref(&self) -> &Self::Target { &self.parent }
+    type Target = crate::exchange::Exchange;
+    fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
 impl std::ops::DerefMut for OkxCore {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
+    fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
 impl OkxCore {
@@ -2428,7 +2410,7 @@ impl OkxCore {
             m
         })]);
         let mut channel: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut balance: Value = self.parse_trading_balance(message.clone());
+        let mut balance: Value = self.parent.parse_trading_balance(message.clone());
         let mut newBalance: Value = self.deep_extend(self.balance.clone(), &[balance.clone()]);
         { let __t = self.safe_balance(newBalance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), channel.clone()]);
@@ -3018,7 +3000,7 @@ impl OkxCore {
         let mut messageHash: Value = self.request_id();
         let mut op: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrderWs".to_string()), Value::Str("op".to_string()), &[Value::Str("batch-orders".to_string())]); op = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut args: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
+        let mut args: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut market: Value = self.market(symbol.clone());
         let mut instIdCode: Value = self.safe_integer_k(market.clone(), "instIdCode", &[]);
         if !is_equal(&instIdCode, &Value::Null) {
@@ -3120,7 +3102,7 @@ impl OkxCore {
         let mut messageHash: Value = self.request_id();
         let mut op: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrderWs".to_string()), Value::Str("op".to_string()), &[Value::Str("amend-order".to_string())]); op = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut args: Value = self.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);
+        let mut args: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);
         let mut market: Value = self.market(symbol.clone());
         let mut instIdCode: Value = self.safe_integer_k(market.clone(), "instIdCode", &[]);
         if !is_equal(&instIdCode, &Value::Null) {

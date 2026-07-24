@@ -403,6 +403,10 @@ pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
 // instance — no network, no per-exchange state.
 
 use ccxt::exchange::Exchange;
+use ccxt::exchange::BaseCore;
+// Base ops (safe_bool/safe_dict/parse_to_int/…) are ExchangeBase trait methods
+// now (review #1: static dispatch), so the throwaway instance is a BaseCore.
+use ccxt::exchange_generated::ExchangeBase;
 
 // One throwaway `Exchange` per thread for the ExchangeOps stub forwarders.
 // `Exchange::new(None)` allocates ~10 large `Value::Map` defaults
@@ -411,16 +415,16 @@ use ccxt::exchange::Exchange;
 // market) build ~22k Exchange structs for binance, taking minutes.
 // `with_base` reuses a single instance per thread for ~100x speedup.
 thread_local! {
-    static BASE_EXCHANGE: std::cell::RefCell<Exchange> =
-        std::cell::RefCell::new(Exchange::new(None));
+    static BASE_EXCHANGE: std::cell::RefCell<BaseCore> =
+        std::cell::RefCell::new(BaseCore::new(Exchange::new(None)));
 }
 
-fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut Exchange) -> R {
+fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
     BASE_EXCHANGE.with(|cell| f(&mut cell.borrow_mut()))
 }
 
 #[allow(dead_code)]
-fn with_base_clone() -> Exchange { Exchange::new(None) }
+fn with_base_clone() -> BaseCore { BaseCore::new(Exchange::new(None)) }
 
 pub trait ExchangeOps {
     fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;

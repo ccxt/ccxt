@@ -9,175 +9,176 @@
 
 use crate::Value;
 use super::zaif::ZaifCore;
+use crate::exchange::ExchangeRuntime;
 
 impl ZaifCore {
     /// Auto-generated wrapper for the `publicGetDepthPair` implicit endpoint.
-    pub async fn public_get_depth_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_depth_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_depth_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesPair` implicit endpoint.
-    pub async fn public_get_currencies_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_currencies_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currencies_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesAll` implicit endpoint.
-    pub async fn public_get_currencies_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_currencies_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currencies_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsPair` implicit endpoint.
-    pub async fn public_get_currency_pairs_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_currency_pairs_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currency_pairs_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsAll` implicit endpoint.
-    pub async fn public_get_currency_pairs_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_currency_pairs_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currency_pairs_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetLastPricePair` implicit endpoint.
-    pub async fn public_get_last_price_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_last_price_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_last_price_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickerPair` implicit endpoint.
-    pub async fn public_get_ticker_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_ticker_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ticker_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradesPair` implicit endpoint.
-    pub async fn public_get_trades_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trades_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trades_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostActiveOrders` implicit endpoint.
-    pub async fn private_post_active_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_active_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_active_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
-    pub async fn private_post_cancel_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_cancel_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDepositHistory` implicit endpoint.
-    pub async fn private_post_deposit_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_deposit_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_deposit_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetIdInfo` implicit endpoint.
-    pub async fn private_post_get_id_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_get_id_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_id_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetInfo` implicit endpoint.
-    pub async fn private_post_get_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_get_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetInfo2` implicit endpoint.
-    pub async fn private_post_get_info2(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_get_info2(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_info2".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetPersonalInfo` implicit endpoint.
-    pub async fn private_post_get_personal_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_get_personal_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_personal_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTrade` implicit endpoint.
-    pub async fn private_post_trade(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeHistory` implicit endpoint.
-    pub async fn private_post_trade_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdraw` implicit endpoint.
-    pub async fn private_post_withdraw(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_withdraw(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdraw".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawHistory` implicit endpoint.
-    pub async fn private_post_withdraw_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_withdraw_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdraw_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `ecapiPostCreateInvoice` implicit endpoint.
-    pub async fn ecapi_post_create_invoice(&self, optional_args: &[Value]) -> Value {
+    pub async fn ecapi_post_create_invoice(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("ecapi_post_create_invoice".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `ecapiPostGetInvoice` implicit endpoint.
-    pub async fn ecapi_post_get_invoice(&self, optional_args: &[Value]) -> Value {
+    pub async fn ecapi_post_get_invoice(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("ecapi_post_get_invoice".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `ecapiPostGetInvoiceIdsByOrderNumber` implicit endpoint.
-    pub async fn ecapi_post_get_invoice_ids_by_order_number(&self, optional_args: &[Value]) -> Value {
+    pub async fn ecapi_post_get_invoice_ids_by_order_number(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("ecapi_post_get_invoice_ids_by_order_number".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `ecapiPostCancelInvoice` implicit endpoint.
-    pub async fn ecapi_post_cancel_invoice(&self, optional_args: &[Value]) -> Value {
+    pub async fn ecapi_post_cancel_invoice(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("ecapi_post_cancel_invoice".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostGetPositions` implicit endpoint.
-    pub async fn tlapi_post_get_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_get_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_get_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostPositionHistory` implicit endpoint.
-    pub async fn tlapi_post_position_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_position_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_position_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostActivePositions` implicit endpoint.
-    pub async fn tlapi_post_active_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_active_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_active_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostCreatePosition` implicit endpoint.
-    pub async fn tlapi_post_create_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_create_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_create_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostChangePosition` implicit endpoint.
-    pub async fn tlapi_post_change_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_change_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_change_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `tlapiPostCancelPosition` implicit endpoint.
-    pub async fn tlapi_post_cancel_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn tlapi_post_cancel_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("tlapi_post_cancel_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetGroupsGroupId` implicit endpoint.
-    pub async fn fapi_get_groups_group_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_get_groups_group_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_get_groups_group_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetLastPriceGroupIdPair` implicit endpoint.
-    pub async fn fapi_get_last_price_group_id_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_get_last_price_group_id_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_get_last_price_group_id_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetTickerGroupIdPair` implicit endpoint.
-    pub async fn fapi_get_ticker_group_id_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_get_ticker_group_id_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_get_ticker_group_id_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetTradesGroupIdPair` implicit endpoint.
-    pub async fn fapi_get_trades_group_id_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_get_trades_group_id_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_get_trades_group_id_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetDepthGroupIdPair` implicit endpoint.
-    pub async fn fapi_get_depth_group_id_pair(&self, optional_args: &[Value]) -> Value {
+    pub async fn fapi_get_depth_group_id_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_get_depth_group_id_pair".to_string()), optional_args).await
     }
 

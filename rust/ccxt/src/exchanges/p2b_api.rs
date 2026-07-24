@@ -9,95 +9,96 @@
 
 use crate::Value;
 use super::p2b::P2bCore;
+use crate::exchange::ExchangeRuntime;
 
 impl P2bCore {
     /// Auto-generated wrapper for the `publicGetMarkets` implicit endpoint.
-    pub async fn public_get_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarket` implicit endpoint.
-    pub async fn public_get_market(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_market(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickers` implicit endpoint.
-    pub async fn public_get_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
-    pub async fn public_get_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetBook` implicit endpoint.
-    pub async fn public_get_book(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_book".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetHistory` implicit endpoint.
-    pub async fn public_get_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDepthResult` implicit endpoint.
-    pub async fn public_get_depth_result(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_depth_result(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_depth_result".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarketKline` implicit endpoint.
-    pub async fn public_get_market_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_market_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBalances` implicit endpoint.
-    pub async fn private_post_account_balances(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_balances(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_balances".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBalance` implicit endpoint.
-    pub async fn private_post_account_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderNew` implicit endpoint.
-    pub async fn private_post_order_new(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_order_new(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_order_new".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderCancel` implicit endpoint.
-    pub async fn private_post_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountMarketOrderHistory` implicit endpoint.
-    pub async fn private_post_account_market_order_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_market_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_market_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountMarketDealHistory` implicit endpoint.
-    pub async fn private_post_account_market_deal_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_market_deal_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_market_deal_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountOrder` implicit endpoint.
-    pub async fn private_post_account_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountOrderHistory` implicit endpoint.
-    pub async fn private_post_account_order_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountExecutedHistory` implicit endpoint.
-    pub async fn private_post_account_executed_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_account_executed_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_executed_history".to_string()), optional_args).await
     }
 

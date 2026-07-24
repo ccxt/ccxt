@@ -280,7 +280,7 @@ function createImplicitMethodsRust(){
             seen.add(snake);
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
-                `${IDEN}pub async fn ${snake}(&self, optional_args: &[Value]) -> Value {`,
+                `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
                 `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
                 `${IDEN}}`,
                 ``,
@@ -472,6 +472,9 @@ function createRustHeader(exchange: Exchange, parent: string){
         '',
         'use crate::Value;',
         `use super::${id}::${coreName};`,
+        // call_method (the implicit-API dispatcher) is an ExchangeRuntime trait
+        // method now (review #1: static dispatch); bring the trait into scope.
+        'use crate::exchange::ExchangeRuntime;',
         '',
         `impl ${coreName} {`,
     ].join('\n');

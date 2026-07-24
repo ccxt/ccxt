@@ -483,16 +483,22 @@ class RustTranspilerBuilder {
      * methods (e.g. lighter `loadAccount` → `changeApiKey` → …), box
      * every intra-file async-to-async call so the future is heap-sized.
      */
-    boxRecursiveAsyncCalls(content: string): string {
+    boxRecursiveAsyncCalls(content: string, isTrait: boolean = false): string {
         // 1. Collect `pub async fn <name>` + body ranges.
-        const fns: { name: string, bodyStart: number, bodyEnd: number }[] = [];
+        const fns: { name: string, fnStart: number, sigEnd: number, bodyStart: number, bodyEnd: number, retType: string }[] = [];
         const fnRe = /\bpub\s+async\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
         let fm: RegExpExecArray | null;
         while ((fm = fnRe.exec(content)) !== null) {
             const braceIdx = content.indexOf('{', fm.index + fm[0].length);
             if (braceIdx < 0) continue;
             const j = this.findMatchingBrace(content, braceIdx);
-            fns.push({ name: fm[1], bodyStart: braceIdx + 1, bodyEnd: j });
+            // Capture the return type so a boxed recursive call can be coerced
+            // to a named `dyn Future` (RPITIT trait methods need the lifetime
+            // spelled out — see the coercion below).
+            const sig = content.slice(fm.index, braceIdx);
+            const rm = sig.match(/->\s*([^{]+?)\s*$/);
+            const retType = rm ? rm[1].trim() : 'crate::Value';
+            fns.push({ name: fm[1], fnStart: fm.index, sigEnd: braceIdx, bodyStart: braceIdx + 1, bodyEnd: j, retType });
         }
         if (fns.length === 0) return content;
         // The dynamic-dispatch plumbing (`call_dynamic` is a giant match
@@ -531,8 +537,50 @@ class RustTranspilerBuilder {
         let hasCycle = false;
         for (const [n, r] of reach) { if (r.has(n)) { hasCycle = true; break; } }
         if (!hasCycle) return content;
-        // 4. Box only cycle-closing calls — `A → B` where B can reach A.
-        //    Process bodies back-to-front so earlier indices stay valid.
+
+        if (isTrait) {
+            // Trait defaults: an `async fn` desugars to an RPITIT opaque type,
+            // so `Box::pin(self.method(..))` on a recursive self-call is
+            // unnameable and trips E0792. Instead rewrite every cycle
+            // participant (a method that can reach itself) into the canonical
+            // boxed-future-returning form:
+            //   pub fn m<'r>(&'r mut self, a: &'r [Value]) -> Pin<Box<dyn Future<Output=R> + 'r>>
+            //   { Box::pin(async move { <body> }) }
+            // The method now returns an already-`dyn`-erased future, so the
+            // recursion is finite-sized and no per-call boxing is needed.
+            const participants = [...fns].filter(f => reach.get(f.name)?.has(f.name));
+            let result = content;
+            for (const f of participants.sort((a, b) => b.fnStart - a.fnStart)) {
+                const header = result.slice(f.fnStart, f.sigEnd); // `pub async fn m(..) -> R `
+                const body = result.slice(f.bodyStart, f.bodyEnd);
+                // Rewrite the signature: drop `async`, add a `'r` lifetime to
+                // the fn and to every top-level reference param, and wrap the
+                // return type in `Pin<Box<dyn Future<..> + 'r>>`.
+                let newHeader = header
+                    .replace(/\bpub\s+async\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/,
+                        'pub fn $1<\'ccxt_rec>(')
+                    .replace(/&mut\s+self\b/, "&'ccxt_rec mut self")
+                    .replace(/&self\b/, "&'ccxt_rec self")
+                    // reference-typed params: `name: &[Value]`, `&str`, `&Value`
+                    .replace(/:\s*&(\s*(?:mut\s+)?)(\[|str\b|Value\b)/g, ": &'ccxt_rec $1$2");
+                const retRe = /->\s*([^{]+?)\s*$/;
+                if (retRe.test(newHeader)) {
+                    newHeader = newHeader.replace(retRe,
+                        `-> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + 'ccxt_rec>> `);
+                } else {
+                    newHeader = newHeader.replace(/\s*$/,
+                        ` -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + 'ccxt_rec>> `);
+                }
+                const newBody = '{ Box::pin(async move {' + body + '}) }';
+                result = result.slice(0, f.fnStart) + newHeader + newBody + result.slice(f.bodyEnd + 1);
+            }
+            return result;
+        }
+
+        // 4. Plain inherent `async fn` (a venue Core): box only cycle-closing
+        //    calls — `A → B` where B can reach A. A bare `Box::pin` breaks the
+        //    recursion; process bodies back-to-front so earlier indices stay
+        //    valid.
         let result = content;
         for (const f of [...fns].sort((a, b) => b.bodyStart - a.bodyStart)) {
             const body = result.slice(f.bodyStart, f.bodyEnd);
@@ -4016,7 +4064,10 @@ class RustTranspilerBuilder {
         const out: Record<string, number> = {};
         if (!fs.existsSync(path)) return out;
         const content = fs.readFileSync(path, 'utf-8');
-        const sigRe = /\bpub\s+(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(\s*&(?:mut\s+)?self\s*,?\s*([^)]*?)\)\s*(?:->|\{)/g;
+        // `pub` is optional: `ExchangeBase`/`ExchangeRuntime` trait methods are
+        // emitted without it (review #1), and their variadic signatures still
+        // need discovering so call sites fold trailing args into `&[Value]`.
+        const sigRe = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(\s*&(?:mut\s+)?self\s*,?\s*([^)]*?)\)\s*(?:->|\{)/g;
         let m: RegExpExecArray | null;
         while ((m = sigRe.exec(content)) !== null) {
             const name = m[1];
@@ -4052,6 +4103,8 @@ class RustTranspilerBuilder {
         const baseFiles = [
             './rust/ccxt/src/exchange_generated.rs',
             './rust/ccxt/src/exchange_stubs.rs',
+            // ExchangeRuntime dispatchers + super_* shims (review #1).
+            './rust/ccxt/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -4438,15 +4491,91 @@ class RustTranspilerBuilder {
         // `watch_multiple`, …) are async stubs there, and a TS
         // `return this.watch(...)` without `await` (legal promise
         // return) otherwise misses its `.await` in the propagation pass.
-        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`]) {
+        // Also scan exchange.rs: the base methods that reach derived overrides
+        // (fetch/fetch_typed/request_typed/call_method/load_markets/…) live in
+        // the `ExchangeRuntime` trait there now (review #1). And match an
+        // optional `pub` — `ExchangeBase` trait methods are emitted as
+        // `async fn` (trait methods can't be `pub`), so a `pub`-only regex would
+        // miss every base async method and drop the `.await` at call sites.
+        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
             try {
                 const src = fs.readFileSync(file, 'utf8');
-                const re = /\bpub async fn ([a-z_][a-z0-9_]*)\(/g;
+                const re = /\b(?:pub )?async fn ([a-z_][a-z0-9_]*)\(/g;
                 let m: RegExpExecArray | null;
                 while ((m = re.exec(src)) !== null) s.add(m[1]);
             } catch (_) { /* base not generated yet — fall back to empty */ }
         }
         return s;
+    }
+
+    private _allBaseMethodNames: Set<string> | null = null;
+    /**
+     * Every method name reachable on the base surface: `ExchangeBase` +
+     * `ExchangeRuntime` trait methods (exchange_generated.rs / exchange.rs /
+     * exchange_stubs.rs, sync AND async) plus the `DerivedExchange` virtual
+     * methods. Used by the subclass/WS `self.X(...)` → `self.parent.X(...)`
+     * rewrite to tell an inherited (parent-only) method from a base method the
+     * Core reaches through its own trait impls. Memoized — the base files don't
+     * change during a per-exchange pass.
+     */
+    allBaseMethodNames(): Set<string> {
+        if (this._allBaseMethodNames) return this._allBaseMethodNames;
+        const s = new Set<string>();
+        for (const file of [BASE_METHODS_FILE, `${RUST_BASE}/exchange_stubs.rs`, `${RUST_BASE}/exchange.rs`]) {
+            try {
+                const src = fs.readFileSync(file, 'utf8');
+                const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*[(<]/g;
+                let m: RegExpExecArray | null;
+                while ((m = re.exec(src)) !== null) s.add(m[1]);
+            } catch (_) { /* base not generated yet */ }
+        }
+        for (const n of Object.keys(this.traitMethodSignatures())) s.add(n);
+        this._allBaseMethodNames = s;
+        return s;
+    }
+
+    /** `crate::pro::kucoin::KucoinCore` → `./rust/ccxt/src/pro/kucoin` (no ext). */
+    private coreModuleToFileBase(mod: string): string | null {
+        const parts = mod.split('::');
+        if (parts[0] !== 'crate' || parts.length < 3) return null;
+        return `${RUST_BASE}/${parts.slice(1, -1).join('/')}`;
+    }
+
+    private _parentHopsCache: Map<string, Set<string>[]> = new Map();
+    /**
+     * Walk a subclass/WS Core's `parent` chain and return, per hop (hop 1 =
+     * immediate parent), the method names DEFINED at that level — the Core file
+     * plus its implicit-API `<id>_api.rs` sibling. A WS Core Derefs straight to
+     * `Exchange` (the `ExchangeBase` bound), so an inherited method isn't found
+     * through Deref; the `self.X(...)` rewrite uses this to emit the right
+     * number of `.parent` hops (`kucoinfutures` → `pro::kucoin` → `exchanges::
+     * kucoin`, where an implicit-API method lives 2 hops up).
+     */
+    parentChainHops(parentCore: string): Set<string>[] {
+        const cached = this._parentHopsCache.get(parentCore);
+        if (cached) return cached;
+        const hops: Set<string>[] = [];
+        let mod: string | null = parentCore;
+        const seen = new Set<string>();
+        while (mod && !seen.has(mod)) {
+            seen.add(mod);
+            const base = this.coreModuleToFileBase(mod);
+            if (!base) break;
+            const defined = new Set<string>();
+            let coreSrc = '';
+            for (const f of [`${base}.rs`, `${base}_api.rs`]) {
+                try {
+                    const src = fs.readFileSync(f, 'utf8');
+                    if (f.endsWith(`${base.split('/').pop()}.rs`) && !f.endsWith('_api.rs')) coreSrc = src;
+                    for (const m of src.matchAll(/\bpub\s+(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)/g)) defined.add(m[1]);
+                } catch (_) { /* file may not exist (no implicit API) */ }
+            }
+            hops.push(defined);
+            const pm = coreSrc.match(/pub\s+parent:\s*(crate::[A-Za-z0-9_:]+Core)\b/);
+            mod = pm ? pm[1] : null;
+        }
+        this._parentHopsCache.set(parentCore, hops);
+        return hops;
     }
 
     /**
@@ -4560,9 +4689,12 @@ class RustTranspilerBuilder {
                 return 'crate::Value::Null';
             });
             if (callArgs.includes(null)) continue;
-            const callExpr = `self.derived().${name}(${callArgs.join(', ')})`;
+            // Static dispatch to the derived override — `self` is the concrete
+            // Core (Self), so this monomorphizes to its `DerivedExchange` impl
+            // (override or the trait default). No stored pointer (review #1).
+            const callExpr = `crate::exchange::DerivedExchange::${name}(self, ${callArgs.join(', ')})`;
             const preamble =
-                `\n        // virtual-dispatch (Go-style: this.DerivedExchange.${name}(...))\n` +
+                `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
                 `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
             const matchEnd = m.index + m[0].length;
             out += content.slice(last, matchEnd) + preamble;
@@ -4634,11 +4766,17 @@ class RustTranspilerBuilder {
      * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
      * and `bind`/`dispatch_virtual` we generate ourselves.
      */
-    collectExchangeMethodSignatures(content: string): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> {
+    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> {
         const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean }> = [];
-        // Match `pub [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`
-        // Capture the optional return type so we can require `-> Value`.
-        const re = /\bpub(\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]*)\)\s*(->\s*[^\{]+?)?\s*\{/g;
+        // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
+        // `allowNoPub` (used only for the `ExchangeBase` trait body → its
+        // `call_dynamic_base`) makes `pub` optional because trait methods are
+        // emitted without it (review #1): otherwise base-only methods
+        // (createTakeProfitOrder, fetchPositionADLRank, …) get no dispatch arm
+        // and return Null. For per-Core content `pub` stays required so local
+        // `fn`s inside method bodies aren't picked up.
+        const pub = allowNoPub ? '(?:pub\\s+)?' : 'pub\\s+';
+        const re = new RegExp(`\\b${pub}(async\\s+)?fn\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]*)\\)\\s*(->\\s*[^\\{]+?)?\\s*\\{`, 'g');
         let m: RegExpExecArray | null;
         while ((m = re.exec(content)) !== null) {
             const isAsync = m[1] !== undefined && m[1].trim().length > 0;
@@ -4684,6 +4822,145 @@ class RustTranspilerBuilder {
     /// Variant for the base `Exchange` impl. Reads sigs out of the
     /// already-emitted base content. Same dispatch shape but with no
     /// fall-through (Exchange is the bottom of the chain).
+    /// Required + scaffolding methods that head the `ExchangeBase` trait: the
+    /// per-core `call_dynamic` (the ONLY required method) and the async
+    /// `dispatch_to_derived` default that replaces the pointer-based dispatch.
+    emitBaseTraitScaffolding(): string {
+        return `    /// Dispatch a snake_case method name to this core's inherent async
+    /// methods, falling through to \`call_dynamic_base\` for base-only methods.
+    /// The single required method — every override reaches the core statically.
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>;
+
+    /// Route \`method(args)\` to the derived override by name, with a per-method
+    /// re-entry guard (so a base method calling its own name falls through to
+    /// the base body instead of looping). Replaces \`Exchange::dispatch_to_derived\`
+    /// — no stored pointer; \`call_dynamic\` is a static trait call.
+    fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + 'a>>
+    {
+        Box::pin(async move {
+            if !self.dispatch_guard_enter(method) { return None; }
+            let out = futures::FutureExt::catch_unwind(
+                std::panic::AssertUnwindSafe(self.call_dynamic(method, args))
+            ).await;
+            self.dispatch_guard_exit();
+            match out {
+                Ok(v)  => Some(v),
+                Err(p) => std::panic::resume_unwind(p),
+            }
+        })
+    }
+
+`;
+    }
+
+    /// Required accessors that head the `PredictionBase` trait: reach the
+    /// `PredictionExchange` fields (outcomes/events/…) the prediction methods
+    /// read through, supplied per prediction Core (review #1).
+    emitPredictionTraitScaffolding(): string {
+        return `    /// Borrow the PredictionExchange holding the prediction-tier fields.
+    fn pred(&self) -> &crate::prediction_exchange::PredictionExchange;
+    fn pred_mut(&mut self) -> &mut crate::prediction_exchange::PredictionExchange;
+
+`;
+    }
+
+    /// The prediction-only `call_dynamic_prediction_base` trait default: a
+    /// `match` over prediction base method names, falling through to the
+    /// Exchange `call_dynamic_base`. A prediction Core's `call_dynamic` ends
+    /// with `_ => self.call_dynamic_prediction_base(method, args).await`.
+    emitCallDynamicPredictionBase(content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
+        // Qualify only genuinely-ambiguous names (also in ExchangeBase /
+        // DerivedExchange); a bare call for a prediction-only method avoids the
+        // async-trait-fn lifetime error (E0792).
+        const exBase = new Set<string>();
+        try {
+            const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
+            let em: RegExpExecArray | null;
+            const er = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
+            while ((em = er.exec(src)) !== null) exBase.add(em[1]);
+        } catch (_) { /* base not generated yet */ }
+        const collide = new Set([...exBase, ...Object.keys(this.traitMethodSignatures())]);
+        const arms: string[] = [];
+        for (const { name, paramKinds, isAsync } of sigs) {
+            if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
+            const callArgs: string[] = [];
+            for (let i = 0; i < paramKinds.length; i++) {
+                if (paramKinds[i] === 'value') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'slice') {
+                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                }
+            }
+            // Every arm is a prediction base method; several override an
+            // ExchangeBase method of the same name (cancel_order, create_order),
+            // so always qualify to PredictionBase to avoid ambiguity (review #1).
+            const recv = `<Self as crate::prediction_exchange_generated::PredictionBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`;
+            arms.push(`            "${name}" => ${recv}${isAsync ? '.await' : ''},`);
+        }
+        arms.sort();
+        return `    /// Prediction-base fall-through for a prediction Core's \`call_dynamic\`.
+    fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
+${arms.join('\n')}
+                _ => self.call_dynamic_base(method, args).await,
+            }
+        })
+    }`;
+    }
+
+    /// The base-only `call_dynamic_base` trait default: a `match` over base
+    /// method names (the async ones a core inherits, e.g.
+    /// cancel_order_with_client_order_id). A core's `call_dynamic` ends with
+    /// `_ => self.call_dynamic_base(method, args).await`.
+    emitCallDynamicBaseTrait(content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
+        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [
+            { name: 'load_markets',    isAsync: true,  paramKinds: ['slice'] },
+            { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
+            { name: 'call_method',     isAsync: true,  paramKinds: ['value', 'slice'] },
+        ];
+        const known = new Set(sigs.map(s => s.name));
+        for (const h of handWritten) { if (!known.has(h.name)) sigs.push(h); }
+        // Names shared with `DerivedExchange` (parse_ticker, sign,
+        // create_expired_option_market, …) are ambiguous as a bare `self.X(...)`
+        // here, so qualify them to the `ExchangeBase` trampoline (review #1).
+        const collide = new Set(Object.keys(this.traitMethodSignatures()));
+        const arms: string[] = [];
+        for (const { name, paramKinds, isAsync } of sigs) {
+            if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base'].includes(name)) continue;
+            const callArgs: string[] = [];
+            for (let i = 0; i < paramKinds.length; i++) {
+                if (paramKinds[i] === 'value') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'slice') {
+                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                }
+            }
+            const recv = collide.has(name)
+                ? `<Self as crate::exchange_generated::ExchangeBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`
+                : `self.${name}(${callArgs.join(', ')})`;
+            arms.push(`            "${name}" => ${recv}${isAsync ? '.await' : ''},`);
+        }
+        arms.sort();
+        return `    /// Base-method fall-through for a core's \`call_dynamic\`.
+    fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
+${arms.join('\n')}
+                _ => crate::Value::Null,
+            }
+        })
+    }`;
+    }
+
     emitCallDynamicForBase(content: string): string {
         const sigs = this.collectExchangeMethodSignatures(content);
         // Hand-written base methods (`load_markets`, `sign_in`, `fetch`,
@@ -4740,6 +5017,46 @@ ${isBase
         : '            // Fall through to the base Exchange impl so inherited\n            // methods (cancelOrderWithClientOrderId, …) dispatch.\n            _ => self.exchange.call_dynamic(method, args).await,'}
         }
     }`;
+    }
+
+    /// Emits `impl ExchangeBase for <Core>` supplying the required
+    /// `call_dynamic`: a `match` over this core's inherent async methods,
+    /// falling through to the parent core (subclass) or the base
+    /// `call_dynamic_base` default (base exchange). This replaces the old
+    /// inherent `call_dynamic` + the `bind()`/pointer trampoline — dispatch is
+    /// now a static trait method (review #1).
+    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false): string {
+        const arms: string[] = [];
+        for (const { name, isAsync, paramKinds } of sigs) {
+            if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
+            const callArgs: string[] = [];
+            for (let i = 0; i < paramKinds.length; i++) {
+                if (paramKinds[i] === 'value') {
+                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+                } else if (paramKinds[i] === 'slice') {
+                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                }
+            }
+            arms.push(`                "${name}" => self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''},`);
+        }
+        arms.sort();
+        const fallthrough = parentCore
+            ? `                // Go-style inheritance: an un-overridden method dispatches to the parent core.\n                _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,`
+            : isPrediction
+            ? `                // Prediction Core: fall through to prediction base methods (then Exchange base).\n                _ => self.call_dynamic_prediction_base(method, args).await,`
+            : `                // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).\n                _ => self.call_dynamic_base(method, args).await,`;
+        return `impl crate::exchange_generated::ExchangeBase for ${coreName} {
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
+${arms.join('\n')}
+${fallthrough}
+            }
+        })
+    }
+}`;
     }
 
     /**
@@ -5203,18 +5520,73 @@ ${isBase
         // cache types (ArrayCache, ArrayCacheByOutcomeById, …) even though they
         // transpile through the REST (non-ws) path — pull in `crate::pro::*` too.
         const proImport = (ws || isPrediction) ? 'use crate::pro::*;\n' : '';
+        const predImport = isPrediction ? 'use crate::prediction_exchange_generated::PredictionBase;\nuse crate::prediction_exchange::PredictionRuntime;\n' : '';
         const useStatements = `#![allow(unused, non_snake_case, clippy::all)]
 use crate::Value;
 use crate::get_value;
 use crate::runtime::*;
-${proImport}`;
+// Base methods are now trait methods (review #1: static dispatch). Bring the
+// traits into scope so \`self.market(...)\`, \`self.safe_market(...)\`,
+// \`self.load_markets(...)\`, … on this Core resolve to the base defaults.
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
+${proImport}${predImport}`;
 
         // Collect inherent methods so we can emit a `DerivedExchange`
         // impl block that forwards trait methods to the inherent ones.
         const methodSigs = this.collectExchangeMethodSignatures(content);
         const methodNames = new Set(methodSigs.map(s => s.name));
+        // Go-style inheritance for a subclass/WS Core: a bare `self.X(...)` call
+        // to a method the Core does NOT define itself and that is NOT a base
+        // trait method must be an INHERITED (parent-only) method — an
+        // exchange-specific inherent method (is_linear), an implicit-API method
+        // (private_post_bullet_private), or a parent parse_* override. Under
+        // static dispatch the Core Derefs straight to `Exchange` (to satisfy the
+        // `ExchangeBase: DerefMut<Target=Exchange>` bound), so those never
+        // resolve through Deref — route them to the embedded `parent` Core,
+        // whose own Deref chain + trait impls then find them. Base methods keep
+        // resolving via this Core's own `ExchangeBase`/`ExchangeRuntime` impls.
+        if (parentCore) {
+            const baseNames = this.allBaseMethodNames();
+            // The FULL set of methods this Core defines — NOT `methodNames`,
+            // which `collectExchangeMethodSignatures` filters down to only
+            // Value-returning dispatchable methods (a void WS handler like
+            // `handle_ping` would be dropped and then wrongly routed to the
+            // parent, which doesn't define it).
+            const definedNames = new Set<string>();
+            for (const dm of content.matchAll(/\bpub\s+(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)/g)) definedNames.add(dm[1]);
+            const hops = this.parentChainHops(parentCore);
+            content = content.replace(/\bself\.([a-z_][a-z0-9_]*)\s*\(/g, (m, name) => {
+                if (definedNames.has(name) || baseNames.has(name) || name === 'parent') return m;
+                // Route to the shallowest ancestor that actually defines the
+                // method (a WS Core over another WS Core reaches a REST
+                // implicit-API method two `.parent` hops up). Default to one hop
+                // when not found, so a genuine miss still surfaces as an error.
+                let depth = 1;
+                for (let i = 0; i < hops.length; i++) { if (hops[i].has(name)) { depth = i + 1; break; } }
+                return 'self.' + 'parent.'.repeat(depth) + name + '(';
+            });
+        }
         const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs, parentCore);
-        const callDynamic = this.emitCallDynamic(methodSigs, false, parentCore);
+        // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
+        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction);
+        // Prediction Cores reach the four PredictionExchange fields directly via
+        // their `exchange: PredictionExchange` field (disjoint sub-field borrows),
+        // and supply the `PredictionBase` accessors (review #1).
+        const predImplAndRewrite = isPrediction;
+        if (predImplAndRewrite) {
+            const f = ['outcomes', 'outcomes_by_id', 'events', 'events_by_slug'].join('|');
+            content = content
+                .replace(new RegExp(`&mut self\\.(${f})\\b`, 'g'), '&mut self.exchange.$1')
+                .replace(new RegExp(`\\bself\\.(${f})\\s*=(?!=)`, 'g'), 'self.exchange.$1 =')
+                .replace(new RegExp(`\\bself\\.(${f})\\b`, 'g'), 'self.exchange.$1');
+        }
+        const predBaseImpl = isPrediction
+            ? `\nimpl crate::prediction_exchange_generated::PredictionBase for ${coreName} {
+    fn pred(&self) -> &crate::prediction_exchange::PredictionExchange { &self.exchange }
+    fn pred_mut(&mut self) -> &mut crate::prediction_exchange::PredictionExchange { &mut self.exchange }
+}\n`
+            : '';
 
         // Struct layout: a subclass holds its parent Core as `parent` and
         // `Deref`s to it (Go-style embedding); a base exchange holds the
@@ -5236,8 +5608,21 @@ ${proImport}`;
         const newInit = parentCore
             ? `Self { parent: ${parentCore}::new(config) }`
             : `Self { exchange: ${baseType}::new(config) }`;
-        const derefTarget = parentCore ?? baseType;
+        // Every Core `Deref`s DIRECTLY to `Exchange` so the `ExchangeBase` trait
+        // bound `DerefMut<Target = Exchange>` is satisfied and base-method bodies
+        // reach fields as `self.field` (review #1). A base REST core holds
+        // `exchange: Exchange` (deref is `&self.exchange`); a subclass holds
+        // `parent: <ParentCore>` and a prediction core holds
+        // `exchange: PredictionExchange` — both of those already `Deref` to
+        // `Exchange`, so chain through them.
         const derefField  = parentCore ? 'parent' : 'exchange';
+        const fieldDerefsToExchange = !!parentCore || isPrediction;
+        const derefExpr    = fieldDerefsToExchange
+            ? `std::ops::Deref::deref(&self.${derefField})`
+            : `&self.${derefField}`;
+        const derefMutExpr = fieldDerefsToExchange
+            ? `std::ops::DerefMut::deref_mut(&mut self.${derefField})`
+            : `&mut self.${derefField}`;
 
         // Proper struct + Deref delegation + trait impl. `bind()` must be
         // called once after construction (typically inside `Box::new`) so
@@ -5258,13 +5643,11 @@ impl ${coreName} {
     /// builds the implicit API table. Idempotent — calling more than once is
     /// safe.
     ///
-    /// Deliberately does NOT install the derived-dispatch pointers: new()
-    /// runs init() while self is still a movable local, so binding here
-    /// would capture a soon-invalid address (review P0 #1). An un-bound Core
-    /// is safe-but-inert — derived_ptr defaults to DEFAULT_DERIVED and
-    /// derived_core_ptr is null, so virtual calls fall back to the base.
-    /// Binding happens later at a pinned/boxed address via bind(), which the
-    /// sanctioned constructors call once the Core is heap-stable.
+    /// Dispatch is now fully static (review #1: pointer removal) — virtual
+    /// calls resolve through the DerivedExchange/ExchangeBase trait impls
+    /// on the concrete Core type, so there is no address to bind and init()
+    /// needs no self-referential setup. It runs safely while self is still a
+    /// movable local in new().
     pub fn init(&mut self) {
         // Populate describe()-derived fields.
         let described = ${coreName}::describe(self);
@@ -5358,48 +5741,33 @@ impl ${coreName} {
         self.exchange.build_implicit_api();
     }
 
-    /// Re-bind the derived-exchange pointer. Needed if the struct's
-    /// address moves after \`new()\` (e.g. \`Box::new\` the value).
-    pub fn bind(&mut self) {
-        let ptr: *const (dyn crate::exchange::DerivedExchange + 'static) =
-            self as &Self as *const dyn crate::exchange::DerivedExchange;
-        self.exchange.bind_derived(ptr);
-        // Async dispatch hook: lets base Exchange methods route async
-        // calls (cancel_order, fetch_order, …) to this Core's
-        // call_dynamic, bypassing the base stubs.
-        let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, ${coreName}::__call_dynamic_dispatch);
-    }
-
-    /// Type-erased trampoline used by Exchange::dispatch_to_derived.
-    /// Casts the void pointer back to \`*mut Self\` and forwards to the
-    /// real \`call_dynamic\`. Safety: the pointer must come from the
-    /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    pub fn __call_dynamic_dispatch<'a>(
-        ptr: *mut (),
-        method: &'a str,
-        args: Vec<crate::Value>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>> {
-        Box::pin(async move {
-            let s: &mut Self = unsafe { &mut *(ptr as *mut Self) };
-            s.call_dynamic(method, args).await
-        })
-    }
-
-${callDynamic}
+    /// Compatibility no-op. The old pointer-based dispatch needed a post-move
+    /// \`bind()\`; static trait dispatch (review #1) needs no binding, so this
+    /// just exists so callers that still call it keep compiling.
+    #[inline]
+    pub fn bind(&mut self) {}
 }
 
 ${traitImpl}
 
+${coreDispatchImpl}
+${predBaseImpl}
 impl std::ops::Deref for ${coreName} {
-    type Target = ${derefTarget};
-    fn deref(&self) -> &Self::Target { &self.${derefField} }
+    type Target = crate::exchange::Exchange;
+    fn deref(&self) -> &crate::exchange::Exchange { ${derefExpr} }
 }
 
 impl std::ops::DerefMut for ${coreName} {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.${derefField} }
+    fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { ${derefMutExpr} }
 }
-`;
+`.replace(/self\.exchange\./g, 'self.');
+        // ↑ init() now reaches base fields/methods via auto-deref (`self.api`,
+        // `self.features_generator()`) instead of `self.exchange.…`: a subclass
+        // Core has no `exchange` field (it holds `parent`), and base methods are
+        // trait methods now. The `Deref` bodies above use `&self.exchange`
+        // (no trailing dot) so they're untouched (review #1). Fields resolve via
+        // the `DerefMut<Target=Exchange>` bound; `features_generator` via
+        // `ExchangeBase` (in scope through the `use` added to the header).
 
         let assembled = [
             header,
@@ -5939,7 +6307,7 @@ impl std::ops::DerefMut for ${coreName} {
         // that Rust rejects as infinitely-sized futures; box the recursive calls
         // (same pass the venues use). Harmless for the Exchange base (no cycles).
         if (structName !== 'Exchange') {
-            basePart = this.boxRecursiveAsyncCalls(basePart);
+            basePart = this.boxRecursiveAsyncCalls(basePart, /* isTrait */ true);
         }
 
         // Same regex shims as createRustExchange: wrap `error.clone()`
@@ -5955,6 +6323,63 @@ impl std::ops::DerefMut for ${coreName} {
         // (Go-style: this.parseTicker(...) → this.DerivedExchange.ParseTicker(...)).
         basePart = this.injectVirtualDispatchPreamble(basePart);
         basePart = this.injectAsyncDispatchPreamble(basePart);
+
+        // Collision disambiguation (ExchangeBase trait only). ~33 base method
+        // names (parse_ticker, parse_order, sign, handle_errors, …) also name a
+        // `DerivedExchange` trait method, so a bare `self.parse_ticker(...)` in
+        // base code is ambiguous. Base callers want the base's own VARIADIC
+        // trampoline (which internally does the derived dispatch, then the base
+        // default), so qualify them as `<Self as ExchangeBase>::name(self, ...)`.
+        // (The injected preamble above already calls `DerivedExchange::name(self,
+        // ...)` explicitly, so it is untouched by this `self.name(` rewrite.)
+        if (structName === 'Exchange') {
+            const traitNames = Object.keys(this.traitMethodSignatures());
+            const collide = traitNames.filter(n => new RegExp(`\\bfn\\s+${n}\\s*\\(`).test(basePart));
+            if (collide.length) {
+                const re = new RegExp(`\\bself\\.(${collide.join('|')})\\(`, 'g');
+                basePart = basePart.replace(re, '<Self as crate::exchange_generated::ExchangeBase>::$1(self, ');
+            }
+        } else if (structName === 'PredictionExchange') {
+            // Every method DEFINED in the prediction base overrides / shadows an
+            // ExchangeBase method of the same name (create_order, fetch_ohlcv,
+            // parse_prediction_*, …), so a bare `self.X(...)` is ambiguous.
+            // `self.X()` in prediction code always means "this tier's X"
+            // (super.X() is lowered to `self.super_X()`), so qualify every
+            // prediction-defined call to PredictionBase; DerivedExchange names
+            // NOT defined here (sign, parse_ticker) go to ExchangeBase.
+            const predDefined = new Set<string>();
+            let mm: RegExpExecArray | null;
+            const defRe = /\bfn\s+([a-z_][a-z0-9_]*)\s*\(/g;
+            while ((mm = defRe.exec(basePart)) !== null) predDefined.add(mm[1]);
+            // Only qualify a call when it is genuinely AMBIGUOUS — i.e. the name
+            // exists in BOTH PredictionBase and (ExchangeBase or DerivedExchange).
+            // Qualifying a prediction-only method (load_outcomes, fetch_events)
+            // is unnecessary and, on an async-trait-fn recursion, triggers a
+            // lifetime error (E0792). Read the Exchange base method names once.
+            const exBase = new Set<string>();
+            try {
+                const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
+                let em: RegExpExecArray | null;
+                const er = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
+                while ((em = er.exec(src)) !== null) exBase.add(em[1]);
+            } catch (_) { /* base not generated yet */ }
+            const derivedNames = new Set(Object.keys(this.traitMethodSignatures()));
+            for (const n of predDefined) {
+                if (['new', 'pred', 'pred_mut'].includes(n)) continue;
+                if (!exBase.has(n) && !derivedNames.has(n)) continue;      // not a collision
+                if (!new RegExp(`\\bself\\.${n}\\(`).test(basePart)) continue;
+                basePart = basePart.replace(new RegExp(`\\bself\\.(${n})\\(`, 'g'),
+                    '<Self as crate::prediction_exchange_generated::PredictionBase>::$1(self, ');
+            }
+            // DerivedExchange names NOT defined in the prediction tier (sign,
+            // parse_ticker) resolve to ExchangeBase.
+            for (const n of derivedNames) {
+                if (predDefined.has(n)) continue;
+                if (!new RegExp(`\\bself\\.${n}\\(`).test(basePart)) continue;
+                basePart = basePart.replace(new RegExp(`\\bself\\.(${n})\\(`, 'g'),
+                    '<Self as crate::exchange_generated::ExchangeBase>::$1(self, ');
+            }
+        }
 
         // Drop base methods we keep as hand-written stubs in `exchange_stubs.rs`.
         // `loadOrderBook` is a WS-only helper (its body uses the WS `client`,
@@ -5972,7 +6397,46 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = basePart.trimEnd();
         if (basePart.endsWith('}')) basePart = basePart.slice(0, -1).trimEnd();
 
-        // ── 3. wrap in `impl Exchange { ... }` and emit ───────────────────────
+        // ── 3. wrap in the base trait / impl and emit ─────────────────────────
+        // The Exchange base is emitted as a TRAIT (`ExchangeBase`) whose methods
+        // are default impls, so a concrete Core (which `DerefMut`s to `Exchange`
+        // and implements `DerivedExchange`) reaches the derived overrides by
+        // STATIC dispatch — no stored self-pointer (review #1). Every core
+        // `impl ExchangeBase for <Core> {}` supplies only `call_dynamic`; the
+        // rest come from the defaults here.
+        const isExchangeBase = structName === 'Exchange';
+        // Prediction tier: a SECOND base layer. Emitted as `trait PredictionBase:
+        // ExchangeBase` — prediction Cores `Deref` to `Exchange` (for the base),
+        // reach prediction methods via this trait, and reach the four
+        // `PredictionExchange` fields (`outcomes`/`events`/…) through the
+        // `pred()`/`pred_mut()` accessors (review #1).
+        const isPredictionBase = structName === 'PredictionExchange';
+        const traitName = isPredictionBase ? 'PredictionBase' : 'ExchangeBase';
+        const PRED_FIELDS = ['outcomes', 'outcomes_by_id', 'events', 'events_by_slug'];
+        // Trait default methods can't be `pub`; strip the visibility.
+        let traitBody = (isExchangeBase || isPredictionBase)
+            ? basePart.replace(/\bpub\s+(async\s+)?fn\s+/g, (_m, a) => `${a || ''}fn `)
+            : basePart;
+        if (isPredictionBase) {
+            // Route PredictionExchange field access through the accessors.
+            const f = PRED_FIELDS.join('|');
+            traitBody = traitBody
+                .replace(new RegExp(`&mut self\\.(${f})\\b`, 'g'), '&mut self.pred_mut().$1')
+                .replace(new RegExp(`\\bself\\.(${f})\\s*=(?!=)`, 'g'), 'self.pred_mut().$1 =')
+                .replace(new RegExp(`\\bself\\.(${f})\\b`, 'g'), 'self.pred().$1');
+        }
+        const wrapOpen = isExchangeBase
+            ? `pub trait ${traitName}:\n`
+              + `    crate::exchange::DerivedExchange\n`
+              + `    + std::ops::DerefMut<Target = Exchange>\n`
+              + `    + Send\n`
+              + `    + Sized\n`
+              + `{\n`
+              + this.emitBaseTraitScaffolding()
+            : isPredictionBase
+            ? `pub trait ${traitName}: crate::exchange_generated::ExchangeBase {\n`
+              + this.emitPredictionTraitScaffolding()
+            : `impl ${structName} {`;
         const file = [
             ...this.createGeneratedHeader(),
             `// Generated from \`${baseFile.replace(/^\.\//, '')}\` — methods below the`,
@@ -5984,15 +6448,24 @@ impl std::ops::DerefMut for ${coreName} {
             'use crate::Value;',
             'use crate::ExchangeError;',
             'use crate::exchange::Exchange;',
+            // ExchangeRuntime holds base methods that reach derived overrides
+            // (fetch/fetch_typed/request_typed); base trait defaults call them
+            // on `self` (review #1). Blanket-impl'd, so any `Self: ExchangeBase`.
+            (isExchangeBase || isPredictionBase) ? 'use crate::exchange::ExchangeRuntime;' : '',
+            // Prediction base methods call Exchange base methods + dispatch, so
+            // they need ExchangeBase in scope (review #1).
+            isPredictionBase ? 'use crate::exchange_generated::ExchangeBase;' : '',
+            isPredictionBase ? 'use crate::prediction_exchange::PredictionRuntime;' : '',
             structName !== 'Exchange' ? `use crate::prediction_exchange::${structName};` : '',
             'use crate::runtime::*;',
             '',
-            `impl ${structName} {`,
-            basePart,
-            // call_dynamic on the base — lets derived exchanges'
-            // call_dynamic fall through to base methods (e.g.
-            // cancelOrderWithClientOrderId which is only on the base).
-            this.emitCallDynamicForBase(basePart),
+            wrapOpen,
+            traitBody,
+            // call_dynamic_base — base-only async methods (cancelOrderWith…) that
+            // a core's `call_dynamic` falls through to.
+            isExchangeBase ? this.emitCallDynamicBaseTrait(traitBody)
+                : isPredictionBase ? this.emitCallDynamicPredictionBase(traitBody)
+                : this.emitCallDynamicForBase(basePart),
             '}',
             '',
         ].join('\n')
@@ -6017,8 +6490,10 @@ impl std::ops::DerefMut for ${coreName} {
         // constructor. Rust flattens the TS class chain (every Core `Deref`s to
         // a single `Exchange`), so the subclass's not-supported stubs just
         // become more methods on the base.
+        // NB: the `pub` on `new` is stripped for the `ExchangeBase` trait
+        // emission (trait methods can't be `pub`), so match an optional `pub`.
         finalFile = finalFile.replace(
-            /\n\}\n(?:#\[derive\([^)]*\)\]\n)?pub struct Exchange \{\s*pub fn new\(\) -> Self \{\s*Exchange \{\s*\}\s*\}\n/,
+            /\n\}\n(?:#\[derive\([^)]*\)\]\n)?pub struct Exchange \{\s*(?:pub\s+)?fn new\(\) -> Self \{\s*Exchange \{\s*\}\s*\}\n/,
             '\n',
         );
 
@@ -6454,6 +6929,7 @@ impl std::ops::DerefMut for ${coreName} {
                     // from `'../../base/ws/Cache.js'` — provide them
                     // via the tests_support stubs.
                     'use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};',
+                    'use ccxt::exchange_generated::ExchangeBase;',
                     '',
                     content,
                 ].join('\n')

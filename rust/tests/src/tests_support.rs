@@ -6,10 +6,13 @@
 use ccxt::Value;
 use ccxt::exchange::Exchange;
 
-/// `new ccxt.Exchange({...})` in TS → `make_exchange(map)` here.
-/// Wraps the map into the `Option<Value>` that `Exchange::new` expects.
-pub fn make_exchange(config: Value) -> Exchange {
-    Exchange::new(Some(config))
+/// `new ccxt.Exchange({...})` in TS → `make_exchange(map)` here. Returns a
+/// `BaseCore` (bare Exchange with no overrides) so the transpiled base tests can
+/// call base methods, which are `ExchangeBase` trait methods now (review #1:
+/// static dispatch). `BaseCore` `Deref`s to `Exchange`, so field access and
+/// `to_value()` still work unchanged.
+pub fn make_exchange(config: Value) -> ccxt::exchange::BaseCore {
+    ccxt::exchange::BaseCore::new(Exchange::new(Some(config)))
 }
 
 /// `equals(a, b)` — checks that every key of `a` matches the same key

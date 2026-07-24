@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::krakenfutures::KrakenfuturesCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Krakenfutures {
     // Private + pinned: the Core is self-referential (its embedded

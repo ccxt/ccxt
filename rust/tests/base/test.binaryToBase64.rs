@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
+use ccxt::exchange_generated::ExchangeBase;
 
 fn helperStrToBinary(mut exchange: ccxt::exchange::Exchange, mut str_val: Value) -> Value {
     return exchange.base64_to_binary(exchange.stringToBase64(str_val.clone(), &[]), &[]);

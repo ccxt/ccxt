@@ -5,7 +5,14 @@
 // to the real exchange implementation.
 
 use ccxt::Value;
-use ccxt::exchange::DynCallFn;
+// Static dispatch (review #1): `call_dynamic` is an `ExchangeBase` trait method
+// now, and the old type-erased `DynCallFn`/`__call_dynamic_dispatch` are gone.
+// The harness keeps its own type-erased fn-pointer to store heterogeneous Cores
+// in one map (a legitimate test-registry pattern, unrelated to the removed
+// self-referential dispatch): a per-Core trampoline casts the raw pointer back
+// and calls the Core's `call_dynamic`.
+use ccxt::exchange_generated::ExchangeBase;
+type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>;
 use ccxt::exchanges::{
     alpaca::AlpacaCore, apex::ApexCore,
     aster::AsterCore,
@@ -48,10 +55,7 @@ use ccxt::exchanges::{
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
-// Prediction-market venue Cores (crate::prediction). The four prediction-only
-// ids go straight into for_each_core! (no collision). `hyperliquid` also exists
-// as a regular exchange, so its prediction Core is imported under an alias and
-// only selected when prediction mode is active (see build_core).
+// Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
     myriad::MyriadCore, polymarket::PolymarketCore,
@@ -471,15 +475,30 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                     || ccxt::runtime::in_op(&core.markets_by_id, &key)
             }
             fn set_markets(ptr: *mut (), markets: Value) -> Value {
-                // `core.set_markets` resolves through the Deref chain: for a
-                // prediction venue it hits `PredictionExchange::set_markets`
-                // (aliasing + populateOutcomes); for a regular Core the base
-                // `Exchange::set_markets`. Either way it mutates the live Core.
+                // Route through the core's dynamic dispatch so the MOST-DERIVED
+                // override runs — the same virtual path the base `loadMarkets`
+                // uses (`dispatch_to_derived("set_markets", …)`). Under static
+                // dispatch (review #1) a plain `core.set_markets(..)` would bind
+                // to `ExchangeBase::set_markets` (the only trait in scope) and
+                // skip a prediction venue's `PredictionExchange::set_markets`
+                // (aliasing + populateOutcomes), leaving the outcome caches
+                // empty. `set_markets` is pure-sync (no IO/await), so
+                // `block_on` resolves it in a single poll without the reactor.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                core.set_markets(markets, &[])
+                futures::executor::block_on(
+                    ExchangeBase::call_dynamic(core, "set_markets", vec![markets])
+                )
+            }
+            // Type-erased trampoline: cast the raw Core pointer back and call
+            // its `call_dynamic` (static ExchangeBase trait method, review #1).
+            fn call_tramp(ptr: *mut (), method: &str, args: Vec<Value>)
+                -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + '_>>
+            {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                Box::pin(ExchangeBase::call_dynamic(core, method, args))
             }
             return Some(CoreEntry {
-                call:          <$core>::__call_dynamic_dispatch as DynCallFn,
+                call:          call_tramp as DynCallFn,
                 ptr:           CorePtr(raw),
                 read_state:    read_state    as ReadStateFn,
                 write_options: write_options as WriteOptionsFn,

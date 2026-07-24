@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::indodax::IndodaxCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Indodax {
     // Private + pinned: the Core is self-referential (its embedded

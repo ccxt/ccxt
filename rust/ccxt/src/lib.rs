@@ -51,8 +51,11 @@ pub mod exchange_generated;
 
 // Prediction-market tier (ts/src/base/PredictionExchange.ts + ts/src/prediction/*).
 // `prediction_exchange` is the hand-written base struct; the `_generated` module
-// holds its transpiled methods (`impl PredictionExchange`). Both gated behind the
-// same `transpiled-base` feature as the rest of the transpiled surface.
+// holds its transpiled methods (now a `trait PredictionBase: ExchangeBase`). Both
+// gated behind the same `transpiled-base` feature as the rest of the transpiled
+// surface. The prediction tier is a second inheritance layer (Core →
+// PredictionExchange → Exchange) wired with its own static ExchangeBase dispatch
+// (review #1 pointer removal).
 #[cfg(feature = "transpiled-base")]
 pub mod prediction_exchange;
 

@@ -70,45 +70,13 @@ pub struct Internals {
     /// implicit API name (e.g. `public_get_exchange_info`) to
     /// `(path, api_scope, http_verb)`.
     pub implicit_api:   HashMap<String, (String, Vec<String>, String)>,
-    /// Raw pointer back to the derived exchange (as a `&dyn DerivedExchange`
-    /// trait object). Used by virtual methods called from Exchange.ts so
-    /// they dispatch to the derived override. The trait object is the
-    /// Rust analogue of Go's `IDerivedExchange` interface.
-    ///
-    /// INVARIANT: valid only while the owning `Core` is at a stable address.
-    /// The `PhantomPinned` below makes every `Core` `!Unpin`, and the sound
-    /// constructors hand out a `Pin<Box<Core>>` and call `bind()` *after* the
-    /// Core is heap-pinned, so this pointer can never dangle from a move. Not
-    /// part of the safe public surface — hidden from docs; construct via the
-    /// typed wrapper or `bind()` on a pinned Core, never by hand.
-    #[doc(hidden)]
-    pub derived_ptr: *const (dyn DerivedExchange + 'static),
-    /// Raw pointer to the derived `Core`'s `call_dynamic` method, type-
-    /// erased as `*const ()`. Lets base Exchange.ts methods dispatch
-    /// async-by-name to the derived exchange (the trait can't carry
-    /// async methods easily — fn pointer side-steps the object-safety
-    /// constraint). Set by each Core's `bind()` via `bind_call_async`.
-    /// Same pinned-address invariant as `derived_ptr`.
-    #[doc(hidden)]
-    pub call_async_fn:        Option<DynCallFn>,
-    #[doc(hidden)]
-    pub derived_core_ptr:     *mut (),
-    /// Method names currently being dispatched to the derived
-    /// exchange. Lets `dispatch_to_derived` block recursion on a single
-    /// method while allowing sibling dispatches.
+    /// Method names currently being dispatched to a derived override. Lets the
+    /// async `dispatch_to_derived` default (in `ExchangeBase`) block recursion
+    /// on a single method while allowing sibling dispatches. This is the only
+    /// dispatch state left — virtual dispatch itself is now static (review #1),
+    /// so there are no raw self-pointers to keep.
     pub dispatch_stack:       Vec<String>,
-    /// Makes `Internals` (hence `Exchange` and every `Core`) `!Unpin`, so the
-    /// self-referential `derived_ptr`/`derived_core_ptr` can be kept sound: a
-    /// bound Core lives behind a `Pin<Box<_>>` and cannot be moved out to
-    /// invalidate those pointers (review P0 #1 — encode the invariant in the
-    /// type system instead of a prose comment).
-    pub(crate) _pin: std::marker::PhantomPinned,
 }
-
-/// Function pointer signature for an exchange's `call_dynamic`. Takes
-/// a `*mut ()` (the derived Core, cast back inside the function), the
-/// method name, and args; returns a boxed future of `Value`.
-pub type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>;
 
 /// The Go-style "interface" that every derived exchange implements. When
 /// Exchange.ts calls `this.parseTicker(...)` (and similar), the transpiler
@@ -117,7 +85,7 @@ pub type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<B
 ///
 /// Default impls return `Value::Null` so an unbound Exchange still
 /// compiles and runs (it just gives back empty results).
-pub trait DerivedExchange: Send + Sync {
+pub trait DerivedExchange {
     // ── parsers (the dominant override surface) ──────────────────────────
     fn parse_ticker(&self, _ticker: Value, _market: Value) -> Value { Value::Null }
     fn parse_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
@@ -163,28 +131,14 @@ pub trait DerivedExchange: Send + Sync {
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
 }
 
-/// Empty placeholder used when no derived exchange is bound. Returns the
-/// trait's default `Value::Null` from every method.
-pub struct DefaultDerived;
-impl DerivedExchange for DefaultDerived {}
+// `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
+// (its fields — `reqwest::Client`, `Arc<dyn Fn + Send + Sync>`,
+// `Arc<tokio::Mutex<_>>`, maps, `Vec<String>` — are all thread-safe). No manual
+// `unsafe impl` and no `PhantomPinned` are needed now that dispatch is static
+// (review #1: thread safety is compiler-proven, not asserted).
 
-/// Static singleton used by `Exchange::derived()` when no derived is bound.
-static DEFAULT_DERIVED: DefaultDerived = DefaultDerived;
-
-// SAFETY: `derived_ptr`/`derived_core_ptr` point back at the owning `Core`,
-// which contains this `Exchange` (hence these `Internals`) by value. The Core
-// is `!Unpin` (see `_pin`) and the sound constructors keep it behind a
-// `Pin<Box<Core>>`, so the allocation address is stable for the Core's whole
-// life: moving the `Pin<Box>` (incl. across threads for `Send`) moves only the
-// box handle, never the heap allocation the pointers reference. Access to the
-// pointed-to state is always exclusive (`&mut self` on the Core), so `Sync` is
-// likewise sound. The pointers are never dereferenced after the Core is
-// dropped because the Core owns them.
-unsafe impl Send for Internals {}
-unsafe impl Sync for Internals {}
-
-// A cloned Exchange gets a fresh `Internals` — the http client, derived
-// pointers and dispatch state are per-instance and must not be aliased.
+// A cloned Exchange gets a fresh `Internals` — the http client and dispatch
+// state are per-instance and must not be shared.
 // Test-only callers (`clone_self`) only read `Value` fields off the copy.
 impl Clone for Internals {
     fn clone(&self) -> Self { Internals::default() }
@@ -199,11 +153,7 @@ impl Default for Internals {
             headers:          HashMap::new(),
             throttle:         std::sync::Arc::new(tokio::sync::Mutex::new((0.0, 0))),
             implicit_api:     HashMap::new(),
-            derived_ptr:      &DEFAULT_DERIVED as &dyn DerivedExchange as *const _,
-            call_async_fn:       None,
-            derived_core_ptr:    std::ptr::null_mut(),
             dispatch_stack:      Vec::new(),
-            _pin:                std::marker::PhantomPinned,
         }
     }
 }
@@ -648,9 +598,12 @@ impl Exchange {
         if let Some(cfg) = config { ex.apply_config(&cfg); }
         // `afterConstruct()` (Exchange.ts) — builds `networksById`, the
         // features table, `tokenBucket`, predefined markets and applies
-        // sandbox mode from `options.sandbox` / `options.testnet`.
-        ex.after_construct();
-        ex
+        // sandbox mode from `options.sandbox` / `options.testnet`. It is an
+        // `ExchangeBase` trait method now, so run it through a `BaseCore`
+        // (no overrides) and unwrap the mutated Exchange back out.
+        let mut __bc = BaseCore::new(ex);
+        crate::exchange_generated::ExchangeBase::after_construct(&mut __bc);
+        __bc.into_inner()
     }
 
     fn apply_config(&mut self, cfg: &Value) {
@@ -819,151 +772,6 @@ impl Exchange {
         matches!(self.verbose, Value::Bool(true))
     }
 
-    pub async fn fetch(
-        &mut self,
-        url: Value,
-        optional_args: &[Value],
-    ) -> Value {
-        let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
-        let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".to_string()));
-        let headers = optional_args.get(1).cloned().unwrap_or(Value::Null);
-        let body = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        let method_str = match &method { Value::Str(s) => s.clone(), _ => "GET".to_string() };
-        let body_str = match &body { Value::Str(s) => Some(s.clone()), _ => None };
-        let headers_map: HashMap<String, String> = match &headers {
-            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
-                Value::Str(s) => Some((k.clone(), s.clone())),
-                _ => None,
-            }).collect(),
-            _ => HashMap::new(),
-        };
-        match self.fetch_typed(&url_str, &method_str, headers_map, body_str).await {
-            Ok(v) => v,
-            Err(_) => Value::Null,
-        }
-    }
-
-    pub async fn fetch_typed(
-        &mut self,
-        url:     &str,
-        method:  &str,
-        headers: HashMap<String, String>,
-        body:    Option<String>,
-    ) -> Result<Value> {
-        let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        // Always record what was *about* to be sent. Lets the static
-        // request tests read `last_request_url` / `last_request_body`
-        // after triggering a no-op call.
-        self.last_request_url     = Value::Str(url.to_string());
-        self.last_request_headers = Value::Map(headers.iter()
-            .map(|(k, v)| (k.clone(), Value::Str(v.clone())))
-            .collect());
-        self.last_request_body    = match &body {
-            Some(b) => Value::Str(b.clone()),
-            None    => Value::Null,
-        };
-        // Static *response* tests stash a canned response on the
-        // exchange — return it without hitting the network so the
-        // exchange's parser runs against fixture data. Mirrors Go's
-        // `FetchResponse`: persistent for the lifetime of the test
-        // case, so methods that make multiple fetches (e.g. gate's
-        // `fetchMyTrades` follow-up calls) all see the same payload.
-        // The test harness clears it explicitly with `setFetchResponse(_, null)`.
-        if !matches!(self.mock_response, Value::Null) {
-            return Ok(self.mock_response.clone());
-        }
-        // Mirror TS `checkProxySettings` — static request tests set
-        // both `httpProxy` and `httpsProxy` to a sentinel value to make
-        // the offline path throw `InvalidProxySettings` *after* the
-        // request URL/body have been recorded. The test catch block
-        // looks for that specific error class and reads back
-        // `last_request_*`. Without this throw, dispatch silently
-        // network-fails and the catch block never runs.
-        let proxy_defined = |v: &Value| matches!(v, Value::Str(s) if !s.is_empty());
-        // Pair up snake/camel aliases so setting (e.g.) `httpProxy` doesn't
-        // double-count as `http_proxy`. Mirrors TS `checkProxySettings`
-        // where each proxy "slot" is consulted via two property names.
-        let used_proxies = [
-            proxy_defined(&self.httpProxy)  || proxy_defined(&self.http_proxy),
-            proxy_defined(&self.httpsProxy) || proxy_defined(&self.https_proxy),
-            proxy_defined(&self.socksProxy) || proxy_defined(&self.socks_proxy),
-        ].iter().filter(|x| **x).count();
-        if used_proxies > 1 {
-            return Err(ExchangeError::new(
-                "InvalidProxySettings",
-                format!("{} you have multiple conflicting proxy settings, please use only one from: httpProxy, httpsProxy, socksProxy",
-                    match &self.id { Value::Str(s) => s.as_str(), _ => "" }),
-            ));
-        }
-        let client = self.http_client().clone();
-        let method_parsed = reqwest::Method::from_bytes(method.as_bytes())
-            .map_err(|_| ExchangeError::new("BadRequest", format!("invalid HTTP method: {method}")))?;
-        let mut req = client.request(method_parsed, url);
-        for (k, v) in &self.internals.headers { req = req.header(k, v); }
-        for (k, v) in &headers                { req = req.header(k, v); }
-        if self.is_verbose() {
-            eprintln!("[ccxt] {method} {url}");
-            for (k, v) in &self.internals.headers { eprintln!("[ccxt]   {k}: {v}"); }
-            for (k, v) in &headers                { eprintln!("[ccxt]   {k}: {v}"); }
-            if let Some(b) = &body {
-                eprintln!("[ccxt]   request body: {b}");
-            }
-        }
-        if let Some(b) = body                 { req = req.body(b); }
-        let __http_t0 = std::time::Instant::now();
-        let resp = req.send().await?;
-        let status = resp.status().as_u16();
-        let text   = resp.text().await?;
-        HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
-        if self.is_verbose() {
-            eprintln!("[ccxt] ← {status} {} bytes", text.len());
-            // Print the response body, capped so a multi-MB payload
-            // (e.g. binance exchangeInfo) doesn't flood the terminal.
-            const CAP: usize = 16384;
-            if text.len() > CAP {
-                eprintln!("[ccxt]   response body: {}… ({} bytes total)",
-                    &text[..text.char_indices().take_while(|(i, _)| *i < CAP).last().map(|(i, c)| i + c.len_utf8()).unwrap_or(0)],
-                    text.len());
-            } else {
-                eprintln!("[ccxt]   response body: {text}");
-            }
-        }
-        let __json_t0 = std::time::Instant::now();
-        let json = match serde_json::from_str::<serde_json::Value>(&text) {
-            Ok(j)  => Value::from_json(&j),
-            Err(_) => Value::Null,
-        };
-        JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
-        if status >= 400 {
-            // Let the derived exchange map its own error codes — e.g.
-            // binance turns `{"code":-2014}` into an AuthenticationError.
-            // `handleErrors` throws (panics) for a recognized error; if
-            // it returns, fall through to a generic HTTP error.
-            self.derived().handle_errors(
-                Value::Int(status as i64),
-                Value::Null,
-                Value::Str(url.to_string()),
-                Value::Str(method.to_string()),
-                Value::Null,
-                Value::Str(text.clone()),
-                json.clone(),
-                Value::Null,
-                Value::Null,
-            );
-            return Err(ExchangeError::new(
-                if status == 429 { "RateLimitExceeded" }
-                else if status >= 500 { "ExchangeNotAvailable" }
-                else { "ExchangeError" },
-                format!("HTTP {status}: {text}"),
-            ));
-        }
-        if matches!(json, Value::Null) {
-            return Ok(Value::Str(text));
-        }
-        Ok(json)
-    }
 
     // ── encoding / URL helpers ──────────────────────────────────────────────
 
@@ -1159,75 +967,380 @@ impl Exchange {
 
 // ── small helper used by url-encoding above ─────────────────────────────────
 
-// ── derived (Go-style "Itf") dispatch ───────────────────────────────────────
+// ── derived dispatch re-entry guard ─────────────────────────────────────────
+//
+// Virtual dispatch itself is now STATIC: `ExchangeBase`'s default methods call
+// `DerivedExchange::X(self, ...)` and `self.call_dynamic(...)` directly on the
+// concrete Core, with no stored self-pointer (review #1). All that remains here
+// is the per-method re-entry guard the async `dispatch_to_derived` default (in
+// `exchange_generated::ExchangeBase`) uses so a base method that dispatches its
+// own name falls through to the base body instead of looping.
 
 impl Exchange {
-    /// Installs the derived-exchange trait pointer. Called by each
-    /// derived exchange's `bind()` once the parent struct is at a stable
-    /// address (typically inside a `Pin<Box<_>>`). The pointer must outlive
-    /// every `derived()` call that follows.
-    ///
-    /// Internal plumbing — NOT a safe public entry point. Passing a pointer to
-    /// a Core that is later moved would dangle it; the sanctioned constructors
-    /// only call this on a pinned Core. Hidden from the public API.
-    #[doc(hidden)]
-    pub fn bind_derived(&mut self, ptr: *const (dyn DerivedExchange + 'static)) {
-        self.internals.derived_ptr = ptr;
-    }
-
-    /// Installs an async dispatch hook for the derived exchange. Called
-    /// from each Core's `bind()` to register its `call_dynamic` so base
-    /// methods can fan out to overridden async methods (e.g.
-    /// `Exchange::cancel_order_with_client_order_id` calls
-    /// `self.cancel_order(...)` — this hook routes that to BinanceCore's
-    /// `cancel_order` instead of Exchange's stub).
-    #[doc(hidden)]
-    pub fn bind_call_async(&mut self, core_ptr: *mut (), call_fn: DynCallFn) {
-        self.internals.derived_core_ptr = core_ptr;
-        self.internals.call_async_fn    = Some(call_fn);
-    }
-
-    /// Routes `method(args)` to the derived exchange's `call_dynamic`
-    /// when one is bound. Returns `None` when no derived is bound (the
-    /// caller can fall back to the base impl).
-    pub async fn dispatch_to_derived(&mut self, method: &str, args: Vec<Value>) -> Option<Value> {
-        // Re-entry guard PER METHOD: if we're already dispatching
-        // method X and X's base impl calls X again, that's the loop we
-        // need to break. But if base X calls a different method Y, Y's
-        // preamble should still fire (so e.g. base `fetch_leverage`
-        // calls `fetch_leverages` which CAN dispatch to derived).
-        if self.internals.dispatch_stack.iter().any(|m| m == method) { return None; }
-        let (call_fn, core_ptr) = match (self.internals.call_async_fn, self.internals.derived_core_ptr) {
-            (Some(f), p) if !p.is_null() => (f, p),
-            _ => return None,
-        };
-        // Push the method onto the re-entry stack, then run the derived
-        // call under `catch_unwind` so we can pop the stack BEFORE the
-        // panic resumes. Without this, an InvalidProxySettings panic
-        // inside the derived call (the static-request offline mode does
-        // this on every dispatched method) would leave `method` on the
-        // stack forever, and every subsequent fixture for the same
-        // method on the same Core would hit the re-entry guard and
-        // silently fall through to the base `not_supported` panic.
+    /// Enter the guard for `method`. Returns `false` if `method` is already on
+    /// the dispatch stack (re-entry — caller should fall through to the base
+    /// body); otherwise pushes it and returns `true`.
+    pub fn dispatch_guard_enter(&mut self, method: &str) -> bool {
+        if self.internals.dispatch_stack.iter().any(|m| m == method) { return false; }
         self.internals.dispatch_stack.push(method.to_string());
-        let outcome = futures::FutureExt::catch_unwind(
-            std::panic::AssertUnwindSafe(call_fn(core_ptr, method, args))
-        ).await;
+        true
+    }
+
+    /// Leave the guard (pop the most-recently entered method).
+    pub fn dispatch_guard_exit(&mut self) {
         self.internals.dispatch_stack.pop();
-        match outcome {
-            Ok(v)        => Some(v),
-            Err(payload) => std::panic::resume_unwind(payload),
+    }
+}
+
+// ── ExchangeRuntime: base methods that reach derived overrides ───────────────
+//
+// A handful of hand-written base methods must call a derived override
+// (`sign`, `handle_errors`) or dispatch async-by-name, so they need the
+// concrete Core as `Self` to resolve statically (review #1). They live in this
+// trait, blanket-impl'd for every `ExchangeBase`, so `self.fetch(...)`,
+// `self.request_typed(...)`, … on a Core (or inside an `ExchangeBase` default)
+// resolve here. Bodies reach `Exchange` fields via the `DerefMut` bound, other
+// base methods via `ExchangeBase`, and pure `impl Exchange` helpers via `Deref`.
+pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
+    async fn fetch(&mut self, url: Value, optional_args: &[Value]) -> Value {
+        let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
+        let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".to_string()));
+        let headers = optional_args.get(1).cloned().unwrap_or(Value::Null);
+        let body = optional_args.get(2).cloned().unwrap_or(Value::Null);
+        let method_str = match &method { Value::Str(s) => s.clone(), _ => "GET".to_string() };
+        let body_str = match &body { Value::Str(s) => Some(s.clone()), _ => None };
+        let headers_map: HashMap<String, String> = match &headers {
+            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
+                Value::Str(s) => Some((k.clone(), s.clone())),
+                _ => None,
+            }).collect(),
+            _ => HashMap::new(),
+        };
+        match self.fetch_typed(&url_str, &method_str, headers_map, body_str).await {
+            Ok(v) => v,
+            Err(_) => Value::Null,
         }
     }
 
-    /// Returns the derived exchange trait object. Falls back to the
-    /// `DefaultDerived` singleton when nothing is bound.
-    pub fn derived(&self) -> &(dyn DerivedExchange + 'static) {
-        // SAFETY: derived_ptr is either &DEFAULT_DERIVED (always valid) or
-        // a pointer installed by `bind_derived` whose lifetime is the
-        // owning derived struct (Exchange lives inside it, so it can't
-        // outlive the trait object).
-        unsafe { &*self.internals.derived_ptr }
+    async fn fetch_typed(
+        &mut self,
+        url:     &str,
+        method:  &str,
+        headers: HashMap<String, String>,
+        body:    Option<String>,
+    ) -> Result<Value> {
+        let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.last_request_url     = Value::Str(url.to_string());
+        self.last_request_headers = Value::Map(headers.iter()
+            .map(|(k, v)| (k.clone(), Value::Str(v.clone())))
+            .collect());
+        self.last_request_body    = match &body {
+            Some(b) => Value::Str(b.clone()),
+            None    => Value::Null,
+        };
+        if !matches!(self.mock_response, Value::Null) {
+            return Ok(self.mock_response.clone());
+        }
+        let proxy_defined = |v: &Value| matches!(v, Value::Str(s) if !s.is_empty());
+        let used_proxies = [
+            proxy_defined(&self.httpProxy)  || proxy_defined(&self.http_proxy),
+            proxy_defined(&self.httpsProxy) || proxy_defined(&self.https_proxy),
+            proxy_defined(&self.socksProxy) || proxy_defined(&self.socks_proxy),
+        ].iter().filter(|x| **x).count();
+        if used_proxies > 1 {
+            return Err(ExchangeError::new(
+                "InvalidProxySettings",
+                format!("{} you have multiple conflicting proxy settings, please use only one from: httpProxy, httpsProxy, socksProxy",
+                    match &self.id { Value::Str(s) => s.as_str(), _ => "" }),
+            ));
+        }
+        let client = self.http_client().clone();
+        let method_parsed = reqwest::Method::from_bytes(method.as_bytes())
+            .map_err(|_| ExchangeError::new("BadRequest", format!("invalid HTTP method: {method}")))?;
+        let mut req = client.request(method_parsed, url);
+        for (k, v) in &self.internals.headers { req = req.header(k, v); }
+        for (k, v) in &headers                { req = req.header(k, v); }
+        if self.is_verbose() {
+            eprintln!("[ccxt] {method} {url}");
+            for (k, v) in &self.internals.headers { eprintln!("[ccxt]   {k}: {v}"); }
+            for (k, v) in &headers                { eprintln!("[ccxt]   {k}: {v}"); }
+            if let Some(b) = &body {
+                eprintln!("[ccxt]   request body: {b}");
+            }
+        }
+        if let Some(b) = body                 { req = req.body(b); }
+        let __http_t0 = std::time::Instant::now();
+        let resp = req.send().await?;
+        let status = resp.status().as_u16();
+        let text   = resp.text().await?;
+        HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
+            std::sync::atomic::Ordering::Relaxed);
+        if self.is_verbose() {
+            eprintln!("[ccxt] ← {status} {} bytes", text.len());
+            const CAP: usize = 16384;
+            if text.len() > CAP {
+                eprintln!("[ccxt]   response body: {}… ({} bytes total)",
+                    &text[..text.char_indices().take_while(|(i, _)| *i < CAP).last().map(|(i, c)| i + c.len_utf8()).unwrap_or(0)],
+                    text.len());
+            } else {
+                eprintln!("[ccxt]   response body: {text}");
+            }
+        }
+        let __json_t0 = std::time::Instant::now();
+        let json = match serde_json::from_str::<serde_json::Value>(&text) {
+            Ok(j)  => Value::from_json(&j),
+            Err(_) => Value::Null,
+        };
+        JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
+            std::sync::atomic::Ordering::Relaxed);
+        if status >= 400 {
+            // Static dispatch to the derived exchange's handle_errors override.
+            crate::exchange::DerivedExchange::handle_errors(
+                self,
+                Value::Int(status as i64),
+                Value::Null,
+                Value::Str(url.to_string()),
+                Value::Str(method.to_string()),
+                Value::Null,
+                Value::Str(text.clone()),
+                json.clone(),
+                Value::Null,
+                Value::Null,
+            );
+            return Err(ExchangeError::new(
+                if status == 429 { "RateLimitExceeded" }
+                else if status >= 500 { "ExchangeNotAvailable" }
+                else { "ExchangeError" },
+                format!("HTTP {status}: {text}"),
+            ));
+        }
+        if matches!(json, Value::Null) {
+            return Ok(Value::Str(text));
+        }
+        Ok(json)
+    }
+
+    async fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> Result<Value> {
+        if !matches!(self.mock_response, Value::Null) {
+            return self.fetch_typed("", verb, HashMap::new(), None).await;
+        }
+        self.throttle(&[]).await;
+        let api_arg = if scope_segments.len() == 1 {
+            Value::Str(scope_segments[0].clone())
+        } else {
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+        };
+        let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
+        // Static dispatch to the derived exchange's sign override.
+        let signed = crate::exchange::DerivedExchange::sign(
+            self,
+            Value::Str(path.to_string()),
+            api_arg,
+            Value::Str(verb.to_string()),
+            params.clone(),
+            Value::Null,
+            Value::Null,
+        );
+        if let Value::Dict(m) = &signed {
+            let url = match m.get("url") { Some(Value::Str(s)) => s.clone(), _ => String::new() };
+            let method = match m.get("method") { Some(Value::Str(s)) => s.clone(), _ => verb.to_string() };
+            let body = match m.get("body") { Some(Value::Str(s)) => Some(s.clone()), _ => None };
+            let headers = match m.get("headers") {
+                Some(Value::Dict(h)) => h.iter()
+                    .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None })
+                    .collect::<HashMap<_, _>>(),
+                _ => HashMap::new(),
+            };
+            if !url.is_empty() {
+                return self.fetch_typed(&url, &method, headers, body).await;
+            }
+        }
+        let base = self.url_for_scope(&scope_lookup).ok_or_else(|| ExchangeError::new(
+            "BadRequest",
+            format!("no URL configured for api scope `{scope_lookup}`"),
+        ))?;
+        let imploded = self.implode_params(Value::Str(path.to_string()), params.clone());
+        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string() };
+        let consumed_keys = self.extract_path_params(path);
+        let remaining_params = match params {
+            Value::Dict(m) => {
+                let mut keep = HashMap::new();
+                let m = Arc::try_unwrap(m).unwrap_or_else(|a| (*a).clone());
+                for (k, v) in m {
+                    if !consumed_keys.contains(&k) { keep.insert(k, v); }
+                }
+                Value::Map(keep)
+            }
+            other => other,
+        };
+        let mut url = format!("{}/{}", base.trim_end_matches('/'), path_str.trim_start_matches('/'));
+        let mut body: Option<String> = None;
+        let qs = match &remaining_params {
+            Value::Dict(m) if !m.is_empty() => self.urlencode_kv(&remaining_params),
+            _ => String::new(),
+        };
+        if verb == "GET" || verb == "DELETE" {
+            if !qs.is_empty() {
+                url = format!("{}?{}", url, qs);
+            }
+        } else if !qs.is_empty() {
+            body = Some(qs);
+        }
+        let mut headers = HashMap::new();
+        if scope_lookup != "public" {
+            if let Value::Str(k) = &self.apiKey {
+                headers.insert("X-MBX-APIKEY".to_string(), k.clone());
+            }
+        }
+        self.fetch_typed(&url, verb, headers, body).await
+    }
+
+    /// Route an implicit-API method name to `request_typed`.
+    async fn implicit_api_call(&mut self, name: &str, params: Value) -> Result<Value> {
+        if self.internals.implicit_api.is_empty() {
+            self.build_implicit_api();
+        }
+        let entry = self.internals.implicit_api.get(name).cloned();
+        let (path, scope_segments, verb) = match entry {
+            Some(t) => t,
+            None => return Err(ExchangeError::new(
+                "NotSupported",
+                format!("implicit API method {name} not found in api block"),
+            )),
+        };
+        self.request_typed(&path, &scope_segments, &verb, params).await
+    }
+
+    /// Dispatch an implicit-API method by name (from transpiled `_api.rs`).
+    async fn call_method(&mut self, name: Value, args: &[Value]) -> Value {
+        let n = match name { Value::Str(s) => s, _ => return Value::Null };
+        let params = args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
+        match self.implicit_api_call(&n, params).await {
+            Ok(v) => v,
+            Err(e) => {
+                if matches!(self.verbose, Value::Bool(true)) {
+                    eprintln!("[ccxt] {n} failed: {e}");
+                }
+                panic!("{e}");
+            }
+        }
+    }
+
+    /// Loads markets (and currencies), dispatching `fetch_markets` /
+    /// `fetch_currencies` / `set_markets` to the derived overrides.
+    async fn load_markets(&mut self, optional_args: &[Value]) -> Value {
+        let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
+        let reload_b = matches!(reload, Value::Bool(true));
+        if !reload_b && !self.markets.is_null() {
+            return self.markets.clone();
+        }
+        let has_fetch_currencies = matches!(
+            crate::get_value(&self.has, &Value::Str("fetchCurrencies".to_string())),
+            Value::Bool(true),
+        );
+        let mut currencies = Value::Null;
+        if has_fetch_currencies {
+            if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
+                currencies = v;
+            }
+        }
+        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
+            Some(v) => v,
+            None => return Value::Null,
+        };
+        if matches!(fetched, Value::Null) {
+            return self.markets.clone();
+        }
+        let preloaded_non_empty = matches!(&self.currencies, Value::Dict(m) if !m.is_empty());
+        let currencies_arg = if matches!(&currencies, Value::Dict(m) if !m.is_empty()) {
+            currencies
+        } else if preloaded_non_empty {
+            self.currencies.clone()
+        } else {
+            crate::exchange_stubs::synthesize_currencies_from_markets(&fetched, &self.precisionMode)
+        };
+        let is_prediction = matches!(
+            crate::get_value(&self.has, &Value::Str("prediction".to_string())),
+            Value::Bool(true),
+        );
+        if is_prediction {
+            let _ = self.dispatch_to_derived("set_markets", vec![fetched, currencies_arg]).await;
+        } else {
+            <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, fetched, &[currencies_arg]);
+        }
+        self.markets.clone()
+    }
+
+    // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
+    // so a derived override is bypassed (that is what `super.X()` means).
+    fn super_describe(&self) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::describe(self)
+    }
+    fn super_set_sandbox_mode(&mut self, enabled: Value) {
+        <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled);
+    }
+    fn super_safe_market(&self, id: Value, market: Value, delim: Value, market_type: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, &[id, market, delim, market_type])
+    }
+    fn super_handle_market_type_and_params(&self, method_name: Value, market: Value, params: Value, default_value: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
+    }
+    fn super_market(&self, symbol: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol)
+    }
+    fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
+    }
+    fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
+    }
+    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, &[currency])
+    }
+    fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
+    }
+    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, optional_args)
+    }
+    fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
+    }
+    async fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> Value {
+        self.fetch_deposit_address(code, &[params]).await
+    }
+    async fn super_load_markets(&mut self, reload: Value, params: Value) -> Value {
+        self.load_markets(&[reload, params]).await
+    }
+}
+
+impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
+
+/// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
+/// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor
+/// (`after_construct`), and base unit tests — call `ExchangeBase`/`ExchangeRuntime`
+/// trait methods, which all resolve to the base defaults (review #1: base
+/// methods are trait methods now, so a bare `Exchange` can't call them directly).
+pub struct BaseCore {
+    pub exchange: Exchange,
+}
+impl BaseCore {
+    pub fn new(exchange: Exchange) -> Self { Self { exchange } }
+    pub fn into_inner(self) -> Exchange { self.exchange }
+}
+impl std::ops::Deref for BaseCore {
+    type Target = Exchange;
+    fn deref(&self) -> &Exchange { &self.exchange }
+}
+impl std::ops::DerefMut for BaseCore {
+    fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
+}
+impl DerivedExchange for BaseCore {}
+impl crate::exchange_generated::ExchangeBase for BaseCore {
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>
+    {
+        Box::pin(async move { self.call_dynamic_base(method, args).await })
     }
 }
 
@@ -1460,121 +1573,9 @@ impl Exchange {
 
     /// Dispatches an implicit API call. Looks the method up in the dispatch
     /// table (building it on first use) and routes through `request`.
-    pub async fn implicit_api_call(&mut self, name: &str, params: Value) -> Result<Value> {
-        if self.internals.implicit_api.is_empty() {
-            self.build_implicit_api();
-        }
-        let entry = self.internals.implicit_api.get(name).cloned();
-        let (path, scope_segments, verb) = match entry {
-            Some(t) => t,
-            None => return Err(ExchangeError::new(
-                "NotSupported",
-                format!("implicit API method {name} not found in api block"),
-            )),
-        };
-        self.request_typed(&path, &scope_segments, &verb, params).await
-    }
-
     /// Public-endpoint request: imploding params into the path/query and
     /// hitting `fetch`. Private endpoints need per-exchange signing — for
     /// now we treat anything outside `public` as a stub that returns Null.
-    pub async fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> Result<Value> {
-        // Static *response* test fast path: a canned mock is returned
-        // regardless of the request, so skip the (otherwise wasted)
-        // `sign()` + URL/HMAC build — it's pure CPU per case and there
-        // are ~1400 cases. `fetch_typed` returns the mock before it
-        // touches the URL.
-        if !matches!(self.mock_response, Value::Null) {
-            return self.fetch_typed("", verb, HashMap::new(), None).await;
-        }
-        // Route every live request through the configured leaky-bucket limiter.
-        // `request_typed` is the single choke point all implicit-API methods
-        // funnel through (`<venue>_api.rs` → request_typed → fetch_typed), so
-        // throttling here spaces every venue request by `rateLimit` ms. It is a
-        // no-op when `enableRateLimit` is false (offline static suites) or the
-        // rate is effectively unlimited (review #8).
-        self.throttle(&[]).await;
-        // Each exchange's TS `sign` declares `api` differently:
-        //   binance/hyperliquid/okx/kucoin: a string like "public"
-        //   bitget/gate/htx/...:           an array like ["public","spot"]
-        // Pass the segment list as Value::Str (single) or Value::Array
-        // (multi) so each exchange sees the shape it expects.
-        let api_arg = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
-        };
-        // Single-string fallback for url_for_scope (uses just the first
-        // segment, which is sufficient for binance-style nested urls).
-        let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
-        // Prefer the derived exchange's `sign()` — it knows how to
-        // build the right URL (including prefixes like `/api/v5/` for
-        // okx, `/api/v1/` for kucoin), HMAC-sign private endpoints,
-        // and pick the right base URL per scope.
-        let signed = self.derived().sign(
-            Value::Str(path.to_string()),
-            api_arg,
-            Value::Str(verb.to_string()),
-            params.clone(),
-            Value::Null,
-            Value::Null,
-        );
-        if let Value::Dict(m) = &signed {
-            let url = match m.get("url") { Some(Value::Str(s)) => s.clone(), _ => String::new() };
-            let method = match m.get("method") { Some(Value::Str(s)) => s.clone(), _ => verb.to_string() };
-            let body = match m.get("body") { Some(Value::Str(s)) => Some(s.clone()), _ => None };
-            let headers = match m.get("headers") {
-                Some(Value::Dict(h)) => h.iter()
-                    .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None })
-                    .collect::<HashMap<_, _>>(),
-                _ => HashMap::new(),
-            };
-            if !url.is_empty() {
-                return self.fetch_typed(&url, &method, headers, body).await;
-            }
-        }
-        // Fallback: derived exchange didn't implement sign() — build the
-        // URL ourselves. Works for binance-style apis where the path
-        // already includes the version segment.
-        let base = self.url_for_scope(&scope_lookup).ok_or_else(|| ExchangeError::new(
-            "BadRequest",
-            format!("no URL configured for api scope `{scope_lookup}`"),
-        ))?;
-        let imploded = self.implode_params(Value::Str(path.to_string()), params.clone());
-        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string() };
-        let consumed_keys = self.extract_path_params(path);
-        let remaining_params = match params {
-            Value::Dict(m) => {
-                let mut keep = HashMap::new();
-                let m = Arc::try_unwrap(m).unwrap_or_else(|a| (*a).clone());
-                for (k, v) in m {
-                    if !consumed_keys.contains(&k) { keep.insert(k, v); }
-                }
-                Value::Map(keep)
-            }
-            other => other,
-        };
-        let mut url = format!("{}/{}", base.trim_end_matches('/'), path_str.trim_start_matches('/'));
-        let mut body: Option<String> = None;
-        let qs = match &remaining_params {
-            Value::Dict(m) if !m.is_empty() => self.urlencode_kv(&remaining_params),
-            _ => String::new(),
-        };
-        if verb == "GET" || verb == "DELETE" {
-            if !qs.is_empty() {
-                url = format!("{}?{}", url, qs);
-            }
-        } else if !qs.is_empty() {
-            body = Some(qs);
-        }
-        let mut headers = HashMap::new();
-        if scope_lookup != "public" {
-            if let Value::Str(k) = &self.apiKey {
-                headers.insert("X-MBX-APIKEY".to_string(), k.clone());
-            }
-        }
-        self.fetch_typed(&url, verb, headers, body).await
-    }
 
     fn extract_path_params(&self, path: &str) -> Vec<String> {
         let mut out: Vec<String> = vec![];
@@ -1960,7 +1961,8 @@ mod cow_alias_tests {
     // stay empty. Assert the data survives (review P0-C).
     #[test]
     fn convert_ohlcv_to_trading_view_preserves_pushes() {
-        let ex = Exchange::new(None);
+        use crate::exchange_generated::ExchangeBase;
+        let ex = super::BaseCore::new(Exchange::new(None));
         let row = Value::List(vec![
             Value::Int(1_700_000_000_000), Value::Int(1), Value::Int(2),
             Value::Int(0), Value::Int(1), Value::Int(10),

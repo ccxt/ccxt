@@ -16,6 +16,8 @@
 // specific key orders such as `{symbol,type,side,quantity,price}`.
 pub use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
+#[cfg(feature = "transpiled-base")]
+use crate::exchange_generated::ExchangeBase;
 
 /// A dynamic value type that mirrors the CCXT JavaScript Value semantics.
 ///
@@ -291,7 +293,7 @@ impl Value {
         #[cfg(feature = "transpiled-base")]
         {
             let currency = args.first().cloned().unwrap_or(Value::Null);
-            return self.snapshot_as_exchange().network_code_to_id(code, &[currency]);
+            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, &[currency]);
         }
         #[cfg(not(feature = "transpiled-base"))]
         {
@@ -305,7 +307,7 @@ impl Value {
     pub fn network_id_to_code(&self, args: &[Value]) -> Value {
         #[cfg(feature = "transpiled-base")]
         {
-            return self.snapshot_as_exchange().network_id_to_code(args);
+            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args);
         }
         #[cfg(not(feature = "transpiled-base"))]
         {
@@ -352,7 +354,7 @@ impl Value {
                     }
                 }
             }
-            let mut ex = self.snapshot_as_exchange();
+            let mut ex = crate::exchange::BaseCore::new(self.snapshot_as_exchange());
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".to_string()), ex.markets.clone());
             crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".to_string()), ex.markets_by_id.clone());

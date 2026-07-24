@@ -9,2020 +9,2021 @@
 
 use crate::Value;
 use super::bybiteu::BybiteuCore;
+use crate::exchange::ExchangeRuntime;
 
 impl BybiteuCore {
     /// Auto-generated wrapper for the `publicGetSpotV3PublicSymbols` implicit endpoint.
-    pub async fn public_get_spot_v3_public_symbols(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_symbols(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_symbols".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteDepth` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteDepthMerged` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_depth_merged(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_depth_merged(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_depth_merged".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteTrades` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteKline` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteTicker24hr` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_ticker24hr(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_ticker24hr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteTickerPrice` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_ticker_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_ticker_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_ticker_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicQuoteTickerBookTicker` implicit endpoint.
-    pub async fn public_get_spot_v3_public_quote_ticker_book_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_quote_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_quote_ticker_book_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicServerTime` implicit endpoint.
-    pub async fn public_get_spot_v3_public_server_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_server_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_server_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicInfos` implicit endpoint.
-    pub async fn public_get_spot_v3_public_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicMarginProductInfos` implicit endpoint.
-    pub async fn public_get_spot_v3_public_margin_product_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_margin_product_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_margin_product_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotV3PublicMarginEnsureTokens` implicit endpoint.
-    pub async fn public_get_spot_v3_public_margin_ensure_tokens(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_spot_v3_public_margin_ensure_tokens(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_margin_ensure_tokens".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3PublicTime` implicit endpoint.
-    pub async fn public_get_v3_public_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v3_public_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v3_public_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetContractV3PublicCopytradingSymbolList` implicit endpoint.
-    pub async fn public_get_contract_v3_public_copytrading_symbol_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_contract_v3_public_copytrading_symbol_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_contract_v3_public_copytrading_symbol_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicOrderBookL2` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_order_book_l2(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_order_book_l2(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_order_book_l2".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicKline` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicTickers` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicInstrumentsInfo` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_instruments_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_instruments_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_instruments_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicMarkPriceKline` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_mark_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_mark_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_mark_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicIndexPriceKline` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_index_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_index_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_index_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicFundingHistoryFundingRate` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_funding_history_funding_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_funding_history_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_funding_history_funding_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicRiskLimitList` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_risk_limit_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_risk_limit_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_risk_limit_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicDeliveryPrice` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_delivery_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_delivery_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_delivery_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicRecentTrade` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_recent_trade(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_recent_trade(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_recent_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicOpenInterest` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_open_interest(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_open_interest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_open_interest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesV3PublicInsurance` implicit endpoint.
-    pub async fn public_get_derivatives_v3_public_insurance(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_derivatives_v3_public_insurance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_derivatives_v3_public_insurance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5AnnouncementsIndex` implicit endpoint.
-    pub async fn public_get_v5_announcements_index(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_announcements_index(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_announcements_index".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SystemStatus` implicit endpoint.
-    pub async fn public_get_v5_system_status(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_system_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_system_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketTime` implicit endpoint.
-    pub async fn public_get_v5_market_time(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_time".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketKline` implicit endpoint.
-    pub async fn public_get_v5_market_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketMarkPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_mark_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_mark_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_mark_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketIndexPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_index_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_index_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_index_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketPremiumIndexPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_premium_index_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_premium_index_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_premium_index_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketInstrumentsInfo` implicit endpoint.
-    pub async fn public_get_v5_market_instruments_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_instruments_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_instruments_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketOrderbook` implicit endpoint.
-    pub async fn public_get_v5_market_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRpiOrderbook` implicit endpoint.
-    pub async fn public_get_v5_market_rpi_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_rpi_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_rpi_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketFullOrderbook` implicit endpoint.
-    pub async fn public_get_v5_market_full_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_full_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_full_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketTickers` implicit endpoint.
-    pub async fn public_get_v5_market_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketFundingHistory` implicit endpoint.
-    pub async fn public_get_v5_market_funding_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_funding_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_funding_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRecentTrade` implicit endpoint.
-    pub async fn public_get_v5_market_recent_trade(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_recent_trade(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_recent_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketOpenInterest` implicit endpoint.
-    pub async fn public_get_v5_market_open_interest(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_open_interest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_open_interest".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketHistoricalVolatility` implicit endpoint.
-    pub async fn public_get_v5_market_historical_volatility(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_historical_volatility(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_historical_volatility".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketInsurance` implicit endpoint.
-    pub async fn public_get_v5_market_insurance(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_insurance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_insurance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRiskLimit` implicit endpoint.
-    pub async fn public_get_v5_market_risk_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_risk_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_risk_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketDeliveryPrice` implicit endpoint.
-    pub async fn public_get_v5_market_delivery_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_delivery_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_delivery_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketNewDeliveryPrice` implicit endpoint.
-    pub async fn public_get_v5_market_new_delivery_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_new_delivery_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_new_delivery_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketAccountRatio` implicit endpoint.
-    pub async fn public_get_v5_market_account_ratio(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_account_ratio(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_account_ratio".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketIndexPriceComponents` implicit endpoint.
-    pub async fn public_get_v5_market_index_price_components(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_index_price_components(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_index_price_components".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketPriceLimit` implicit endpoint.
-    pub async fn public_get_v5_market_price_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_price_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_price_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketAdlAlert` implicit endpoint.
-    pub async fn public_get_v5_market_adl_alert(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_adl_alert(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_adl_alert".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketFeeGroupInfo` implicit endpoint.
-    pub async fn public_get_v5_market_fee_group_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_market_fee_group_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_fee_group_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotLeverTokenInfo` implicit endpoint.
-    pub async fn public_get_v5_spot_lever_token_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_lever_token_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_lever_token_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotLeverTokenReference` implicit endpoint.
-    pub async fn public_get_v5_spot_lever_token_reference(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_lever_token_reference(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_lever_token_reference".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotMarginTradeData` implicit endpoint.
-    pub async fn public_get_v5_spot_margin_trade_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_margin_trade_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_margin_trade_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotMarginTradeCollateral` implicit endpoint.
-    pub async fn public_get_v5_spot_margin_trade_collateral(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_margin_trade_collateral(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_margin_trade_collateral".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotCrossMarginTradeData` implicit endpoint.
-    pub async fn public_get_v5_spot_cross_margin_trade_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_cross_margin_trade_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_cross_margin_trade_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotCrossMarginTradePledgeToken` implicit endpoint.
-    pub async fn public_get_v5_spot_cross_margin_trade_pledge_token(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_cross_margin_trade_pledge_token(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_cross_margin_trade_pledge_token".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotCrossMarginTradeBorrowToken` implicit endpoint.
-    pub async fn public_get_v5_spot_cross_margin_trade_borrow_token(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_spot_cross_margin_trade_borrow_token(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_spot_cross_margin_trade_borrow_token".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanCollateralData` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_collateral_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_collateral_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_collateral_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanLoanableData` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_loanable_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_loanable_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_loanable_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanCommonLoanableData` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_common_loanable_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_common_loanable_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_common_loanable_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanCommonCollateralData` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_common_collateral_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_common_collateral_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_common_collateral_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanFixedSupplyOrderQuote` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_fixed_supply_order_quote(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_fixed_supply_order_quote(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_fixed_supply_order_quote".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5CryptoLoanFixedBorrowOrderQuote` implicit endpoint.
-    pub async fn public_get_v5_crypto_loan_fixed_borrow_order_quote(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_crypto_loan_fixed_borrow_order_quote(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_crypto_loan_fixed_borrow_order_quote".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5InsLoanProductInfos` implicit endpoint.
-    pub async fn public_get_v5_ins_loan_product_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_ins_loan_product_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_ins_loan_product_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5InsLoanEnsureTokensConvert` implicit endpoint.
-    pub async fn public_get_v5_ins_loan_ensure_tokens_convert(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_ins_loan_ensure_tokens_convert(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_ins_loan_ensure_tokens_convert".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5EarnProduct` implicit endpoint.
-    pub async fn public_get_v5_earn_product(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v5_earn_product(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_earn_product".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5MarketInstrumentsInfo` implicit endpoint.
-    pub async fn private_get_v5_market_instruments_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_market_instruments_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_market_instruments_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2PrivateWalletFundRecords` implicit endpoint.
-    pub async fn private_get_v2_private_wallet_fund_records(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v2_private_wallet_fund_records(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v2_private_wallet_fund_records".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateOrder` implicit endpoint.
-    pub async fn private_get_spot_v3_private_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateOpenOrders` implicit endpoint.
-    pub async fn private_get_spot_v3_private_open_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateHistoryOrders` implicit endpoint.
-    pub async fn private_get_spot_v3_private_history_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_history_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_history_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateMyTrades` implicit endpoint.
-    pub async fn private_get_spot_v3_private_my_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_my_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_my_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateAccount` implicit endpoint.
-    pub async fn private_get_spot_v3_private_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateReference` implicit endpoint.
-    pub async fn private_get_spot_v3_private_reference(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_reference(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_reference".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateRecord` implicit endpoint.
-    pub async fn private_get_spot_v3_private_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateCrossMarginOrders` implicit endpoint.
-    pub async fn private_get_spot_v3_private_cross_margin_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_cross_margin_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_cross_margin_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateCrossMarginAccount` implicit endpoint.
-    pub async fn private_get_spot_v3_private_cross_margin_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_cross_margin_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_cross_margin_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateCrossMarginLoanInfo` implicit endpoint.
-    pub async fn private_get_spot_v3_private_cross_margin_loan_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_cross_margin_loan_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_cross_margin_loan_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateCrossMarginRepayHistory` implicit endpoint.
-    pub async fn private_get_spot_v3_private_cross_margin_repay_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_cross_margin_repay_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_cross_margin_repay_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateMarginLoanInfos` implicit endpoint.
-    pub async fn private_get_spot_v3_private_margin_loan_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_margin_loan_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_margin_loan_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateMarginRepaidInfos` implicit endpoint.
-    pub async fn private_get_spot_v3_private_margin_repaid_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_margin_repaid_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_margin_repaid_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSpotV3PrivateMarginLtv` implicit endpoint.
-    pub async fn private_get_spot_v3_private_margin_ltv(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_spot_v3_private_margin_ltv(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_spot_v3_private_margin_ltv".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferInterTransferListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_inter_transfer_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_inter_transfer_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_inter_transfer_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferSubMemberListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_sub_member_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_sub_member_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_sub_member_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferSubMemberTransferListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_sub_member_transfer_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_sub_member_transfer_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_sub_member_transfer_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferUniversalTransferListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_universal_transfer_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_universal_transfer_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_universal_transfer_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateCoinInfoQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_coin_info_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_coin_info_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_coin_info_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateDepositAddressQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_deposit_address_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_deposit_address_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_deposit_address_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateCopytradingOrderList` implicit endpoint.
-    pub async fn private_get_contract_v3_private_copytrading_order_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_copytrading_order_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_copytrading_order_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateCopytradingPositionList` implicit endpoint.
-    pub async fn private_get_contract_v3_private_copytrading_position_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_copytrading_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_copytrading_position_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateCopytradingWalletBalance` implicit endpoint.
-    pub async fn private_get_contract_v3_private_copytrading_wallet_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_copytrading_wallet_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_copytrading_wallet_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivatePositionLimitInfo` implicit endpoint.
-    pub async fn private_get_contract_v3_private_position_limit_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_position_limit_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_position_limit_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateOrderUnfilledOrders` implicit endpoint.
-    pub async fn private_get_contract_v3_private_order_unfilled_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_order_unfilled_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_order_unfilled_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateOrderList` implicit endpoint.
-    pub async fn private_get_contract_v3_private_order_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_order_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_order_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivatePositionList` implicit endpoint.
-    pub async fn private_get_contract_v3_private_position_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_position_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateExecutionList` implicit endpoint.
-    pub async fn private_get_contract_v3_private_execution_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_execution_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_execution_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivatePositionClosedPnl` implicit endpoint.
-    pub async fn private_get_contract_v3_private_position_closed_pnl(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_position_closed_pnl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_position_closed_pnl".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateAccountWalletBalance` implicit endpoint.
-    pub async fn private_get_contract_v3_private_account_wallet_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_account_wallet_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_account_wallet_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateAccountFeeRate` implicit endpoint.
-    pub async fn private_get_contract_v3_private_account_fee_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_account_fee_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_account_fee_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContractV3PrivateAccountWalletFundRecords` implicit endpoint.
-    pub async fn private_get_contract_v3_private_account_wallet_fund_records(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_contract_v3_private_account_wallet_fund_records(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contract_v3_private_account_wallet_fund_records".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateOrderUnfilledOrders` implicit endpoint.
-    pub async fn private_get_unified_v3_private_order_unfilled_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_order_unfilled_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_order_unfilled_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateOrderList` implicit endpoint.
-    pub async fn private_get_unified_v3_private_order_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_order_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_order_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivatePositionList` implicit endpoint.
-    pub async fn private_get_unified_v3_private_position_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_position_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateExecutionList` implicit endpoint.
-    pub async fn private_get_unified_v3_private_execution_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_execution_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_execution_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateDeliveryRecord` implicit endpoint.
-    pub async fn private_get_unified_v3_private_delivery_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_delivery_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_delivery_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateSettlementRecord` implicit endpoint.
-    pub async fn private_get_unified_v3_private_settlement_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_settlement_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_settlement_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateAccountWalletBalance` implicit endpoint.
-    pub async fn private_get_unified_v3_private_account_wallet_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_account_wallet_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_account_wallet_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateAccountTransactionLog` implicit endpoint.
-    pub async fn private_get_unified_v3_private_account_transaction_log(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_account_transaction_log(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_account_transaction_log".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateAccountBorrowHistory` implicit endpoint.
-    pub async fn private_get_unified_v3_private_account_borrow_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_account_borrow_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_account_borrow_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateAccountBorrowRate` implicit endpoint.
-    pub async fn private_get_unified_v3_private_account_borrow_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_account_borrow_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_account_borrow_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnifiedV3PrivateAccountInfo` implicit endpoint.
-    pub async fn private_get_unified_v3_private_account_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_unified_v3_private_account_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_unified_v3_private_account_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserV3PrivateFrozenSubMember` implicit endpoint.
-    pub async fn private_get_user_v3_private_frozen_sub_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_user_v3_private_frozen_sub_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_v3_private_frozen_sub_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserV3PrivateQuerySubMembers` implicit endpoint.
-    pub async fn private_get_user_v3_private_query_sub_members(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_user_v3_private_query_sub_members(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_v3_private_query_sub_members".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserV3PrivateQueryApi` implicit endpoint.
-    pub async fn private_get_user_v3_private_query_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_user_v3_private_query_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_v3_private_query_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUserV3PrivateGetMemberType` implicit endpoint.
-    pub async fn private_get_user_v3_private_get_member_type(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_user_v3_private_get_member_type(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_v3_private_get_member_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferTransferCoinListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_transfer_coin_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_transfer_coin_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_transfer_coin_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferAccountCoinBalanceQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_account_coin_balance_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_account_coin_balance_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_account_coin_balance_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_account_coins_balance_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_account_coins_balance_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_account_coins_balance_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateTransferAssetInfoQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_transfer_asset_info_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_transfer_asset_info_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_transfer_asset_info_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PublicDepositAllowedDepositListQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_public_deposit_allowed_deposit_list_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_public_deposit_allowed_deposit_list_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_public_deposit_allowed_deposit_list_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateDepositRecordQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_deposit_record_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_deposit_record_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_deposit_record_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetV3PrivateWithdrawRecordQuery` implicit endpoint.
-    pub async fn private_get_asset_v3_private_withdraw_record_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_asset_v3_private_withdraw_record_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_v3_private_withdraw_record_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderRealtime` implicit endpoint.
-    pub async fn private_get_v5_order_realtime(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_order_realtime(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_order_realtime".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderHistory` implicit endpoint.
-    pub async fn private_get_v5_order_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderSpotBorrowCheck` implicit endpoint.
-    pub async fn private_get_v5_order_spot_borrow_check(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_order_spot_borrow_check(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_order_spot_borrow_check".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionList` implicit endpoint.
-    pub async fn private_get_v5_position_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5ExecutionList` implicit endpoint.
-    pub async fn private_get_v5_execution_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_execution_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_execution_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionClosedPnl` implicit endpoint.
-    pub async fn private_get_v5_position_closed_pnl(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_position_closed_pnl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_closed_pnl".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionGetClosedPositions` implicit endpoint.
-    pub async fn private_get_v5_position_get_closed_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_position_get_closed_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_get_closed_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionMoveHistory` implicit endpoint.
-    pub async fn private_get_v5_position_move_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_position_move_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_move_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionSymbolInfo` implicit endpoint.
-    pub async fn private_get_v5_position_symbol_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_position_symbol_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_symbol_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeOrderHistory` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_order_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeExecutionList` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_execution_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_execution_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_execution_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradePositionClosedPnl` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_position_closed_pnl(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_position_closed_pnl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_position_closed_pnl".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeAccountTransactionLog` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_account_transaction_log(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_account_transaction_log(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_account_transaction_log".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeAssetDeliveryRecord` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_asset_delivery_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_asset_delivery_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_asset_delivery_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeAssetSettlementRecord` implicit endpoint.
-    pub async fn private_get_v5_pre_upgrade_asset_settlement_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_pre_upgrade_asset_settlement_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_pre_upgrade_asset_settlement_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountWalletBalance` implicit endpoint.
-    pub async fn private_get_v5_account_wallet_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_wallet_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_wallet_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountBorrowHistory` implicit endpoint.
-    pub async fn private_get_v5_account_borrow_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_borrow_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_borrow_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountInstrumentsInfo` implicit endpoint.
-    pub async fn private_get_v5_account_instruments_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_instruments_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_instruments_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountCollateralInfo` implicit endpoint.
-    pub async fn private_get_v5_account_collateral_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_collateral_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_collateral_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountOptionAssetInfo` implicit endpoint.
-    pub async fn private_get_v5_account_option_asset_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_option_asset_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_option_asset_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetCoinGreeks` implicit endpoint.
-    pub async fn private_get_v5_asset_coin_greeks(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_coin_greeks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_coin_greeks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountFeeRate` implicit endpoint.
-    pub async fn private_get_v5_account_fee_rate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_fee_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_fee_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountInfo` implicit endpoint.
-    pub async fn private_get_v5_account_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountTransactionLog` implicit endpoint.
-    pub async fn private_get_v5_account_transaction_log(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_transaction_log(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_transaction_log".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountContractTransactionLog` implicit endpoint.
-    pub async fn private_get_v5_account_contract_transaction_log(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_contract_transaction_log(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_contract_transaction_log".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountQueryDcpInfo` implicit endpoint.
-    pub async fn private_get_v5_account_query_dcp_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_query_dcp_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_query_dcp_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountUserSettingConfig` implicit endpoint.
-    pub async fn private_get_v5_account_user_setting_config(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_user_setting_config(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_user_setting_config".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountPayInfo` implicit endpoint.
-    pub async fn private_get_v5_account_pay_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_pay_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_pay_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountTradeInfoForAnalysis` implicit endpoint.
-    pub async fn private_get_v5_account_trade_info_for_analysis(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_trade_info_for_analysis(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_trade_info_for_analysis".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountSmpGroup` implicit endpoint.
-    pub async fn private_get_v5_account_smp_group(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_smp_group(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_smp_group".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountMmpState` implicit endpoint.
-    pub async fn private_get_v5_account_mmp_state(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_mmp_state(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_mmp_state".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountWithdrawal` implicit endpoint.
-    pub async fn private_get_v5_account_withdrawal(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_account_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_withdrawal".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetAssetOverview` implicit endpoint.
-    pub async fn private_get_v5_asset_asset_overview(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_asset_overview(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_asset_overview".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeQueryCoinList` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_query_coin_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_exchange_query_coin_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_exchange_query_coin_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeConvertResultQuery` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_convert_result_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_exchange_convert_result_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_exchange_convert_result_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeQueryConvertHistory` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_query_convert_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_exchange_query_convert_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_exchange_query_convert_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeOrderRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_order_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_exchange_order_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_exchange_order_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetFundinghistory` implicit endpoint.
-    pub async fn private_get_v5_asset_fundinghistory(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_fundinghistory(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_fundinghistory".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetPortfolioMargin` implicit endpoint.
-    pub async fn private_get_v5_asset_portfolio_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_portfolio_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_portfolio_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTotalMembersAssets` implicit endpoint.
-    pub async fn private_get_v5_asset_total_members_assets(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_total_members_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_total_members_assets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDeliveryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_delivery_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_delivery_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_delivery_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetSettlementRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_settlement_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_settlement_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_settlement_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryAssetInfo` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_asset_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_asset_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_asset_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryAccountCoinsBalance` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_account_coins_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_account_coins_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_account_coins_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryAccountCoinBalance` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_account_coin_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_account_coin_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_account_coin_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryTransferCoinList` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_transfer_coin_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_transfer_coin_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_transfer_coin_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryInterTransferList` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_inter_transfer_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_inter_transfer_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_inter_transfer_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQuerySubMemberList` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_sub_member_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_sub_member_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_sub_member_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryUniversalTransferList` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_universal_transfer_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_transfer_query_universal_transfer_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_transfer_query_universal_transfer_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryAllowedList` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_allowed_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_allowed_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_allowed_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQuerySubMemberRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_sub_member_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_sub_member_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_sub_member_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryInternalRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_internal_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_internal_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_internal_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryAddress` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQuerySubMemberAddress` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_sub_member_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_deposit_query_sub_member_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_deposit_query_sub_member_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetCoinQueryInfo` implicit endpoint.
-    pub async fn private_get_v5_asset_coin_query_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_coin_query_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_coin_query_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawQueryAddress` implicit endpoint.
-    pub async fn private_get_v5_asset_withdraw_query_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_withdraw_query_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_withdraw_query_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawQueryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_withdraw_query_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_withdraw_query_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_withdraw_query_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawWithdrawableAmount` implicit endpoint.
-    pub async fn private_get_v5_asset_withdraw_withdrawable_amount(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_withdraw_withdrawable_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_withdraw_withdrawable_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawVaspList` implicit endpoint.
-    pub async fn private_get_v5_asset_withdraw_vasp_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_withdraw_vasp_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_withdraw_vasp_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetCovertSmallBalanceList` implicit endpoint.
-    pub async fn private_get_v5_asset_covert_small_balance_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_covert_small_balance_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_covert_small_balance_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetCovertSmallBalanceHistory` implicit endpoint.
-    pub async fn private_get_v5_asset_covert_small_balance_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_covert_small_balance_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_covert_small_balance_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetConvertSmallBalanceList` implicit endpoint.
-    pub async fn private_get_v5_asset_convert_small_balance_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_convert_small_balance_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_convert_small_balance_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetConvertSmallBalanceHistory` implicit endpoint.
-    pub async fn private_get_v5_asset_convert_small_balance_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_asset_convert_small_balance_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_convert_small_balance_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5FiatQueryCoinList` implicit endpoint.
-    pub async fn private_get_v5_fiat_query_coin_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_fiat_query_coin_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_fiat_query_coin_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5FiatReferencePrice` implicit endpoint.
-    pub async fn private_get_v5_fiat_reference_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_fiat_reference_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_fiat_reference_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5FiatTradeQuery` implicit endpoint.
-    pub async fn private_get_v5_fiat_trade_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_fiat_trade_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_fiat_trade_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5FiatQueryTradeHistory` implicit endpoint.
-    pub async fn private_get_v5_fiat_query_trade_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_fiat_query_trade_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_fiat_query_trade_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5FiatBalanceQuery` implicit endpoint.
-    pub async fn private_get_v5_fiat_balance_query(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_fiat_balance_query(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_fiat_balance_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserQuerySubMembers` implicit endpoint.
-    pub async fn private_get_v5_user_query_sub_members(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_query_sub_members(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_query_sub_members".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserQueryApi` implicit endpoint.
-    pub async fn private_get_v5_user_query_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_query_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_query_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserSubApikeys` implicit endpoint.
-    pub async fn private_get_v5_user_sub_apikeys(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_sub_apikeys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_sub_apikeys".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserGetMemberType` implicit endpoint.
-    pub async fn private_get_v5_user_get_member_type(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_get_member_type(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_get_member_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserAffCustomerInfo` implicit endpoint.
-    pub async fn private_get_v5_user_aff_customer_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_aff_customer_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_aff_customer_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserDelSubmember` implicit endpoint.
-    pub async fn private_get_v5_user_del_submember(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_del_submember(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_del_submember".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserSubmembers` implicit endpoint.
-    pub async fn private_get_v5_user_submembers(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_submembers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_submembers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserEscrowSubMembers` implicit endpoint.
-    pub async fn private_get_v5_user_escrow_sub_members(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_escrow_sub_members(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_escrow_sub_members".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5UserInvitationReferrals` implicit endpoint.
-    pub async fn private_get_v5_user_invitation_referrals(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_user_invitation_referrals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_user_invitation_referrals".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AffiliateAffUserList` implicit endpoint.
-    pub async fn private_get_v5_affiliate_aff_user_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_affiliate_aff_user_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_affiliate_aff_user_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AffiliateAffiliateSubList` implicit endpoint.
-    pub async fn private_get_v5_affiliate_affiliate_sub_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_affiliate_affiliate_sub_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_affiliate_affiliate_sub_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotLeverTokenOrderRecord` implicit endpoint.
-    pub async fn private_get_v5_spot_lever_token_order_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_lever_token_order_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_lever_token_order_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeInterestRateHistory` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_interest_rate_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_interest_rate_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_interest_rate_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeState` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_state(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_state(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_state".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeMaxBorrowable` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_max_borrowable(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_max_borrowable(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_max_borrowable".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradePositionTiers` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_position_tiers(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_position_tiers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_position_tiers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeCoinstate` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_coinstate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_coinstate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_coinstate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeCurrencyData` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_currency_data(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_currency_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_currency_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowContractInfo` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_fixedborrow_contract_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_contract_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_contract_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowOrderInfo` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_order_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowOrderQuote` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_quote(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_quote(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_order_quote".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeLiability` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_liability(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_liability(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_liability".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeRepaymentAvailableAmount` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_repayment_available_amount(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_repayment_available_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_repayment_available_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeGetAutoRepayMode` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_get_auto_repay_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_margin_trade_get_auto_repay_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_get_auto_repay_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeLoanInfo` implicit endpoint.
-    pub async fn private_get_v5_spot_cross_margin_trade_loan_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_cross_margin_trade_loan_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_loan_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeAccount` implicit endpoint.
-    pub async fn private_get_v5_spot_cross_margin_trade_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_cross_margin_trade_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeOrders` implicit endpoint.
-    pub async fn private_get_v5_spot_cross_margin_trade_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_cross_margin_trade_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeRepayHistory` implicit endpoint.
-    pub async fn private_get_v5_spot_cross_margin_trade_repay_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_spot_cross_margin_trade_repay_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_repay_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanBorrowableCollateralisableNumber` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_borrowable_collateralisable_number(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_borrowable_collateralisable_number(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_borrowable_collateralisable_number".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanOngoingOrders` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_ongoing_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_ongoing_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_ongoing_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanRepaymentHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_repayment_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_repayment_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_repayment_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanBorrowHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_borrow_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_borrow_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_borrow_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanMaxCollateralAmount` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_max_collateral_amount(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_max_collateral_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_max_collateral_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanAdjustmentHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_adjustment_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_adjustment_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanCommonMaxCollateralAmount` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_common_max_collateral_amount(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_common_max_collateral_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_common_max_collateral_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanCommonAdjustmentHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_common_adjustment_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_common_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_common_adjustment_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanCommonPosition` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_common_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_common_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_common_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFlexibleOngoingCoin` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_flexible_ongoing_coin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_flexible_ongoing_coin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_flexible_ongoing_coin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFlexibleBorrowHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_flexible_borrow_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_flexible_borrow_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_flexible_borrow_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFlexibleRepaymentHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_flexible_repayment_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_flexible_repayment_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_flexible_repayment_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedBorrowContractInfo` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_borrow_contract_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_borrow_contract_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_borrow_contract_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedSupplyContractInfo` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_supply_contract_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_supply_contract_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_supply_contract_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedBorrowOrderInfo` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_borrow_order_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_borrow_order_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_borrow_order_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedRenewInfo` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_renew_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_renew_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_renew_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedSupplyOrderInfo` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_supply_order_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_supply_order_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_supply_order_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5CryptoLoanFixedRepaymentHistory` implicit endpoint.
-    pub async fn private_get_v5_crypto_loan_fixed_repayment_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_crypto_loan_fixed_repayment_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_crypto_loan_fixed_repayment_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanProductInfos` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_product_infos(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_product_infos(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_product_infos".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanEnsureTokens` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_ensure_tokens(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_ensure_tokens(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ensure_tokens".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanEnsureTokensConvert` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_ensure_tokens_convert(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_ensure_tokens_convert(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ensure_tokens_convert".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanLoanOrder` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_loan_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_loan_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_loan_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanRepaidHistory` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_repaid_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_repaid_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_repaid_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanLtv` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_ltv(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_ltv(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ltv".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanLtvConvert` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_ltv_convert(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_ltv_convert(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ltv_convert".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5InsLoanCoinDeltaAmount` implicit endpoint.
-    pub async fn private_get_v5_ins_loan_coin_delta_amount(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_ins_loan_coin_delta_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_coin_delta_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5LendingInfo` implicit endpoint.
-    pub async fn private_get_v5_lending_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_lending_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_lending_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5LendingHistoryOrder` implicit endpoint.
-    pub async fn private_get_v5_lending_history_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_lending_history_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_lending_history_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5LendingAccount` implicit endpoint.
-    pub async fn private_get_v5_lending_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_lending_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_lending_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5BrokerEarningRecord` implicit endpoint.
-    pub async fn private_get_v5_broker_earning_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_broker_earning_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_broker_earning_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5BrokerEarningsInfo` implicit endpoint.
-    pub async fn private_get_v5_broker_earnings_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_broker_earnings_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_broker_earnings_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5BrokerAccountInfo` implicit endpoint.
-    pub async fn private_get_v5_broker_account_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_broker_account_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_broker_account_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5BrokerAssetQuerySubMemberDepositRecord` implicit endpoint.
-    pub async fn private_get_v5_broker_asset_query_sub_member_deposit_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_broker_asset_query_sub_member_deposit_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_broker_asset_query_sub_member_deposit_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5EarnProduct` implicit endpoint.
-    pub async fn private_get_v5_earn_product(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_earn_product(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_product".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5EarnOrder` implicit endpoint.
-    pub async fn private_get_v5_earn_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_earn_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5EarnPosition` implicit endpoint.
-    pub async fn private_get_v5_earn_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_earn_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5EarnYield` implicit endpoint.
-    pub async fn private_get_v5_earn_yield(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_earn_yield(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_yield".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5EarnHourlyYield` implicit endpoint.
-    pub async fn private_get_v5_earn_hourly_yield(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v5_earn_hourly_yield(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_earn_hourly_yield".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateOrder` implicit endpoint.
-    pub async fn private_post_spot_v3_private_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateCancelOrder` implicit endpoint.
-    pub async fn private_post_spot_v3_private_cancel_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_cancel_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateCancelOrders` implicit endpoint.
-    pub async fn private_post_spot_v3_private_cancel_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_cancel_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_cancel_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateCancelOrdersByIds` implicit endpoint.
-    pub async fn private_post_spot_v3_private_cancel_orders_by_ids(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_cancel_orders_by_ids(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_cancel_orders_by_ids".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivatePurchase` implicit endpoint.
-    pub async fn private_post_spot_v3_private_purchase(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_purchase(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_purchase".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateRedeem` implicit endpoint.
-    pub async fn private_post_spot_v3_private_redeem(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_redeem(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_redeem".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateCrossMarginLoan` implicit endpoint.
-    pub async fn private_post_spot_v3_private_cross_margin_loan(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_cross_margin_loan(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_cross_margin_loan".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSpotV3PrivateCrossMarginRepay` implicit endpoint.
-    pub async fn private_post_spot_v3_private_cross_margin_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_spot_v3_private_cross_margin_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_spot_v3_private_cross_margin_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateTransferInterTransfer` implicit endpoint.
-    pub async fn private_post_asset_v3_private_transfer_inter_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_transfer_inter_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_transfer_inter_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateWithdrawCreate` implicit endpoint.
-    pub async fn private_post_asset_v3_private_withdraw_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_withdraw_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_withdraw_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateWithdrawCancel` implicit endpoint.
-    pub async fn private_post_asset_v3_private_withdraw_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_withdraw_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_withdraw_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateTransferSubMemberTransfer` implicit endpoint.
-    pub async fn private_post_asset_v3_private_transfer_sub_member_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_transfer_sub_member_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_transfer_sub_member_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateTransferTransferSubMemberSave` implicit endpoint.
-    pub async fn private_post_asset_v3_private_transfer_transfer_sub_member_save(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_transfer_transfer_sub_member_save(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_transfer_transfer_sub_member_save".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetV3PrivateTransferUniversalTransfer` implicit endpoint.
-    pub async fn private_post_asset_v3_private_transfer_universal_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_asset_v3_private_transfer_universal_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_v3_private_transfer_universal_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateCreateSubMember` implicit endpoint.
-    pub async fn private_post_user_v3_private_create_sub_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_create_sub_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_create_sub_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateCreateSubApi` implicit endpoint.
-    pub async fn private_post_user_v3_private_create_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_create_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_create_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateUpdateApi` implicit endpoint.
-    pub async fn private_post_user_v3_private_update_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_update_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_update_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateDeleteApi` implicit endpoint.
-    pub async fn private_post_user_v3_private_delete_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_delete_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_delete_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateUpdateSubApi` implicit endpoint.
-    pub async fn private_post_user_v3_private_update_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_update_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_update_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserV3PrivateDeleteSubApi` implicit endpoint.
-    pub async fn private_post_user_v3_private_delete_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_user_v3_private_delete_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_user_v3_private_delete_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingOrderCreate` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_order_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_order_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_order_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingOrderCancel` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingOrderClose` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_order_close(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_order_close(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_order_close".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingPositionClose` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_position_close(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_position_close(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_position_close".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingPositionSetLeverage` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_position_set_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_position_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_position_set_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingWalletTransfer` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_wallet_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_wallet_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_wallet_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateCopytradingOrderTradingStop` implicit endpoint.
-    pub async fn private_post_contract_v3_private_copytrading_order_trading_stop(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_copytrading_order_trading_stop(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_copytrading_order_trading_stop".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateOrderCreate` implicit endpoint.
-    pub async fn private_post_contract_v3_private_order_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_order_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_order_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateOrderCancel` implicit endpoint.
-    pub async fn private_post_contract_v3_private_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateOrderCancelAll` implicit endpoint.
-    pub async fn private_post_contract_v3_private_order_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_order_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateOrderReplace` implicit endpoint.
-    pub async fn private_post_contract_v3_private_order_replace(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_order_replace(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_order_replace".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSetAutoAddMargin` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_set_auto_add_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_set_auto_add_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_set_auto_add_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSwitchIsolated` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_switch_isolated(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_switch_isolated(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_switch_isolated".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSwitchMode` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_switch_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_switch_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_switch_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSwitchTpslMode` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_switch_tpsl_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_switch_tpsl_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_switch_tpsl_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSetLeverage` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_set_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_set_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionTradingStop` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_trading_stop(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_trading_stop(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_trading_stop".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivatePositionSetRiskLimit` implicit endpoint.
-    pub async fn private_post_contract_v3_private_position_set_risk_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_position_set_risk_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_position_set_risk_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostContractV3PrivateAccountSetMarginMode` implicit endpoint.
-    pub async fn private_post_contract_v3_private_account_set_margin_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_contract_v3_private_account_set_margin_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_contract_v3_private_account_set_margin_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderCreate` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderReplace` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_replace(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_replace(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_replace".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderCancel` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderCreateBatch` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_create_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_create_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_create_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderReplaceBatch` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_replace_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_replace_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_replace_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderCancelBatch` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_cancel_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_cancel_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_cancel_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateOrderCancelAll` implicit endpoint.
-    pub async fn private_post_unified_v3_private_order_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_order_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivatePositionSetLeverage` implicit endpoint.
-    pub async fn private_post_unified_v3_private_position_set_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_position_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_position_set_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivatePositionTpslSwitchMode` implicit endpoint.
-    pub async fn private_post_unified_v3_private_position_tpsl_switch_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_position_tpsl_switch_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_position_tpsl_switch_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivatePositionSetRiskLimit` implicit endpoint.
-    pub async fn private_post_unified_v3_private_position_set_risk_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_position_set_risk_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_position_set_risk_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivatePositionTradingStop` implicit endpoint.
-    pub async fn private_post_unified_v3_private_position_trading_stop(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_position_trading_stop(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_position_trading_stop".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount` implicit endpoint.
-    pub async fn private_post_unified_v3_private_account_upgrade_unified_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_account_upgrade_unified_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_account_upgrade_unified_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUnifiedV3PrivateAccountSetMarginMode` implicit endpoint.
-    pub async fn private_post_unified_v3_private_account_set_margin_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_unified_v3_private_account_set_margin_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_unified_v3_private_account_set_margin_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFhtComplianceTaxV3PrivateRegistertime` implicit endpoint.
-    pub async fn private_post_fht_compliance_tax_v3_private_registertime(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_fht_compliance_tax_v3_private_registertime(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_fht_compliance_tax_v3_private_registertime".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFhtComplianceTaxV3PrivateCreate` implicit endpoint.
-    pub async fn private_post_fht_compliance_tax_v3_private_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_fht_compliance_tax_v3_private_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_fht_compliance_tax_v3_private_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFhtComplianceTaxV3PrivateStatus` implicit endpoint.
-    pub async fn private_post_fht_compliance_tax_v3_private_status(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_fht_compliance_tax_v3_private_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_fht_compliance_tax_v3_private_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFhtComplianceTaxV3PrivateUrl` implicit endpoint.
-    pub async fn private_post_fht_compliance_tax_v3_private_url(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_fht_compliance_tax_v3_private_url(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_fht_compliance_tax_v3_private_url".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCreate` implicit endpoint.
-    pub async fn private_post_v5_order_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderAmend` implicit endpoint.
-    pub async fn private_post_v5_order_amend(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_amend(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_amend".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancel` implicit endpoint.
-    pub async fn private_post_v5_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancelAll` implicit endpoint.
-    pub async fn private_post_v5_order_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCreateBatch` implicit endpoint.
-    pub async fn private_post_v5_order_create_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_create_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_create_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderAmendBatch` implicit endpoint.
-    pub async fn private_post_v5_order_amend_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_amend_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_amend_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancelBatch` implicit endpoint.
-    pub async fn private_post_v5_order_cancel_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_cancel_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_cancel_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderDisconnectedCancelAll` implicit endpoint.
-    pub async fn private_post_v5_order_disconnected_cancel_all(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_disconnected_cancel_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_disconnected_cancel_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderPreCheck` implicit endpoint.
-    pub async fn private_post_v5_order_pre_check(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_order_pre_check(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_order_pre_check".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetLeverage` implicit endpoint.
-    pub async fn private_post_v5_position_set_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_set_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSwitchIsolated` implicit endpoint.
-    pub async fn private_post_v5_position_switch_isolated(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_switch_isolated(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_switch_isolated".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetTpslMode` implicit endpoint.
-    pub async fn private_post_v5_position_set_tpsl_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_set_tpsl_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_set_tpsl_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSwitchMode` implicit endpoint.
-    pub async fn private_post_v5_position_switch_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_switch_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_switch_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetRiskLimit` implicit endpoint.
-    pub async fn private_post_v5_position_set_risk_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_set_risk_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_set_risk_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionTradingStop` implicit endpoint.
-    pub async fn private_post_v5_position_trading_stop(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_trading_stop(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_trading_stop".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetAutoAddMargin` implicit endpoint.
-    pub async fn private_post_v5_position_set_auto_add_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_set_auto_add_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_set_auto_add_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionAddMargin` implicit endpoint.
-    pub async fn private_post_v5_position_add_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_add_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_add_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionMovePositions` implicit endpoint.
-    pub async fn private_post_v5_position_move_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_move_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_move_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionConfirmPendingMmr` implicit endpoint.
-    pub async fn private_post_v5_position_confirm_pending_mmr(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_position_confirm_pending_mmr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_confirm_pending_mmr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountUpgradeToUta` implicit endpoint.
-    pub async fn private_post_v5_account_upgrade_to_uta(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_upgrade_to_uta(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_upgrade_to_uta".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountQuickRepayment` implicit endpoint.
-    pub async fn private_post_v5_account_quick_repayment(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_quick_repayment(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_quick_repayment".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetMarginMode` implicit endpoint.
-    pub async fn private_post_v5_account_set_margin_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_margin_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_margin_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetHedgingMode` implicit endpoint.
-    pub async fn private_post_v5_account_set_hedging_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_hedging_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_hedging_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountMmpModify` implicit endpoint.
-    pub async fn private_post_v5_account_mmp_modify(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_mmp_modify(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_mmp_modify".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountMmpReset` implicit endpoint.
-    pub async fn private_post_v5_account_mmp_reset(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_mmp_reset(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_mmp_reset".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountBorrow` implicit endpoint.
-    pub async fn private_post_v5_account_borrow(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_borrow(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_borrow".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountRepay` implicit endpoint.
-    pub async fn private_post_v5_account_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountNoConvertRepay` implicit endpoint.
-    pub async fn private_post_v5_account_no_convert_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_no_convert_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_no_convert_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetLimitPxAction` implicit endpoint.
-    pub async fn private_post_v5_account_set_limit_px_action(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_limit_px_action(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_limit_px_action".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetDeltaMode` implicit endpoint.
-    pub async fn private_post_v5_account_set_delta_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_delta_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_delta_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetExchangeQuoteApply` implicit endpoint.
-    pub async fn private_post_v5_asset_exchange_quote_apply(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_exchange_quote_apply(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_exchange_quote_apply".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetExchangeConvertExecute` implicit endpoint.
-    pub async fn private_post_v5_asset_exchange_convert_execute(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_exchange_convert_execute(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_exchange_convert_execute".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTransferInterTransfer` implicit endpoint.
-    pub async fn private_post_v5_asset_transfer_inter_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_transfer_inter_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_transfer_inter_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTransferSaveTransferSubMember` implicit endpoint.
-    pub async fn private_post_v5_asset_transfer_save_transfer_sub_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_transfer_save_transfer_sub_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_transfer_save_transfer_sub_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTransferUniversalTransfer` implicit endpoint.
-    pub async fn private_post_v5_asset_transfer_universal_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_transfer_universal_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_transfer_universal_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetDepositDepositToAccount` implicit endpoint.
-    pub async fn private_post_v5_asset_deposit_deposit_to_account(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_deposit_deposit_to_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_deposit_deposit_to_account".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTravelRuleDepositSubmit` implicit endpoint.
-    pub async fn private_post_v5_asset_travel_rule_deposit_submit(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_travel_rule_deposit_submit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_travel_rule_deposit_submit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetWithdrawCreate` implicit endpoint.
-    pub async fn private_post_v5_asset_withdraw_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_withdraw_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_withdraw_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetWithdrawCancel` implicit endpoint.
-    pub async fn private_post_v5_asset_withdraw_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_withdraw_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_withdraw_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetCovertGetQuote` implicit endpoint.
-    pub async fn private_post_v5_asset_covert_get_quote(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_covert_get_quote(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_covert_get_quote".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetCovertSmallBalanceExecute` implicit endpoint.
-    pub async fn private_post_v5_asset_covert_small_balance_execute(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_asset_covert_small_balance_execute(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_covert_small_balance_execute".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5FiatQuoteApply` implicit endpoint.
-    pub async fn private_post_v5_fiat_quote_apply(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_fiat_quote_apply(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_fiat_quote_apply".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5FiatTradeExecute` implicit endpoint.
-    pub async fn private_post_v5_fiat_trade_execute(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_fiat_trade_execute(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_fiat_trade_execute".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserCreateSubMember` implicit endpoint.
-    pub async fn private_post_v5_user_create_sub_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_create_sub_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_create_sub_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserCreateSubApi` implicit endpoint.
-    pub async fn private_post_v5_user_create_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_create_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_create_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserFrozenSubMember` implicit endpoint.
-    pub async fn private_post_v5_user_frozen_sub_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_frozen_sub_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_frozen_sub_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserUpdateApi` implicit endpoint.
-    pub async fn private_post_v5_user_update_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_update_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_update_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserUpdateSubApi` implicit endpoint.
-    pub async fn private_post_v5_user_update_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_update_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_update_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserDeleteApi` implicit endpoint.
-    pub async fn private_post_v5_user_delete_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_delete_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_delete_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserDeleteSubApi` implicit endpoint.
-    pub async fn private_post_v5_user_delete_sub_api(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_delete_sub_api(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_delete_sub_api".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserAgreement` implicit endpoint.
-    pub async fn private_post_v5_user_agreement(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_agreement(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_agreement".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5UserCreateDemoMember` implicit endpoint.
-    pub async fn private_post_v5_user_create_demo_member(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_user_create_demo_member(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_user_create_demo_member".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotLeverTokenPurchase` implicit endpoint.
-    pub async fn private_post_v5_spot_lever_token_purchase(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_lever_token_purchase(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_lever_token_purchase".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotLeverTokenRedeem` implicit endpoint.
-    pub async fn private_post_v5_spot_lever_token_redeem(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_lever_token_redeem(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_lever_token_redeem".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeSwitchMode` implicit endpoint.
-    pub async fn private_post_v5_spot_margin_trade_switch_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_margin_trade_switch_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_switch_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeSetLeverage` implicit endpoint.
-    pub async fn private_post_v5_spot_margin_trade_set_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_margin_trade_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_set_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeSetAutoRepayMode` implicit endpoint.
-    pub async fn private_post_v5_spot_margin_trade_set_auto_repay_mode(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_margin_trade_set_auto_repay_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_set_auto_repay_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeFixedborrow` implicit endpoint.
-    pub async fn private_post_v5_spot_margin_trade_fixedborrow(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_margin_trade_fixedborrow(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_fixedborrow".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeFixedborrowRenew` implicit endpoint.
-    pub async fn private_post_v5_spot_margin_trade_fixedborrow_renew(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_margin_trade_fixedborrow_renew(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_fixedborrow_renew".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotCrossMarginTradeLoan` implicit endpoint.
-    pub async fn private_post_v5_spot_cross_margin_trade_loan(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_cross_margin_trade_loan(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_cross_margin_trade_loan".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotCrossMarginTradeRepay` implicit endpoint.
-    pub async fn private_post_v5_spot_cross_margin_trade_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_cross_margin_trade_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_cross_margin_trade_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotCrossMarginTradeSwitch` implicit endpoint.
-    pub async fn private_post_v5_spot_cross_margin_trade_switch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_spot_cross_margin_trade_switch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_cross_margin_trade_switch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanBorrow` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_borrow(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_borrow(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_borrow".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanRepay` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanAdjustLtv` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_adjust_ltv(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_adjust_ltv(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_adjust_ltv".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanCommonAdjustLtv` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_common_adjust_ltv(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_common_adjust_ltv(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_common_adjust_ltv".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanCommonMaxLoan` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_common_max_loan(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_common_max_loan(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_common_max_loan".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFlexibleBorrow` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_flexible_borrow(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_flexible_borrow(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_flexible_borrow".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFlexibleRepay` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_flexible_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_flexible_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_flexible_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFlexibleRepayCollateral` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_flexible_repay_collateral(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_flexible_repay_collateral(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_flexible_repay_collateral".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedBorrow` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_borrow(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_borrow(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_borrow".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedRenew` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_renew(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_renew(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_renew".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedSupply` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_supply(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_supply(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_supply".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedBorrowOrderCancel` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_borrow_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_borrow_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_borrow_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedSupplyOrderCancel` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_supply_order_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_supply_order_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_supply_order_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedFullyRepay` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_fully_repay(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_fully_repay(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_fully_repay".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5CryptoLoanFixedRepayCollateral` implicit endpoint.
-    pub async fn private_post_v5_crypto_loan_fixed_repay_collateral(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_crypto_loan_fixed_repay_collateral(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_crypto_loan_fixed_repay_collateral".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5InsLoanAssociationUid` implicit endpoint.
-    pub async fn private_post_v5_ins_loan_association_uid(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_ins_loan_association_uid(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_ins_loan_association_uid".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5InsLoanRepayLoan` implicit endpoint.
-    pub async fn private_post_v5_ins_loan_repay_loan(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_ins_loan_repay_loan(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_ins_loan_repay_loan".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5LendingPurchase` implicit endpoint.
-    pub async fn private_post_v5_lending_purchase(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_lending_purchase(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_lending_purchase".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5LendingRedeem` implicit endpoint.
-    pub async fn private_post_v5_lending_redeem(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_lending_redeem(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_lending_redeem".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5LendingRedeemCancel` implicit endpoint.
-    pub async fn private_post_v5_lending_redeem_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_lending_redeem_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_lending_redeem_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetCollateralSwitch` implicit endpoint.
-    pub async fn private_post_v5_account_set_collateral_switch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_collateral_switch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_collateral_switch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetCollateralSwitchBatch` implicit endpoint.
-    pub async fn private_post_v5_account_set_collateral_switch_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_set_collateral_switch_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_set_collateral_switch_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountDemoApplyMoney` implicit endpoint.
-    pub async fn private_post_v5_account_demo_apply_money(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_account_demo_apply_money(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_account_demo_apply_money".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5BrokerAwardInfo` implicit endpoint.
-    pub async fn private_post_v5_broker_award_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_broker_award_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_broker_award_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5BrokerAwardDistributeAward` implicit endpoint.
-    pub async fn private_post_v5_broker_award_distribute_award(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_broker_award_distribute_award(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_broker_award_distribute_award".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5BrokerAwardDistributionRecord` implicit endpoint.
-    pub async fn private_post_v5_broker_award_distribution_record(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_broker_award_distribution_record(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_broker_award_distribution_record".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5EarnPlaceOrder` implicit endpoint.
-    pub async fn private_post_v5_earn_place_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v5_earn_place_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_earn_place_order".to_string()), optional_args).await
     }
 

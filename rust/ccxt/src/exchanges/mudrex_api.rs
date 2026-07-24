@@ -9,135 +9,136 @@
 
 use crate::Value;
 use super::mudrex::MudrexCore;
+use crate::exchange::ExchangeRuntime;
 
 impl MudrexCore {
     /// Auto-generated wrapper for the `marketGetPriceKline` implicit endpoint.
-    pub async fn market_get_price_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_get_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_get_price_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketGetPriceMarkKline` implicit endpoint.
-    pub async fn market_get_price_mark_kline(&self, optional_args: &[Value]) -> Value {
+    pub async fn market_get_price_mark_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_get_price_mark_kline".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFutures` implicit endpoint.
-    pub async fn private_get_futures(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesAssetId` implicit endpoint.
-    pub async fn private_get_futures_asset_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_asset_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_asset_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletFunds` implicit endpoint.
-    pub async fn private_get_wallet_funds(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_wallet_funds(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_wallet_funds".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesFunds` implicit endpoint.
-    pub async fn private_get_futures_funds(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_funds(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_funds".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrders` implicit endpoint.
-    pub async fn private_get_futures_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrdersHistory` implicit endpoint.
-    pub async fn private_get_futures_orders_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_orders_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_orders_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_get_futures_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositions` implicit endpoint.
-    pub async fn private_get_futures_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositionsHistory` implicit endpoint.
-    pub async fn private_get_futures_positions_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_positions_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_positions_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesFeeHistory` implicit endpoint.
-    pub async fn private_get_futures_fee_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_fee_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_fee_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesAssetIdLeverage` implicit endpoint.
-    pub async fn private_get_futures_asset_id_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_asset_id_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_asset_id_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesPositionsPositionIdLiqPrice` implicit endpoint.
-    pub async fn private_get_futures_positions_position_id_liq_price(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_futures_positions_position_id_liq_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_positions_position_id_liq_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWalletFuturesTransfer` implicit endpoint.
-    pub async fn private_post_wallet_futures_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_wallet_futures_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_wallet_futures_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesTransfersInr` implicit endpoint.
-    pub async fn private_post_futures_transfers_inr(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_transfers_inr(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_transfers_inr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesAssetIdOrder` implicit endpoint.
-    pub async fn private_post_futures_asset_id_order(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_asset_id_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_asset_id_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdClose` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_close(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_close(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_close".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdClosePartial` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_close_partial(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_close_partial(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_close_partial".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdReverse` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_reverse(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_reverse(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_reverse".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdAddMargin` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_add_margin(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_add_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_add_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesPositionsPositionIdRiskorder` implicit endpoint.
-    pub async fn private_post_futures_positions_position_id_riskorder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_positions_position_id_riskorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_positions_position_id_riskorder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesAssetIdLeverage` implicit endpoint.
-    pub async fn private_post_futures_asset_id_leverage(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_futures_asset_id_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_futures_asset_id_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePatchFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_patch_futures_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_patch_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_patch_futures_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePatchFuturesPositionsPositionIdRiskorder` implicit endpoint.
-    pub async fn private_patch_futures_positions_position_id_riskorder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_patch_futures_positions_position_id_riskorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_patch_futures_positions_position_id_riskorder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteFuturesOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_futures_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_delete_futures_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_futures_orders_order_id".to_string()), optional_args).await
     }
 

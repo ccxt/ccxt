@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
+use ccxt::exchange_generated::ExchangeBase;
 
 pub fn testSortBy1() {
     // todo: other argument checks

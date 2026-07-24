@@ -5,6 +5,11 @@
 use crate::Value;
 use crate::get_value;
 use crate::runtime::*;
+// Base methods are now trait methods (review #1: static dispatch). Bring the
+// traits into scope so `self.market(...)`, `self.safe_market(...)`,
+// `self.load_markets(...)`, … on this Core resolve to the base defaults.
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 use crate::pro::*;
 
 
@@ -23,19 +28,17 @@ impl HyperliquidCore {
     /// builds the implicit API table. Idempotent — calling more than once is
     /// safe.
     ///
-    /// Deliberately does NOT install the derived-dispatch pointers: new()
-    /// runs init() while self is still a movable local, so binding here
-    /// would capture a soon-invalid address (review P0 #1). An un-bound Core
-    /// is safe-but-inert — derived_ptr defaults to DEFAULT_DERIVED and
-    /// derived_core_ptr is null, so virtual calls fall back to the base.
-    /// Binding happens later at a pinned/boxed address via bind(), which the
-    /// sanctioned constructors call once the Core is heap-stable.
+    /// Dispatch is now fully static (review #1: pointer removal) — virtual
+    /// calls resolve through the DerivedExchange/ExchangeBase trait impls
+    /// on the concrete Core type, so there is no address to bind and init()
+    /// needs no self-referential setup. It runs safely while self is still a
+    /// movable local in new().
     pub fn init(&mut self) {
         // Populate describe()-derived fields.
         let described = HyperliquidCore::describe(self);
-        self.exchange.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
-        self.exchange.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
-        self.exchange.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
+        self.api      = crate::get_value(&described, &crate::Value::Str("api".to_string()));
+        self.urls     = crate::get_value(&described, &crate::Value::Str("urls".to_string()));
+        self.has      = crate::get_value(&described, &crate::Value::Str("has".to_string()));
         // rateLimit drives the throttle spacing. describe() usually declares a
         // venue-specific value (binance 50ms, …); new() ran apply_config before
         // init(), so a config-supplied rateLimit is already in place. Only fall
@@ -44,8 +47,8 @@ impl HyperliquidCore {
         // to drop describe().rateLimit, leaving every venue at 2000ms).
         let __described_rate_limit = crate::get_value(&described, &crate::Value::Str("rateLimit".to_string()));
         if matches!(__described_rate_limit, crate::Value::Int(_) | crate::Value::Float(_))
-            && matches!(self.exchange.rateLimit, crate::Value::Int(2000)) {
-            self.exchange.rateLimit = __described_rate_limit;
+            && matches!(self.rateLimit, crate::Value::Int(2000)) {
+            self.rateLimit = __described_rate_limit;
         }
         // Merge describe() options INTO whatever apply_config (or
         // earlier setup) already populated. Caller-supplied options
@@ -58,13 +61,13 @@ impl HyperliquidCore {
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
         if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
-            (&self.exchange.options.clone(), &__described_options)
+            (&self.options.clone(), &__described_options)
         {
             let mut merged = (**defaults).clone();
             for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
-            self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
-            self.exchange.options = __described_options;
+            self.options = crate::Value::Map(merged);
+        } else if !matches!(self.options, crate::Value::Dict(_)) {
+            self.options = __described_options;
         }
         // Derive options.networksById (CCXT's createNetworksByIdObject):
         // start from the auto-inverted networks (generated), then overlay
@@ -73,7 +76,7 @@ impl HyperliquidCore {
         // overlay, an exchange whose networks defines both BSC to BSC and
         // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
         // order instead of the intended BSC to BEP20.
-        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+        if let crate::Value::Dict(opts_arc) = self.options.clone() {
             let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
             let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
             if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
@@ -88,110 +91,46 @@ impl HyperliquidCore {
                 for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
             }
             opts.insert("networksById".to_string(), crate::Value::Map(by_id));
-            self.exchange.options = crate::Value::Map(opts);
+            self.options = crate::Value::Map(opts);
         }
-        self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
-        self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
-        self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
-        self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
-        self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
+        self.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
+        self.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
+        self.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
+        self.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
+        self.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
         // Only override the base-default requiredCredentials when the
         // exchange's describe() actually provides them (super.describe()
         // is stubbed, so most exchanges' describe() omits this).
-        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.requiredCredentials = __rc; } }
         // Merge describe()'s commonCurrencies over the base defaults so
         // exchange-specific aliases (bitfinex UST to USDT, onetrading
         // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
-        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
-        self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
-        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
-        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.commonCurrencies = crate::Value::Map(extra); } } }
+        self.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
         // `features` carries the describe() block that drives
         // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
         // tells testFetchCurrencies to skip the length check). It's set
         // after `Exchange::new` because `features_generator` (in
         // `after_construct`) bails when `features == Null` — so we
         // assign and re-run the generator here.
-        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
-        if !matches!(self.exchange.features, crate::Value::Null) {
-            self.exchange.features_generator();
+        self.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.features, crate::Value::Null) {
+            self.features_generator();
         }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
         // Don't reset them here.
-        self.exchange.build_implicit_api();
+        self.build_implicit_api();
     }
 
-    /// Re-bind the derived-exchange pointer. Needed if the struct's
-    /// address moves after `new()` (e.g. `Box::new` the value).
-    pub fn bind(&mut self) {
-        let ptr: *const (dyn crate::exchange::DerivedExchange + 'static) =
-            self as &Self as *const dyn crate::exchange::DerivedExchange;
-        self.exchange.bind_derived(ptr);
-        // Async dispatch hook: lets base Exchange methods route async
-        // calls (cancel_order, fetch_order, …) to this Core's
-        // call_dynamic, bypassing the base stubs.
-        let core_ptr = self as *mut Self as *mut ();
-        self.exchange.bind_call_async(core_ptr, HyperliquidCore::__call_dynamic_dispatch);
-    }
-
-    /// Type-erased trampoline used by Exchange::dispatch_to_derived.
-    /// Casts the void pointer back to `*mut Self` and forwards to the
-    /// real `call_dynamic`. Safety: the pointer must come from the
-    /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    pub fn __call_dynamic_dispatch<'a>(
-        ptr: *mut (),
-        method: &'a str,
-        args: Vec<crate::Value>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>> {
-        Box::pin(async move {
-            let s: &mut Self = unsafe { &mut *(ptr as *mut Self) };
-            s.call_dynamic(method, args).await
-        })
-    }
-
-    /// Dispatch by method name. Mirrors Go's CallInternal /
-    /// C#'s callInternal — lets the CLI call any method without
-    /// hard-coding signatures. Accepts the canonical snake_case name.
-    /// Returns Value::Null for unknown names.
-    pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
-        match method {
-            "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_orders_ws" => self.create_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_ws_tickers" => self.handle_ws_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
-            "un_watch_balance" => self.un_watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_my_trades" => self.un_watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_orders" => self.un_watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_positions" => self.un_watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_tickers" => self.un_watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_balance" => self.watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_orders" => self.watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_positions" => self.watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "wrap_as_post_action" => self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            // Go-style inheritance: an un-overridden method dispatches
-            // to the parent exchange Core.
-            _ => self.parent.call_dynamic(method, args).await,
-        }
-    }
+    /// Compatibility no-op. The old pointer-based dispatch needed a post-move
+    /// `bind()`; static trait dispatch (review #1) needs no binding, so this
+    /// just exists so callers that still call it keep compiling.
+    #[inline]
+    pub fn bind(&mut self) {}
 }
 
 impl crate::exchange::DerivedExchange for HyperliquidCore {
@@ -317,13 +256,56 @@ impl crate::exchange::DerivedExchange for HyperliquidCore {
     }
 }
 
+impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+    {
+        Box::pin(async move {
+            match method {
+                "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "create_orders_ws" => self.create_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_ws_tickers" => self.handle_ws_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "request_id" => self.request_id(),
+                "un_watch_balance" => self.un_watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_my_trades" => self.un_watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_orders" => self.un_watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_positions" => self.un_watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_tickers" => self.un_watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_balance" => self.watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_orders" => self.watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_positions" => self.watch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "wrap_as_post_action" => self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                // Go-style inheritance: an un-overridden method dispatches to the parent core.
+                _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
+            }
+        })
+    }
+}
+
 impl std::ops::Deref for HyperliquidCore {
-    type Target = crate::exchanges::hyperliquid::HyperliquidCore;
-    fn deref(&self) -> &Self::Target { &self.parent }
+    type Target = crate::exchange::Exchange;
+    fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
 impl std::ops::DerefMut for HyperliquidCore {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.parent }
+    fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
 impl HyperliquidCore {
@@ -427,7 +409,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
-        let mut ordersRequest: Value = self.create_orders_request(orders.clone(), &[params.clone()]);
+        let mut ordersRequest: Value = self.parent.create_orders_request(orders.clone(), &[params.clone()]);
         let mut wrapped: Value = self.wrap_as_post_action(ordersRequest.clone());
         let mut request: Value = self.safe_dict_k(wrapped.clone(), "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -478,7 +460,7 @@ impl HyperliquidCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut orderglobalParamsVariable = self.parse_create_edit_order_args(Value::Null, symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
+        let mut orderglobalParamsVariable = self.parent.parse_create_edit_order_args(Value::Null, symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = get_value(&orderglobalParamsVariable, &Value::Int(0));
         let mut globalParams: Value = get_value(&orderglobalParamsVariable, &Value::Int(1));
         let mut orders: Value = self.create_orders_ws(Value::List(vec![order.clone()]), &[globalParams.clone()]).await;
@@ -527,10 +509,10 @@ impl HyperliquidCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
-        let mut orderglobalParamsVariable = self.parse_create_edit_order_args(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
+        let mut orderglobalParamsVariable = self.parent.parse_create_edit_order_args(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = get_value(&orderglobalParamsVariable, &Value::Int(0));
         let mut globalParams: Value = get_value(&orderglobalParamsVariable, &Value::Int(1));
-        let mut postRequest: Value = self.edit_orders_request(Value::List(vec![order.clone()]), &[globalParams.clone()]);
+        let mut postRequest: Value = self.parent.edit_orders_request(Value::List(vec![order.clone()]), &[globalParams.clone()]);
         let mut wrapped: Value = self.wrap_as_post_action(postRequest.clone());
         let mut request: Value = self.safe_dict_k(wrapped.clone(), "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -580,7 +562,7 @@ impl HyperliquidCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = self.cancel_orders_request(ids.clone(), &[symbol.clone(), params.clone()]);
+        let mut request: Value = self.parent.cancel_orders_request(ids.clone(), &[symbol.clone(), params.clone()]);
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut wrapped: Value = self.wrap_as_post_action(request.clone());
         let mut wsRequest: Value = self.safe_dict_k(wrapped.clone(), "request", &[Value::Map({
@@ -755,7 +737,7 @@ impl HyperliquidCore {
             m
         })]);
         let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut market: Value = self.market(marketId.clone());
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut rawData: Value = self.safe_list_k(entry.clone(), "levels", &[Value::List(vec![])]);
@@ -930,7 +912,7 @@ impl HyperliquidCore {
     m
 }));
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchMyTrades".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("watchMyTrades".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         if is_equal(&self.markets, &Value::Null) {
@@ -986,7 +968,7 @@ impl HyperliquidCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchMyTrades".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("unWatchMyTrades".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut messageHash: Value = Value::Str("unsubscribe:myTrades".to_string());
@@ -1040,7 +1022,7 @@ impl HyperliquidCore {
                 while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut name: Value = get_value(&keys, &i);
                 let mut name: Value = get_value(&keys, &i);
-                let mut marketId: Value = self.coin_to_market_id(name.clone());
+                let mut marketId: Value = self.parent.coin_to_market_id(name.clone());
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut ticker: Value = self.parse_ws_ticker(Value::Map({
@@ -1255,7 +1237,7 @@ impl HyperliquidCore {
             m
         })]);
         let mut coin: Value = self.safe_string_k(first.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut market: Value = self.market(marketId.clone());
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
@@ -1319,7 +1301,7 @@ impl HyperliquidCore {
         let mut price: Value = self.safe_string_k(trade.clone(), "px", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "sz", &[]);
         let mut coin: Value = self.safe_string_k(trade.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         market = self.safe_market(&[marketId.clone(), Value::Null]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
@@ -1468,7 +1450,7 @@ impl HyperliquidCore {
             m
         })]);
         let mut base: Value = self.safe_string_k(data.clone(), "s", &[]);
-        let mut marketId: Value = self.coin_to_market_id(base.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(base.clone());
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
@@ -1524,13 +1506,13 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchBalance".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("watchBalance".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isUnifiedEnabled: Value = Value::Null;
-        let mut unifiedResult: Value = self.is_unified_enabled(Value::Str("watchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
+        let mut unifiedResult: Value = self.parent.is_unified_enabled(Value::Str("watchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
@@ -1583,13 +1565,13 @@ impl HyperliquidCore {
         }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchBalance".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("unWatchBalance".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isUnifiedEnabled: Value = Value::Null;
-        let mut unifiedResult: Value = self.is_unified_enabled(Value::Str("unWatchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
+        let mut unifiedResult: Value = self.parent.is_unified_enabled(Value::Str("unWatchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
@@ -1798,7 +1780,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchPositions".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("watchPositions".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut topic: Value = Value::Str("clearinghouseState".to_string());
@@ -1814,7 +1796,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols(Value::Str("watchPositions".to_string()), &[symbols.clone()]);
+        let mut dexName: Value = self.parent.get_dex_from_symbols(Value::Str("watchPositions".to_string()), &[symbols.clone()]);
         if !is_equal(&dexName, &Value::Null) {
             add_element_to_object(&mut subscription, &Value::Str("dex".to_string()), dexName.clone());
         }
@@ -1918,7 +1900,7 @@ impl HyperliquidCore {
         let mut messageHash: Value = Value::Str("unsubscribe:clearinghouseState".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchPositions".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("unWatchPositions".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut request: Value = Value::Map({
@@ -1962,7 +1944,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchOrders".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("watchOrders".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut market: Value = Value::Null;
@@ -2019,7 +2001,7 @@ impl HyperliquidCore {
         let mut messageHash: Value = Value::Str("unsubscribe:order".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchOrders".to_string()), params.clone());
+        let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("unWatchOrders".to_string()), params.clone());
         userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut request: Value = Value::Map({
@@ -2197,7 +2179,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //
         let mut coin: Value = self.safe_string_k(subscription.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut subMessageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
@@ -2210,7 +2192,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         //
         let mut coin: Value = self.safe_string_k(subscription.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut subMessageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
@@ -2237,7 +2219,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_ohlcv_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut coin: Value = self.safe_string_k(subscription.clone(), "coin", &[]);
-        let mut marketId: Value = self.coin_to_market_id(coin.clone());
+        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut interval: Value = self.safe_string_k(subscription.clone(), "interval", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);

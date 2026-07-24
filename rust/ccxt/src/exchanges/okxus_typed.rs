@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::okxus::OkxusCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Okxus {
     // Private + pinned: the Core is self-referential (its embedded
@@ -78,18 +80,6 @@ impl std::ops::Deref for Okxus {
 }
 
 impl Okxus {
-    /// Typed wrapper around `fetchCurrencies`.
-    pub async fn fetch_currencies(&mut self, params: Value) -> crate::Result<Currencies> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_currencies(&[params])).await?;
-        Ok(dict_from_value(&v, Currency::from_value))
-    }
-
-    /// Typed wrapper around `fetchMarkets`.
-    pub async fn fetch_markets(&mut self, params: Value) -> crate::Result<Vec<Market>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_markets(&[params])).await?;
-        Ok(vec_from_value(&v, Market::from_value))
-    }
-
     /// Typed wrapper around `fetchDepositAddresses`.
     pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: Value) -> crate::Result<Vec<DepositAddress>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params])).await?;

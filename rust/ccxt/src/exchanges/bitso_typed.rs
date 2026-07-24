@@ -19,6 +19,8 @@
 use crate::Value;
 use crate::exchanges::bitso::BitsoCore;
 use crate::types::*;
+use crate::exchange_generated::ExchangeBase;
+use crate::exchange::ExchangeRuntime;
 
 pub struct Bitso {
     // Private + pinned: the Core is self-referential (its embedded

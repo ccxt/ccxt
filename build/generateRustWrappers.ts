@@ -505,6 +505,11 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[]): string
         'use crate::Value;',
         `use crate::exchanges::${exchangeId}::${coreClassName};`,
         'use crate::types::*;',
+        // Base methods are trait methods now (review #1: static dispatch); bring
+        // the traits into scope so `self.core_mut().fetch_balance(...)` etc.
+        // resolve to the base defaults on the Core.
+        'use crate::exchange_generated::ExchangeBase;',
+        'use crate::exchange::ExchangeRuntime;',
         '',
         `pub struct ${className} {`,
         '    // Private + pinned: the Core is self-referential (its embedded',
@@ -584,9 +589,12 @@ function discoverDefinedMethods(filePath: string): Set<string> {
     const out = new Set<string>();
     if (!fs.existsSync(filePath)) return out;
     const src = fs.readFileSync(filePath, 'utf-8');
-    // `pub async fn fetch_balance(...) -> Value { ... }`
-    // `pub fn safe_market(&self, ...) -> Value { ... }`
-    const re = /\bpub\s+(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
+    // `pub async fn fetch_balance(...) -> Value { ... }` (per-exchange override)
+    // `async fn fetch_balance(...) -> Value { ... }` (base ExchangeBase trait
+    // method — no `pub` since review #1's static-dispatch conversion). Match an
+    // optional `pub` so inherited base methods are still discovered; otherwise
+    // the wrapper only sees per-exchange overrides and drops ~80% of methods.
+    const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(src)) !== null) out.add(m[1]);
     return out;

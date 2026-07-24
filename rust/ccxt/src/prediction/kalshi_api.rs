@@ -9,375 +9,376 @@
 
 use crate::Value;
 use super::kalshi::KalshiCore;
+use crate::exchange::ExchangeRuntime;
 
 impl KalshiCore {
     /// Auto-generated wrapper for the `kalshiPublicGetEvents` implicit endpoint.
-    pub async fn kalshi_public_get_events(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_events(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsMultivariate` implicit endpoint.
-    pub async fn kalshi_public_get_events_multivariate(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_events_multivariate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events_multivariate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsFeeChanges` implicit endpoint.
-    pub async fn kalshi_public_get_events_fee_changes(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_events_fee_changes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events_fee_changes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsEventTicker` implicit endpoint.
-    pub async fn kalshi_public_get_events_event_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_events_event_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events_event_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsEventTickerMetadata` implicit endpoint.
-    pub async fn kalshi_public_get_events_event_ticker_metadata(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_events_event_ticker_metadata(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events_event_ticker_metadata".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeries` implicit endpoint.
-    pub async fn kalshi_public_get_series(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesFeeChanges` implicit endpoint.
-    pub async fn kalshi_public_get_series_fee_changes(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series_fee_changes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series_fee_changes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTicker` implicit endpoint.
-    pub async fn kalshi_public_get_series_series_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series_series_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series_series_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks` implicit endpoint.
-    pub async fn kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series_series_ticker_markets_ticker_candlesticks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks` implicit endpoint.
-    pub async fn kalshi_public_get_series_series_ticker_events_ticker_candlesticks(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series_series_ticker_events_ticker_candlesticks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series_series_ticker_events_ticker_candlesticks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory` implicit endpoint.
-    pub async fn kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_series_series_ticker_events_ticker_forecast_percentile_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarkets` implicit endpoint.
-    pub async fn kalshi_public_get_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTrades` implicit endpoint.
-    pub async fn kalshi_public_get_markets_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsOrderbooks` implicit endpoint.
-    pub async fn kalshi_public_get_markets_orderbooks(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets_orderbooks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets_orderbooks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsCandlesticks` implicit endpoint.
-    pub async fn kalshi_public_get_markets_candlesticks(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets_candlesticks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets_candlesticks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTicker` implicit endpoint.
-    pub async fn kalshi_public_get_markets_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTickerOrderbook` implicit endpoint.
-    pub async fn kalshi_public_get_markets_ticker_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_markets_ticker_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_markets_ticker_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeStatus` implicit endpoint.
-    pub async fn kalshi_public_get_exchange_status(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_exchange_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_exchange_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeSchedule` implicit endpoint.
-    pub async fn kalshi_public_get_exchange_schedule(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_exchange_schedule(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_exchange_schedule".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeAnnouncements` implicit endpoint.
-    pub async fn kalshi_public_get_exchange_announcements(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_exchange_announcements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_exchange_announcements".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeUserDataTimestamp` implicit endpoint.
-    pub async fn kalshi_public_get_exchange_user_data_timestamp(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_exchange_user_data_timestamp(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_exchange_user_data_timestamp".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMilestones` implicit endpoint.
-    pub async fn kalshi_public_get_milestones(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_milestones(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_milestones".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMilestonesMilestoneId` implicit endpoint.
-    pub async fn kalshi_public_get_milestones_milestone_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_milestones_milestone_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_milestones_milestone_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetStructuredTargets` implicit endpoint.
-    pub async fn kalshi_public_get_structured_targets(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_structured_targets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_structured_targets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetStructuredTargetsStructuredTargetId` implicit endpoint.
-    pub async fn kalshi_public_get_structured_targets_structured_target_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_structured_targets_structured_target_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_structured_targets_structured_target_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSearchFiltersBySport` implicit endpoint.
-    pub async fn kalshi_public_get_search_filters_by_sport(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_search_filters_by_sport(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_search_filters_by_sport".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSearchTagsByCategories` implicit endpoint.
-    pub async fn kalshi_public_get_search_tags_by_categories(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_search_tags_by_categories(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_search_tags_by_categories".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetLiveDataBatch` implicit endpoint.
-    pub async fn kalshi_public_get_live_data_batch(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_live_data_batch(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_live_data_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetLiveDataMilestoneMilestoneId` implicit endpoint.
-    pub async fn kalshi_public_get_live_data_milestone_milestone_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_live_data_milestone_milestone_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_live_data_milestone_milestone_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetHistoricalMarkets` implicit endpoint.
-    pub async fn kalshi_public_get_historical_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_historical_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_historical_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetHistoricalMarketsTickerCandlesticks` implicit endpoint.
-    pub async fn kalshi_public_get_historical_markets_ticker_candlesticks(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_historical_markets_ticker_candlesticks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_historical_markets_ticker_candlesticks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetHistoricalTrades` implicit endpoint.
-    pub async fn kalshi_public_get_historical_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_historical_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_historical_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetHistoricalCutoffTimestamps` implicit endpoint.
-    pub async fn kalshi_public_get_historical_cutoff_timestamps(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_historical_cutoff_timestamps(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_historical_cutoff_timestamps".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMultivariateEventCollections` implicit endpoint.
-    pub async fn kalshi_public_get_multivariate_event_collections(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_multivariate_event_collections(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_multivariate_event_collections".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMultivariateEventCollectionsCollectionTicker` implicit endpoint.
-    pub async fn kalshi_public_get_multivariate_event_collections_collection_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_multivariate_event_collections_collection_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_multivariate_event_collections_collection_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup` implicit endpoint.
-    pub async fn kalshi_public_get_multivariate_event_collections_collection_ticker_lookup(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_multivariate_event_collections_collection_ticker_lookup(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_multivariate_event_collections_collection_ticker_lookup".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetIncentivePrograms` implicit endpoint.
-    pub async fn kalshi_public_get_incentive_programs(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_public_get_incentive_programs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_incentive_programs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioBalance` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrders` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrdersOrderId` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders_order_id_queue_position(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_orders_order_id_queue_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_orders_order_id_queue_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrdersQueuePositions` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders_queue_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_orders_queue_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_orders_queue_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioPositions` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_positions(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioFills` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_fills(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_fills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_fills".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSettlements` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_settlements(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_settlements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_settlements".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioDeposits` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_deposits(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_deposits(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_deposits".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioWithdrawals` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_withdrawals(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_withdrawals".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrderGroups` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_order_groups(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_order_groups(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_order_groups".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrderGroupsOrderGroupId` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_order_groups_order_group_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_order_groups_order_group_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_order_groups_order_group_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_summary_total_resting_order_value(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_summary_total_resting_order_value(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_summary_total_resting_order_value".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSubaccountsBalances` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_subaccounts_balances(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_subaccounts_balances(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_subaccounts_balances".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSubaccountsNetting` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_subaccounts_netting(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_subaccounts_netting(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_subaccounts_netting".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSubaccountsTransfers` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_subaccounts_transfers(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_portfolio_subaccounts_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_portfolio_subaccounts_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetHistoricalFills` implicit endpoint.
-    pub async fn kalshi_private_get_historical_fills(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_historical_fills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_historical_fills".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetHistoricalOrders` implicit endpoint.
-    pub async fn kalshi_private_get_historical_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_get_historical_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_get_historical_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrders` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioEventsOrders` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_events_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_events_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_events_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrdersBatched` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_orders_batched(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_orders_batched(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_orders_batched".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrdersOrderIdAmend` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_orders_order_id_amend(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_orders_order_id_amend(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_orders_order_id_amend".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrdersOrderIdDecrease` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_orders_order_id_decrease(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_orders_order_id_decrease(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_orders_order_id_decrease".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrderGroupsCreate` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_order_groups_create(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_order_groups_create(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_order_groups_create".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioSubaccounts` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_subaccounts(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_subaccounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_subaccounts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioSubaccountsTransfer` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_subaccounts_transfer(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_portfolio_subaccounts_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_portfolio_subaccounts_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostMultivariateEventCollectionsCollectionTicker` implicit endpoint.
-    pub async fn kalshi_private_post_multivariate_event_collections_collection_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_post_multivariate_event_collections_collection_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_post_multivariate_event_collections_collection_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset` implicit endpoint.
-    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_reset(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_reset(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_put_portfolio_order_groups_order_group_id_reset".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger` implicit endpoint.
-    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_trigger(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_trigger(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_put_portfolio_order_groups_order_group_id_trigger".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit` implicit endpoint.
-    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_limit(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_put_portfolio_order_groups_order_group_id_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_put_portfolio_order_groups_order_group_id_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePutPortfolioSubaccountsNetting` implicit endpoint.
-    pub async fn kalshi_private_put_portfolio_subaccounts_netting(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_put_portfolio_subaccounts_netting(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_put_portfolio_subaccounts_netting".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup` implicit endpoint.
-    pub async fn kalshi_private_put_multivariate_event_collections_collection_ticker_lookup(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_put_multivariate_event_collections_collection_ticker_lookup(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_put_multivariate_event_collections_collection_ticker_lookup".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateDeletePortfolioOrdersOrderId` implicit endpoint.
-    pub async fn kalshi_private_delete_portfolio_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_delete_portfolio_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_delete_portfolio_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateDeletePortfolioOrdersBatched` implicit endpoint.
-    pub async fn kalshi_private_delete_portfolio_orders_batched(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_delete_portfolio_orders_batched(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_delete_portfolio_orders_batched".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateDeletePortfolioEventsOrdersOrderId` implicit endpoint.
-    pub async fn kalshi_private_delete_portfolio_events_orders_order_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_delete_portfolio_events_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_delete_portfolio_events_orders_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId` implicit endpoint.
-    pub async fn kalshi_private_delete_portfolio_order_groups_order_group_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn kalshi_private_delete_portfolio_order_groups_order_group_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_private_delete_portfolio_order_groups_order_group_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `electionsPublicGetSearchSeries` implicit endpoint.
-    pub async fn elections_public_get_search_series(&self, optional_args: &[Value]) -> Value {
+    pub async fn elections_public_get_search_series(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("elections_public_get_search_series".to_string()), optional_args).await
     }
 

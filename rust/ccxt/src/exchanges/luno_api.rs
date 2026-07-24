@@ -9,205 +9,206 @@
 
 use crate::Value;
 use super::luno::LunoCore;
+use crate::exchange::ExchangeRuntime;
 
 impl LunoCore {
     /// Auto-generated wrapper for the `exchangeGetMarkets` implicit endpoint.
-    pub async fn exchange_get_markets(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_get_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivateGetCandles` implicit endpoint.
-    pub async fn exchange_private_get_candles(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_get_candles(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_get_candles".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivateGetMove` implicit endpoint.
-    pub async fn exchange_private_get_move(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_get_move(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_get_move".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivateGetMoveListMoves` implicit endpoint.
-    pub async fn exchange_private_get_move_list_moves(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_get_move_list_moves(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_get_move_list_moves".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivateGetTransfers` implicit endpoint.
-    pub async fn exchange_private_get_transfers(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_get_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_get_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivatePostConvert` implicit endpoint.
-    pub async fn exchange_private_post_convert(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_post_convert(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_post_convert".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `exchangePrivatePostMove` implicit endpoint.
-    pub async fn exchange_private_post_move(&self, optional_args: &[Value]) -> Value {
+    pub async fn exchange_private_post_move(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_private_post_move".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
-    pub async fn public_get_orderbook(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetOrderbookTop` implicit endpoint.
-    pub async fn public_get_orderbook_top(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_orderbook_top(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook_top".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
-    pub async fn public_get_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickers` implicit endpoint.
-    pub async fn public_get_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTrades` implicit endpoint.
-    pub async fn public_get_trades(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsIdPending` implicit endpoint.
-    pub async fn private_get_accounts_id_pending(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_accounts_id_pending(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_accounts_id_pending".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsIdTransactions` implicit endpoint.
-    pub async fn private_get_accounts_id_transactions(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_accounts_id_transactions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_accounts_id_transactions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetBalance` implicit endpoint.
-    pub async fn private_get_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetBeneficiaries` implicit endpoint.
-    pub async fn private_get_beneficiaries(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_beneficiaries(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_beneficiaries".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSendNetworks` implicit endpoint.
-    pub async fn private_get_send_networks(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_send_networks(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_send_networks".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFeeInfo` implicit endpoint.
-    pub async fn private_get_fee_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_fee_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_fee_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFundingAddress` implicit endpoint.
-    pub async fn private_get_funding_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_funding_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_funding_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetListorders` implicit endpoint.
-    pub async fn private_get_listorders(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_listorders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_listorders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetListtrades` implicit endpoint.
-    pub async fn private_get_listtrades(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_listtrades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_listtrades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSendFee` implicit endpoint.
-    pub async fn private_get_send_fee(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_send_fee(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_send_fee".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersId` implicit endpoint.
-    pub async fn private_get_orders_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_orders_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_orders_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawals` implicit endpoint.
-    pub async fn private_get_withdrawals(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_withdrawals".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawalsId` implicit endpoint.
-    pub async fn private_get_withdrawals_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_withdrawals_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_withdrawals_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTransfers` implicit endpoint.
-    pub async fn private_get_transfers(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUsersLinked` implicit endpoint.
-    pub async fn private_get_users_linked(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_users_linked(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_users_linked".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccounts` implicit endpoint.
-    pub async fn private_post_accounts(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_accounts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAddressValidate` implicit endpoint.
-    pub async fn private_post_address_validate(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_address_validate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_address_validate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPostorder` implicit endpoint.
-    pub async fn private_post_postorder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_postorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_postorder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMarketorder` implicit endpoint.
-    pub async fn private_post_marketorder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_marketorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_marketorder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostStoporder` implicit endpoint.
-    pub async fn private_post_stoporder(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_stoporder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_stoporder".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFundingAddress` implicit endpoint.
-    pub async fn private_post_funding_address(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_funding_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_funding_address".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawals` implicit endpoint.
-    pub async fn private_post_withdrawals(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdrawals".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSend` implicit endpoint.
-    pub async fn private_post_send(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_send(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_send".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOauth2Grant` implicit endpoint.
-    pub async fn private_post_oauth2_grant(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_oauth2_grant(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_oauth2_grant".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBeneficiaries` implicit endpoint.
-    pub async fn private_post_beneficiaries(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_beneficiaries(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_beneficiaries".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutAccountsIdName` implicit endpoint.
-    pub async fn private_put_accounts_id_name(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_put_accounts_id_name(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_accounts_id_name".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteWithdrawalsId` implicit endpoint.
-    pub async fn private_delete_withdrawals_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_delete_withdrawals_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_withdrawals_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteBeneficiariesId` implicit endpoint.
-    pub async fn private_delete_beneficiaries_id(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_delete_beneficiaries_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_beneficiaries_id".to_string()), optional_args).await
     }
 

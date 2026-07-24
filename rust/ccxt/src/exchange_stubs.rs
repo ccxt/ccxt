@@ -804,40 +804,6 @@ impl Exchange {
     /// `super.X(...)` from derived exchanges — routes back to the base
     /// Exchange impl. These stubs return Value::Null; they exist so
     /// transpiled `self.super_X()` calls type-check.
-    pub fn super_describe(&self) -> Value {
-        // Return the base `Exchange::describe()` so derived exchanges'
-        // `deep_extend(self.super_describe(), { ... })` inherit the base
-        // `has`/`timeframes`/`options` defaults (mirrors TS
-        // `deepExtend(super.describe(), ...)`). `self` here is the base
-        // `Exchange`, so this resolves to the inherent base describe (no
-        // dynamic dispatch → no recursion into the derived describe).
-        // Without this, exchanges that rely on a base default they don't
-        // re-declare (e.g. foxbit/latoken/alias `has.fetchOrderBook`) end
-        // up with those flags missing.
-        self.describe()
-    }
-    /// `super.setSandboxMode(enabled)` from a derived exchange. Forwards to the
-    /// base `Exchange::set_sandbox_mode` (transpiled into exchange_generated.rs),
-    /// which swaps `urls['api']` ↔ `urls['test']` via an `apiBackup` and toggles
-    /// `isSandboxModeEnabled`. This is `impl Exchange`, so `self` is the base and
-    /// the call resolves to the base method — not the derived override — so there
-    /// is no recursion (review #9: it was previously a no-op, so the ~12 venues
-    /// that call it via their override never actually switched to sandbox URLs).
-    pub fn super_set_sandbox_mode(&mut self, enabled: Value) {
-        self.set_sandbox_mode(enabled);
-    }
-    pub fn super_safe_market(
-        &self,
-        id: Value,
-        market: Value,
-        delim: Value,
-        market_type: Value,
-    ) -> Value {
-        // Forward to the base Exchange::safe_market (transpiled into
-        // exchange_generated.rs). `super.safeMarket(...)` in a derived
-        // exchange means "call the parent class's impl".
-        self.safe_market(&[id, market, delim, market_type])
-    }
     pub fn super_currency(&self, _code: Value) -> Value {
         Value::Null
     }
@@ -854,46 +820,6 @@ impl Exchange {
         _request_body: Value,
     ) -> Value {
         Value::Null
-    }
-    pub fn super_handle_market_type_and_params(
-        &self,
-        method_name: Value,
-        market: Value,
-        params: Value,
-        default_value: Value,
-    ) -> Value {
-        self.handle_market_type_and_params(method_name, &[market, params, default_value])
-    }
-    pub fn super_market(&self, symbol: Value) -> Value {
-        self.market(symbol)
-    }
-    pub async fn super_fetch_deposit_address(&self, code: Value, params: Value) -> Value {
-        // The transpiled call site holds `&self` borrows for other args
-        // (e.g. `self.extend(...)`), so we can't take `&mut self`. Coerce
-        // to mut via the same unsafe helper used by call_method.
-        let me = unsafe { coerce_to_mut_unsafe(self) };
-        me.fetch_deposit_address(code, &[params]).await
-    }
-    pub fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
-        self.amount_to_precision(symbol, amount)
-    }
-    pub fn super_handle_margin_mode_and_params(
-        &self,
-        method_name: Value,
-        params: Value,
-        default_value: Value,
-    ) -> Value {
-        self.handle_margin_mode_and_params(method_name, &[params, default_value])
-    }
-    pub fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
-        self.safe_currency_code(currency_id, &[currency])
-    }
-    pub fn super_set_markets(&self, markets: Value, currencies: Value) -> Value {
-        let me = unsafe { coerce_to_mut_unsafe(self) };
-        me.set_markets(markets, &[currencies])
-    }
-    pub fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
-        self.network_id_to_code(optional_args)
     }
 
     // ── request bookkeeping (hand-written, above the transpile marker) ──
@@ -931,13 +857,6 @@ impl Exchange {
             crate::runtime::remove(&mut me.fetchHistoryCache, &Value::Int(0));
         }
         crate::runtime::append_to_array(&mut me.fetchHistoryCache, data);
-    }
-    pub fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
-        self.network_code_to_id(network_code, optional_args)
-    }
-    pub async fn super_load_markets(&self, reload: Value, params: Value) -> Value {
-        let me = unsafe { coerce_to_mut_unsafe(self) };
-        me.load_markets(&[reload, params]).await
     }
 
     // ── WS (pro) stubs ─────────────────────────────────────────────────────
@@ -2590,31 +2509,6 @@ impl Exchange {
     /// `parking_lot::Mutex` on the http client — but for simplicity we use
     /// `unsafe { &mut *(self as *const _ as *mut _) }` here. (TODO: wrap
     /// the HTTP path in a RefCell or use `&mut self` end-to-end.)
-    pub async fn call_method(&self, name: Value, args: &[Value]) -> Value {
-        let n = match name {
-            Value::Str(s) => s,
-            _ => return Value::Null,
-        };
-        let params = args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
-        // The transpiled call sites pass `self` through multiple
-        // immutable borrows (e.g. `self.call_method(..., &[self.extend(...)])`),
-        // so we can't take `&mut self` here. Use raw-pointer mutability —
-        // wrapped in a helper to silence the strict lint.
-        let exchange_mut = unsafe { coerce_to_mut_unsafe(self) };
-        match exchange_mut.implicit_api_call(&n, params).await {
-            Ok(v) => v,
-            Err(e) => {
-                // Propagate the failure — a swallowed HTTP error (e.g. an
-                // authentication failure on a private endpoint) would
-                // otherwise surface as an empty/Null result. `throw` in
-                // the transpiled code is a `panic!`, so we do the same.
-                if matches!(exchange_mut.verbose, Value::Bool(true)) {
-                    eprintln!("[ccxt] {n} failed: {e}");
-                }
-                panic!("{e}");
-            }
-        }
-    }
 
     // ── string / number formatting ──────────────────────────────────────────
 
@@ -2794,69 +2688,6 @@ impl Exchange {
     /// below short-circuits when currencies are empty by synthesizing
     /// them here in idiomatic Rust (HashMap-direct, no Value cloning of
     /// the whole grouped map per code).
-    pub async fn load_markets(&mut self, optional_args: &[Value]) -> Value {
-        let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
-        let reload_b = matches!(reload, Value::Bool(true));
-        if !reload_b && !self.markets.is_null() {
-            return self.markets.clone();
-        }
-        let has_fetch_currencies = matches!(
-            crate::get_value(&self.has, &Value::Str("fetchCurrencies".to_string())),
-            Value::Bool(true),
-        );
-        let mut currencies = Value::Null;
-        if has_fetch_currencies {
-            if let Some(v) = self
-                .dispatch_to_derived("fetch_currencies", Vec::new())
-                .await
-            {
-                currencies = v;
-            }
-        }
-        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
-            Some(v) => v,
-            None => return Value::Null,
-        };
-        if matches!(fetched, Value::Null) {
-            return self.markets.clone();
-        }
-        // Pick the best currencies source:
-        // 1. Network-fetched (from `fetch_currencies` above).
-        // 2. Pre-loaded on the exchange (static-fixture path injects
-        //    `currencies` via `apply_config` — those carry the real
-        //    `id` mappings like bitmex BTC → "XBt").
-        // 3. Synthesized from markets (fallback so `set_markets` still
-        //    takes the fast IF branch and skips its O(N²) else branch).
-        let preloaded_non_empty = matches!(&self.currencies, Value::Dict(m) if !m.is_empty());
-        let currencies_arg = if matches!(&currencies, Value::Dict(m) if !m.is_empty()) {
-            currencies
-        } else if preloaded_non_empty {
-            self.currencies.clone()
-        } else {
-            synthesize_currencies_from_markets(&fetched, &self.precisionMode)
-        };
-        // `PredictionExchange` overrides `setMarkets` to alias the outcome
-        // `market` handle onto `symbol` (the prediction rows carry no `symbol`,
-        // so the base indexer would build zero symbols) and to populate the
-        // outcome lookup. This base method runs as the shared `Exchange`, so a
-        // direct `self.set_markets(...)` calls the base version and bypasses that
-        // override (Rust has no virtual dispatch off the deref chain). For a
-        // prediction exchange, route through the derived dispatcher instead so
-        // the venue → PredictionExchange::set_markets override runs (mirrors Go's
-        // SetOutcomesFromMarkets hook). Regular exchanges keep the direct call.
-        let is_prediction = matches!(
-            crate::get_value(&self.has, &Value::Str("prediction".to_string())),
-            Value::Bool(true),
-        );
-        if is_prediction {
-            let _ = self
-                .dispatch_to_derived("set_markets", vec![fetched, currencies_arg])
-                .await;
-        } else {
-            self.set_markets(fetched, &[currencies_arg]);
-        }
-        self.markets.clone()
-    }
 
     // Proxy callback "methods" — the post-processor rewrites
     // `self.proxy_url_callback(args)` → `self.proxy_url_callback_fn(args)`
@@ -2997,7 +2828,7 @@ impl Exchange {
 /// Rust without re-cloning the grouped Map per outer iteration. For
 /// binance (~4k markets, ~1k codes) the transpiled path took minutes;
 /// this version completes in milliseconds.
-fn synthesize_currencies_from_markets(markets: &Value, precision_mode: &Value) -> Value {
+pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode: &Value) -> Value {
     let market_list: Vec<&Value> = match markets {
         Value::Arr(a) => a.iter().collect(),
         Value::Dict(m) => m.values().collect(),

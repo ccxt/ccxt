@@ -9,60 +9,61 @@
 
 use crate::Value;
 use super::btcbox::BtcboxCore;
+use crate::exchange::ExchangeRuntime;
 
 impl BtcboxCore {
     /// Auto-generated wrapper for the `publicGetDepth` implicit endpoint.
-    pub async fn public_get_depth(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_depth".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetOrders` implicit endpoint.
-    pub async fn public_get_orders(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
-    pub async fn public_get_ticker(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickers` implicit endpoint.
-    pub async fn public_get_tickers(&self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBalance` implicit endpoint.
-    pub async fn private_post_balance(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeAdd` implicit endpoint.
-    pub async fn private_post_trade_add(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_add(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_add".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeCancel` implicit endpoint.
-    pub async fn private_post_trade_cancel(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_cancel".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeList` implicit endpoint.
-    pub async fn private_post_trade_list(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeView` implicit endpoint.
-    pub async fn private_post_trade_view(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_trade_view(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_view".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWallet` implicit endpoint.
-    pub async fn private_post_wallet(&self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_wallet(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_wallet".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `webApiGetAjaxCoinCoinInfo` implicit endpoint.
-    pub async fn web_api_get_ajax_coin_coin_info(&self, optional_args: &[Value]) -> Value {
+    pub async fn web_api_get_ajax_coin_coin_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("web_api_get_ajax_coin_coin_info".to_string()), optional_args).await
     }
 
