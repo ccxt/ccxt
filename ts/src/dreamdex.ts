@@ -315,8 +315,8 @@ export default class dreamdex extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'code');
-            const code = this.safeCurrencyCode (id);
+            const code = this.safeCurrencyCode (this.safeString2 (currency, 'code', 'id'));
+            const id = this.safeString2 (currency, 'id', 'code');
             const name = this.safeString (currency, 'name');
             const decimals = this.safeInteger (currency, 'decimals');
             let precision = undefined;
@@ -1032,11 +1032,19 @@ export default class dreamdex extends Exchange {
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (triggerPrice !== undefined) {
+            const builderParam = this.safeString (params, 'builder');
+            const builderFeeParam = this.safeInteger (params, 'builderFeeBpsTimes1k');
+            if ((builderParam !== undefined) || (builderFeeParam !== undefined)) {
+                throw new NotSupported (this.id + ' createOrder() builder params are not supported for stop orders');
+            }
             let triggerOperator = this.safeString (params, 'triggerOperator');
             if (triggerOperator === undefined) {
                 triggerOperator = (side === 'sell') ? 'lte' : 'gte';
             }
-            params = this.omit (params, [ 'walletAddress', 'triggerPrice', 'stopPrice', 'triggerOperator' ]);
+            if ((triggerOperator !== 'gte') && (triggerOperator !== 'lte')) {
+                throw new InvalidOrder (this.id + ' createOrder() triggerOperator must be either gte or lte');
+            }
+            params = this.omit (params, [ 'walletAddress', 'triggerPrice', 'stopPrice', 'triggerOperator', 'builder', 'builderFeeBpsTimes1k' ]);
             const isMarket = (type === 'market');
             if (!isMarket && price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for stop limit orders');
@@ -1103,12 +1111,14 @@ export default class dreamdex extends Exchange {
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (postOnly) {
+        if (postOnly || (timeInForce === 'PO')) {
             request['orderType'] = 'postOnly';
         } else if (timeInForce === 'IOC') {
             request['orderType'] = 'immediateOrCancel';
         } else if (timeInForce === 'FOK') {
             request['orderType'] = 'fillOrKill';
+        } else if (timeInForce !== undefined) {
+            throw new InvalidOrder (this.id + ' createOrder() supports timeInForce IOC, FOK, or PO');
         }
         const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
         const builder = this.safeStringLower (params, 'builder', builderFeeEnabled ? this.safeStringLower (this.options, 'builder') : undefined);
@@ -1210,6 +1220,7 @@ export default class dreamdex extends Exchange {
             await this.loadMarkets ();
         }
         const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol === undefined) {
             if (stop) {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for stop orders');
@@ -1393,6 +1404,7 @@ export default class dreamdex extends Exchange {
         market = this.safeMarket (marketId, market, ':');
         const timestamp = this.safeInteger (order, 'createdAt');
         const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'average');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -1407,7 +1419,7 @@ export default class dreamdex extends Exchange {
             'amount': this.safeNumber (order, 'amount'),
             'filled': this.safeNumber (order, 'filled'),
             'remaining': this.safeNumber (order, 'remaining'),
-            'average': price,
+            'average': average,
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
@@ -1445,23 +1457,36 @@ export default class dreamdex extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market, ':');
         const timestamp = this.safeInteger (order, 'createdAt');
+        const status = this.parseStopOrderStatus (this.safeString (order, 'status'));
+        let filled = this.safeNumber (order, 'filled');
+        let remaining = this.safeNumber (order, 'remaining');
+        const amount = this.safeNumber (order, 'amount');
+        if ((status === 'closed') && (amount !== undefined)) {
+            if (filled === undefined) {
+                filled = amount;
+            }
+            if (remaining === undefined) {
+                remaining = this.parseNumber ('0');
+            }
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': this.parseStopOrderStatus (this.safeString (order, 'status')),
+            'status': status,
             'symbol': market['symbol'],
             'type': this.safeString (order, 'type'),
             'side': this.safeString (order, 'side'),
-            'price': undefined,
-            'amount': this.safeNumber (order, 'amount'),
-            'filled': undefined,
-            'remaining': undefined,
+            'price': this.safeNumber (order, 'price'),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'average': undefined,
             'cost': undefined,
             'triggerPrice': this.safeNumber (order, 'triggerPrice'),
+            'order': this.safeString (order, 'spotOrderId'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -1507,8 +1532,9 @@ export default class dreamdex extends Exchange {
         const nonce = this.safeString (nonceResponse, 'nonce');
         const issuedAt = this.iso8601 (now);
         const url = this.safeString (this.urls['api'], 'rest');
+        const chainId = this.safeInteger (this.options, 'chainId', 5031);
         // colon-space is split ('X:' + ' ') so the PHP transpiler's key-arrow regex can't rewrite it to 'X => '
-        const message = url + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI:' + ' ' + url + "\n" + 'Version:' + ' ' + '1' + "\n" + 'Chain ID:' + ' ' + '5031' + "\n" + 'Nonce:' + ' ' + nonce + "\n" + 'Issued At:' + ' ' + issuedAt; // eslint-disable-line quotes
+        const message = url + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI:' + ' ' + url + "\n" + 'Version:' + ' ' + '1' + "\n" + 'Chain ID:' + ' ' + this.numberToString (chainId) + "\n" + 'Nonce:' + ' ' + nonce + "\n" + 'Issued At:' + ' ' + issuedAt; // eslint-disable-line quotes
         const hash = this.hashMessage (message);
         const sig = this.signHash (hash, this.privateKey);
         const loginRequest: Dict = {
