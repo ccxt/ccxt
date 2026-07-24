@@ -1236,6 +1236,7 @@ class weex(Exchange, ImplicitAPI):
             marketType = 'swap'
         market = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_integer_2(ticker, 'closeTime', 'time')
+        percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1252,7 +1253,7 @@ class weex(Exchange, ImplicitAPI):
             'last': self.safe_string(ticker, 'lastPrice'),
             'previousClose': None,
             'change': self.safe_string(ticker, 'priceChange'),
-            'percentage': self.safe_string(ticker, 'priceChangePercent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
