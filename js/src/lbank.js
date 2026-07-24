@@ -728,6 +728,7 @@ export default class lbank extends Exchange {
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -739,7 +740,10 @@ export default class lbank extends Exchange {
         //         "lastPrice": "29387.0"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp(ticker, 'lastTime');
+        }
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
