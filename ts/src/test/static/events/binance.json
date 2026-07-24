@@ -1,0 +1,1164 @@
+[
+    {
+        "id": "4209994",
+        "slug": "fed-decision-in-july-181",
+        "event": "FED_DECISION_JULY_181",
+        "title": "Fed Decision in July?",
+        "description": null,
+        "markets": [
+            {
+                "id": "5992557",
+                "market": "FED_DECISION_JULY_181_NO_CHANGE",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5992557",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1785369600000,
+                "expiryDatetime": "2026-07-30T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "96552438588401076626203540253464027344880904549962848803921337250900373750824",
+                        "outcomeId": "96552438588401076626203540253464027344880904549962848803921337250900373750824",
+                        "outcome": "FED_DECISION_JULY_181_NO_CHANGE:YES",
+                        "market": "FED_DECISION_JULY_181_NO_CHANGE",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "96552438588401076626203540253464027344880904549962848803921337250900373750824",
+                            "marketId": "5992557",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "No change",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.929",
+                            "chance": "0.9285",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x43cbb534babef999127cc0e1bf27f7a58e8a7c485e6e14d0256d24d1b0564e4d",
+                            "externalId": "83832"
+                        }
+                    },
+                    {
+                        "id": "42740068395403954521361448794356848500698777284194116788891546628337525872938",
+                        "outcomeId": "42740068395403954521361448794356848500698777284194116788891546628337525872938",
+                        "outcome": "FED_DECISION_JULY_181_NO_CHANGE:NO",
+                        "market": "FED_DECISION_JULY_181_NO_CHANGE",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "42740068395403954521361448794356848500698777284194116788891546628337525872938",
+                            "marketId": "5992557",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "No change",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.071",
+                            "chance": "0.0715",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x43cbb534babef999127cc0e1bf27f7a58e8a7c485e6e14d0256d24d1b0564e4d",
+                            "externalId": "83832"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5992557,
+                    "externalId": "83832",
+                    "title": "No change",
+                    "question": "Will there be no change in Fed interest rates after the July 2026 meeting?",
+                    "conditionId": "0x43cbb534babef999127cc0e1bf27f7a58e8a7c485e6e14d0256d24d1b0564e4d",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "63144.86",
+                    "liquidity": 1370101.43,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.929",
+                            "chance": "0.9285",
+                            "index": 0,
+                            "tokenId": "96552438588401076626203540253464027344880904549962848803921337250900373750824"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.071",
+                            "chance": "0.0715",
+                            "index": 1,
+                            "tokenId": "42740068395403954521361448794356848500698777284194116788891546628337525872938"
+                        }
+                    ],
+                    "marketTopicId": "4209994",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-decision-in-july-181",
+                    "volume": 63144.86
+                },
+                "created": 1782138820629
+            },
+            {
+                "id": "5992558",
+                "market": "FED_DECISION_JULY_181_25_BPS_HIKE",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5992558",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1785369600000,
+                "expiryDatetime": "2026-07-30T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "65187326337987421526885990786616317612165937372812147583982125867495105831698",
+                        "outcomeId": "65187326337987421526885990786616317612165937372812147583982125867495105831698",
+                        "outcome": "FED_DECISION_JULY_181_25_BPS_HIKE:YES",
+                        "market": "FED_DECISION_JULY_181_25_BPS_HIKE",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "65187326337987421526885990786616317612165937372812147583982125867495105831698",
+                            "marketId": "5992558",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "25 bps increase",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.07",
+                            "chance": "0.067",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xb7132c855e85e55c9ed1358a1c51b4b103e211b8ff2cb311497a98ceb3c271ec",
+                            "externalId": "83833"
+                        }
+                    },
+                    {
+                        "id": "47422831261029013805423309024120039413696154101197624338090158364628643500212",
+                        "outcomeId": "47422831261029013805423309024120039413696154101197624338090158364628643500212",
+                        "outcome": "FED_DECISION_JULY_181_25_BPS_HIKE:NO",
+                        "market": "FED_DECISION_JULY_181_25_BPS_HIKE",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "47422831261029013805423309024120039413696154101197624338090158364628643500212",
+                            "marketId": "5992558",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "25 bps increase",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.93",
+                            "chance": "0.933",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xb7132c855e85e55c9ed1358a1c51b4b103e211b8ff2cb311497a98ceb3c271ec",
+                            "externalId": "83833"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5992558,
+                    "externalId": "83833",
+                    "title": "25 bps increase",
+                    "question": "Will the Fed increase interest rates by 25 bps after the July 2026 meeting?",
+                    "conditionId": "0xb7132c855e85e55c9ed1358a1c51b4b103e211b8ff2cb311497a98ceb3c271ec",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "26821.32",
+                    "liquidity": 76691.61,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.07",
+                            "chance": "0.067",
+                            "index": 0,
+                            "tokenId": "65187326337987421526885990786616317612165937372812147583982125867495105831698"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.93",
+                            "chance": "0.933",
+                            "index": 1,
+                            "tokenId": "47422831261029013805423309024120039413696154101197624338090158364628643500212"
+                        }
+                    ],
+                    "marketTopicId": "4209994",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-decision-in-july-181",
+                    "volume": 26821.32
+                },
+                "created": 1782138820629
+            },
+            {
+                "id": "5992555",
+                "market": "FED_DECISION_JULY_181_50_BPS_CUT",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5992555",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1785369600000,
+                "expiryDatetime": "2026-07-30T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "103524529782060399685117912690519529780652194397524646520935859193038666675093",
+                        "outcomeId": "103524529782060399685117912690519529780652194397524646520935859193038666675093",
+                        "outcome": "FED_DECISION_JULY_181_50_BPS_CUT:YES",
+                        "market": "FED_DECISION_JULY_181_50_BPS_CUT",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "103524529782060399685117912690519529780652194397524646520935859193038666675093",
+                            "marketId": "5992555",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "50+ bps decrease",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.006",
+                            "chance": "0.006",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xc5a10d09539af89cc1c6bebca535e0d1d2c3f542a1c00f14fcb3933ee9a08d8e",
+                            "externalId": "83830"
+                        }
+                    },
+                    {
+                        "id": "33503715827566678388839260535781157371980894897972356359183012131667521180708",
+                        "outcomeId": "33503715827566678388839260535781157371980894897972356359183012131667521180708",
+                        "outcome": "FED_DECISION_JULY_181_50_BPS_CUT:NO",
+                        "market": "FED_DECISION_JULY_181_50_BPS_CUT",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "33503715827566678388839260535781157371980894897972356359183012131667521180708",
+                            "marketId": "5992555",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "50+ bps decrease",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.994",
+                            "chance": "0.994",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xc5a10d09539af89cc1c6bebca535e0d1d2c3f542a1c00f14fcb3933ee9a08d8e",
+                            "externalId": "83830"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5992555,
+                    "externalId": "83830",
+                    "title": "50+ bps decrease",
+                    "question": "Will the Fed decrease interest rates by 50+ bps after the July 2026 meeting?",
+                    "conditionId": "0xc5a10d09539af89cc1c6bebca535e0d1d2c3f542a1c00f14fcb3933ee9a08d8e",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "181.75",
+                    "liquidity": 12979.16,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.006",
+                            "chance": "0.006",
+                            "index": 0,
+                            "tokenId": "103524529782060399685117912690519529780652194397524646520935859193038666675093"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.994",
+                            "chance": "0.994",
+                            "index": 1,
+                            "tokenId": "33503715827566678388839260535781157371980894897972356359183012131667521180708"
+                        }
+                    ],
+                    "marketTopicId": "4209994",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-decision-in-july-181",
+                    "volume": 181.75
+                },
+                "created": 1782138820629
+            },
+            {
+                "id": "5992556",
+                "market": "FED_DECISION_JULY_181_25_BPS_CUT",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5992556",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1785369600000,
+                "expiryDatetime": "2026-07-30T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "27702139101258660920760636548149956800477471249079487497209356599176686098052",
+                        "outcomeId": "27702139101258660920760636548149956800477471249079487497209356599176686098052",
+                        "outcome": "FED_DECISION_JULY_181_25_BPS_CUT:YES",
+                        "market": "FED_DECISION_JULY_181_25_BPS_CUT",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "27702139101258660920760636548149956800477471249079487497209356599176686098052",
+                            "marketId": "5992556",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "25 bps decrease",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.006",
+                            "chance": "0.0035",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xa0aa8c26f3a70217886193b177630bbe3137d029ba43efe75b24a7a330b313ee",
+                            "externalId": "83831"
+                        }
+                    },
+                    {
+                        "id": "102219305232491263545676450578661752520313417837531152183933049013775508562088",
+                        "outcomeId": "102219305232491263545676450578661752520313417837531152183933049013775508562088",
+                        "outcome": "FED_DECISION_JULY_181_25_BPS_CUT:NO",
+                        "market": "FED_DECISION_JULY_181_25_BPS_CUT",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "102219305232491263545676450578661752520313417837531152183933049013775508562088",
+                            "marketId": "5992556",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "25 bps decrease",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.994",
+                            "chance": "0.9965",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0xa0aa8c26f3a70217886193b177630bbe3137d029ba43efe75b24a7a330b313ee",
+                            "externalId": "83831"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5992556,
+                    "externalId": "83831",
+                    "title": "25 bps decrease",
+                    "question": "Will the Fed decrease interest rates by 25 bps after the July 2026 meeting?",
+                    "conditionId": "0xa0aa8c26f3a70217886193b177630bbe3137d029ba43efe75b24a7a330b313ee",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "2462.42",
+                    "liquidity": 17550.2,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.006",
+                            "chance": "0.0035",
+                            "index": 0,
+                            "tokenId": "27702139101258660920760636548149956800477471249079487497209356599176686098052"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.994",
+                            "chance": "0.9965",
+                            "index": 1,
+                            "tokenId": "102219305232491263545676450578661752520313417837531152183933049013775508562088"
+                        }
+                    ],
+                    "marketTopicId": "4209994",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-decision-in-july-181",
+                    "volume": 2462.42
+                },
+                "created": 1782138820629
+            },
+            {
+                "id": "5992559",
+                "market": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5992559",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1785369600000,
+                "expiryDatetime": "2026-07-30T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                        "outcomeId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                        "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
+                        "market": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "111320514734107489769832633008728755658539627048951651727730916027834170490912",
+                            "marketId": "5992559",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "50+ bps increase",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.003",
+                            "chance": "0.002",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x2d57655b16598029c348ae3488a1dd042d3abad8c8ec743d395af77628867e83",
+                            "externalId": "83834"
+                        }
+                    },
+                    {
+                        "id": "35289857698559863089022211577506062733616208655126768689737508088110133693243",
+                        "outcomeId": "35289857698559863089022211577506062733616208655126768689737508088110133693243",
+                        "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:NO",
+                        "market": "FED_DECISION_JULY_181_50_BPS_HIKE",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "tokenId": "35289857698559863089022211577506062733616208655126768689737508088110133693243",
+                            "marketId": "5992559",
+                            "marketTopicId": "4209994",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "fed-decision-in-july-181",
+                            "marketTitle": "50+ bps increase",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.997",
+                            "chance": "0.998",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1000",
+                            "conditionId": "0x2d57655b16598029c348ae3488a1dd042d3abad8c8ec743d395af77628867e83",
+                            "externalId": "83834"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5992559,
+                    "externalId": "83834",
+                    "title": "50+ bps increase",
+                    "question": "Will the Fed increase interest rates by 50+ bps after the July 2026 meeting?",
+                    "conditionId": "0x2d57655b16598029c348ae3488a1dd042d3abad8c8ec743d395af77628867e83",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "421.04",
+                    "liquidity": 21390.4,
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.003",
+                            "chance": "0.002",
+                            "index": 0,
+                            "tokenId": "111320514734107489769832633008728755658539627048951651727730916027834170490912"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.997",
+                            "chance": "0.998",
+                            "index": 1,
+                            "tokenId": "35289857698559863089022211577506062733616208655126768689737508088110133693243"
+                        }
+                    ],
+                    "marketTopicId": "4209994",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "fed-decision-in-july-181",
+                    "volume": 421.04
+                },
+                "created": 1782138820629
+            }
+        ],
+        "active": true,
+        "volume": 93031.41,
+        "liquidity": 1507645.41,
+        "url": null,
+        "image": "https://static.predict.fun/fed-decision-in-july-181",
+        "created": 1782138820629,
+        "createdDatetime": "2026-06-22T14:33:40.629Z",
+        "end": 1785369600000,
+        "endDatetime": "2026-07-30T00:00:00.000Z",
+        "category": null,
+        "resolved": null,
+        "info": {
+            "marketTopicId": 4209994,
+            "vendor": "PREDICT_FUN",
+            "chainId": "56",
+            "slug": "fed-decision-in-july-181",
+            "title": "Fed Decision in July?",
+            "question": "Will the Fed decrease interest rates by 50+ bps after the July 2026 meeting?",
+            "imageUrl": "https://static.predict.fun/fed-decision-in-july-181",
+            "thumbnailPaths": [
+                {
+                    "size": "800x800",
+                    "path": "file-center/web3-prediction/S3/topic/1782975843775_9yj7vdrmo36j52tqyjpopbeswer0xbmt_NEF_q80_800x800"
+                },
+                {
+                    "size": "400x400",
+                    "path": "file-center/web3-prediction/S3/topic/1782975843775_9yj7vdrmo36j52tqyjpopbeswer0xbmt_NEF_q80_400x400"
+                },
+                {
+                    "size": "96x96",
+                    "path": "file-center/web3-prediction/S3/topic/1782975843775_9yj7vdrmo36j52tqyjpopbeswer0xbmt_NEF_q80_96x96"
+                },
+                {
+                    "size": "64x64",
+                    "path": "file-center/web3-prediction/S3/topic/1782975843775_9yj7vdrmo36j52tqyjpopbeswer0xbmt_NEF_q80_64x64"
+                }
+            ],
+            "topicType": "GROUPED",
+            "participantCount": 592,
+            "collateral": "USDT",
+            "feeRateBps": 200,
+            "slippageBps": 1000,
+            "isYieldBearing": true,
+            "exchangeContractAddress": "0x8A289d458f5a134bA40015085A8F50Ffb681B41d",
+            "markets": [
+                {
+                    "marketId": 5992557,
+                    "externalId": "83832",
+                    "title": "No change",
+                    "question": "Will there be no change in Fed interest rates after the July 2026 meeting?",
+                    "conditionId": "0x43cbb534babef999127cc0e1bf27f7a58e8a7c485e6e14d0256d24d1b0564e4d",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975839420_y8236y5xgmjuoz8mutefxhekkeyz4j7s_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "63144.86",
+                    "liquidity": "1370101.43",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.929",
+                            "chance": "0.9285",
+                            "index": 0,
+                            "tokenId": "96552438588401076626203540253464027344880904549962848803921337250900373750824"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.071",
+                            "chance": "0.0715",
+                            "index": 1,
+                            "tokenId": "42740068395403954521361448794356848500698777284194116788891546628337525872938"
+                        }
+                    ]
+                },
+                {
+                    "marketId": 5992558,
+                    "externalId": "83833",
+                    "title": "25 bps increase",
+                    "question": "Will the Fed increase interest rates by 25 bps after the July 2026 meeting?",
+                    "conditionId": "0xb7132c855e85e55c9ed1358a1c51b4b103e211b8ff2cb311497a98ceb3c271ec",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975840537_l4n2o4llh2vkry11s1fwo7iegb8ptgtn_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "26821.32",
+                    "liquidity": "76691.61",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.07",
+                            "chance": "0.067",
+                            "index": 0,
+                            "tokenId": "65187326337987421526885990786616317612165937372812147583982125867495105831698"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.93",
+                            "chance": "0.933",
+                            "index": 1,
+                            "tokenId": "47422831261029013805423309024120039413696154101197624338090158364628643500212"
+                        }
+                    ]
+                },
+                {
+                    "marketId": 5992555,
+                    "externalId": "83830",
+                    "title": "50+ bps decrease",
+                    "question": "Will the Fed decrease interest rates by 50+ bps after the July 2026 meeting?",
+                    "conditionId": "0xc5a10d09539af89cc1c6bebca535e0d1d2c3f542a1c00f14fcb3933ee9a08d8e",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975837240_njneflbwqw4msma4oceqrpvfk87w3p4z_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "181.75",
+                    "liquidity": "12979.16",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.006",
+                            "chance": "0.006",
+                            "index": 0,
+                            "tokenId": "103524529782060399685117912690519529780652194397524646520935859193038666675093"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.994",
+                            "chance": "0.994",
+                            "index": 1,
+                            "tokenId": "33503715827566678388839260535781157371980894897972356359183012131667521180708"
+                        }
+                    ]
+                },
+                {
+                    "marketId": 5992556,
+                    "externalId": "83831",
+                    "title": "25 bps decrease",
+                    "question": "Will the Fed decrease interest rates by 25 bps after the July 2026 meeting?",
+                    "conditionId": "0xa0aa8c26f3a70217886193b177630bbe3137d029ba43efe75b24a7a330b313ee",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975838328_kn1vab1o16czi1ov22sxm0r4mg4wjiah_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "2462.42",
+                    "liquidity": "17550.2",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.006",
+                            "chance": "0.0035",
+                            "index": 0,
+                            "tokenId": "27702139101258660920760636548149956800477471249079487497209356599176686098052"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.994",
+                            "chance": "0.9965",
+                            "index": 1,
+                            "tokenId": "102219305232491263545676450578661752520313417837531152183933049013775508562088"
+                        }
+                    ]
+                },
+                {
+                    "marketId": 5992559,
+                    "externalId": "83834",
+                    "title": "50+ bps increase",
+                    "question": "Will the Fed increase interest rates by 50+ bps after the July 2026 meeting?",
+                    "conditionId": "0x2d57655b16598029c348ae3488a1dd042d3abad8c8ec743d395af77628867e83",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "thumbnailPaths": [
+                        {
+                            "size": "800x800",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_800x800"
+                        },
+                        {
+                            "size": "400x400",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_400x400"
+                        },
+                        {
+                            "size": "96x96",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_96x96"
+                        },
+                        {
+                            "size": "64x64",
+                            "path": "file-center/web3-prediction/S3/market/1782975841658_kwniw42xs8eszaw4tge3mm84gv3sol95_NEF_q80_64x64"
+                        }
+                    ],
+                    "tradeVolume": "421.04",
+                    "liquidity": "21390.4",
+                    "decimalPrecision": 3,
+                    "outcomes": [
+                        {
+                            "name": "Yes",
+                            "price": "0.003",
+                            "chance": "0.002",
+                            "index": 0,
+                            "tokenId": "111320514734107489769832633008728755658539627048951651727730916027834170490912"
+                        },
+                        {
+                            "name": "No",
+                            "price": "0.997",
+                            "chance": "0.998",
+                            "index": 1,
+                            "tokenId": "35289857698559863089022211577506062733616208655126768689737508088110133693243"
+                        }
+                    ]
+                }
+            ],
+            "tradeVolume": "93031.41",
+            "liquidity": "1507645.41",
+            "publishedAt": 1782138820629,
+            "startDate": 1782136800000,
+            "endDate": 1785369600000,
+            "status": "REGISTERED"
+        }
+    }
+]
