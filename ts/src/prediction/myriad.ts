@@ -1051,7 +1051,7 @@ export default class myriad extends Exchange {
         const sideStr = sideLower;
         const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ]);
         const quote = await this.fetchTradeQuote (outcome, sideStr, amount, quoteParams);
-        const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata');
+        const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata', '');
         const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
         // a buy spends the collateral token, so the prediction-market contract must be approved first
         if ((sideStr === 'buy') && (tokenAddress !== undefined)) {

@@ -58621,54 +58621,6 @@
 				]
 			}
 		],
-		"createMarketBuyOrderWithCost": [
-			{
-				"description": "create market buy order with cost static response test",
-				"method": "createMarketBuyOrderWithCost",
-				"input": [
-					"BASE_TGE_2026:YES",
-					1
-				],
-				"httpResponse": {
-					"jsonrpc": "2.0",
-					"id": 1,
-					"result": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5"
-				},
-				"parsedResponse": {
-					"id": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5",
-					"clientOrderId": null,
-					"timestamp": null,
-					"datetime": null,
-					"lastTradeTimestamp": null,
-					"lastUpdateTimestamp": null,
-					"status": "closed",
-					"type": "market",
-					"timeInForce": "IOC",
-					"side": "buy",
-					"price": null,
-					"average": null,
-					"amount": null,
-					"filled": null,
-					"remaining": null,
-					"cost": null,
-					"fee": null,
-					"reduceOnly": null,
-					"postOnly": null,
-					"trades": [],
-					"outcome": "BASE_TGE_2026:YES",
-					"outcomeId": "56:170145/0",
-					"label": "Yes",
-					"market": "BASE_TGE_2026",
-					"event": null,
-					"info": {
-						"transactionHash": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5",
-						"jsonrpc": "2.0",
-						"id": 1,
-						"result": "0xe5bcd29433d31b3b93648503d44c1ab975bf49b8633349a7ffd7e8349db558b5"
-					}
-				}
-			}
-		],
 		"createOrders": [
 			{
 				"description": "create orders multiple ob orders",
