@@ -57998,58 +57998,6 @@
 						"networkId": "56"
 					}
 				}
-			},
-			{
-				"description": "create order market sell order amm",
-				"method": "createOrder",
-				"input": [
-					"BASE_TGE_2026:YES",
-					"market",
-					"sell",
-					7.206,
-					null,
-					{
-						"enableAmm": true
-					}
-				],
-				"httpResponse": {
-					"jsonrpc": "2.0",
-					"id": 1,
-					"result": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734"
-				},
-				"parsedResponse": {
-					"id": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734",
-					"clientOrderId": null,
-					"timestamp": null,
-					"datetime": null,
-					"lastTradeTimestamp": null,
-					"lastUpdateTimestamp": null,
-					"status": "closed",
-					"type": "market",
-					"timeInForce": "IOC",
-					"side": "sell",
-					"price": null,
-					"average": null,
-					"amount": null,
-					"filled": null,
-					"remaining": null,
-					"cost": null,
-					"fee": null,
-					"reduceOnly": null,
-					"postOnly": null,
-					"trades": [],
-					"outcome": "BASE_TGE_2026:YES",
-					"outcomeId": "56:170145/0",
-					"label": "Yes",
-					"market": "BASE_TGE_2026",
-					"event": null,
-					"info": {
-						"transactionHash": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734",
-						"jsonrpc": "2.0",
-						"id": 1,
-						"result": "0xb6f32e9a9098f25cc1ce0fe5e624eba7468612d6c9439d6f2878801f83942734"
-					}
-				}
 			}
 		],
 		"fetchOrder": [

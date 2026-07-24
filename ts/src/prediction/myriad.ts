@@ -360,7 +360,9 @@ export default class myriad extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        if (id.indexOf (':') < 0) {
+        const intId = this.parseToInt (id);
+        const isNumericId = (intId !== undefined) && (this.numberToString (intId) === id);
+        if ((id.indexOf (':') < 0) && !isNumericId) {
             const rawQuestion = await this.fetchRawQuestionById (id, params);
             const orderBookEvent = this.parseEvent (rawQuestion);
             this.indexEventOutcomes (orderBookEvent);
