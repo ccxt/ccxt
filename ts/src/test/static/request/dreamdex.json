@@ -7,7 +7,10 @@
         "authTokenExpires": 9999999999999,
         "builderFee": true,
         "builder": "0x000000000000000000000000000000000000dEaD",
-        "builderFeeBpsTimes1k": 1000
+        "builderFeeBpsTimes1k": 1000,
+        "approvedBuilderFee": {
+            "SOMI/USDso": true
+        }
     },
     "methods": {
         "fetchCurrencies": [
@@ -46,7 +49,9 @@
                     "SOMI/USDso",
                     null,
                     null,
-                    { "stop": true }
+                    {
+                        "stop": true
+                    }
                 ],
                 "output": null
             },
@@ -65,7 +70,9 @@
                     null,
                     null,
                     null,
-                    { "status": "open" }
+                    {
+                        "status": "open"
+                    }
                 ],
                 "output": null
             }
@@ -88,7 +95,9 @@
                     "SOMI/USDso",
                     null,
                     null,
-                    { "stop": true }
+                    {
+                        "stop": true
+                    }
                 ],
                 "output": null
             },
@@ -161,7 +170,9 @@
                     "buy",
                     10,
                     1.5,
-                    { "timeInForce": "IOC" }
+                    {
+                        "timeInForce": "IOC"
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"immediateOrCancel\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
@@ -175,7 +186,9 @@
                     "buy",
                     10,
                     1.5,
-                    { "postOnly": true }
+                    {
+                        "postOnly": true
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"postOnly\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
@@ -189,7 +202,10 @@
                     "buy",
                     10,
                     1.5,
-                    { "fundingSource": "vault", "selfMatchingOption": "cancelTaker" }
+                    {
+                        "fundingSource": "vault",
+                        "selfMatchingOption": "cancelTaker"
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"vault\",\"selfMatchingOption\":\"cancelTaker\"}"
             },
@@ -203,7 +219,9 @@
                     "buy",
                     10,
                     1.5,
-                    { "timeInForce": "FOK" }
+                    {
+                        "timeInForce": "FOK"
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"fillOrKill\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
@@ -217,7 +235,9 @@
                     "sell",
                     100,
                     1.5,
-                    { "fundingSource": "wallet" }
+                    {
+                        "fundingSource": "wallet"
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"wallet\"}"
             },
@@ -231,7 +251,9 @@
                     "sell",
                     100,
                     null,
-                    { "triggerPrice": 1.0 }
+                    {
+                        "triggerPrice": 1.0
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"1\",\"triggerOperator\":\"lte\"}"
             },
@@ -245,7 +267,9 @@
                     "buy",
                     50,
                     null,
-                    { "triggerPrice": 1.5 }
+                    {
+                        "triggerPrice": 1.5
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"50\",\"triggerPrice\":\"1.5\",\"triggerOperator\":\"gte\"}"
             },
@@ -259,7 +283,10 @@
                     "sell",
                     100,
                     1.95,
-                    { "triggerPrice": 2.0, "triggerOperator": "gte" }
+                    {
+                        "triggerPrice": 2.0,
+                        "triggerOperator": "gte"
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"2\",\"triggerOperator\":\"gte\",\"price\":\"1.95\"}"
             },
@@ -273,7 +300,9 @@
                     "sell",
                     100,
                     null,
-                    { "stopPrice": 1.0 }
+                    {
+                        "stopPrice": 1.0
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"1\",\"triggerOperator\":\"lte\"}"
             },
@@ -287,9 +316,28 @@
                     "buy",
                     10,
                     1.5,
-                    { "builder": "0x1111111111111111111111111111111111111111", "builderFeeBpsTimes1k": 2500 }
+                    {
+                        "builder": "0x1111111111111111111111111111111111111111",
+                        "builderFeeBpsTimes1k": 2500
+                    }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x1111111111111111111111111111111111111111\",\"builderFeeBpsTimes1k\":2500}"
+            },
+            {
+                "description": "Limit order with builderFee disabled still attaches builder with zero fee",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "options": {
+                    "builderFee": false
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\", \"builder\": \"0x000000000000000000000000000000000000dead\", \"builderFeeBpsTimes1k\": 0}"
             }
         ],
         "cancelOrder": [
@@ -310,7 +358,9 @@
                 "input": [
                     "01KC3B1P4RDS7IGAMH88ETL56C",
                     "SOMI/USDso",
-                    { "stop": true }
+                    {
+                        "stop": true
+                    }
                 ],
                 "output": null
             }
@@ -387,7 +437,9 @@
                 "method": "fetchTickers",
                 "url": "https://api.dreamdex.io/v0/tickers?symbols=SOMI%3AUSDso",
                 "input": [
-                    ["SOMI/USDso"]
+                    [
+                        "SOMI/USDso"
+                    ]
                 ],
                 "output": null
             }
@@ -463,7 +515,9 @@
                 "method": "fetchBalance",
                 "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/balance?walletAddress=wallet",
                 "input": [
-                    { "symbol": "SOMI/USDso" }
+                    {
+                        "symbol": "SOMI/USDso"
+                    }
                 ],
                 "output": null
             }

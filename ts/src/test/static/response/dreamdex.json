@@ -2,7 +2,10 @@
     "exchange": "dreamdex",
     "options": {
         "authToken": "staticTestToken",
-        "authTokenExpires": 99999999999999
+        "authTokenExpires": 99999999999999,
+        "approvedBuilderFee": {
+            "SOMI/USDso": true
+        }
     },
     "skipKeys": [],
     "methods": {
@@ -505,7 +508,8 @@
                     "timestamp": 1765534300000,
                     "datetime": "2025-12-12T10:11:40.000Z",
                     "nonce": 0
-                }
+                },
+                "disabledGO": true
             }
         ],
         "fetchTicker": [
