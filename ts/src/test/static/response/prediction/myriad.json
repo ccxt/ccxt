@@ -57989,7 +57989,7 @@
 						"order": {
 							"trader": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
 							"marketId": "827",
-							"outcomeId": "0",
+							"outcomeId": 0,
 							"side": 0,
 							"amount": "1000000000000000000",
 							"price": "10000000000000000",
@@ -58632,7 +58632,7 @@
 							"order": {
 								"trader": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
 								"marketId": "827",
-								"outcomeId": "0",
+								"outcomeId": 0,
 								"side": 0,
 								"amount": "1000000000000000000",
 								"price": "10000000000000000",
@@ -58676,7 +58676,7 @@
 							"order": {
 								"trader": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
 								"marketId": "827",
-								"outcomeId": "0",
+								"outcomeId": 0,
 								"side": 0,
 								"amount": "1000000000000000000",
 								"price": "20000000000000000",

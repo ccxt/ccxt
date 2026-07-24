@@ -1606,7 +1606,7 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchOrders
-     * @description fetches order book orders for the wallet (or any trader passed via params.trader)
+     * @description fetches order book orders for the wallet (or any trader passed via params.trader), or amm closed orders
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
      * @param {string} [outcome] unified outcome to filter by
      * @param {int} [since] timestamp in ms of the earliest order
