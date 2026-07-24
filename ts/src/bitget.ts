@@ -75,7 +75,7 @@ export default class bitget extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -3118,6 +3118,52 @@ export default class bitget extends Exchange {
             'reject': 'failed',
         };
         return this.safeString (statuses, status as string, status);
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all deposit-enabled networks
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        const result: DepositAddress[] = [];
+        params = this.omit (params, [ 'network', 'chain' ]);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const networks = this.safeDict (currency, 'networks', {});
+            const networkCodes = Object.keys (networks);
+            for (let j = 0; j < networkCodes.length; j++) {
+                const networkCode = networkCodes[j];
+                const network = this.safeDict (networks, networkCode, {});
+                const deposit = this.safeBool (network, 'deposit');
+                if (deposit === false) {
+                    continue;
+                }
+                const request: Dict = {
+                    'coin': currency['id'],
+                    'chain': this.safeString (network, 'id'),
+                };
+                const response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, params));
+                const data = this.safeDict (response, 'data', {});
+                const parsed = this.parseDepositAddress (data, currency);
+                // The request network is authoritative when Bitget returns an alias or an empty chain field.
+                parsed['network'] = networkCode;
+                result.push (parsed);
+            }
+        }
+        return result;
     }
 
     /**

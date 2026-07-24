@@ -69,7 +69,7 @@ export default class bingx extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -406,7 +406,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'capital/config/getall': 5,
-                                'capital/deposit/address': 5,
+                                'capital/deposit/address': 10, // the endpoint is limited to one request per second
                                 'capital/innerTransfer/records': 1,
                                 'capital/subAccount/deposit/address': 5,
                                 'capital/deposit/subHisrec': 2,
@@ -5309,6 +5309,45 @@ export default class bingx extends Exchange {
 
     /**
      * @method
+     * @name bingx#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all available networks
+     * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] the receive window in milliseconds
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+            const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
+            const request: Dict = {
+                'coin': currency['id'],
+                'offset': 0,
+                'limit': 1000,
+                'recvWindow': recvWindow,
+            };
+            const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, params));
+            const responseData = this.safeDict (response, 'data', {});
+            const data = this.safeList (responseData, 'data', []);
+            // Keep every row because BingX can return multiple configured addresses for the same network.
+            const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+            result = this.arrayConcat (result, parsed);
+        }
+        return result;
+    }
+
+    /**
+     * @method
      * @name bingx#fetchDepositAddressesByNetwork
      * @description fetch the deposit addresses for a currency associated with this account
      * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
@@ -5396,7 +5435,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const address = this.safeString (depositAddress, 'addressWithPrefix');
+        const address = this.safeString2 (depositAddress, 'addressWithPrefix', 'address');
         const networkdId = this.safeString (depositAddress, 'network');
         const networkCode = this.networkIdToCode (networkdId, code);
         this.checkAddress (address);
