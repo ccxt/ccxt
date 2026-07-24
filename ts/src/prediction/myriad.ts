@@ -2937,7 +2937,7 @@ export default class myriad extends Exchange {
                 }
                 filteredMarkets.push (m);
             }
-            // skip question events that only contain markets already discovered via market search
+            // skip question events that contribute no new markets after de-duplicating by market handle
             if ((evMarketsLength > 0) && (filteredMarkets.length === 0)) {
                 continue;
             }
