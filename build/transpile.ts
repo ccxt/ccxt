@@ -1081,12 +1081,12 @@ class Transpiler {
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method definition, then it should be true
             if (code.includes ('\n    async ' + methodName + ' (')) {
-                if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
+                if (!(methodName in features) || (!features[methodName].startsWith ('true,') && !features[methodName].startsWith ('\'emulated\','))) {
                     features[methodName] = 'true,';
                 }
             } else if (!exclusions.includes (methodName) && !derivedMethods.includes (methodName)) {
                 // if code does not contain unified method definition, then we remove (unless false)
-                if (!(methodName in features) || features[methodName] !== 'false,') {
+                if (!(methodName in features) || !features[methodName].startsWith ('false,')) {
                     delete features[methodName];
                 }
             }
