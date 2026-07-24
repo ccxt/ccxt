@@ -7,7 +7,11 @@
 	],
     "outputType": "json",
     "options": {
-		"loadAllOutcomes": true
+		"loadAllOutcomes": true,
+		"wallet": {
+			"walletAddress": "0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+			"walletId": 12345678
+		}
 	},
     "methods": {
 		"fetchOrderBook": [
@@ -79,9 +83,25 @@
 				"description": "fetch balance",
 				"method": "fetchBalance",
 				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/balance/payment-options?timestamp=1784640076532&signature=xxxxxxxxxxx",
+				"input": [],
+				"output": null
+			}
+		],
+		"fetchOpenOrders": [
+			{
+				"description": "fetch open orders",
+				"method": "fetchOpenOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/list?timestamp=1784640076532&signature=xxxxxxxxxxx&marketId=5992559&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
 				"input": [
-					12345678
+					"FED_DECISION_JULY_181_50_BPS_HIKE:YES"
 				],
+				"output": null
+			},
+			{
+				"description": "fetch open orders with outcome",
+				"method": "fetchOpenOrders",
+				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order/list?timestamp=1784640076532&signature=xxxxxxxxxxx&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8",
+				"input": [],
 				"output": null
 			}
 		]
