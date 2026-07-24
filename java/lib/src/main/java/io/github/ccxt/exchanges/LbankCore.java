@@ -752,6 +752,7 @@ public class LbankCore extends LbankApi
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -765,15 +766,20 @@ public class LbankCore extends LbankApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "timestamp");
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+        {
+            timestamp = this.safeTimestamp(ticker, "lastTime");
+        }
         Object marketId = this.safeString(ticker, "symbol");
         Object symbol = this.safeSymbol(marketId, market);
         Object tickerData = this.safeValue(ticker, "ticker", new java.util.HashMap<String, Object>() {{}});
         market = this.safeMarket(marketId, market);
         Object data = ((Helpers.isTrue((Helpers.GetValue(market, "contract"))))) ? ticker : tickerData;
+        final Object finalTimestamp = timestamp;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", LbankCore.this.iso8601(timestamp) );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", LbankCore.this.iso8601(finalTimestamp) );
             put( "high", LbankCore.this.safeString2(data, "high", "highestPrice") );
             put( "low", LbankCore.this.safeString2(data, "low", "lowestPrice") );
             put( "bid", null );
