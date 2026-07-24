@@ -2843,7 +2843,7 @@ export default class myriad extends Exchange {
     /**
      * @method
      * @name myriad#fetchEvents
-     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term; an eventId does a direct lookup and tags map to server-side keyword searches

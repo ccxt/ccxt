@@ -57231,7 +57231,7 @@
 				},
 				"parsedResponse": {
 					"outcome": "FEAR_GREED:FEAR",
-					"side": null,
+					"side": "buy",
 					"value": 10,
 					"shares": 21.566766528674936,
 					"sharesThreshold": 21.45893269603156,
@@ -57290,7 +57290,7 @@
 				},
 				"parsedResponse": {
 					"outcome": "FEAR_GREED:FEAR",
-					"side": null,
+					"side": "sell",
 					"value": 4.597648470804507,
 					"shares": 10,
 					"sharesThreshold": 4.5700625799796795,
