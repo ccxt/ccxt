@@ -24,7 +24,7 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
         if (success === true) {
             now = exchange.milliseconds ();
             const orderBookCopy = response.copy ();
-            testOrderBook (exchange, skippedProperties, method, response, symbol);
+            testOrderBook (exchange, skippedProperties, method, orderBookCopy, symbol);
         }
     }
     return true;
