@@ -1,0 +1,196 @@
+{
+  "raw": {
+    "result": [
+      {
+        "method": "Bitcoin",
+        "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Ether (Hex)",
+        "address": "0x1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Tether USD (ERC20)",
+        "address": "0x1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Tether USD (TRC20)",
+        "address": "TRXAddressExample1234567890123456789",
+        "expiretm": "0",
+        "new": true
+      },
+      {
+        "method": "Ripple",
+        "address": "rXRPAddressExample123456789012345678",
+        "tag": "123456789",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Stellar Lumen",
+        "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+        "tag": "987654321",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "EOS",
+        "address": "eosaccountname",
+        "tag": "eostagmemo123",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Cardano",
+        "address": "addr1cardanoaddressexample1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Polkadot",
+        "address": "1PolkadotAddressExample12345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      {
+        "method": "Cosmos",
+        "address": "cosmos1cosmosaddressexample12345678901234",
+        "tag": "memo123456",
+        "expiretm": "0",
+        "new": false
+      }
+    ]
+  },
+  "expected": [
+    {
+      "info": {
+        "method": "Bitcoin",
+        "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "BTC",
+      "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "tag": null,
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Ether (Hex)",
+        "address": "0x1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "ETH",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": null,
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Tether USD (ERC20)",
+        "address": "0x1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "USDT",
+      "address": "0x1234567890123456789012345678901234567890",
+      "tag": null,
+      "network": "ERC20"
+    },
+    {
+      "info": {
+        "method": "Tether USD (TRC20)",
+        "address": "TRXAddressExample1234567890123456789",
+        "expiretm": "0",
+        "new": true
+      },
+      "currency": "USDT",
+      "address": "TRXAddressExample1234567890123456789",
+      "tag": null,
+      "network": "TRC20"
+    },
+    {
+      "info": {
+        "method": "Ripple",
+        "address": "rXRPAddressExample123456789012345678",
+        "tag": "123456789",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "XRP",
+      "address": "rXRPAddressExample123456789012345678",
+      "tag": "123456789",
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Stellar Lumen",
+        "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+        "tag": "987654321",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "XLM",
+      "address": "GXLMADDRESSEXAMPLE1234567890123456789012",
+      "tag": "987654321",
+      "network": null
+    },
+    {
+      "info": {
+        "method": "EOS",
+        "address": "eosaccountname",
+        "tag": "eostagmemo123",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "EOS",
+      "address": "eosaccountname",
+      "tag": "eostagmemo123",
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Cardano",
+        "address": "addr1cardanoaddressexample1234567890123456789012345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "ADA",
+      "address": "addr1cardanoaddressexample1234567890123456789012345678901234567890",
+      "tag": null,
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Polkadot",
+        "address": "1PolkadotAddressExample12345678901234567890",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "DOT",
+      "address": "1PolkadotAddressExample12345678901234567890",
+      "tag": null,
+      "network": null
+    },
+    {
+      "info": {
+        "method": "Cosmos",
+        "address": "cosmos1cosmosaddressexample12345678901234",
+        "tag": "memo123456",
+        "expiretm": "0",
+        "new": false
+      },
+      "currency": "ATOM",
+      "address": "cosmos1cosmosaddressexample12345678901234",
+      "tag": "memo123456",
+      "network": null
+    }
+  ]
+}

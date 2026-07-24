@@ -1,0 +1,896 @@
+# Kraken Exchange Definition Language v2
+# Demonstrates advanced EDL features for complex authentication and parsing
+
+version: "2.0"
+
+exchange:
+  id: kraken
+  name: Kraken
+  countries: [US]
+  rateLimit: 1000
+  certified: true
+  pro: true
+
+  urls:
+    logo: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
+    api:
+      public: https://api.kraken.com
+      private: https://api.kraken.com
+    www: https://www.kraken.com
+    doc:
+      - https://docs.kraken.com/rest
+      - https://docs.kraken.com/api
+    fees: https://www.kraken.com/features/fee-schedule
+
+  requiredCredentials:
+    apiKey: true
+    secret: true
+
+  # Time synchronization for nonce adjustment
+  timeSync:
+    enabled: false
+    endpoint: public.get.time
+
+  # Kraken-specific options
+  options:
+    timeDifference: 0
+
+# ============================================================
+# Authentication - Multi-Step Signature Pipeline
+# ============================================================
+auth:
+  default:
+    type: custom
+
+    # Kraken uses a two-stage signature:
+    # 1. SHA256(nonce + body)
+    # 2. HMAC-SHA512(url_path + sha256_hash, secret)
+    pipeline:
+      # Step 1: Build the body
+      - operation: urlencode
+        input: { call: extend, args: [{ nonce: "$nonce" }, "$params"] }
+        output: $body
+        # Conditional: use JSON for certain endpoints
+        condition:
+          if: { op: in, left: "$path", right: ["CancelOrderBatch", "AddOrderBatch"] }
+          then:
+            operation: json
+            input: { call: extend, args: [{ nonce: "$nonce" }, "$params"] }
+
+      # Step 2: SHA256 hash of nonce + body
+      - operation: hash
+        algorithm: sha256
+        input: { op: +, left: "$nonce", right: "$body" }
+        encoding: binary
+        output: $hash
+
+      # Step 3: Encode URL path
+      - operation: encode
+        input: { op: +, left: "/0/private/", right: "$path" }
+        encoding: binary
+        output: $urlBinary
+
+      # Step 4: Concatenate URL + hash
+      - operation: concat
+        input: ["$urlBinary", "$hash"]
+        encoding: binary
+        output: $payload
+
+      # Step 5: Decode secret from base64
+      - operation: decode
+        input: "$this.secret"
+        encoding: base64
+        output: $secretBinary
+
+      # Step 6: HMAC-SHA512 signature
+      - operation: hmac
+        algorithm: sha512
+        input: $payload
+        key: $secretBinary
+        encoding: base64
+        output: $signature
+
+    # Custom nonce with time difference adjustment
+    nonce:
+      type: timestamp_ms
+      adjustment: { op: "-", left: "$this.milliseconds()", right: "$this.options.timeDifference" }
+
+    # Headers to add
+    headers:
+      API-Key: $this.apiKey
+      API-Sign: $signature
+      Content-Type:
+        if: { op: in, left: "$path", right: ["CancelOrderBatch", "AddOrderBatch"] }
+        then: "application/json"
+        else: "application/x-www-form-urlencoded"
+
+# ============================================================
+# API Definitions
+# ============================================================
+api:
+  public:
+    get:
+      time:
+        path: 0/public/Time
+        cost: 1
+        response:
+          parser: time
+
+      assets:
+        path: 0/public/Assets
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+          aclass:
+            type: string
+            required: false
+            default: currency
+        response:
+          parser: currencies
+
+      assetPairs:
+        path: 0/public/AssetPairs
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: false
+          info:
+            type: string
+            required: false
+        response:
+          parser: markets
+
+      ticker:
+        path: 0/public/Ticker
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+        response:
+          parser: ticker
+
+      depth:
+        path: 0/public/Depth
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          count:
+            type: integer
+            required: false
+            alias: limit
+            default: 100
+        response:
+          parser: orderBook
+
+      trades:
+        path: 0/public/Trades
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          since:
+            type: timestamp
+            required: false
+          count:
+            type: integer
+            required: false
+            alias: limit
+        response:
+          # Trades have array format in public API
+          formatDetection:
+            rules:
+              - condition: { call: Array.isArray, args: ["$response.result.$pair[0]"] }
+                parser: tradesArray
+            default: tradesObject
+
+      ohlc:
+        path: 0/public/OHLC
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          interval:
+            type: integer
+            required: false
+            default: 1
+          since:
+            type: timestamp
+            required: false
+        response:
+          parser: ohlcv
+
+  private:
+    post:
+      balance:
+        path: 0/private/BalanceEx
+        cost: 1
+        response:
+          parser: balance
+
+      openOrders:
+        path: 0/private/OpenOrders
+        cost: 1
+        params:
+          trades:
+            type: boolean
+            required: false
+          userref:
+            type: string
+            required: false
+        response:
+          parser: orders
+
+      closedOrders:
+        path: 0/private/ClosedOrders
+        cost: 1
+        params:
+          trades:
+            type: boolean
+            required: false
+          userref:
+            type: string
+            required: false
+          start:
+            type: timestamp
+            required: false
+          end:
+            type: timestamp
+            required: false
+          ofs:
+            type: integer
+            required: false
+            alias: offset
+        response:
+          parser: orders
+
+      queryOrders:
+        path: 0/private/QueryOrders
+        cost: 1
+        params:
+          txid:
+            type: string
+            required: true
+            alias: id
+          trades:
+            type: boolean
+            required: false
+        response:
+          parser: orders
+
+      addOrder:
+        path: 0/private/AddOrder
+        cost: 0
+        params:
+          pair:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+            alias: side
+          ordertype:
+            type: string
+            required: true
+          volume:
+            type: number
+            required: true
+            alias: amount
+          price:
+            type: number
+            required: false
+          price2:
+            type: number
+            required: false
+          trigger:
+            type: string
+            required: false
+          leverage:
+            type: string
+            required: false
+          oflags:
+            type: string
+            required: false
+          timeinforce:
+            type: string
+            required: false
+          userref:
+            type: string
+            required: false
+            alias: clientOrderId
+          validate:
+            type: boolean
+            required: false
+          reduce_only:
+            type: boolean
+            required: false
+        response:
+          parser: orderResult
+
+      cancelOrder:
+        path: 0/private/CancelOrder
+        cost: 0
+        params:
+          txid:
+            type: string
+            required: true
+            alias: id
+        response:
+          parser: cancelResult
+
+      addOrderBatch:
+        path: 0/private/AddOrderBatch
+        cost: 0
+        body:
+          encoding: json  # Override to JSON for batch
+        params:
+          orders:
+            type: array
+            required: true
+          pair:
+            type: string
+            required: true
+        response:
+          parser: batchOrderResult
+
+      cancelOrderBatch:
+        path: 0/private/CancelOrderBatch
+        cost: 0
+        body:
+          encoding: json  # Override to JSON for batch
+        params:
+          orders:
+            type: array
+            required: true
+        response:
+          parser: batchCancelResult
+
+      tradesHistory:
+        path: 0/private/TradesHistory
+        cost: 1
+        params:
+          type:
+            type: string
+            required: false
+          trades:
+            type: boolean
+            required: false
+          start:
+            type: timestamp
+            required: false
+          end:
+            type: timestamp
+            required: false
+          ofs:
+            type: integer
+            required: false
+            alias: offset
+        response:
+          parser: myTrades
+
+      depositAddresses:
+        path: 0/private/DepositAddresses
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+            alias: currency
+          method:
+            type: string
+            required: true
+          new:
+            type: boolean
+            required: false
+        response:
+          parser: depositAddresses
+
+# ============================================================
+# Parser Definitions
+# ============================================================
+parsers:
+  time:
+    source: result
+    mapping:
+      timestamp:
+        path: unixtime
+        transform: [safeInteger, multiply1000]
+      iso:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+
+  balance:
+    source: result
+    isArray: false
+    # Kraken returns { "ZUSD": { balance, hold_trade }, "XXBT": {...} }
+    iterate:
+      # Iterate over object keys
+      keys: true
+      itemVar: currencyId
+      valueVar: balanceData
+    mapping:
+      currency:
+        compute: { call: this.safeCurrencyCode, args: ["$currencyId"] }
+      total:
+        path: $balanceData.balance
+        transform: safeString
+      used:
+        path: $balanceData.hold_trade
+        transform: safeString
+      free:
+        compute: null  # Calculated by safeBalance
+    postProcess:
+      - operation: safeBalance
+
+  ticker:
+    source: result
+    # Ticker is keyed by market ID
+    iterate:
+      keys: true
+      itemVar: marketId
+      valueVar: tickerData
+    mapping:
+      symbol:
+        compute: { call: this.safeSymbol, args: ["$marketId"] }
+      timestamp:
+        compute: null
+      datetime:
+        compute: null
+      high:
+        path: $tickerData.h[1]
+        transform: safeNumber
+      low:
+        path: $tickerData.l[1]
+        transform: safeNumber
+      bid:
+        path: $tickerData.b[0]
+        transform: safeNumber
+      bidVolume:
+        path: $tickerData.b[2]
+        transform: safeNumber
+      ask:
+        path: $tickerData.a[0]
+        transform: safeNumber
+      askVolume:
+        path: $tickerData.a[2]
+        transform: safeNumber
+      vwap:
+        path: $tickerData.p[1]
+        transform: safeNumber
+      open:
+        path: $tickerData.o
+        transform: safeNumber
+      close:
+        path: $tickerData.c[0]
+        transform: safeNumber
+      last:
+        path: $tickerData.c[0]
+        transform: safeNumber
+      previousClose:
+        compute: null
+      change:
+        compute: null
+      percentage:
+        compute: null
+      average:
+        compute: null
+      baseVolume:
+        path: $tickerData.v[1]
+        transform: safeNumber
+      quoteVolume:
+        compute: null
+      info:
+        path: $tickerData
+
+  orderBook:
+    source: result
+    iterate:
+      keys: true
+      itemVar: marketId
+      valueVar: bookData
+    mapping:
+      symbol:
+        compute: { call: this.safeSymbol, args: ["$marketId"] }
+      bids:
+        path: $bookData.bids
+        transform: parseOrderBookSide
+      asks:
+        path: $bookData.asks
+        transform: parseOrderBookSide
+      timestamp:
+        compute: null
+      datetime:
+        compute: null
+      nonce:
+        compute: null
+
+  # Array format for public trades
+  tradesArray:
+    source: result
+    iterate:
+      keys: true
+      itemVar: marketId
+      valueVar: tradeArray
+      # Skip the 'last' key which contains timestamp
+      filter: { op: "!=", left: "$marketId", right: "last" }
+    mapping:
+      id:
+        compute: null
+      timestamp:
+        path: $item[2]
+        transform: [safeNumber, multiply1000]
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      symbol:
+        compute: { call: this.safeSymbol, args: ["$marketId"] }
+      # Array format: [price, volume, time, side, type, misc]
+      side:
+        path: $item[3]
+        transform: parseTradeSide  # 's' -> 'sell', 'b' -> 'buy'
+      type:
+        path: $item[4]
+        transform: parseTradeType  # 'l' -> 'limit', 'm' -> 'market'
+      price:
+        path: $item[0]
+        transform: safeNumber
+      amount:
+        path: $item[1]
+        transform: safeNumber
+      cost:
+        compute: { op: "*", left: "$price", right: "$amount" }
+      info:
+        path: $item
+
+  # Object format for private trades
+  myTrades:
+    source: result.trades
+    iterate:
+      keys: true
+      itemVar: tradeId
+      valueVar: tradeData
+    mapping:
+      id:
+        path: $tradeId
+      order:
+        path: $tradeData.ordertxid
+        transform: safeString
+      timestamp:
+        path: $tradeData.time
+        transform: [safeNumber, multiply1000]
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      symbol:
+        compute:
+          call: this.safeSymbol
+          args:
+            - { call: this.findMarketByAltnameOrId, args: ["$tradeData.pair"] }
+      side:
+        path: $tradeData.type
+        transform: safeString
+      type:
+        path: $tradeData.ordertype
+        transform: parseOrderType
+      price:
+        path: $tradeData.price
+        transform: safeNumber
+      amount:
+        path: $tradeData.vol
+        transform: safeNumber
+      cost:
+        path: $tradeData.cost
+        transform: safeNumber
+      fee:
+        compute:
+          currency: { path: $tradeData.fee, transform: parseFeeFromFlags }
+          cost: { path: $tradeData.fee, transform: safeNumber }
+      info:
+        path: $tradeData
+
+  orders:
+    source: result.open
+    # Fallback to result.closed for closed orders
+    fallback: result.closed
+    iterate:
+      keys: true
+      itemVar: orderId
+      valueVar: orderData
+    mapping:
+      id:
+        path: $orderId
+      clientOrderId:
+        path: $orderData.userref
+        transform: safeString
+      timestamp:
+        path: $orderData.opentm
+        transform: [safeNumber, multiply1000]
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      lastTradeTimestamp:
+        path: $orderData.closetm
+        transform: [safeNumber, multiply1000]
+      symbol:
+        compute:
+          call: this.safeSymbol
+          args:
+            - { call: this.findMarketByAltnameOrId, args: ["$orderData.descr.pair"] }
+      type:
+        path: $orderData.descr.ordertype
+        transform: parseOrderType
+      timeInForce:
+        compute: null
+      postOnly:
+        compute: { op: contains, left: "$orderData.oflags", right: "post" }
+      side:
+        path: $orderData.descr.type
+        transform: safeString
+      price:
+        # Multiple fallback sources
+        path: [$orderData.descr.price, $orderData.price, $orderData.limitprice]
+        transform: [safeNumber, omitZero]
+      stopPrice:
+        path: $orderData.stopprice
+        transform: safeNumber
+      triggerPrice:
+        compute:
+          switch: "$orderData.descr.ordertype"
+          cases:
+            stop-loss: { path: $orderData.descr.price }
+            stop-loss-limit: { path: $orderData.descr.price }
+            take-profit: { path: $orderData.descr.price }
+            take-profit-limit: { path: $orderData.descr.price }
+          default: null
+      amount:
+        path: $orderData.vol
+        transform: safeNumber
+      filled:
+        path: $orderData.vol_exec
+        transform: safeNumber
+      remaining:
+        compute: { op: "-", left: "$amount", right: "$filled" }
+      cost:
+        path: $orderData.cost
+        transform: safeNumber
+      average:
+        compute:
+          if: { op: ">", left: "$filled", right: 0 }
+          then: { op: "/", left: "$cost", right: "$filled" }
+          else: null
+      status:
+        path: $orderData.status
+        transform: parseOrderStatus
+      fee:
+        path: $orderData.fee
+        transform: safeNumber
+      trades:
+        path: $orderData.trades
+      info:
+        path: $orderData
+
+  orderResult:
+    source: result
+    mapping:
+      id:
+        path: txid[0]
+        transform: safeString
+      info:
+        path: $response
+
+  cancelResult:
+    source: result
+    mapping:
+      id:
+        compute: "$params.txid"
+      count:
+        path: count
+        transform: safeInteger
+      info:
+        path: $response
+
+  markets:
+    source: result
+    iterate:
+      keys: true
+      itemVar: marketId
+      valueVar: marketData
+    mapping:
+      id:
+        path: $marketId
+      symbol:
+        compute:
+          call: this.buildSymbol
+          args: ["$base", "$quote"]
+      base:
+        path: $marketData.base
+        transform: parseCurrencyCode
+      quote:
+        path: $marketData.quote
+        transform: parseCurrencyCode
+      baseId:
+        path: $marketData.base
+      quoteId:
+        path: $marketData.quote
+      active:
+        path: $marketData.status
+        transform: { op: "==", left: "$value", right: "online" }
+      type: { literal: spot }
+      spot: { literal: true }
+      margin:
+        path: $marketData.leverage_buy
+        transform: { op: ">", left: { call: length, args: ["$value"] }, right: 0 }
+      swap: { literal: false }
+      future: { literal: false }
+      option: { literal: false }
+      precision:
+        amount:
+          path: $marketData.lot_decimals
+          transform: parsePrecision
+        price:
+          path: $marketData.pair_decimals
+          transform: parsePrecision
+      limits:
+        amount:
+          min:
+            path: $marketData.ordermin
+            transform: safeNumber
+        price:
+          min: null
+        cost:
+          min:
+            path: $marketData.costmin
+            transform: safeNumber
+      info:
+        path: $marketData
+
+  currencies:
+    source: result
+    iterate:
+      keys: true
+      itemVar: currencyId
+      valueVar: currencyData
+    mapping:
+      id:
+        path: $currencyId
+      code:
+        path: $currencyId
+        transform: parseCurrencyCode
+      name:
+        path: $currencyData.altname
+      active:
+        path: $currencyData.status
+        transform: { op: "==", left: "$value", right: "enabled" }
+      precision:
+        path: $currencyData.decimals
+        transform: parsePrecision
+      fee:
+        compute: null
+      limits:
+        withdraw:
+          min:
+            path: $currencyData.withdrawal_minimum
+            transform: safeNumber
+      info:
+        path: $currencyData
+
+# ============================================================
+# Custom Transform Functions
+# ============================================================
+transforms:
+  parseTradeSide:
+    # 's' -> 'sell', 'b' -> 'buy'
+    switch: "$value"
+    cases:
+      s: sell
+      b: buy
+    default: "$value"
+
+  parseTradeType:
+    # 'l' -> 'limit', 'm' -> 'market'
+    switch: "$value"
+    cases:
+      l: limit
+      m: market
+    default: "$value"
+
+  parseOrderType:
+    switch: "$value"
+    cases:
+      limit: limit
+      market: market
+      stop-loss: stop
+      stop-loss-limit: stop
+      take-profit: takeProfit
+      take-profit-limit: takeProfit
+      trailing-stop: trailing
+      trailing-stop-limit: trailing
+      settle-position: market
+    default: "$value"
+
+  parseOrderStatus:
+    switch: "$value"
+    cases:
+      pending: open
+      open: open
+      closed: closed
+      canceled: canceled
+      expired: expired
+    default: "$value"
+
+  parsePrecision:
+    # Convert decimals to precision value
+    compute: { call: Math.pow, args: [10, { op: "-", left: 0, right: "$value" }] }
+
+  multiply1000:
+    compute: { op: "*", left: "$value", right: 1000 }
+
+  parseFeeFromFlags:
+    # Parse fee currency from order flags
+    if: { op: contains, left: "$orderData.oflags", right: "fciq" }
+    then: "$market.quote"
+    else:
+      if: { op: contains, left: "$orderData.oflags", right: "fcib" }
+      then: "$market.base"
+      else: null
+
+# ============================================================
+# Error Handling
+# ============================================================
+errors:
+  default:
+    exact:
+      EGeneral:Internal error: ExchangeError
+      EService:Unavailable: ExchangeNotAvailable
+      EService:Market in cancel_only mode: OnMaintenance
+      EService:Market in post_only mode: OnMaintenance
+      EService:Deadline elapsed: RequestTimeout
+      EQuery:Invalid asset pair: BadSymbol
+      EQuery:Unknown asset pair: BadSymbol
+      EGeneral:Invalid arguments: BadRequest
+      EGeneral:Invalid arguments:volume: InvalidOrder
+      EAPI:Invalid key: AuthenticationError
+      EAPI:Invalid signature: AuthenticationError
+      EAPI:Invalid nonce: InvalidNonce
+      EGeneral:Permission denied: PermissionDenied
+      EOrder:Rate limit exceeded: RateLimitExceeded
+      EOrder:Orders limit exceeded: RateLimitExceeded
+      EOrder:Positions limit exceeded: InvalidOrder
+      EFunding:Insufficient funds: InsufficientFunds
+      EOrder:Insufficient funds: InsufficientFunds
+      EOrder:Order minimum not met: InvalidOrder
+      EOrder:Invalid order: InvalidOrder
+      EOrder:Unknown order: OrderNotFound
+      EQuery:Unknown order: OrderNotFound
+
+# ============================================================
+# Feature Flags
+# ============================================================
+features:
+  publicAPI: true
+  privateAPI: true
+  spot: true
+  margin: true
+  fetchMarkets: true
+  fetchCurrencies: true
+  fetchTicker: true
+  fetchTickers: false
+  fetchOrderBook: true
+  fetchTrades: true
+  fetchOHLCV: true
+  fetchBalance: true
+  createOrder: true
+  cancelOrder: true
+  cancelAllOrders: false
+  fetchOrder: true
+  fetchOrders: true
+  fetchOpenOrders: true
+  fetchClosedOrders: true
+  fetchMyTrades: true
+  fetchDeposits: false
+  fetchWithdrawals: false
+  fetchDepositAddress: true
+  withdraw: true

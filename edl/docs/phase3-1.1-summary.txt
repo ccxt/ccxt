@@ -1,0 +1,160 @@
+================================================================
+  PHASE 3-1.1: ALLOWED OPERATIONS SCHEMA - COMPLETE
+================================================================
+
+TASK: Define Allowed Operations Schema for Safe Expression Evaluation
+
+IMPLEMENTATION SUMMARY:
+----------------------
+
+[DONE] JSON Schema Definitions
+   File: edl/schemas/edl.schema.json
+   
+   Added Definitions:
+   - expressionOperations: Categorizes 72 safe operations
+     - Math (13): add, subtract, multiply, divide, mod, abs, floor, 
+       ceil, round, min, max, pow, sqrt
+     - String (13): concat, substring, lowercase, uppercase, trim,
+       split, join, replace, indexOf, length, startsWith, endsWith, 
+       includes
+     - Comparison (9): eq, ne, gt, lt, gte, lte, and, or, not
+     - Type (10): parseNumber, parseString, parseBoolean, toString,
+       toNumber, isNumber, isString, isBoolean, isNull, isUndefined
+     - Date (7): now, timestamp, iso8601, parseTimestamp, timestampMs,
+       timestampUs, timestampNs
+     - Array (13): map, filter, find, first, last, length, slice,
+       includes, indexOf, concat, join, reverse, sort
+     - Object (7): get, has, keys, values, entries, assign, merge
+   
+   - computeExpression: Defines 8 expression variants
+     - Null/string/number/boolean literals
+     - Binary operations (op, left, right)
+     - Function calls (call, args)
+     - Conditionals (if, then, else)
+     - Switch statements (switch, cases, default)
+   
+   - Updated fieldMapping.compute to reference computeExpression
+
+[DONE] TypeScript Type Definitions
+   File: edl/compiler/src/types/operations.ts (356 lines)
+   
+   Components:
+   - Operation Implementations: Const objects for each category
+   - Type Definitions: TypeScript types for type safety
+   - Operation Registry: Central registry of all operations
+   - Helper Functions:
+     - isAllowedOperation(name): Check if operation is whitelisted
+     - getOperation(name): Safely retrieve operation function
+   - Operator Mappings:
+     - BinaryOperatorMap: '+' -> 'add', '==' -> 'eq', etc.
+     - UnaryOperatorMap: '!' -> 'not', etc.
+   - Evaluation Context Types: For future evaluator implementation
+
+[DONE] Comprehensive Documentation
+   File: edl/compiler/src/types/operations.md (11KB)
+   
+   Contents:
+   - Complete operation reference tables with signatures
+   - Examples for each operation
+   - Usage patterns in EDL files
+   - Security guarantees
+   - Implementation notes
+
+[DONE] Implementation Summary Document
+   File: edl/docs/phase3-1.1-operations-schema.md (7.2KB)
+   
+   Contents:
+   - Complete phase documentation
+   - Testing results
+   - Next steps for Phase 3-1.2
+
+SECURITY GUARANTEES:
+-------------------
+[OK] No arbitrary code execution possible
+[OK] Only whitelisted operations allowed
+[OK] Pure functions with no side effects
+[OK] Type-safe function signatures
+[OK] Schema validation before execution
+[OK] Complete sandboxing - no access to:
+  - File system
+  - Network
+  - Process/system APIs
+  - eval(), Function(), or similar
+  - Prototype manipulation
+
+VALIDATION TESTS:
+----------------
+[OK] Schema is valid JSON (21 total definitions)
+[OK] TypeScript compilation successful
+[OK] Operation recognition works correctly
+[OK] isAllowedOperation() rejects dangerous ops (eval, require, etc.)
+[OK] Operation execution produces correct results
+[OK] Expression patterns match schema
+
+STATISTICS:
+----------
+- Total Operations: 72
+- Operation Categories: 7
+- Expression Variants: 8
+- TypeScript LOC: 356
+- Documentation: 11KB reference guide + 7.2KB summary
+- Files Modified: 1
+- Files Created: 3
+
+FILES:
+-----
+Modified:
+  /Users/reuben/gauntlet/ccxt/edl/schemas/edl.schema.json
+
+Created:
+  /Users/reuben/gauntlet/ccxt/edl/compiler/src/types/operations.ts
+  /Users/reuben/gauntlet/ccxt/edl/compiler/src/types/operations.md
+  /Users/reuben/gauntlet/ccxt/edl/docs/phase3-1.1-operations-schema.md
+
+USAGE EXAMPLES:
+--------------
+
+1. Simple Math:
+   compute:
+     op: "*"
+     left: "$price"
+     right: "$amount"
+
+2. Function Call:
+   compute:
+     call: this.iso8601
+     args: ["$timestamp"]
+
+3. Conditional:
+   compute:
+     if: { op: ">", left: "$filled", right: 0 }
+     then: { op: "/", left: "$cost", right: "$filled" }
+     else: null
+
+4. Switch:
+   compute:
+     switch: "$type"
+     cases:
+       "limit": "$orderData.price"
+       "market": null
+     default: null
+
+5. Nested Operations:
+   compute:
+     op: "+"
+     left: { op: "*", left: "$price", right: "$amount" }
+     right: "$fee"
+
+NEXT PHASE:
+----------
+Phase 3-1.2: Expression Evaluator Implementation
+- Parse compute expressions from EDL
+- Validate operations against schema
+- Safely evaluate using OperationRegistry
+- Handle errors with meaningful messages
+- Support variable resolution from context
+
+STATUS: [DONE] COMPLETE
+
+All objectives met. Schema provides comprehensive foundation for
+safe expression evaluation without arbitrary code execution.

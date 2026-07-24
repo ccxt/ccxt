@@ -1,0 +1,11 @@
+# Node
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/

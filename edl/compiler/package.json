@@ -1,0 +1,43 @@
+{
+  "name": "@ccxt/edl-compiler",
+  "version": "0.2.0",
+  "description": "Exchange Definition Language compiler for CCXT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "edl-compile": "bin/edl-compile.js",
+    "edl-compile-v2": "bin/edl-compile-v2.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "node --test dist/**/*.test.js",
+    "clean": "rm -rf dist",
+    "compile": "node bin/edl-compile.js",
+    "compile-v2": "node bin/edl-compile-v2.js"
+  },
+  "keywords": [
+    "ccxt",
+    "edl",
+    "exchange",
+    "compiler",
+    "typescript"
+  ],
+  "author": "CCXT Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ]
+}

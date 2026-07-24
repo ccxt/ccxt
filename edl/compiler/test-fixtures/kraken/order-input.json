@@ -1,0 +1,31 @@
+{
+  "id": "OTLAS3-RRHUF-NDWH5A",
+  "refid": null,
+  "userref": null,
+  "status": "closed",
+  "reason": null,
+  "opentm": 1586822919.3342,
+  "closetm": 1586822919.365,
+  "starttm": 0,
+  "expiretm": 0,
+  "descr": {
+    "pair": "XBTUSDT",
+    "type": "sell",
+    "ordertype": "market",
+    "price": "0",
+    "price2": "0",
+    "leverage": "none",
+    "order": "sell 0.21804000 XBTUSDT @ market",
+    "close": ""
+  },
+  "vol": "0.21804000",
+  "vol_exec": "0.21804000",
+  "cost": "1493.9",
+  "fee": "3.8",
+  "price": "6851.5",
+  "stopprice": "0.00000",
+  "limitprice": "0.00000",
+  "misc": "",
+  "oflags": "fciq",
+  "trades": ["TT5UC3-GOIRW-6AZZ6R"]
+}

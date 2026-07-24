@@ -1,0 +1,93 @@
+[
+  {
+    "id": "69e53ad305124b96b43668ceab158a18",
+    "amount": "28.75",
+    "transactionFee": "0.25",
+    "coin": "XRP",
+    "status": 6,
+    "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+    "addressTag": "101286922",
+    "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+    "applyTime": "2021-04-15 12:09:16",
+    "network": "XRP",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "id": "9a67628b16ba4988ae20d329333f16bc",
+    "amount": "20",
+    "transactionFee": "20",
+    "coin": "USDT",
+    "status": 6,
+    "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+    "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+    "applyTime": "2021-04-15 12:06:53",
+    "network": "ETH",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+    "amount": "51",
+    "transactionFee": "1",
+    "coin": "USDT",
+    "status": 6,
+    "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+    "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+    "applyTime": "2021-04-13 12:46:59",
+    "network": "TRX",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "id": "pending-withdrawal-001",
+    "amount": "0.5",
+    "transactionFee": "0.0005",
+    "coin": "BTC",
+    "status": 4,
+    "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    "txId": "",
+    "applyTime": "2021-05-20 08:30:00",
+    "network": "BTC",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "id": "failed-withdrawal-002",
+    "amount": "100",
+    "transactionFee": "2",
+    "coin": "ETH",
+    "status": 3,
+    "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+    "txId": "0xfailedtxhash123456789",
+    "applyTime": "2021-06-01 14:20:00",
+    "network": "ETH",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "id": "canceled-withdrawal-003",
+    "amount": "250",
+    "transactionFee": "0",
+    "coin": "USDT",
+    "status": 1,
+    "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+    "txId": "",
+    "applyTime": "2021-07-10 10:15:00",
+    "network": "BSC",
+    "transferType": 0,
+    "type": "withdrawal"
+  },
+  {
+    "orderNo": "CJW684897551397171200",
+    "fiatCurrency": "GBP",
+    "indicatedAmount": "29.99",
+    "amount": "28.49",
+    "totalFee": "1.50",
+    "method": "bank transfer",
+    "status": "Successful",
+    "createTime": 1614898701000,
+    "updateTime": 1614898820000,
+    "type": "withdrawal"
+  }
+]

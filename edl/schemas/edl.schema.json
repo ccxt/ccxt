@@ -1,0 +1,3843 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ccxt.com/schemas/edl.schema.json",
+  "title": "CCXT Exchange Definition Language (EDL) Schema",
+  "description": "Schema for defining cryptocurrency exchange integrations in CCXT",
+  "type": "object",
+  "required": [
+    "exchange",
+    "urls",
+    "has",
+    "auth",
+    "api"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "EDL schema version for backward compatibility tracking",
+      "default": "1.0.0"
+    },
+    "exchange": {
+      "type": "object",
+      "description": "Exchange metadata",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique exchange identifier (lowercase)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable exchange name"
+        },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "description": "ISO 3166-1 alpha-2 country codes"
+        },
+        "version": {
+          "type": "string",
+          "description": "API version"
+        },
+        "rateLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rate limit in milliseconds between requests"
+        },
+        "certified": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the exchange is CCXT-certified"
+        },
+        "pro": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is a CCXT Pro exchange"
+        },
+        "alias": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is an alias for another exchange"
+        },
+        "dex": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is a decentralized exchange"
+        },
+        "hostname": {
+          "type": "string",
+          "description": "Exchange hostname for API requests"
+        },
+        "precisionMode": {
+          "type": "string",
+          "enum": [
+            "DECIMAL_PLACES",
+            "SIGNIFICANT_DIGITS",
+            "TICK_SIZE"
+          ],
+          "description": "Price/amount precision mode"
+        },
+        "paddingMode": {
+          "type": "string",
+          "enum": [
+            "NO_PADDING",
+            "PAD_WITH_ZERO"
+          ],
+          "description": "Number padding mode for API requests"
+        }
+      }
+    },
+    "urls": {
+      "type": "object",
+      "description": "URL configuration",
+      "required": [
+        "api",
+        "www",
+        "doc"
+      ],
+      "properties": {
+        "logo": {
+          "type": "string",
+          "format": "uri"
+        },
+        "api": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          ]
+        },
+        "test": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "www": {
+          "type": "string",
+          "format": "uri"
+        },
+        "doc": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "website": {
+          "type": "object",
+          "description": "Website URLs by locale",
+          "additionalProperties": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "fees": {
+          "type": "string",
+          "format": "uri"
+        },
+        "referral": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "has": {
+      "type": "object",
+      "description": "Exchange capabilities - supports boolean, null, or per-market overrides",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "description": "Per-market capability overrides",
+            "properties": {
+              "spot": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "margin": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "swap": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "future": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "option": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "timeframes": {
+      "type": "object",
+      "description": "OHLCV timeframe mappings (CCXT key -> exchange value)",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "currencies": {
+      "type": "object",
+      "description": "Predefined currency structures (exchange-specific currency overrides)",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Exchange-specific currency ID"
+          },
+          "code": {
+            "type": "string",
+            "description": "Unified CCXT currency code"
+          },
+          "precision": {
+            "type": "number",
+            "description": "Currency precision"
+          }
+        }
+      }
+    },
+    "commonCurrencies": {
+      "type": "object",
+      "description": "Currency code mappings for exchange-specific codes (exchange code -> CCXT unified code)",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "requiredCredentials": {
+      "type": "object",
+      "description": "Required authentication credentials",
+      "properties": {
+        "apiKey": {
+          "type": "boolean",
+          "default": true
+        },
+        "secret": {
+          "type": "boolean",
+          "default": true
+        },
+        "uid": {
+          "type": "boolean",
+          "default": false
+        },
+        "login": {
+          "type": "boolean",
+          "default": false
+        },
+        "password": {
+          "type": "boolean",
+          "default": false
+        },
+        "twofa": {
+          "type": "boolean",
+          "default": false
+        },
+        "privateKey": {
+          "type": "boolean",
+          "default": false
+        },
+        "walletAddress": {
+          "type": "boolean",
+          "default": false
+        },
+        "token": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "description": "Authentication configuration",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "hmac",
+            "jwt",
+            "rsa",
+            "eddsa",
+            "apikey",
+            "custom"
+          ]
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "sha384",
+            "sha512",
+            "md5",
+            "sha1",
+            "ES256",
+            "ES384",
+            "ES512",
+            "RS256",
+            "RS384",
+            "RS512"
+          ]
+        },
+        "encoding": {
+          "type": "string",
+          "enum": [
+            "base64",
+            "base64url",
+            "hex",
+            "binary"
+          ]
+        },
+        "timestampUnit": {
+          "type": "string",
+          "enum": [
+            "seconds",
+            "milliseconds",
+            "microseconds",
+            "nanoseconds"
+          ]
+        },
+        "nonceType": {
+          "type": "string",
+          "enum": [
+            "timestamp",
+            "incrementing",
+            "uuid"
+          ]
+        },
+        "signatureFormat": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "object",
+          "properties": {
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "path",
+                  "method",
+                  "timestamp",
+                  "nonce",
+                  "body",
+                  "body_urlencoded",
+                  "body_json",
+                  "body_hash",
+                  "query",
+                  "querystring",
+                  "host"
+                ]
+              }
+            }
+          }
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "query": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "api": {
+      "type": "object",
+      "description": "API endpoint definitions",
+      "properties": {
+        "public": {
+          "$ref": "#/definitions/apiCategory"
+        },
+        "private": {
+          "$ref": "#/definitions/apiCategory"
+        }
+      }
+    },
+    "parsers": {
+      "type": "object",
+      "description": "Response parser definitions",
+      "additionalProperties": {
+        "$ref": "#/definitions/parserDef"
+      }
+    },
+    "errors": {
+      "type": "object",
+      "description": "Error pattern definitions",
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/errorPattern"
+          }
+        }
+      }
+    },
+    "fees": {
+      "type": "object",
+      "description": "Fee configuration",
+      "properties": {
+        "trading": {
+          "type": "object",
+          "description": "Trading fee structure",
+          "properties": {
+            "tierBased": {
+              "type": "boolean",
+              "description": "Whether fees are tier-based"
+            },
+            "percentage": {
+              "type": "boolean",
+              "description": "Whether fees are percentage-based"
+            },
+            "taker": {
+              "type": "number",
+              "description": "Default taker fee"
+            },
+            "maker": {
+              "type": "number",
+              "description": "Default maker fee"
+            },
+            "tiers": {
+              "type": "object",
+              "description": "Fee tiers based on volume or holdings",
+              "properties": {
+                "taker": {
+                  "type": "array",
+                  "description": "Taker fee tiers",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "maker": {
+                  "type": "array",
+                  "description": "Maker fee tiers",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "funding": {
+          "type": "object",
+          "description": "Funding fee structure for perpetual swaps",
+          "properties": {
+            "tierBased": {
+              "type": "boolean"
+            },
+            "percentage": {
+              "type": "boolean"
+            },
+            "withdraw": {
+              "type": "object",
+              "description": "Withdrawal fees by currency"
+            },
+            "deposit": {
+              "type": "object",
+              "description": "Deposit fees by currency"
+            }
+          }
+        },
+        "transaction": {
+          "type": "object",
+          "description": "Transaction (deposit/withdrawal) fees",
+          "properties": {
+            "tierBased": {
+              "type": "boolean"
+            },
+            "percentage": {
+              "type": "boolean"
+            },
+            "withdraw": {
+              "type": "object",
+              "description": "Withdrawal fees by currency and network",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  }
+                ]
+              }
+            },
+            "deposit": {
+              "type": "object",
+              "description": "Deposit fees by currency and network",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/minMax"
+        },
+        "price": {
+          "$ref": "#/definitions/minMax"
+        },
+        "cost": {
+          "$ref": "#/definitions/minMax"
+        },
+        "leverage": {
+          "$ref": "#/definitions/minMax"
+        }
+      }
+    },
+    "precision": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "integer"
+        },
+        "price": {
+          "type": "integer"
+        },
+        "base": {
+          "type": "integer"
+        },
+        "quote": {
+          "type": "integer"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "tickSize",
+            "significantDigits",
+            "decimalPlaces"
+          ],
+          "description": "Precision mode used by the exchange"
+        }
+      },
+      "description": "Exchange precision configuration"
+    },
+    "options": {
+      "type": "object",
+      "description": "Exchange-specific options and configuration",
+      "additionalProperties": true,
+      "properties": {
+        "brokerId": {
+          "type": "string",
+          "description": "CCXT broker ID for affiliate/referral tracking"
+        },
+        "broker": {
+          "type": "string",
+          "description": "Alternative broker ID field name"
+        },
+        "accountId": {
+          "type": "string",
+          "description": "Default account ID for multi-account exchanges"
+        },
+        "accountsById": {
+          "type": "object",
+          "description": "Named accounts mapping",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "defaultType": {
+          "type": "string",
+          "enum": [
+            "spot",
+            "margin",
+            "swap",
+            "future",
+            "option"
+          ],
+          "description": "Default market type"
+        },
+        "defaultSubType": {
+          "type": "string",
+          "description": "Default market subtype (e.g., linear, inverse, quanto)"
+        },
+        "sandboxMode": {
+          "type": "boolean",
+          "description": "Enable testnet/sandbox mode",
+          "default": false
+        },
+        "fetchMarketsMethod": {
+          "type": "string",
+          "description": "Override which API endpoint to use for fetchMarkets"
+        },
+        "createMarketBuyOrderRequiresPrice": {
+          "type": "boolean",
+          "description": "Whether market buy orders require price parameter",
+          "default": false
+        },
+        "adjustForTimeDifference": {
+          "type": "boolean",
+          "description": "Auto-adjust timestamps for server time difference",
+          "default": false
+        },
+        "recvWindow": {
+          "type": "integer",
+          "description": "Request validity window in milliseconds",
+          "minimum": 0
+        },
+        "warnOnFetchOpenOrdersWithoutSymbol": {
+          "type": "boolean",
+          "description": "Warn when fetchOpenOrders called without symbol",
+          "default": true
+        }
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "method",
+          "file"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "trading": {
+      "type": "object",
+      "description": "Trading operations configuration",
+      "properties": {
+        "supportedOrderTypes": {
+          "type": "array",
+          "description": "List of order types supported by this exchange",
+          "items": {
+            "type": "string"
+          }
+        },
+        "defaultOrderType": {
+          "type": "string",
+          "description": "Default order type when not specified",
+          "default": "limit"
+        },
+        "orderParameters": {
+          "$ref": "#/definitions/orderParameters",
+          "description": "Schema for order parameters"
+        },
+        "endpoints": {
+          "type": "object",
+          "description": "Endpoint mappings for order operations",
+          "properties": {
+            "createOrder": {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "PATCH"
+                  ]
+                },
+                "params": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "endpoint",
+                "method"
+              ]
+            },
+            "cancelOrder": {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "PATCH"
+                  ]
+                },
+                "params": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "endpoint",
+                "method"
+              ]
+            },
+            "editOrder": {
+              "type": "object",
+              "properties": {
+                "endpoint": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "PATCH"
+                  ]
+                },
+                "params": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "endpoint",
+                "method"
+              ]
+            }
+          }
+        },
+        "orderTypes": {
+          "type": "array",
+          "description": "Detailed order type definitions",
+          "items": {
+            "$ref": "#/definitions/orderTypeDefinition"
+          }
+        }
+      }
+    },
+    "websocket": {
+      "type": "object",
+      "description": "WebSocket configuration",
+      "properties": {
+        "reconciliation": {
+          "type": "object",
+          "description": "WebSocket reconciliation configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable WebSocket data reconciliation"
+            },
+            "snapshots": {
+              "type": "object",
+              "description": "Snapshot configuration for each channel",
+              "additionalProperties": {
+                "$ref": "#/definitions/snapshotDefinition"
+              }
+            },
+            "deltas": {
+              "type": "object",
+              "description": "Delta configuration for each channel",
+              "additionalProperties": {
+                "$ref": "#/definitions/deltaDefinition"
+              }
+            },
+            "checksums": {
+              "type": "object",
+              "description": "Checksum configuration for each channel",
+              "additionalProperties": {
+                "$ref": "#/definitions/checksumDefinition"
+              }
+            },
+            "rules": {
+              "$ref": "#/definitions/reconciliationRules"
+            }
+          }
+        },
+        "channels": {
+          "type": "object",
+          "description": "Channel definitions",
+          "additionalProperties": {
+            "$ref": "#/definitions/channelDefinition"
+          }
+        }
+      }
+    },
+    "wallet": {
+      "type": "object",
+      "description": "Wallet operations configuration",
+      "$ref": "#/definitions/walletOperations"
+    },
+    "markets": {
+      "$ref": "#/definitions/marketsParsing",
+      "description": "Configuration for fetching and parsing markets data"
+    }
+  },
+  "definitions": {
+    "apiCategory": {
+      "type": "object",
+      "properties": {
+        "get": {
+          "$ref": "#/definitions/endpointGroup"
+        },
+        "post": {
+          "$ref": "#/definitions/endpointGroup"
+        },
+        "put": {
+          "$ref": "#/definitions/endpointGroup"
+        },
+        "delete": {
+          "$ref": "#/definitions/endpointGroup"
+        },
+        "patch": {
+          "$ref": "#/definitions/endpointGroup"
+        }
+      }
+    },
+    "endpointGroup": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": "number"
+          },
+          "noSymbol": {
+            "type": "number"
+          },
+          "byLimit": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/paramDef"
+            }
+          }
+        }
+      }
+    },
+    "paramDef": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "integer",
+            "float",
+            "number",
+            "bool",
+            "boolean",
+            "timestamp",
+            "timestamp_ms",
+            "timestamp_ns",
+            "object",
+            "array"
+          ],
+          "description": "Data type of the parameter"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this parameter is always required"
+        },
+        "required_if": {
+          "type": "string",
+          "description": "Conditional requirement expression (e.g., 'type == market' or 'side && amount')"
+        },
+        "default": {
+          "description": "Default value for the parameter",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the parameter"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "description": "List of allowed values for this parameter"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of parameter names that this parameter depends on"
+        },
+        "location": {
+          "type": "string",
+          "enum": [
+            "query",
+            "body",
+            "path",
+            "header"
+          ],
+          "default": "query",
+          "description": "Where the parameter should be placed in the HTTP request"
+        },
+        "alias": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Alternative name(s) for this parameter in the request"
+        },
+        "validate": {
+          "type": "string",
+          "description": "Validation expression to check parameter value (e.g., 'value > 0', 'value.length <= 100')"
+        },
+        "transform": {
+          "type": "string",
+          "description": "Transform expression or function name to apply to the value (e.g., 'uppercase', 'toString', 'value * 1000')"
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value for numeric parameters"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value for numeric parameters"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum length for string parameters"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum length for string parameters"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regular expression pattern for string validation"
+        }
+      }
+    },
+    "parserDef": {
+      "type": "object",
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fallback": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "iterator": {
+          "type": "string",
+          "enum": [
+            "array",
+            "entries",
+            "values"
+          ]
+        },
+        "structure": {
+          "type": "string",
+          "enum": [
+            "balance",
+            "default"
+          ],
+          "description": "Special structure handling for parsers like balance"
+        },
+        "mapping": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/fieldMapping"
+          }
+        }
+      }
+    },
+    "fieldMapping": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "fallback": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "transform": {
+              "type": "string"
+            },
+            "compute": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/computeExpression"
+                }
+              ]
+            },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "from_context": {
+              "type": "string"
+            },
+            "literal": {
+              "type": "string"
+            },
+            "map": {
+              "type": "object"
+            },
+            "default": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "errorPattern": {
+      "type": "object",
+      "required": [
+        "match",
+        "type"
+      ],
+      "properties": {
+        "match": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ExchangeError",
+            "AuthenticationError",
+            "PermissionDenied",
+            "InsufficientFunds",
+            "InvalidOrder",
+            "OrderNotFound",
+            "CancelPending",
+            "NetworkError",
+            "RateLimitExceeded",
+            "ExchangeNotAvailable",
+            "InvalidNonce",
+            "BadRequest",
+            "BadResponse",
+            "NullResponse",
+            "NotSupported",
+            "OnMaintenance",
+            "AccountSuspended",
+            "InvalidAddress",
+            "AddressPending",
+            "ArgumentsRequired",
+            "BadSymbol",
+            "MarginModeAlreadySet"
+          ]
+        },
+        "retry": {
+          "type": "string",
+          "enum": [
+            "none",
+            "linear",
+            "exponential"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "minMax": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "max": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "snapshotDefinition": {
+      "type": "object",
+      "required": [
+        "type",
+        "symbol",
+        "data",
+        "timestamp"
+      ],
+      "description": "Snapshot definition for WebSocket reconciliation",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "orderBook",
+            "trades",
+            "ticker",
+            "balance"
+          ],
+          "description": "Type of snapshot data"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Trading pair symbol"
+        },
+        "data": {
+          "type": "object",
+          "description": "The snapshot data structure"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Snapshot timestamp in milliseconds"
+        },
+        "nonce": {
+          "type": "integer",
+          "description": "Monotonic sequence number (optional)"
+        },
+        "sequenceId": {
+          "type": "integer",
+          "description": "Alternative to nonce - sequence identifier (optional)"
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Optional checksum of the snapshot data"
+        }
+      }
+    },
+    "deltaDefinition": {
+      "type": "object",
+      "required": [
+        "type",
+        "path",
+        "data",
+        "sequenceId"
+      ],
+      "description": "Delta (incremental update) definition for WebSocket reconciliation",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "insert",
+            "update",
+            "delete",
+            "snapshot"
+          ],
+          "description": "Type of delta operation"
+        },
+        "path": {
+          "type": "string",
+          "description": "JSONPath or dotted path indicating where in the data structure to apply the delta"
+        },
+        "data": {
+          "type": "object",
+          "description": "The delta change data"
+        },
+        "sequenceId": {
+          "type": "integer",
+          "description": "Sequence ID of this delta"
+        },
+        "previousSequenceId": {
+          "type": "integer",
+          "description": "Previous sequence ID (for validation)"
+        }
+      }
+    },
+    "checksumDefinition": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "fields"
+      ],
+      "description": "Checksum configuration for WebSocket data validation",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "crc32",
+            "sha256",
+            "md5",
+            "custom"
+          ],
+          "description": "Hashing algorithm to use for checksum validation"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of field names to include in checksum calculation"
+        },
+        "format": {
+          "type": "string",
+          "description": "Format string or template describing how to format data before hashing"
+        },
+        "expectedPath": {
+          "type": "string",
+          "description": "JSONPath or dotted path to the checksum value in the WebSocket message"
+        },
+        "customFunction": {
+          "type": "string",
+          "description": "Name of custom checksum function for exchange-specific algorithms"
+        }
+      }
+    },
+    "reconciliationRules": {
+      "type": "object",
+      "description": "Reconciliation rules and behavior configuration",
+      "properties": {
+        "snapshotInterval": {
+          "type": "integer",
+          "description": "How often to request a full snapshot (in milliseconds). 0 means snapshot-only mode.",
+          "default": 0
+        },
+        "maxGapBeforeResync": {
+          "type": "integer",
+          "description": "Maximum allowed gap in sequence IDs before triggering a resync. 0 disables gap detection.",
+          "default": 1
+        },
+        "checksumValidation": {
+          "type": "boolean",
+          "description": "Whether to validate checksums if available",
+          "default": true
+        },
+        "onMismatch": {
+          "type": "string",
+          "enum": [
+            "resync",
+            "error",
+            "warn"
+          ],
+          "description": "Action to take when checksum or sequence mismatch is detected",
+          "default": "resync"
+        },
+        "bufferDeltas": {
+          "type": "boolean",
+          "description": "Whether to buffer deltas while waiting for snapshot",
+          "default": true
+        },
+        "maxBufferSize": {
+          "type": "integer",
+          "description": "Maximum number of deltas to buffer before discarding",
+          "default": 1000
+        }
+      }
+    },
+    "expressionOperations": {
+      "description": "Allowed operations for safe expression evaluation",
+      "type": "object",
+      "properties": {
+        "math": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "add",
+              "subtract",
+              "multiply",
+              "divide",
+              "mod",
+              "abs",
+              "floor",
+              "ceil",
+              "round",
+              "min",
+              "max",
+              "pow",
+              "sqrt"
+            ]
+          }
+        },
+        "string": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "concat",
+              "substring",
+              "lowercase",
+              "uppercase",
+              "trim",
+              "split",
+              "join",
+              "replace",
+              "indexOf",
+              "length",
+              "startsWith",
+              "endsWith",
+              "includes"
+            ]
+          }
+        },
+        "comparison": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "ne",
+              "gt",
+              "lt",
+              "gte",
+              "lte",
+              "and",
+              "or",
+              "not"
+            ]
+          }
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "parseNumber",
+              "parseString",
+              "parseBoolean",
+              "toString",
+              "toNumber",
+              "isNumber",
+              "isString",
+              "isBoolean",
+              "isNull",
+              "isUndefined"
+            ]
+          }
+        },
+        "date": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "now",
+              "timestamp",
+              "iso8601",
+              "parseTimestamp",
+              "timestampMs",
+              "timestampUs",
+              "timestampNs"
+            ]
+          }
+        },
+        "array": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "map",
+              "filter",
+              "find",
+              "first",
+              "last",
+              "length",
+              "slice",
+              "includes",
+              "indexOf",
+              "concat",
+              "join",
+              "reverse",
+              "sort"
+            ]
+          }
+        },
+        "object": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "get",
+              "has",
+              "keys",
+              "values",
+              "entries",
+              "assign",
+              "merge"
+            ]
+          }
+        }
+      }
+    },
+    "computeExpression": {
+      "description": "Safe computed expression using allowed operations only",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "description": "Binary operator from allowed operations"
+            },
+            "left": {
+              "$ref": "#/definitions/computeExpression"
+            },
+            "right": {
+              "$ref": "#/definitions/computeExpression"
+            }
+          },
+          "required": [
+            "op"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "call": {
+              "type": "string",
+              "description": "Function call from allowed operations"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/computeExpression"
+              }
+            }
+          },
+          "required": [
+            "call"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "if": {
+              "$ref": "#/definitions/computeExpression"
+            },
+            "then": {
+              "$ref": "#/definitions/computeExpression"
+            },
+            "else": {
+              "$ref": "#/definitions/computeExpression"
+            }
+          },
+          "required": [
+            "if",
+            "then"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "switch": {
+              "$ref": "#/definitions/computeExpression"
+            },
+            "cases": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/computeExpression"
+              }
+            },
+            "default": {
+              "$ref": "#/definitions/computeExpression"
+            }
+          },
+          "required": [
+            "switch",
+            "cases"
+          ]
+        },
+        {
+          "$ref": "#/definitions/arrayOperation"
+        }
+      ]
+    },
+    "lambdaExpression": {
+      "description": "Lambda expression for functional array operations (anonymous function)",
+      "type": "object",
+      "properties": {
+        "param": {
+          "type": "string",
+          "description": "Single parameter name for single-argument lambdas (e.g., 'x' in 'x => x.price')"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of parameter names for multi-argument lambdas (e.g., ['acc', 'item'] in '(acc, item) => acc + item')"
+        },
+        "body": {
+          "$ref": "#/definitions/computeExpression",
+          "description": "Expression body that is evaluated with the parameters in scope"
+        }
+      },
+      "required": [
+        "body"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "param"
+          ],
+          "not": {
+            "required": [
+              "params"
+            ]
+          }
+        },
+        {
+          "required": [
+            "params"
+          ],
+          "not": {
+            "required": [
+              "param"
+            ]
+          }
+        }
+      ]
+    },
+    "arrayOperation": {
+      "description": "Array operation expression (map, filter, reduce, slice, flatMap)",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "map",
+            "filter",
+            "reduce",
+            "slice",
+            "flatMap"
+          ],
+          "description": "Array operation type"
+        },
+        "array": {
+          "$ref": "#/definitions/computeExpression",
+          "description": "Array expression to operate on"
+        }
+      },
+      "required": [
+        "op",
+        "array"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "op": {
+              "const": "map"
+            },
+            "transform": {
+              "$ref": "#/definitions/lambdaExpression",
+              "description": "Lambda to transform each element"
+            }
+          },
+          "required": [
+            "transform"
+          ]
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "filter"
+            },
+            "predicate": {
+              "$ref": "#/definitions/lambdaExpression",
+              "description": "Lambda predicate to test each element"
+            }
+          },
+          "required": [
+            "predicate"
+          ]
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "reduce"
+            },
+            "reducer": {
+              "$ref": "#/definitions/lambdaExpression",
+              "description": "Lambda to reduce elements (must take two parameters: accumulator and current item)"
+            },
+            "initial": {
+              "$ref": "#/definitions/computeExpression",
+              "description": "Initial value for the accumulator"
+            }
+          },
+          "required": [
+            "reducer",
+            "initial"
+          ]
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "slice"
+            },
+            "start": {
+              "type": "integer",
+              "description": "Start index (inclusive)"
+            },
+            "end": {
+              "type": "integer",
+              "description": "End index (exclusive, optional)"
+            },
+            "step": {
+              "type": "integer",
+              "description": "Step size (optional, default 1)",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "start"
+          ]
+        },
+        {
+          "properties": {
+            "op": {
+              "const": "flatMap"
+            },
+            "transform": {
+              "$ref": "#/definitions/lambdaExpression",
+              "description": "Lambda to transform and flatten each element"
+            }
+          },
+          "required": [
+            "transform"
+          ]
+        }
+      ]
+    },
+    "orderParameters": {
+      "type": "object",
+      "description": "Common order parameters schema",
+      "properties": {
+        "symbol": {
+          "type": "object",
+          "description": "Trading pair symbol",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ],
+              "default": "string"
+            },
+            "required": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": {
+              "type": "string",
+              "default": "Trading pair symbol (e.g., BTC/USDT)"
+            }
+          }
+        },
+        "side": {
+          "type": "object",
+          "description": "Order side (buy or sell)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ],
+              "default": "string"
+            },
+            "required": {
+              "type": "boolean",
+              "default": true
+            },
+            "enum": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "buy",
+                "sell"
+              ]
+            },
+            "description": {
+              "type": "string",
+              "default": "Order side: buy or sell"
+            }
+          }
+        },
+        "type": {
+          "type": "object",
+          "description": "Order type",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ],
+              "default": "string"
+            },
+            "required": {
+              "type": "boolean",
+              "default": true
+            },
+            "enum": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": {
+              "type": "string",
+              "default": "Order type (market, limit, etc.)"
+            }
+          }
+        },
+        "amount": {
+          "type": "object",
+          "description": "Order amount in base currency",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "float"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": {
+              "type": "string",
+              "default": "Order amount in base currency"
+            }
+          }
+        },
+        "price": {
+          "type": "object",
+          "description": "Order price (required for limit orders)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "float"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "requiredIf": {
+              "type": "string",
+              "default": "type === 'limit' || type === 'stopLimit'"
+            },
+            "description": {
+              "type": "string",
+              "default": "Order price in quote currency"
+            }
+          }
+        },
+        "stopPrice": {
+          "type": "object",
+          "description": "Stop/trigger price for stop orders",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "float"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "requiredIf": {
+              "type": "string",
+              "default": "type === 'stop' || type === 'stopLimit' || type === 'stopMarket'"
+            },
+            "description": {
+              "type": "string",
+              "default": "Stop price that triggers the order"
+            }
+          }
+        },
+        "triggerPrice": {
+          "type": "object",
+          "description": "Trigger price (alias for stopPrice)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "float"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "Trigger price for conditional orders"
+            }
+          }
+        },
+        "trailingDelta": {
+          "type": "object",
+          "description": "Trailing amount/percentage for trailing stop orders",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "float"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "requiredIf": {
+              "type": "string",
+              "default": "type === 'trailingStop' || type === 'trailingStopMarket'"
+            },
+            "description": {
+              "type": "string",
+              "default": "Trailing delta in price units or percentage"
+            }
+          }
+        },
+        "timeInForce": {
+          "type": "object",
+          "description": "Time in force instruction",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ],
+              "default": "string"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "enum": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "GTC",
+                "IOC",
+                "FOK",
+                "GTD",
+                "PO"
+              ]
+            },
+            "description": {
+              "type": "string",
+              "default": "Time in force: GTC (Good Till Cancel), IOC (Immediate or Cancel), FOK (Fill or Kill), GTD (Good Till Date), PO (Post Only)"
+            }
+          }
+        },
+        "postOnly": {
+          "type": "object",
+          "description": "Post-only flag (maker-only orders)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "boolean"
+              ],
+              "default": "boolean"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "If true, order will only be placed if it would be a maker order"
+            }
+          }
+        },
+        "reduceOnly": {
+          "type": "object",
+          "description": "Reduce-only flag (for position reduction)",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "boolean"
+              ],
+              "default": "boolean"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "If true, order will only reduce an existing position"
+            }
+          }
+        },
+        "closePosition": {
+          "type": "object",
+          "description": "Close position flag",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "boolean"
+              ],
+              "default": "boolean"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "If true, will close the entire position"
+            }
+          }
+        },
+        "clientOrderId": {
+          "type": "object",
+          "description": "Client-specified order ID",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ],
+              "default": "string"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "Custom order ID for tracking"
+            }
+          }
+        },
+        "leverage": {
+          "type": "object",
+          "description": "Leverage for margin/futures trading",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number",
+                "integer"
+              ],
+              "default": "number"
+            },
+            "required": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": {
+              "type": "string",
+              "default": "Leverage multiplier (e.g., 1, 5, 10, 100)"
+            }
+          }
+        },
+        "iceberg": {
+          "type": "object",
+          "description": "Iceberg order parameters",
+          "properties": {
+            "displayQty": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "number",
+                    "float"
+                  ],
+                  "default": "number"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "requiredIf": {
+                  "type": "string",
+                  "default": "type === 'iceberg'"
+                },
+                "description": {
+                  "type": "string",
+                  "default": "Visible order quantity for iceberg orders"
+                }
+              }
+            }
+          }
+        },
+        "oco": {
+          "type": "object",
+          "description": "One-Cancels-Other order parameters",
+          "properties": {
+            "takeProfitPrice": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "number",
+                    "float"
+                  ],
+                  "default": "number"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "requiredIf": {
+                  "type": "string",
+                  "default": "type === 'oco'"
+                },
+                "description": {
+                  "type": "string",
+                  "default": "Take profit target price"
+                }
+              }
+            },
+            "stopLossPrice": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "number",
+                    "float"
+                  ],
+                  "default": "number"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "requiredIf": {
+                  "type": "string",
+                  "default": "type === 'oco'"
+                },
+                "description": {
+                  "type": "string",
+                  "default": "Stop loss trigger price"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "orderTypeDefinition": {
+      "type": "object",
+      "description": "Definition of a specific order type and its parameters",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Order type name",
+          "enum": [
+            "market",
+            "limit",
+            "stop",
+            "stopLimit",
+            "stopMarket",
+            "trailingStop",
+            "trailingStopMarket",
+            "iceberg",
+            "oco",
+            "fok",
+            "ioc",
+            "postOnly"
+          ]
+        },
+        "requiredParams": {
+          "type": "array",
+          "description": "Required parameters for this order type",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optionalParams": {
+          "type": "array",
+          "description": "Optional parameters for this order type",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this order type"
+        }
+      }
+    },
+    "walletOperations": {
+      "type": "object",
+      "description": "Wallet and funding operations",
+      "properties": {
+        "fetchBalance": {
+          "type": "object",
+          "description": "Fetch account balance",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "fetchDeposits": {
+          "type": "object",
+          "description": "Fetch deposit history",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "fetchWithdrawals": {
+          "type": "object",
+          "description": "Fetch withdrawal history",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "fetchTransfers": {
+          "type": "object",
+          "description": "Fetch internal transfer history",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "withdraw": {
+          "type": "object",
+          "description": "Withdraw funds to external address",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "fetchDepositAddress": {
+          "type": "object",
+          "description": "Fetch deposit address for a currency",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "fetchDepositAddresses": {
+          "type": "object",
+          "description": "Fetch deposit addresses for multiple currencies",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        },
+        "transfer": {
+          "type": "object",
+          "description": "Internal transfer between accounts",
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/paramDef"
+              }
+            }
+          }
+        }
+      }
+    },
+    "networkDefinition": {
+      "type": "object",
+      "description": "Cryptocurrency network definition",
+      "required": [
+        "id",
+        "network"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Network identifier"
+        },
+        "network": {
+          "type": "string",
+          "description": "Network code (e.g., ETH, TRX, BSC)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable network name"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the network is active for deposits/withdrawals"
+        },
+        "fee": {
+          "type": "number",
+          "description": "Withdrawal fee for this network"
+        },
+        "precision": {
+          "type": "integer",
+          "description": "Number of decimal places for amounts"
+        },
+        "limits": {
+          "type": "object",
+          "description": "Deposit and withdrawal limits",
+          "properties": {
+            "withdraw": {
+              "$ref": "#/definitions/minMax"
+            },
+            "deposit": {
+              "$ref": "#/definitions/minMax"
+            }
+          }
+        },
+        "addressRegex": {
+          "type": "string",
+          "description": "Regular expression for validating addresses"
+        },
+        "tagRequired": {
+          "type": "boolean",
+          "description": "Whether a memo/tag is required for deposits"
+        },
+        "memoRegex": {
+          "type": "string",
+          "description": "Regular expression for validating memo/tag"
+        }
+      }
+    },
+    "transactionDefinition": {
+      "type": "object",
+      "description": "Deposit, withdrawal, or transfer transaction",
+      "required": [
+        "id",
+        "type",
+        "currency",
+        "amount",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique transaction identifier"
+        },
+        "txid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Blockchain transaction hash"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "deposit",
+            "withdrawal",
+            "transfer"
+          ],
+          "description": "Transaction type"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency code"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Transaction amount"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "ok",
+            "failed",
+            "canceled"
+          ],
+          "description": "Transaction status"
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Blockchain address"
+        },
+        "addressFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Source address for deposits"
+        },
+        "addressTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Destination address for withdrawals"
+        },
+        "tag": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Memo/tag for currencies that require it"
+        },
+        "tagFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Source memo/tag"
+        },
+        "tagTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Destination memo/tag"
+        },
+        "network": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Network code (e.g., ETH, TRX, BSC)"
+        },
+        "fee": {
+          "type": "object",
+          "description": "Transaction fee",
+          "properties": {
+            "cost": {
+              "type": "number"
+            },
+            "currency": {
+              "type": "string"
+            }
+          }
+        },
+        "timestamp": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Transaction timestamp in milliseconds"
+        },
+        "datetime": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISO8601 datetime string"
+        },
+        "updated": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Last update timestamp in milliseconds"
+        },
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Additional notes or comments"
+        },
+        "internal": {
+          "type": "boolean",
+          "description": "Whether this is an internal transfer"
+        },
+        "info": {
+          "type": "object",
+          "description": "Raw response data from exchange"
+        }
+      }
+    },
+    "marketDefinition": {
+      "type": "object",
+      "description": "Complete definition of a trading market/pair",
+      "required": [
+        "id",
+        "symbol",
+        "base",
+        "quote"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Exchange-specific market identifier"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Unified CCXT symbol (e.g., 'BTC/USDT', 'ETH/BTC:USDT')"
+        },
+        "base": {
+          "type": "string",
+          "description": "Unified base currency code"
+        },
+        "quote": {
+          "type": "string",
+          "description": "Unified quote currency code"
+        },
+        "baseId": {
+          "type": "string",
+          "description": "Exchange-specific base currency ID"
+        },
+        "quoteId": {
+          "type": "string",
+          "description": "Exchange-specific quote currency ID"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "spot",
+            "margin",
+            "swap",
+            "future",
+            "option",
+            "index"
+          ],
+          "description": "Primary market type"
+        },
+        "spot": {
+          "type": "boolean",
+          "description": "Whether this is a spot market"
+        },
+        "margin": {
+          "type": "boolean",
+          "description": "Whether margin trading is available"
+        },
+        "swap": {
+          "type": "boolean",
+          "description": "Whether this is a perpetual swap"
+        },
+        "future": {
+          "type": "boolean",
+          "description": "Whether this is a dated future"
+        },
+        "option": {
+          "type": "boolean",
+          "description": "Whether this is an option contract"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the market is currently active for trading"
+        },
+        "settle": {
+          "type": "string",
+          "description": "Unified settlement currency code (for derivatives)"
+        },
+        "settleId": {
+          "type": "string",
+          "description": "Exchange-specific settlement currency ID"
+        },
+        "contract": {
+          "type": "boolean",
+          "description": "Whether this is a contract market (derivative)"
+        },
+        "contractSize": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Size of one contract in base currency units"
+        },
+        "linear": {
+          "type": "boolean",
+          "description": "Whether the contract is linear (settled in quote/stablecoin)"
+        },
+        "inverse": {
+          "type": "boolean",
+          "description": "Whether the contract is inverse (settled in base)"
+        },
+        "quanto": {
+          "type": "boolean",
+          "description": "Whether the contract is quanto (settled in third currency)"
+        },
+        "expiry": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Expiration timestamp in milliseconds (for futures/options)"
+        },
+        "expiryDatetime": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "ISO 8601 expiration datetime"
+        },
+        "strike": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Strike price (for options)"
+        },
+        "optionType": {
+          "type": "string",
+          "enum": [
+            "call",
+            "put"
+          ],
+          "description": "Option type"
+        },
+        "precision": {
+          "type": "object",
+          "description": "Precision configuration for this market",
+          "properties": {
+            "amount": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Number of decimal places for amount"
+            },
+            "price": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Number of decimal places for price"
+            },
+            "base": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Number of decimal places for base currency"
+            },
+            "quote": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Number of decimal places for quote currency"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "description": "Trading limits for this market",
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/minMax"
+            },
+            "price": {
+              "$ref": "#/definitions/minMax"
+            },
+            "cost": {
+              "$ref": "#/definitions/minMax"
+            },
+            "leverage": {
+              "$ref": "#/definitions/minMax"
+            },
+            "market": {
+              "$ref": "#/definitions/minMax"
+            }
+          }
+        },
+        "info": {
+          "type": "object",
+          "description": "Raw market data from the exchange API",
+          "additionalProperties": true
+        },
+        "percentage": {
+          "type": "boolean",
+          "description": "Whether fees are percentage-based"
+        },
+        "tierBased": {
+          "type": "boolean",
+          "description": "Whether fees are tier-based"
+        },
+        "taker": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Taker fee rate"
+        },
+        "maker": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Maker fee rate"
+        },
+        "feeSide": {
+          "type": "string",
+          "enum": [
+            "get",
+            "give",
+            "base",
+            "quote",
+            "other"
+          ],
+          "description": "Which side pays the fee"
+        }
+      }
+    },
+    "symbolMapping": {
+      "type": "object",
+      "description": "Rules for deriving unified symbols from market data",
+      "required": [
+        "template"
+      ],
+      "properties": {
+        "template": {
+          "type": "string",
+          "description": "Template for constructing symbol (e.g., '{base}/{quote}', '{base}/{quote}:{settle}')"
+        },
+        "baseIdPath": {
+          "type": "string",
+          "description": "JSON path to base currency ID in raw market data"
+        },
+        "quoteIdPath": {
+          "type": "string",
+          "description": "JSON path to quote currency ID in raw market data"
+        },
+        "settleIdPath": {
+          "type": "string",
+          "description": "JSON path to settlement currency ID in raw market data"
+        },
+        "separator": {
+          "type": "string",
+          "description": "Separator character(s) used in exchange symbols",
+          "default": "/"
+        },
+        "contractTypeDerivation": {
+          "type": "object",
+          "description": "Rules for deriving contract type from market data",
+          "properties": {
+            "spotCondition": {
+              "type": "string",
+              "description": "Condition to identify spot markets (e.g., 'type == \"SPOT\"')"
+            },
+            "futureCondition": {
+              "type": "string",
+              "description": "Condition to identify futures"
+            },
+            "swapCondition": {
+              "type": "string",
+              "description": "Condition to identify perpetual swaps"
+            },
+            "optionCondition": {
+              "type": "string",
+              "description": "Condition to identify options"
+            },
+            "marginCondition": {
+              "type": "string",
+              "description": "Condition to identify margin markets"
+            }
+          }
+        },
+        "linearInverseDerivation": {
+          "type": "object",
+          "description": "Rules for determining linear vs inverse contracts",
+          "properties": {
+            "linearCondition": {
+              "type": "string",
+              "description": "Condition for linear contracts"
+            },
+            "inverseCondition": {
+              "type": "string",
+              "description": "Condition for inverse contracts"
+            },
+            "quantoCondition": {
+              "type": "string",
+              "description": "Condition for quanto contracts"
+            }
+          }
+        },
+        "legDerivation": {
+          "type": "object",
+          "description": "Rules for multi-leg instruments (options, spreads)",
+          "properties": {
+            "strikePathOrFormula": {
+              "type": "string",
+              "description": "Path to strike price or formula to derive it"
+            },
+            "expiryPathOrFormula": {
+              "type": "string",
+              "description": "Path to expiry or formula to derive it"
+            },
+            "optionTypePathOrFormula": {
+              "type": "string",
+              "description": "Path to option type (call/put) or derivation rule"
+            }
+          }
+        }
+      }
+    },
+    "marketsParsing": {
+      "type": "object",
+      "description": "Configuration for parsing markets endpoint response",
+      "required": [
+        "endpoint"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "Reference to API endpoint for fetching markets"
+        },
+        "path": {
+          "type": "string",
+          "description": "JSON path to extract market array from response"
+        },
+        "iterator": {
+          "type": "string",
+          "enum": [
+            "array",
+            "entries",
+            "values",
+            "keys"
+          ],
+          "description": "How to iterate over the markets data structure"
+        },
+        "symbolMapping": {
+          "$ref": "#/definitions/symbolMapping"
+        },
+        "mapping": {
+          "type": "object",
+          "description": "Field-by-field mapping rules for market properties",
+          "additionalProperties": {
+            "$ref": "#/definitions/fieldMapping"
+          }
+        },
+        "filters": {
+          "type": "array",
+          "description": "Filters to apply when selecting markets",
+          "items": {
+            "type": "object",
+            "required": [
+              "field",
+              "operator",
+              "value"
+            ],
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "eq",
+                  "ne",
+                  "gt",
+                  "lt",
+                  "gte",
+                  "lte",
+                  "in",
+                  "nin",
+                  "contains",
+                  "matches"
+                ]
+              },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "orderBookSnapshot": {
+      "type": "object",
+      "description": "Order book snapshot data structure",
+      "required": [
+        "bids",
+        "asks"
+      ],
+      "properties": {
+        "bids": {
+          "type": "array",
+          "description": "Bid orders sorted by price (descending), each entry is [price, amount]",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "asks": {
+          "type": "array",
+          "description": "Ask orders sorted by price (ascending), each entry is [price, amount]",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "nonce": {
+          "type": "integer",
+          "description": "Optional nonce/sequence number for the order book state"
+        }
+      }
+    },
+    "tradesSnapshot": {
+      "type": "object",
+      "description": "Trades snapshot data structure",
+      "required": [
+        "trades"
+      ],
+      "properties": {
+        "trades": {
+          "type": "array",
+          "description": "List of trades",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "price",
+              "amount",
+              "side",
+              "timestamp"
+            ],
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "Unique trade identifier"
+              },
+              "price": {
+                "type": "number",
+                "description": "Trade price"
+              },
+              "amount": {
+                "type": "number",
+                "description": "Trade amount/size"
+              },
+              "side": {
+                "type": "string",
+                "enum": [
+                  "buy",
+                  "sell"
+                ],
+                "description": "Trade side"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Trade timestamp in milliseconds"
+              }
+            }
+          }
+        }
+      }
+    },
+    "tickerSnapshot": {
+      "type": "object",
+      "description": "Ticker snapshot data structure",
+      "required": [
+        "symbol",
+        "high",
+        "low",
+        "bid",
+        "ask",
+        "last",
+        "volume",
+        "timestamp"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "description": "Trading pair symbol"
+        },
+        "high": {
+          "type": "number",
+          "description": "24h high price"
+        },
+        "low": {
+          "type": "number",
+          "description": "24h low price"
+        },
+        "bid": {
+          "type": "number",
+          "description": "Current best bid price"
+        },
+        "ask": {
+          "type": "number",
+          "description": "Current best ask price"
+        },
+        "last": {
+          "type": "number",
+          "description": "Last trade price"
+        },
+        "volume": {
+          "type": "number",
+          "description": "24h trading volume"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Timestamp of ticker data"
+        }
+      }
+    },
+    "deltaQueue": {
+      "type": "object",
+      "description": "Delta queue management information",
+      "required": [
+        "maxSize",
+        "currentSize"
+      ],
+      "properties": {
+        "maxSize": {
+          "type": "integer",
+          "description": "Maximum number of deltas that can be queued"
+        },
+        "currentSize": {
+          "type": "integer",
+          "description": "Current number of deltas in the queue"
+        },
+        "oldestSequenceId": {
+          "type": "integer",
+          "description": "Sequence ID of the oldest delta in the queue"
+        },
+        "newestSequenceId": {
+          "type": "integer",
+          "description": "Sequence ID of the newest delta in the queue"
+        }
+      }
+    },
+    "reconciliationStats": {
+      "type": "object",
+      "description": "Statistics for reconciliation operations",
+      "required": [
+        "snapshotsReceived",
+        "deltasApplied",
+        "deltasDropped",
+        "checksumValidations",
+        "checksumFailures",
+        "resyncs"
+      ],
+      "properties": {
+        "snapshotsReceived": {
+          "type": "integer",
+          "description": "Total number of snapshots received"
+        },
+        "deltasApplied": {
+          "type": "integer",
+          "description": "Total number of deltas successfully applied"
+        },
+        "deltasDropped": {
+          "type": "integer",
+          "description": "Total number of deltas dropped"
+        },
+        "checksumValidations": {
+          "type": "integer",
+          "description": "Total number of checksum validations performed"
+        },
+        "checksumFailures": {
+          "type": "integer",
+          "description": "Total number of checksum validation failures"
+        },
+        "resyncs": {
+          "type": "integer",
+          "description": "Total number of resyncs triggered"
+        },
+        "lastSyncTimestamp": {
+          "type": "integer",
+          "description": "Timestamp of last successful synchronization"
+        }
+      }
+    },
+    "channelDefinition": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "dataType",
+        "subscribePayload"
+      ],
+      "description": "WebSocket channel definition including subscription payloads, filtering, throttling, and auth",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Channel name identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "public",
+            "private"
+          ],
+          "description": "Channel type (public or private)"
+        },
+        "dataType": {
+          "type": "string",
+          "enum": [
+            "ticker",
+            "trades",
+            "orderbook",
+            "ohlcv",
+            "orders",
+            "balance",
+            "positions"
+          ],
+          "description": "Type of data this channel provides"
+        },
+        "subscribePayload": {
+          "$ref": "#/definitions/payloadTemplate"
+        },
+        "unsubscribePayload": {
+          "$ref": "#/definitions/payloadTemplate"
+        },
+        "messageFilter": {
+          "$ref": "#/definitions/messageFilter"
+        },
+        "throttling": {
+          "$ref": "#/definitions/throttlingConfig"
+        },
+        "multiplexing": {
+          "$ref": "#/definitions/multiplexingConfig"
+        },
+        "auth": {
+          "$ref": "#/definitions/channelAuthConfig"
+        }
+      }
+    },
+    "payloadTemplate": {
+      "type": "object",
+      "required": [
+        "template"
+      ],
+      "description": "Payload template with variable substitution support",
+      "properties": {
+        "template": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Template as string or object with variable placeholders"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Variable definitions for template substitution",
+          "additionalProperties": {
+            "$ref": "#/definitions/variableDefinition"
+          }
+        }
+      }
+    },
+    "variableDefinition": {
+      "type": "object",
+      "required": [
+        "source"
+      ],
+      "description": "Variable definition for payload templates",
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "parameter",
+            "context",
+            "computed"
+          ],
+          "description": "Source of the variable value"
+        },
+        "path": {
+          "type": "string",
+          "description": "JSONPath or dotted notation to extract value from source"
+        },
+        "compute": {
+          "type": "string",
+          "description": "Expression to compute the value (when source is 'computed')"
+        },
+        "default": {
+          "description": "Default value if variable is not available"
+        }
+      }
+    },
+    "messageFilter": {
+      "type": "object",
+      "required": [
+        "field"
+      ],
+      "description": "Message filter for identifying channel responses",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Field name to check in the message"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Exact value to match (if not using pattern)"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regular expression pattern to match"
+        }
+      }
+    },
+    "throttlingConfig": {
+      "type": "object",
+      "description": "Throttling configuration for channel subscriptions",
+      "properties": {
+        "maxSubscriptionsPerSecond": {
+          "type": "number",
+          "description": "Maximum number of subscriptions allowed per second"
+        },
+        "minSubscriptionInterval": {
+          "type": "number",
+          "description": "Minimum interval between subscriptions in milliseconds"
+        },
+        "backoff": {
+          "$ref": "#/definitions/backoffConfig"
+        }
+      }
+    },
+    "backoffConfig": {
+      "type": "object",
+      "required": [
+        "type",
+        "initial",
+        "max"
+      ],
+      "description": "Backoff algorithm configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "exponential"
+          ],
+          "description": "Backoff algorithm type"
+        },
+        "initial": {
+          "type": "number",
+          "description": "Initial backoff delay in milliseconds"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum backoff delay in milliseconds"
+        },
+        "multiplier": {
+          "type": "number",
+          "description": "Multiplier for exponential backoff (used when type is 'exponential')"
+        }
+      }
+    },
+    "multiplexingConfig": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "description": "Multiplexing configuration for combining multiple streams",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether multiplexing is enabled"
+        },
+        "maxSymbolsPerConnection": {
+          "type": "integer",
+          "description": "Maximum number of symbols per WebSocket connection"
+        },
+        "maxChannelsPerConnection": {
+          "type": "integer",
+          "description": "Maximum number of channels per WebSocket connection"
+        },
+        "connectionPoolSize": {
+          "type": "integer",
+          "description": "Size of the connection pool for load distribution"
+        }
+      }
+    },
+    "channelAuthConfig": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "description": "Authentication configuration for private channels",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "listenKey",
+            "signature",
+            "token",
+            "challenge"
+          ],
+          "description": "Authentication type"
+        },
+        "listenKeyEndpoint": {
+          "type": "string",
+          "description": "REST API endpoint to obtain listen key (for listenKey type)"
+        },
+        "listenKeyRefreshInterval": {
+          "type": "number",
+          "description": "Refresh interval for listen key in milliseconds (for listenKey type)"
+        },
+        "signatureFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields to include in signature calculation (for signature type)"
+        },
+        "challengeHandler": {
+          "type": "string",
+          "description": "Name of custom handler function for challenge-response (for challenge type)"
+        }
+      }
+    },
+    "binanceTickerMessage": {
+      "type": "object",
+      "description": "Binance 24hr Ticker WebSocket message",
+      "required": [
+        "e",
+        "E",
+        "s",
+        "p",
+        "P",
+        "w",
+        "c",
+        "Q",
+        "o",
+        "h",
+        "l",
+        "v",
+        "q",
+        "O",
+        "C",
+        "F",
+        "L",
+        "n"
+      ],
+      "properties": {
+        "e": {
+          "type": "string",
+          "const": "24hrTicker",
+          "description": "Event type"
+        },
+        "E": {
+          "type": "integer",
+          "description": "Event time (milliseconds)"
+        },
+        "s": {
+          "type": "string",
+          "description": "Symbol"
+        },
+        "p": {
+          "type": "string",
+          "description": "Price change"
+        },
+        "P": {
+          "type": "string",
+          "description": "Price change percent"
+        },
+        "w": {
+          "type": "string",
+          "description": "Weighted average price"
+        },
+        "c": {
+          "type": "string",
+          "description": "Last price"
+        },
+        "Q": {
+          "type": "string",
+          "description": "Last quantity"
+        },
+        "o": {
+          "type": "string",
+          "description": "Open price"
+        },
+        "h": {
+          "type": "string",
+          "description": "High price"
+        },
+        "l": {
+          "type": "string",
+          "description": "Low price"
+        },
+        "v": {
+          "type": "string",
+          "description": "Total traded base asset volume"
+        },
+        "q": {
+          "type": "string",
+          "description": "Total traded quote asset volume"
+        },
+        "O": {
+          "type": "integer",
+          "description": "Statistics open time (milliseconds)"
+        },
+        "C": {
+          "type": "integer",
+          "description": "Statistics close time (milliseconds)"
+        },
+        "F": {
+          "type": "integer",
+          "description": "First trade ID"
+        },
+        "L": {
+          "type": "integer",
+          "description": "Last trade ID"
+        },
+        "n": {
+          "type": "integer",
+          "description": "Total number of trades"
+        }
+      }
+    },
+    "binanceTradeMessage": {
+      "type": "object",
+      "description": "Binance Trade WebSocket message",
+      "required": [
+        "e",
+        "E",
+        "s",
+        "t",
+        "p",
+        "q",
+        "b",
+        "a",
+        "T",
+        "m",
+        "M"
+      ],
+      "properties": {
+        "e": {
+          "type": "string",
+          "const": "trade",
+          "description": "Event type"
+        },
+        "E": {
+          "type": "integer",
+          "description": "Event time (milliseconds)"
+        },
+        "s": {
+          "type": "string",
+          "description": "Symbol"
+        },
+        "t": {
+          "type": "integer",
+          "description": "Trade ID"
+        },
+        "p": {
+          "type": "string",
+          "description": "Price"
+        },
+        "q": {
+          "type": "string",
+          "description": "Quantity"
+        },
+        "b": {
+          "type": "integer",
+          "description": "Buyer order ID"
+        },
+        "a": {
+          "type": "integer",
+          "description": "Seller order ID"
+        },
+        "T": {
+          "type": "integer",
+          "description": "Trade time (milliseconds)"
+        },
+        "m": {
+          "type": "boolean",
+          "description": "Is buyer the market maker"
+        },
+        "M": {
+          "type": "boolean",
+          "description": "Ignore (always true)"
+        }
+      }
+    },
+    "binanceDepthMessage": {
+      "type": "object",
+      "description": "Binance Order Book Depth Update WebSocket message",
+      "required": [
+        "e",
+        "E",
+        "s",
+        "U",
+        "u",
+        "b",
+        "a"
+      ],
+      "properties": {
+        "e": {
+          "type": "string",
+          "const": "depthUpdate",
+          "description": "Event type"
+        },
+        "E": {
+          "type": "integer",
+          "description": "Event time (milliseconds)"
+        },
+        "s": {
+          "type": "string",
+          "description": "Symbol"
+        },
+        "U": {
+          "type": "integer",
+          "description": "First update ID in event"
+        },
+        "u": {
+          "type": "integer",
+          "description": "Final update ID in event"
+        },
+        "b": {
+          "type": "array",
+          "description": "Bids to be updated [price, quantity]",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string",
+                "description": "Price level"
+              },
+              {
+                "type": "string",
+                "description": "Quantity"
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "a": {
+          "type": "array",
+          "description": "Asks to be updated [price, quantity]",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string",
+                "description": "Price level"
+              },
+              {
+                "type": "string",
+                "description": "Quantity"
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "binanceOrderUpdateMessage": {
+      "type": "object",
+      "description": "Binance User Order Update (Execution Report) WebSocket message",
+      "required": [
+        "e",
+        "E",
+        "s",
+        "c",
+        "S",
+        "o",
+        "f",
+        "q",
+        "p",
+        "P",
+        "F",
+        "g",
+        "C",
+        "x",
+        "X",
+        "r",
+        "i",
+        "l",
+        "z",
+        "L",
+        "n",
+        "N",
+        "T",
+        "t",
+        "I",
+        "w",
+        "m",
+        "M",
+        "O",
+        "Z",
+        "Y",
+        "Q"
+      ],
+      "properties": {
+        "e": {
+          "type": "string",
+          "const": "executionReport",
+          "description": "Event type"
+        },
+        "E": {
+          "type": "integer",
+          "description": "Event time (milliseconds)"
+        },
+        "s": {
+          "type": "string",
+          "description": "Symbol"
+        },
+        "c": {
+          "type": "string",
+          "description": "Client order ID"
+        },
+        "S": {
+          "type": "string",
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "description": "Order side"
+        },
+        "o": {
+          "type": "string",
+          "description": "Order type (LIMIT, MARKET, STOP_LOSS, etc.)"
+        },
+        "f": {
+          "type": "string",
+          "enum": [
+            "GTC",
+            "IOC",
+            "FOK",
+            "GTX"
+          ],
+          "description": "Time in force"
+        },
+        "q": {
+          "type": "string",
+          "description": "Order quantity"
+        },
+        "p": {
+          "type": "string",
+          "description": "Order price"
+        },
+        "P": {
+          "type": "string",
+          "description": "Stop price"
+        },
+        "F": {
+          "type": "string",
+          "description": "Iceberg quantity"
+        },
+        "g": {
+          "type": "integer",
+          "description": "OrderListId (OCO)"
+        },
+        "C": {
+          "type": "string",
+          "description": "Original client order ID"
+        },
+        "x": {
+          "type": "string",
+          "enum": [
+            "NEW",
+            "CANCELED",
+            "REPLACED",
+            "REJECTED",
+            "TRADE",
+            "EXPIRED"
+          ],
+          "description": "Current execution type"
+        },
+        "X": {
+          "type": "string",
+          "enum": [
+            "NEW",
+            "PARTIALLY_FILLED",
+            "FILLED",
+            "CANCELED",
+            "PENDING_CANCEL",
+            "REJECTED",
+            "EXPIRED"
+          ],
+          "description": "Current order status"
+        },
+        "r": {
+          "type": "string",
+          "description": "Order reject reason"
+        },
+        "i": {
+          "type": "integer",
+          "description": "Order ID"
+        },
+        "l": {
+          "type": "string",
+          "description": "Last executed quantity"
+        },
+        "z": {
+          "type": "string",
+          "description": "Cumulative filled quantity"
+        },
+        "L": {
+          "type": "string",
+          "description": "Last executed price"
+        },
+        "n": {
+          "type": "string",
+          "description": "Commission amount"
+        },
+        "N": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Commission asset"
+        },
+        "T": {
+          "type": "integer",
+          "description": "Transaction time (milliseconds)"
+        },
+        "t": {
+          "type": "integer",
+          "description": "Trade ID"
+        },
+        "I": {
+          "type": "integer",
+          "description": "Ignore"
+        },
+        "w": {
+          "type": "boolean",
+          "description": "Is the order on the book (is working)"
+        },
+        "m": {
+          "type": "boolean",
+          "description": "Is this trade the maker side"
+        },
+        "M": {
+          "type": "boolean",
+          "description": "Ignore"
+        },
+        "O": {
+          "type": "integer",
+          "description": "Order creation time (milliseconds)"
+        },
+        "Z": {
+          "type": "string",
+          "description": "Cumulative quote asset transacted quantity"
+        },
+        "Y": {
+          "type": "string",
+          "description": "Last quote asset transacted quantity"
+        },
+        "Q": {
+          "type": "string",
+          "description": "Quote order quantity"
+        }
+      }
+    }
+  }
+}
