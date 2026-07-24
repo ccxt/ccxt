@@ -445,7 +445,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    async fetchRawQuestionsBySearch (queries: any[], params = {}): Promise<any[]> {
+    async fetchRawQuestionsBySearch (queries: string[], params = {}): Promise<any[]> {
         const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
         const rest = this.omit (params, [ 'limit' ]);
         const seen: Dict = {};
