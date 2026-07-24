@@ -7,6 +7,7 @@ import type {
     Market, PredictionOrderBook,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder,
     fetchEventsParams,
+    Balances,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -1048,7 +1049,7 @@ export default class binance extends Exchange {
             defaultTif = 'GTC';
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTif);
-        const accountType = this.safeStringUpper (params, 'accountType');
+        const accountType = this.safeString (params, 'accountType');
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
