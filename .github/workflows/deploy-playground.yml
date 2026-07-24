@@ -105,6 +105,18 @@ jobs:
             BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
             GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
           set -e
+          # Self-heal: reclaim disk BEFORE login/pull. The cleanup at the end of this
+          # script only runs when a deploy succeeds, so a full disk would deadlock all
+          # future deploys (docker login can't even write ~/.docker/config.json).
+          # Remove by repo:tag (not image ID) so the :latest tag on the running image
+          # is never touched even when it shares an ID with an old :SHA tag.
+          docker image prune -f >/dev/null 2>&1 || true
+          for repo in "$IMAGE" "$IMAGE_PROXY"; do
+            docker images "$repo" --format '{{.Repository}}:{{.Tag}} {{.Tag}}' \
+              | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+              | xargs -r docker rmi >/dev/null 2>&1 || true
+          done
+          df -h / | tail -1
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           docker pull "$IMAGE:$SHA"
           docker pull "$IMAGE_PROXY:$SHA"

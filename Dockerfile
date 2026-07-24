@@ -24,7 +24,7 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesourc
 RUN apt-get update && apt-get install -y nodejs
 # Python 3
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
-RUN pip3 install 'idna==2.9' --force-reinstall
+RUN pip3 install 'idna==3.18' --force-reinstall
 RUN pip3 install --upgrade pip setuptools==83.0.0
 RUN pip3 install tox
 RUN pip3 install aiohttp
