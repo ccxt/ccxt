@@ -3,27 +3,15 @@ import { Currency, Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
-    if (entry === undefined) {
-        return;
-    }
-    const format = {
+    const baseFormat = {
+        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
-        'code': 'BTC', // uppercase string literal of a pair of currencies
-    };
-    // todo: remove fee from empty
-    const emptyAllowedFor = [ 'name', 'fee' ];
-    // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
-    const currencyType = exchange.safeString (entry, 'type');
-    if (isNative) {
-        format['info'] = {};
-        // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-        format['withdraw'] = true; // withdraw enabled
-        format['deposit'] = true; // deposit enabled
-        format['precision'] = exchange.parseNumber ('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-        format['fee'] = exchange.parseNumber ('0.001');
-        format['networks'] = {};
-        format['limits'] = {
+        'withdraw': true, // withdraw enabled
+        'deposit': true, // deposit enabled
+        'active': true, // if currency is active or not (or frozen)
+        'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
+        'fee': exchange.parseNumber ('0.001'),
+        'limits': {
             'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
@@ -32,28 +20,51 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
                 'min': exchange.parseNumber ('0.01'),
                 'max': exchange.parseNumber ('1000'),
             },
-        };
-        format['type'] = 'crypto'; // crypto, fiat, leverage, other
-        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'leveraged', 'other', undefined ]); // todo: remove undefined
-        // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
-            emptyAllowedFor.push ('deposit');
-        }
-        if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
-            emptyAllowedFor.push ('withdraw');
-        }
-        if (currencyType === 'leveraged' || currencyType === 'other') {
-            emptyAllowedFor.push ('precision');
+        },
+    };
+    const currencyFormat = exchange.deepExtend (baseFormat, {
+        'code': 'BTC', // uppercase string literal of a currency
+        'name': 'Bitcoin', // uppercase string, base currency
+        'networks': {},
+        'type': 'crypto', // crypto, fiat, leveraged, other
+    });
+    const networkFormat = exchange.deepExtend (baseFormat, {
+        'network': 'BEP20', // can be either uppercase unified code or lowercase network id
+    });
+    helperTestSharedCurrencyFormat (exchange, skippedProperties, method, entry, currencyFormat);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
+    // check valid ID & CODE
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
+    // check network entries
+    if (!('networks' in skippedProperties)) {
+        const networks = entry['networks'];
+        const networkKeys: string[] = Object.keys (networks);
+        // check each network entry (they have somewhat similar structure as root currency structure)
+        for (let i = 0; i < networkKeys.length; i++) {
+            const networkCode = networkKeys[i];
+            const networkEntry = networks[networkCode];
+            helperTestSharedCurrencyFormat (exchange, skippedProperties, method, networkEntry, networkFormat);
         }
     }
-    //
-    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
-    // check if empty networks should be skipped
-    const networks = exchange.safeDict (entry, 'networks', {});
-    const networkKeys = Object.keys (networks as object);
-    const networkKeysLength = networkKeys.length;
-    if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
-        return;
+}
+
+function helperTestSharedCurrencyFormat (exchange: Exchange, skippedProperties: object, method: string, entry: any, format: object) {
+    const emptyAllowedFor = [ 'name', 'fee', 'active', 'type' ]; // 'active' key is dynamically checked below
+    const isNetworkEntry = (entry !== undefined) && ('network' in entry);
+    const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const currencyType = isNetworkEntry ? 'crypto' : exchange.safeString (entry, 'type');
+    if (!isNative) {
+        emptyAllowedFor.push ('deposit');
+        emptyAllowedFor.push ('withdraw');
+    }
+    if (currencyType !== 'crypto' && ('depositForNonCrypto' in skippedProperties)) {
+        emptyAllowedFor.push ('deposit');
+    }
+    if (currencyType !== 'crypto' && ('withdrawForNonCrypto' in skippedProperties)) {
+        emptyAllowedFor.push ('withdraw');
+    }
+    if (currencyType === 'leveraged' || currencyType === 'other') {
+        emptyAllowedFor.push ('precision');
     }
     //
     try {
@@ -62,7 +73,6 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         const message: string = exchange.exceptionMessage (e);
         // check structure if key is numeric, not string
         if (message.indexOf ('"id" key') >= 0) {
-            // @ts-ignore
             format['id'] = 123;
             testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         } else {
@@ -70,6 +80,14 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         }
     }
     //
+    if (!('active' in skippedProperties)) {
+        if (entry['deposit'] === false && entry['withdraw'] === false) {
+            assert (entry['active'] === false, 'active must be false if deposit and withdraw are both false');
+        }
+        else if (entry['deposit'] === true && entry['withdraw'] === true) {
+            assert (entry['active'] === true, 'active must be true if deposit and withdraw are both true');
+        }
+    }
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
     if (!('limits' in skippedProperties)) {
@@ -90,9 +108,6 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         if (minStringDeposit !== undefined) {
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
         }
-        // check valid ID & CODE
-        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
-        // todo: networks check
     }
 }
 
