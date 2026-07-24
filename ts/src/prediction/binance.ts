@@ -8,6 +8,7 @@ import type {
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder,
     fetchEventsParams,
     Balances,
+    PredictionOutcome,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -45,6 +46,7 @@ export default class binance extends Exchange {
                 'fetchTickers': true,
                 'fetchBalance': true,
                 'fetchOpenOrders': true,
+                'fetchOrders': false,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -900,6 +902,102 @@ export default class binance extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionOrder
+     * @description parses a raw binance prediction order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [outcomeObj] the ourtome the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parsePredictionOrder (order: Dict, outcomeObj: PredictionOutcome = undefined): PredictionOrder {
+        //
+        // {
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
+        // }
+        //
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if (outcomeObj === undefined) {
+            const marketId = this.safeString (order, 'marketId');
+            const outcome = this.safeStringUpper (order, 'outcome');
+            const market = this.safeMarket (marketId);
+            const outcomeName = market['market'] + ':' + outcome;
+            outcomeObj = this.outcome (outcomeName);
+        }
+        const side = this.safeStringLower (order, 'side');
+        const timestamp = this.safeInteger (order, 'createTime');
+        return this.safePredictionOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'type': this.safeStringLower (order, 'orderType'),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': side,
+            'price': this.safeNumber (order, 'price'),
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'fee': undefined,
+            'trades': [],
+        }, outcomeObj);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses = {
+            'OPENING': 'open',
+            'FILLED': 'closed',
+            // 'canceled': 'canceled',
+            // 'rejected': 'rejected',
+            // 'marginCanceled': 'canceled',
+        };
+        if (status === undefined) {
+            return undefined;
+        }
+        if (status.endsWith ('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith ('Canceled')) {
+            return 'canceled';
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
      * @method
      * @name binance#fetchOpenOrders
      * @description fetches currently open orders for the user
@@ -962,8 +1060,9 @@ export default class binance extends Exchange {
         //     ]
         // }
         //
-        // TODO: parse orders
-        return response;
+        const orders = this.safeList (response, 'orders', []);
+        const parsedOrders = this.parsePredictionOrders (orders, outcomeObj, since);
+        return this.filterByOutcomeSinceLimit (parsedOrders, outcome, since, limit) as PredictionOrder[];
     }
 
     /**
