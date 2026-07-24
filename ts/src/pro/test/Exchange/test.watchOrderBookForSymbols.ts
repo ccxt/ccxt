@@ -25,7 +25,6 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             succeeded = false;
         }
         if (success === true) {
-            response = testSharedMethods.createOrderBookCopy (response);
             currentTime = exchange.milliseconds ();
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook (exchange, skippedProperties, method, response, undefined);
