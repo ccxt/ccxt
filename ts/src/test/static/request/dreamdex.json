@@ -1,0 +1,543 @@
+{
+    "exchange": "dreamdex",
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {
+        "authToken": "test-token",
+        "authTokenExpires": 9999999999999,
+        "builderFee": true,
+        "builder": "0x000000000000000000000000000000000000dEaD",
+        "builderFeeBpsTimes1k": 1000
+    },
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.dreamdex.io/v0/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.dreamdex.io/v0/markets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot orders for SOMI/USDso",
+                "method": "fetchOrders",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Stop orders for SOMI/USDso",
+                "method": "fetchOrders",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders",
+                "input": [
+                    "SOMI/USDso",
+                    null,
+                    null,
+                    { "stop": true }
+                ],
+                "output": null
+            },
+            {
+                "description": "Cross-market orders (no symbol)",
+                "method": "fetchOrders",
+                "url": "https://api.dreamdex.io/v0/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "Cross-market orders with status filter",
+                "method": "fetchOrders",
+                "url": "https://api.dreamdex.io/v0/orders?status=open",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    { "status": "open" }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Open orders for SOMI/USDso",
+                "method": "fetchOpenOrders",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders?status=open",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Pending stop orders for SOMI/USDso",
+                "method": "fetchOpenOrders",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders?status=pending",
+                "input": [
+                    "SOMI/USDso",
+                    null,
+                    null,
+                    { "stop": true }
+                ],
+                "output": null
+            },
+            {
+                "description": "Open orders across all markets (no symbol)",
+                "method": "fetchOpenOrders",
+                "url": "https://api.dreamdex.io/v0/orders?status=open",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Prepare limit buy order for SOMI/USDso",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Prepare market buy order for SOMI/USDso",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"10\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Limit sell order for SOMI/USDso",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "sell",
+                    5,
+                    2.0
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"5\",\"price\":\"2\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Market sell order for SOMI/USDso",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "market",
+                    "sell",
+                    20
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"20\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Limit order with timeInForce IOC",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "timeInForce": "IOC" }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"immediateOrCancel\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Limit order with postOnly",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "postOnly": true }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"postOnly\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Limit order with fundingSource vault and selfMatchingOption cancelTaker",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "fundingSource": "vault", "selfMatchingOption": "cancelTaker" }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"vault\",\"selfMatchingOption\":\"cancelTaker\"}"
+            },
+            {
+                "description": "Limit order with timeInForce FOK",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "timeInForce": "FOK" }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"fillOrKill\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
+            },
+            {
+                "description": "Limit order with wallet fundingSource",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "sell",
+                    100,
+                    1.5,
+                    { "fundingSource": "wallet" }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"wallet\"}"
+            },
+            {
+                "description": "Stop market sell order (stop-loss, inferred lte)",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders",
+                "input": [
+                    "SOMI/USDso",
+                    "market",
+                    "sell",
+                    100,
+                    null,
+                    { "triggerPrice": 1.0 }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"1\",\"triggerOperator\":\"lte\"}"
+            },
+            {
+                "description": "Stop market buy order (stop-buy, inferred gte)",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders",
+                "input": [
+                    "SOMI/USDso",
+                    "market",
+                    "buy",
+                    50,
+                    null,
+                    { "triggerPrice": 1.5 }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"50\",\"triggerPrice\":\"1.5\",\"triggerOperator\":\"gte\"}"
+            },
+            {
+                "description": "Stop limit sell order with explicit triggerOperator gte (take-profit)",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "sell",
+                    100,
+                    1.95,
+                    { "triggerPrice": 2.0, "triggerOperator": "gte" }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"2\",\"triggerOperator\":\"gte\",\"price\":\"1.95\"}"
+            },
+            {
+                "description": "Stop order with stopPrice alias",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders",
+                "input": [
+                    "SOMI/USDso",
+                    "market",
+                    "sell",
+                    100,
+                    null,
+                    { "stopPrice": 1.0 }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"1\",\"triggerOperator\":\"lte\"}"
+            },
+            {
+                "description": "Limit order with explicit builder and builderFeeBpsTimes1k overriding the defaults",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "builder": "0x1111111111111111111111111111111111111111", "builderFeeBpsTimes1k": 2500 }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x1111111111111111111111111111111111111111\",\"builderFeeBpsTimes1k\":2500}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order for SOMI/USDso",
+                "method": "cancelOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders/01KC1F8N2NBP5GEYKE66CRJ34A",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Cancel stop order for SOMI/USDso",
+                "method": "cancelOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders/01KC3B1P4RDS7IGAMH88ETL56C",
+                "input": [
+                    "01KC3B1P4RDS7IGAMH88ETL56C",
+                    "SOMI/USDso",
+                    { "stop": true }
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Reduce order remaining quantity for SOMI/USDso",
+                "method": "editOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders/01KC1F8N2NBP5GEYKE66CRJ34A/reduce",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    50
+                ],
+                "output": "{\"newQuantityRemaining\":\"50\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order for SOMI/USDso",
+                "method": "fetchOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders/01KC1F8N2NBP5GEYKE66CRJ34A",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for SOMI/USDso",
+                "method": "fetchOrderBook",
+                "url": "https://api.dreamdex.io/v0/orderbooks?symbols=SOMI%3AUSDso",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch order book for SOMI/USDso with depth limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.dreamdex.io/v0/orderbooks?symbols=SOMI%3AUSDso&depth=10",
+                "input": [
+                    "SOMI/USDso",
+                    10
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for SOMI/USDso",
+                "method": "fetchTicker",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/tickers",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://api.dreamdex.io/v0/tickers",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "Fetch tickers for specific symbols",
+                "method": "fetchTickers",
+                "url": "https://api.dreamdex.io/v0/tickers?symbols=SOMI%3AUSDso",
+                "input": [
+                    ["SOMI/USDso"]
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for SOMI/USDso",
+                "method": "fetchTrades",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/trades",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades for SOMI/USDso with since and limit",
+                "method": "fetchTrades",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/trades?since=1765534169841&limit=50",
+                "input": [
+                    "SOMI/USDso",
+                    1765534169841,
+                    50
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades for SOMI/USDso",
+                "method": "fetchMyTrades",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/trades/mine",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch my trades for SOMI/USDso with since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/trades/mine?since=1765534169841&limit=50",
+                "input": [
+                    "SOMI/USDso",
+                    1765534169841,
+                    50
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV for SOMI/USDso",
+                "method": "fetchOHLCV",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/candles?interval=1m",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch OHLCV for SOMI/USDso with 1h timeframe",
+                "method": "fetchOHLCV",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/candles?interval=1h",
+                "input": [
+                    "SOMI/USDso",
+                    "1h"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch vault balance for SOMI/USDso market",
+                "method": "fetchBalance",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/balance?walletAddress=wallet",
+                "input": [
+                    { "symbol": "SOMI/USDso" }
+                ],
+                "output": null
+            }
+        ],
+        "vaultDeposit": [
+            {
+                "description": "Deposit SOMI into SOMI/USDso vault",
+                "method": "vaultDeposit",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/deposit",
+                "input": [
+                    "SOMI/USDso",
+                    "SOMI",
+                    100
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"currency\":\"SOMI\",\"amount\":\"100\"}"
+            }
+        ],
+        "vaultWithdraw": [
+            {
+                "description": "Withdraw USDso from SOMI/USDso vault",
+                "method": "vaultWithdraw",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/withdraw",
+                "input": [
+                    "SOMI/USDso",
+                    "USDso",
+                    50
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"currency\":\"USDso\",\"amount\":\"50\"}"
+            }
+        ],
+        "vaultApprove": [
+            {
+                "description": "Approve SOMI for SOMI/USDso vault",
+                "method": "vaultApprove",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/approve",
+                "input": [
+                    "SOMI/USDso",
+                    "SOMI",
+                    100
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"currency\":\"SOMI\",\"amount\":\"100\"}"
+            }
+        ],
+        "fetchBuilderMaxFee": [
+            {
+                "description": "Fetch protocol builder max fee for SOMI/USDso",
+                "method": "fetchBuilderMaxFee",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/max-fee",
+                "input": [
+                    "SOMI/USDso"
+                ]
+            }
+        ],
+        "fetchBuilderApproval": [
+            {
+                "description": "Fetch builder approval for the default builder on SOMI/USDso",
+                "method": "fetchBuilderApproval",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approval?walletAddress=wallet&builder=0x000000000000000000000000000000000000dead",
+                "input": [
+                    "SOMI/USDso"
+                ]
+            }
+        ],
+        "approveBuilder": [
+            {
+                "description": "Approve the default builder up to 2500 BPS_TIMES_1K on SOMI/USDso",
+                "method": "approveBuilder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approve",
+                "input": [
+                    "SOMI/USDso",
+                    2500
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"maxFeeBpsTimes1k\":2500}"
+            }
+        ]
+    }
+}
