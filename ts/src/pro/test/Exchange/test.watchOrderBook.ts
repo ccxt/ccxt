@@ -22,7 +22,6 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
             success = false;
         }
         if (success === true) {
-            response = testSharedMethods.createOrderBookCopy (response);
             now = exchange.milliseconds ();
             testOrderBook (exchange, skippedProperties, method, response, symbol);
         }
