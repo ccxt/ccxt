@@ -116,14 +116,21 @@ func (c *ArrayCache) Append(item any) {
 			c.Hashmap[symbol] = byId
 		}
 		if old, exists := byId[id]; exists {
-			// overwrite in-place (mirror JS behaviour where the reference is
-			// kept alive).  Shallow copy for now.
+			// merge copy-on-write: never mutate the stored map in place. Previously
+			// returned items (via ToArray -> WatchOrders etc.) share these map
+			// references and are read by user goroutines without holding c.Mu, so an
+			// in-place write here is a fatal "concurrent map read and map write"
 			if om, ok := old.(map[string]any); ok {
 				if nm, ok := item.(map[string]any); ok {
-					for k, v := range nm {
-						om[k] = v
+					merged := make(map[string]any, len(om)+len(nm))
+					for k, v := range om {
+						merged[k] = v
 					}
-					item = om // keep the original reference in the array
+					for k, v := range nm {
+						merged[k] = v
+					}
+					byId[id] = merged
+					item = merged // the array slot is replaced below
 				}
 			}
 			shouldAppend = false
@@ -487,13 +494,20 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	bySide := c.Hashmap[symbol]
 
-	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]any); ok {
+	if old, exists := bySide[side]; exists {
+		// merge copy-on-write, same reasoning as ArrayCache.Append: previously
+		// returned items share these map references and are read without c.Mu
+		if om, ok := old.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
-				for k, v := range nm {
-					om[k] = v
+				merged := make(map[string]any, len(om)+len(nm))
+				for k, v := range om {
+					merged[k] = v
 				}
-				item = om
+				for k, v := range nm {
+					merged[k] = v
+				}
+				bySide[side] = merged
+				item = merged // the array slot is replaced below
 			}
 		}
 		shouldAppend = false
