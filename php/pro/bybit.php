@@ -14,6 +14,10 @@ use ccxt\NotSupported;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bybit extends \ccxt\async\bybit {
     public function describe(): mixed {
@@ -490,22 +494,17 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-             *
-             * @param {string[]} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        })();
+        /**
+         * unWatches a price ticker
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         *
+         * @param {string[]} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_tickers(array( $symbol ), $params);
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -910,19 +909,17 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1022,22 +1019,17 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribe from the orderbook channel
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             *
-             * @param {string} $symbol symbol of the market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->limit] orderbook limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        })();
+        /**
+         * unsubscribe from the orderbook channel
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string} $symbol symbol of the market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->limit] orderbook limit, default is null
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -1125,20 +1117,18 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1217,21 +1207,16 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribe from the trades channel
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-             *
-             * @param {string} $symbol unified $symbol of the market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {any} status of the unwatch request
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        })();
+        /**
+         * unsubscribe from the trades channel
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
     public function handle_trades(Client $client, $message) {

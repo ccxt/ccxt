@@ -18,13 +18,14 @@
     "ai": "^6.0.195",
     "ccxt": "^4.5.58",
     "class-variance-authority": "^0.7.1",
+    "feed": "^6.0.0",
     "flexsearch": "^0.8.212",
-    "fumadocs-core": "16.9.2",
-    "fumadocs-mdx": "15.0.9",
-    "fumadocs-ui": "16.9.2",
+    "fumadocs-core": "16.11.5",
+    "fumadocs-mdx": "15.2.0",
+    "fumadocs-ui": "16.11.5",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^1.16.0",
-    "next": "16.2.6",
+    "next": "16.2.11",
     "postcss": "^8.5.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
@@ -49,6 +50,7 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "postcss": "$postcss"
+    "postcss": "$postcss",
+    "sharp": "0.35.0"
   }
 }

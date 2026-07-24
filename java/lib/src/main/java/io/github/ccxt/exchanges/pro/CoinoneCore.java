@@ -76,7 +76,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -169,7 +172,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -304,7 +310,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");

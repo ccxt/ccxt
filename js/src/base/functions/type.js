@@ -57,18 +57,12 @@ const safeStringLower = (o, k, $default) => {
     if (isStringCoercible(x)) {
         return String(x).toLowerCase();
     }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpper = (o, k, $default) => {
     const x = prop(o, k);
     if (isStringCoercible(x)) {
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
     }
     return $default;
 };
@@ -102,18 +96,12 @@ const safeStringLower2 = (o, k1, k2, $default) => {
     if (isStringCoercible(x)) {
         return String(x).toLowerCase();
     }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpper2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
     if (isStringCoercible(x)) {
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
     }
     return $default;
 };
@@ -155,18 +143,12 @@ const safeStringLowerN = (o, k, $default) => {
     if (isStringCoercible(x)) {
         return String(x).toLowerCase();
     }
-    else if (isStringCoercible($default)) {
-        return String($default).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpperN = (o, k, $default) => {
     const x = getValueFromKeysInArray(o, k);
     if (isStringCoercible(x)) {
         return String(x).toUpperCase();
-    }
-    else if (isStringCoercible($default)) {
-        return String($default).toUpperCase();
     }
     return $default;
 };

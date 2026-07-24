@@ -17,6 +17,9 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class aster extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -434,10 +437,12 @@ class aster extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'recvWindow' => 10 * 1000, // 10 sec
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
                 'v3ChainId' => 1666, // Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                'createOrder' => array(
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                ),
                 'accountsByType' => array(
                     'spot' => 'SPOT',
                     'swap' => 'FUTURE',
@@ -2726,7 +2731,7 @@ class aster extends Exchange {
         $request['type'] = $uppercaseType;
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
+                $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
@@ -2795,7 +2800,9 @@ class aster extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $tif = null;
+            list($tif, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            $request['timeInForce'] = $tif;
         }
         $requestParams = $this->omit($params, array( 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($this->safe_bool($this->options, 'builderFee') && $market['swap']) {
@@ -2867,7 +2874,7 @@ class aster extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $clientOrderId = $this->safe_string_n($params, array( 'origClientOrderId', 'clientOrderId' ));
+            $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['origClientOrderId'] = $clientOrderId;
             } else {
@@ -3188,7 +3195,7 @@ class aster extends Exchange {
             //             "amount" => "23.36332311",
             //             "asset" => "USDT",
             //             "symbol" => "BTCUSDT",
-            //             "time" => 1578047897183,
+            //             "time" => 1578047897182,
             //             "type" => 1,
             //             "positionSide" => "BOTH"
             //         }

@@ -168,7 +168,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object options = this.safeDict(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
@@ -202,7 +205,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = "ticker";
             Object options = this.safeDict(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
@@ -289,7 +295,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
@@ -321,7 +330,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = "trades";
             Object options = this.safeDict(this.options, "watchTrades", new java.util.HashMap<String, Object>() {{}});
@@ -402,7 +414,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -438,7 +453,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
@@ -507,7 +525,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object allowedLimits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 20, 150, 400));
@@ -564,7 +585,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = "orderbook";
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
@@ -942,7 +966,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             Object marketId = "*"; // wildcard
             Object market = null;
@@ -1097,7 +1124,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             Object subType = null;
             Object market = null;
@@ -1352,6 +1382,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     put( "id", orderId );
                     put( "trades", trades );
                     put( "status", status );
+                    put( "lastTradeTimestamp", HtxCore.this.safeInteger(finalData, "tradeTime") );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "filled", HtxCore.this.parseNumber(filled) );
                     put( "remaining", HtxCore.this.parseNumber(remaining) );
@@ -1737,7 +1768,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
@@ -1980,7 +2014,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("isUnifiedAccount", "unified")));
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = null;
             Object channel = null;
             Object marginMode = null;

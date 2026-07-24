@@ -1185,6 +1185,7 @@ class htx extends htx$1["default"] {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
+                    'lastTradeTimestamp': this.safeInteger(data, 'tradeTime'),
                     'symbol': market['symbol'],
                     'filled': this.parseNumber(filled),
                     'remaining': this.parseNumber(remaining),

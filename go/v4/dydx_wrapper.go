@@ -931,7 +931,7 @@ func (this *Dydx) FetchTransactionsHelper(options ...FetchTransactionsHelperOpti
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

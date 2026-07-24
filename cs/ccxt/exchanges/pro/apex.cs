@@ -178,12 +178,12 @@ public partial class apex : ccxt.apex
         //     }
         //
         object id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
-        object marketId = this.safeStringN(trade, new List<object>() {"s", "symbol"});
+        object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
-        object side = this.safeStringLowerN(trade, new List<object>() {"S", "side"});
-        object price = this.safeStringN(trade, new List<object>() {"p", "price"});
+        object side = this.safeStringLower2(trade, "S", "side");
+        object price = this.safeString2(trade, "p", "price");
         object amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },

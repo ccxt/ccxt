@@ -195,7 +195,9 @@ class bigone extends Exchange {
                 ),
             ),
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                ),
                 'accountsByType' => array(
                     'spot' => 'SPOT',
                     'fund' => 'FUND',
@@ -1615,7 +1617,7 @@ class bigone extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         } else {
             if ($isBuy) {
-                $createMarketBuyOrderRequiresPrice = true;
+                $createMarketBuyOrderRequiresPrice = null;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');

@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitteam extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -248,9 +250,11 @@ class bitteam extends Exchange {
                     'ufobject' => 'ufobject',
                     'tonchain' => 'tonchain',
                 ),
-                'currenciesValuedInUsd' => array(
-                    'USDT' => true,
-                    'BUSD' => true,
+                'fetchMarkets' => array(
+                    'currenciesValuedInUsd' => array(
+                        'USDT' => true,
+                        'BUSD' => true,
+                    ),
                 ),
             ),
             'features' => array(
@@ -471,7 +475,7 @@ class bitteam extends Exchange {
         $timeStart = $this->safe_string($market, 'timeStart');
         $created = $this->parse8601($timeStart);
         $minCost = null;
-        $currenciesValuedInUsd = $this->safe_value($this->options, 'currenciesValuedInUsd', array());
+        $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
         if ($quoteInUsd) {
             $settings = $this->safe_value($market, 'settings', array());

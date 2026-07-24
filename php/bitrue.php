@@ -369,7 +369,9 @@ class bitrue extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'linear', 'inverse' ),
                 ),

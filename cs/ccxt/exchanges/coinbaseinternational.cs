@@ -2399,7 +2399,7 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until"});
+        object until = this.safeString(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});

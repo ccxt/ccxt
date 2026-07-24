@@ -23,8 +23,16 @@ func (this *ParadexCore) PublicGetMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
+func (this *ParadexCore) PublicGetMarketsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsHistory", args...)
+}
+
 func (this *ParadexCore) PublicGetMarketsKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketsKlines", args...)
+}
+
+func (this *ParadexCore) PublicGetMarketsSettlementPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSettlementPrice", args...)
 }
 
 func (this *ParadexCore) PublicGetMarketsSummary(args ...any) <-chan any {

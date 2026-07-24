@@ -2541,12 +2541,12 @@ public partial class hyperliquid : Exchange
             if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
                 // grouping opposed orders for sl/tp
-                object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
+                object stopLossOrderTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-                object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
-                object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
+                object stopLossOrderLimitPrice = this.safeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+                object takeProfitOrderTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                 object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-                object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
+                object takeProfitOrderLimitPrice = this.safeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
                 grouping = this.safeString(orderParams, "grouping", "normalTpsl");
                 if (isTrue(isEqual(grouping, "positionTpsl")))
                 {

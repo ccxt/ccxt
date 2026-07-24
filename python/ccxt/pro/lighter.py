@@ -373,7 +373,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('unsubscribe')
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+    def watch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -383,9 +383,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_ticker(symbol, params)
+        return self.watch_ticker(symbol, params)
 
-    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -395,9 +395,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_tickers(symbols, params)
+        return self.watch_tickers(symbols, params)
 
-    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+    def un_watch_mark_price(self, symbol: str, params={}) -> Any:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -407,9 +407,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_ticker(symbol, params)
+        return self.un_watch_ticker(symbol, params)
 
-    async def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Any:
+    def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> Any:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -419,7 +419,7 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers(symbols, params)
+        return self.un_watch_tickers(symbols, params)
 
     def parse_ws_trade(self, trade, market: Market = None):
         #

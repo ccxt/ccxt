@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class deepcoin extends \ccxt\async\deepcoin {
     public function describe(): mixed {

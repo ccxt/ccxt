@@ -26,6 +26,11 @@ public partial class ndax : Exchange
         return await this.callAsync ("publicGetAuthenticateUser",parameters);
     }
 
+    public async Task<object> publicGetEnableXP2FA (object parameters = null)
+    {
+        return await this.callAsync ("publicGetEnableXP2FA",parameters);
+    }
+
     public async Task<object> publicGetGetL2Snapshot (object parameters = null)
     {
         return await this.callAsync ("publicGetGetL2Snapshot",parameters);
@@ -71,9 +76,34 @@ public partial class ndax : Exchange
         return await this.callAsync ("publicGetGetInstruments",parameters);
     }
 
+    public async Task<object> publicGetGetEarliestTickTime (object parameters = null)
+    {
+        return await this.callAsync ("publicGetGetEarliestTickTime",parameters);
+    }
+
     public async Task<object> publicGetPing (object parameters = null)
     {
         return await this.callAsync ("publicGetPing",parameters);
+    }
+
+    public async Task<object> publicGetAssets (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAssets",parameters);
+    }
+
+    public async Task<object> publicGetOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOrderbook",parameters);
+    }
+
+    public async Task<object> publicGetTicker (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTicker",parameters);
+    }
+
+    public async Task<object> publicGetSummary (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSummary",parameters);
     }
 
     public async Task<object> publicGetTrades (object parameters = null)
@@ -84,6 +114,11 @@ public partial class ndax : Exchange
     public async Task<object> publicGetGetLastTrades (object parameters = null)
     {
         return await this.callAsync ("publicGetGetLastTrades",parameters);
+    }
+
+    public async Task<object> publicGetConfirmWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("publicGetConfirmWithdraw",parameters);
     }
 
     public async Task<object> publicGetSubscribeLevel1 (object parameters = null)
@@ -341,14 +376,34 @@ public partial class ndax : Exchange
         return await this.callAsync ("privateGetGetWithdrawTicket",parameters);
     }
 
+    public async Task<object> privateGetGetWithdrawTicketAttachment (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGetWithdrawTicketAttachment",parameters);
+    }
+
     public async Task<object> privateGetGetWithdrawTickets (object parameters = null)
     {
         return await this.callAsync ("privateGetGetWithdrawTickets",parameters);
     }
 
+    public async Task<object> privateGetGetDepositTicketAttachment (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGetDepositTicketAttachment",parameters);
+    }
+
     public async Task<object> privatePostAddUserAffiliateTag (object parameters = null)
     {
         return await this.callAsync ("privatePostAddUserAffiliateTag",parameters);
+    }
+
+    public async Task<object> privatePostAddDepositTicketAttachment (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAddDepositTicketAttachment",parameters);
+    }
+
+    public async Task<object> privatePostAddWithdrawTicketAttachment (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAddWithdrawTicketAttachment",parameters);
     }
 
     public async Task<object> privatePostCancelUserReport (object parameters = null)

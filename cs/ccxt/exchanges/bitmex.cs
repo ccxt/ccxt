@@ -269,8 +269,10 @@ public partial class bitmex : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "api-expires", 5 },
-                { "fetchOHLCVOpenTimestamp", true },
+                { "recvWindow", 5000 },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "useOpenTimestamp", true },
+                } },
                 { "oldPrecision", false },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "btc" },
@@ -1115,8 +1117,7 @@ public partial class bitmex : Exchange
             // the exchange sometimes returns null price in the orderbook
             if (isTrue(!isEqual(price, null)))
             {
-                object resultSide = getValue(result, side);
-                ((IList<object>)resultSide).Add(new List<object>() {price, amount});
+                ((IList<object>)getValue(result, side)).Add(new List<object>() {price, amount});
             }
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
@@ -1848,12 +1849,15 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
-        object fetchOHLCVOpenTimestamp = this.safeBool(this.options, "fetchOHLCVOpenTimestamp", true);
+        object useOpenTimestamp = null;
+        var useOpenTimestampparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
+        useOpenTimestamp = ((IList<object>)useOpenTimestampparametersVariable)[0];
+        parameters = ((IList<object>)useOpenTimestampparametersVariable)[1];
         // if since is not set, they will return candles starting from 2017-01-01
         if (isTrue(!isEqual(since, null)))
         {
             object timestamp = since;
-            if (isTrue(fetchOHLCVOpenTimestamp))
+            if (isTrue(useOpenTimestamp))
             {
                 timestamp = this.sum(timestamp, duration);
             }
@@ -1872,7 +1876,7 @@ public partial class bitmex : Exchange
         //     ]
         //
         object result = this.parseOHLCVs(response, market, timeframe, since, limit);
-        if (isTrue(fetchOHLCVOpenTimestamp))
+        if (isTrue(useOpenTimestamp))
         {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
@@ -4007,7 +4011,8 @@ public partial class bitmex : Exchange
         {
             this.checkRequiredCredentials();
             object auth = add(method, query);
-            object expires = this.safeInteger(this.options, "api-expires");
+            object apiExpires = this.safeInteger(this.options, "api-expires"); // backwards compatibility
+            object expires = this.safeIntegerProduct(this.options, "recvWindow", 0.001, apiExpires);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "api-key", this.apiKey },

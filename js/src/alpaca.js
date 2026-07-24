@@ -315,7 +315,9 @@ export default class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -1063,7 +1065,7 @@ export default class alpaca extends Exchange {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType;
             if (type.indexOf('limit') >= 0) {
@@ -1086,8 +1088,9 @@ export default class alpaca extends Exchange {
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        request['time_in_force'] = defaultTIF;
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
         request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
@@ -1345,7 +1348,7 @@ export default class alpaca extends Exchange {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, 'triggerPrice');
@@ -1354,7 +1357,7 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
         let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }

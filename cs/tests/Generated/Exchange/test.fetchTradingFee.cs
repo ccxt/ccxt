@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchTradingFee(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchTradingFee(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchTradingFee";
-        object fee = await exchange.fetchTradingFee(symbol);
+        object fee = await ((dynamic)exchange).fetchTradingFee(symbol);
         assert(exchange.isDictionary(fee), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(fee)));
         testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;

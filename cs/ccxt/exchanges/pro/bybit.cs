@@ -515,10 +515,6 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
@@ -1076,10 +1072,6 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
@@ -1285,10 +1277,6 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 

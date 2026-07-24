@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, List } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -406,13 +406,15 @@ export default class bitvavo extends Exchange {
             'options': {
                 'mica': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+                'recvWindow': 10000, // default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'operatorId': undefined, // this will be required soon for order-related endpoints
-                'fiatCurrencies': [ 'EUR' ], // only fiat atm
+                'fetchCurrencies': {
+                    'fiatCurrencies': [ 'EUR' ], // only fiat atm
+                },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
@@ -617,7 +619,7 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.inArray (code, fiatCurrencies);
@@ -2697,7 +2699,7 @@ export default class bitvavo extends Exchange {
             const timestamp = this.milliseconds ().toString ();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const accessWindow = this.safeString (this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            const accessWindow = this.safeString2 (this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,

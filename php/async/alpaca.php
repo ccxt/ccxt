@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class alpaca extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -316,7 +318,9 @@ class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ),
-                'defaultTimeInForce' => 'gtc', // fok, gtc, ioc
+                'createOrder' => array(
+                    'timeInForce' => 'gtc', // fok, gtc, ioc
+                ),
                 'clientOrderId' => 'ccxt_{id}',
             ),
             'features' => array(
@@ -1093,7 +1097,7 @@ class alpaca extends Exchange {
                 'side' => $side,
                 'type' => $type, // $market, limit, stop_limit
             );
-            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
             if ($triggerPrice !== null) {
                 if (mb_strpos($type, 'limit') !== false) {
                     $newType = 'stop_limit';
@@ -1113,8 +1117,9 @@ class alpaca extends Exchange {
             } else {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
-            $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
+            $defaultTIF = null;
+            list($defaultTIF, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            $request['time_in_force'] = $defaultTIF;
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
             $request['client_order_id'] = $this->generate_client_order_id($params);
             $params = $this->omit($params, array( 'clientOrderId' ));
@@ -1392,7 +1397,7 @@ class alpaca extends Exchange {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
             if ($triggerPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $params = $this->omit($params, 'triggerPrice');
@@ -1401,7 +1406,7 @@ class alpaca extends Exchange {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
             }
             $timeInForce = null;
-            list($timeInForce, $params) = $this->handle_option_and_params_2($params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+            list($timeInForce, $params) = $this->handle_option_and_params($params, 'editOrder', 'timeInForce', 'gtc');
             if ($timeInForce !== null) {
                 $request['time_in_force'] = $timeInForce;
             }

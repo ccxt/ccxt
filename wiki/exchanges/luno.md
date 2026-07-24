@@ -36,6 +36,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>luno</code>](#luno)  
 **Returns**: <code>dict</code> - an associative dictionary of currencies
 
+**See**: https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -447,6 +448,7 @@ create a currency deposit address
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.name | <code>string</code> | No | an optional name for the new address |
 | params.account_id | <code>int</code> | No | an optional account id for the new address |
+| params.network | <code>int</code> | No | the blockchain network id to use |
 
 
 ```javascript
@@ -469,6 +471,7 @@ fetch the deposit address for a currency associated with this account
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.address | <code>string</code> | No | a specific cryptocurrency address to retrieve |
+| params.network | <code>int</code> | No | the blockchain network id to use |
 
 
 ```javascript
@@ -507,6 +510,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>luno</code>](#luno)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
+**See**: https://www.luno.com/en/developers/api#tag/Streaming-API  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

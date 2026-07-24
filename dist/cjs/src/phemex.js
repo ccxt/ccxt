@@ -2758,11 +2758,11 @@ class phemex extends phemex$1["default"] {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = this.numberToString(cost);
+                const costString = this.costToPrecision(symbol, cost);
                 request['quoteQtyEv'] = this.toEv(costString, market);
             }
             else {
-                const amountString = this.numberToString(amount);
+                const amountString = this.amountToPrecision(symbol, amount);
                 request['baseQtyEv'] = this.toEv(amountString, market);
             }
         }

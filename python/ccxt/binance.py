@@ -1343,7 +1343,7 @@ class binance(Exchange, ImplicitAPI):
             # exchange-specific options
             'options': {
                 'sandboxMode': False,
-                'fetchMargins': True,
+                'fetchMargins': True,  # todo: reorganize
                 'fetchMarkets': {
                     'types': [
                         'spot',  # allows CORS in browsers
@@ -1351,25 +1351,34 @@ class binance(Exchange, ImplicitAPI):
                         'inverse',  # allows CORS in browsers
                         # 'option',  # does not allow CORS, enable outside of the browser only
                     ],
+                    'loadAllOptions': False,
                 },
-                'loadAllOptions': False,
-                'fetchCurrencies': True,  # self is a private call and it requires API keys
+                'fetchCurrencies': True,  # self is a private call and it requires API keys  # todo: reorganize
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 # 'repayCrossMarginMethod': 'papiPostRepayLoan',  # papiPostMarginRepayDebt
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                'createOrder': {
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                    'warnOnSTPForInverse': True,
+                    'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                },
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
-                'warnOnFetchOpenOrdersWithoutSymbol': True,
-                'warnOnSTPForInverse': True,
+                'fetchOpenOrders': {
+                    'warnWithoutSymbol': True,
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
                 # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 # binanceusdm
-                'throwMarginModeAlreadySet': False,
-                'fetchPositions': 'positionRisk',  # or 'account' or 'option'
+                'setMarginMode': {
+                    'throwMarginModeAlreadySet': True,
+                },
+                'fetchPositions': {
+                    'method': 'positionRisk',  # or 'account' or 'option'
+                },
                 'recvWindow': 10 * 1000,  # 10 sec
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -1377,7 +1386,6 @@ class binance(Exchange, ImplicitAPI):
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
@@ -3213,8 +3221,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             # for backward-compatibility
             rawFetchMarkets = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
-        # handle loadAllOptions option
-        loadAllOptions = self.safe_bool(self.options, 'loadAllOptions', False)
+        loadAllOptions = self.handle_option('fetchMarkets', 'loadAllOptions', False)
         if loadAllOptions:
             if not self.in_array('option', rawFetchMarkets):
                 rawFetchMarkets.append('option')
@@ -3752,6 +3759,10 @@ class binance(Exchange, ImplicitAPI):
                 balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
+                # skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid(see https://github.com/ccxt/ccxt/issues/27997)
+                updateTime = self.safe_integer(balance, 'updateTime')
+                if updateTime == 0:
+                    continue
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -5113,15 +5124,40 @@ class binance(Exchange, ImplicitAPI):
             maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
             request['limit'] = min(limit, maxLimitForContractHistorical) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
+        if method is None:
+            if market['option']:
+                method = 'eapiPublicGetTrades'
+            elif market['linear']:
+                method = 'fapiPublicGetAggTrades'
+            elif market['inverse']:
+                method = 'dapiPublicGetAggTrades'
+            else:
+                method = 'publicGetAggTrades'
         response = None
-        if market['option'] or method == 'eapiPublicGetTrades':
-            response = self.eapiPublicGetTrades(self.extend(request, params))
-        elif market['linear'] or method == 'fapiPublicGetAggTrades':
-            response = self.fapiPublicGetAggTrades(self.extend(request, params))
-        elif market['inverse'] or method == 'dapiPublicGetAggTrades':
-            response = self.dapiPublicGetAggTrades(self.extend(request, params))
-        else:
+        if method == 'publicGetAggTrades':
             response = self.publicGetAggTrades(self.extend(request, params))
+        elif method == 'publicGetTrades':
+            response = self.publicGetTrades(self.extend(request, params))
+        elif method == 'publicGetHistoricalTrades':
+            response = self.publicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetAggTrades':
+            response = self.fapiPublicGetAggTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetTrades':
+            response = self.fapiPublicGetTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetHistoricalTrades':
+            response = self.fapiPublicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetAggTrades':
+            response = self.dapiPublicGetAggTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetTrades':
+            response = self.dapiPublicGetTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetHistoricalTrades':
+            response = self.dapiPublicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'eapiPublicGetTrades':
+            response = self.eapiPublicGetTrades(self.extend(request, params))
+        elif method == 'eapiPublicGetHistoricalTrades':
+            response = self.eapiPublicGetHistoricalTrades(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTrades() does not support self method')
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
@@ -5308,7 +5344,7 @@ class binance(Exchange, ImplicitAPI):
         triggerPriceIsRequired = False
         quantityIsRequired = False
         if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
+            quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
             if quoteOrderQty:
                 quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                 precision = market['precision']['price']
@@ -5345,7 +5381,7 @@ class binance(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' editOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = self.handle_option('createOrder', 'timeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if triggerPriceIsRequired:
             if triggerPrice is None:
                 raise InvalidOrder(self.id + ' editOrder() requires a triggerPrice extra param for a ' + type + ' order')
@@ -6540,7 +6576,7 @@ class binance(Exchange, ImplicitAPI):
         #
         if uppercaseType == 'MARKET':
             if market['spot']:
-                quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
+                quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
                 if quoteOrderQty:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
@@ -6617,7 +6653,7 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
-            request['timeInForce'] = self.safe_string(self.options, 'defaultTimeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = self.handle_option('createOrder', 'timeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if not isPortfolioMargin and market['contract'] and postOnly:
             request['timeInForce'] = 'GTX'
         # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
@@ -6633,8 +6669,9 @@ class binance(Exchange, ImplicitAPI):
         selfTradePrevention = None
         selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
-            if market['inverse'] and self.options['warnOnSTPForInverse']:
-                raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable self warning set the "warnOnSTPForInverse" option to False.')
+            warnOnStpForInverse = self.handle_option('createOrder', 'warnOnSTPForInverse')
+            if market['inverse'] and warnOnStpForInverse:
+                raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable self warning set the .options["createOrder"]["warnOnSTPForInverse"] to False.')
             request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
         # unified iceberg
         icebergAmount = self.safe_number(params, 'icebergAmount')
@@ -7087,11 +7124,14 @@ class binance(Exchange, ImplicitAPI):
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             marketType = market['type'] if ('type' in market) else defaultType
             type = self.safe_string(params, 'type', marketType)
-        elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
-            raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits(10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge self warning, set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
-            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-            type = self.safe_string(params, 'type', defaultType)
+            warnWithoutSymbol = self.safe_bool(self.options['fetchOpenOrders'], 'warnWithoutSymbol')
+            optValue = self.safe_bool(self.options, 'warnOnFetchOpenOrdersWithoutSymbol')  # for backward compatibility
+            if optValue or (optValue is None and warnWithoutSymbol):
+                raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits(10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = False to suppress self warning message.')
+            else:
+                defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+                type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
         params = self.omit(params, ['type', 'stop', 'trigger', 'conditional'])
@@ -9859,7 +9899,7 @@ class binance(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(market, 'symbol')
-        leverageString = self.safe_string(position, 'leverage')
+        leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see  #29244
         leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
@@ -10177,7 +10217,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         initialMarginString = None
         initialMarginPercentageString = None
-        leverageString = self.safe_string(position, 'leverage')
+        leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see  #29244
         if leverageString is not None:
             leverage = int(leverageString)
             rational = self.is_round_number(1000 % leverage)
@@ -10557,12 +10597,15 @@ class binance(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method')
+        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method')  # check if there is a key in options|params
         if defaultMethod is None:
+            # check if .options['fetchPositions'] dict exist at all
             options = self.safe_dict(self.options, 'fetchPositions')
             if options is None:
+                # if None, for backward compatibility, check if it is a string
                 defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
             else:
+                # if it is a dict, then it doesn't seem to have any 'method', so set default value
                 defaultMethod = 'positionRisk'
         if defaultMethod == 'positionRisk':
             return self.fetch_positions_risk(symbols, params)
@@ -11012,7 +11055,7 @@ class binance(Exchange, ImplicitAPI):
             # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             # binanceusdm
             if isinstance(e, MarginModeAlreadySet):
-                throwMarginModeAlreadySet = self.safe_bool(self.options, 'throwMarginModeAlreadySet', False)
+                throwMarginModeAlreadySet = self.handle_option('setMarginMode', 'throwMarginModeAlreadySet', False)
                 if throwMarginModeAlreadySet:
                     raise e
                 else:

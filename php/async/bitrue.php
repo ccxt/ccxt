@@ -18,6 +18,9 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class bitrue extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -379,7 +382,9 @@ class bitrue extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'linear', 'inverse' ),
                 ),

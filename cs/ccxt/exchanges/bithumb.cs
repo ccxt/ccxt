@@ -1272,7 +1272,7 @@ public partial class bithumb : Exchange
                 { "endpoint", endpoint },
             }, query));
             object nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(add(add(endpoint, " "), body), " "), nonce); // eslint-disable-line quotes
+            object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             object signature64 = this.stringToBase64(signature);
             headers = new Dictionary<string, object>() {

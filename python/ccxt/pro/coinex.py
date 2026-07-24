@@ -1028,7 +1028,7 @@ class coinex(ccxt.async_support.coinex):
         #     }
         #
         data = self.safe_dict(message, 'data', {})
-        order = self.safe_dict_2(data, 'order', 'stop', {})
+        order = self.extend({'status': self.safe_string(data, 'event')}, self.safe_dict_2(data, 'order', 'stop', {}))
         parsedOrder = self.parse_ws_order(order)
         symbol = parsedOrder['symbol']
         market = self.market(symbol)
@@ -1176,6 +1176,10 @@ class coinex(ccxt.async_support.coinex):
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
+            'put': 'open',
+            'update': 'open',
+            'modify': 'open',
+            'finish': 'closed',
         }
         return self.safe_string(statuses, status, status)
 

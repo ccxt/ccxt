@@ -116,7 +116,7 @@ public class KrakenCore extends KrakenApi
                     put( "zendesk", "https://kraken.zendesk.com/api/v2/help_center/en-us/articles" );
                 }} );
                 put( "www", "https://www.kraken.com" );
-                put( "doc", "https://docs.kraken.com/rest/" );
+                put( "doc", "https://docs.kraken.com/api-reference/" );
                 put( "fees", "https://www.kraken.com/en-us/features/fee-schedule" );
             }} );
             put( "fees", new java.util.HashMap<String, Object>() {{
@@ -145,7 +145,6 @@ public class KrakenCore extends KrakenApi
                         put( "Ticker", 1 );
                         put( "OHLC", 1.2 );
                         put( "Depth", 1.2 );
-                        put( "Level3", 1.2 );
                         put( "GroupedBook", 1.2 );
                         put( "Trades", 1.2 );
                         put( "Spread", 1 );
@@ -155,6 +154,7 @@ public class KrakenCore extends KrakenApi
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "Level3", 1.2 );
                         put( "Balance", 3 );
                         put( "BalanceEx", 3 );
                         put( "CreditLines", 3 );
@@ -553,7 +553,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchMarkets
      * @description retrieves data on all markets for kraken
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+     * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -742,7 +742,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+     * @see https://docs.kraken.com/api-reference/market-data/get-system-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -777,7 +777,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+     * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -934,7 +934,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+     * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -945,7 +945,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1018,7 +1021,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+     * @see https://docs.kraken.com/api-reference/market-data/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1031,7 +1034,10 @@ public class KrakenCore extends KrakenApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1131,7 +1137,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1143,7 +1149,10 @@ public class KrakenCore extends KrakenApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -1181,7 +1190,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1192,7 +1201,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1226,7 +1238,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+     * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1244,7 +1256,10 @@ public class KrakenCore extends KrakenApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1369,7 +1384,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+     * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -1388,7 +1403,10 @@ public class KrakenCore extends KrakenApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -1400,7 +1418,7 @@ public class KrakenCore extends KrakenApi
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -1441,7 +1459,10 @@ public class KrakenCore extends KrakenApi
             // https://www.kraken.com/features/api#query-ledgers
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             ids = String.join((String)",", (java.util.List<String>)ids);
             final Object finalIds = ids;
             Object request = this.extend(new java.util.HashMap<String, Object>() {{
@@ -1667,7 +1688,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+     * @see https://docs.kraken.com/api-reference/market-data/get-recent-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1682,7 +1703,10 @@ public class KrakenCore extends KrakenApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1753,7 +1777,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+     * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1763,7 +1787,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privatePostBalanceEx(parameters)).join();
             //
             //     {
@@ -1789,7 +1816,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#createMarketOrderWithCost
      * @description create a market order by providing the symbol, side and cost
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+     * @see https://docs.kraken.com/api-reference/trading/add-order
      * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -1802,7 +1829,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             // only buy orders are supported by the endpoint
             Object req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
@@ -1816,7 +1846,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol, side and cost
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+     * @see https://docs.kraken.com/api-reference/trading/add-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1828,7 +1858,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             return (this.createMarketOrderWithCost(symbol, "buy", cost, parameters)).join();
         });
 
@@ -1838,7 +1871,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#createOrder
      * @description create a trade order
-     * @see https://docs.kraken.com/api/docs/rest-api/add-order
+     * @see https://docs.kraken.com/api-reference/trading/add-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1864,7 +1897,10 @@ public class KrakenCore extends KrakenApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1899,7 +1935,7 @@ public class KrakenCore extends KrakenApi
      * @method
      * @name kraken#createOrders
      * @description create a list of trade orders
-     * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+     * @see https://docs.kraken.com/api-reference/trading/add-order-batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1910,7 +1946,10 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbol = null;
@@ -2535,7 +2574,7 @@ final Object finalId = id;
      * @method
      * @name kraken#editOrder
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/rest-api/amend-order
+     * @see https://docs.kraken.com/api-reference/trading/amend-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -2562,7 +2601,10 @@ final Object finalId = id;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2628,7 +2670,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+     * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
      * @param {string} id order id
      * @param {string} symbol not used by kraken fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2641,7 +2683,10 @@ final Object finalId = id;
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
             final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2708,7 +2753,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+     * @see https://docs.kraken.com/api-reference/account-data/query-trades-info
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2744,7 +2789,10 @@ final Object finalId = id;
                     }
                 }
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
@@ -2810,7 +2858,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchOrdersByIds
      * @description fetch orders by the list of order id
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+     * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
      * @param {string[]} [ids] list of order id
      * @param {string} [symbol] unified ccxt market symbol
      * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -2823,7 +2871,10 @@ final Object finalId = id;
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privatePostQueryOrders(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "trades", true );
                 put( "txid", String.join((String)",", (java.util.List<String>)ids) );
@@ -2849,7 +2900,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
+     * @see https://docs.kraken.com/api-reference/account-data/get-trades-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2867,13 +2918,16 @@ final Object finalId = id;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -2929,7 +2983,7 @@ final Object finalId = id;
      * @method
      * @name kraken#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
+     * @see https://docs.kraken.com/api-reference/trading/cancel-order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2944,7 +2998,10 @@ final Object finalId = id;
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
             parameters = this.omit(parameters, "userref");
@@ -2984,7 +3041,7 @@ final Object finalId = id;
      * @method
      * @name kraken#cancelOrders
      * @description cancel multiple orders
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+     * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
      * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3020,7 +3077,7 @@ final Object finalId = id;
      * @method
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+     * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
      * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3032,7 +3089,10 @@ final Object finalId = id;
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privatePostCancelAll(parameters)).join();
             //
             //    {
@@ -3053,7 +3113,7 @@ final Object finalId = id;
      * @method
      * @name kraken#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+     * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -3068,7 +3128,10 @@ final Object finalId = id;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? (KrakenCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
@@ -3092,7 +3155,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+     * @see https://docs.kraken.com/api-reference/account-data/get-open-orders
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3110,7 +3173,10 @@ final Object finalId = id;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3192,7 +3258,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+     * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3211,7 +3277,10 @@ final Object finalId = id;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3452,7 +3521,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+     * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3471,7 +3540,10 @@ final Object finalId = id;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3483,7 +3555,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3513,7 +3585,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+     * @see https://docs.kraken.com/api-reference/market-data/get-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -3544,7 +3616,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+     * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3563,7 +3635,10 @@ final Object finalId = id;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3584,7 +3659,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3662,7 +3737,7 @@ final Object finalId = id;
      * @method
      * @name kraken#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3685,7 +3760,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchDepositMethods
      * @description fetch deposit methods for a currency associated with this account
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the kraken api endpoint
      * @returns {object} of deposit methods
@@ -3696,7 +3771,10 @@ final Object finalId = id;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
@@ -3734,7 +3812,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3745,7 +3823,10 @@ final Object finalId = id;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object code = code3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object network = this.safeStringUpper(parameters, "network");
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -3835,7 +3916,7 @@ final Object finalId = id;
      * @method
      * @name kraken#withdraw
      * @description make a withdrawal
-     * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+     * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
@@ -3887,7 +3968,7 @@ final Object finalId = id;
      * @method
      * @name kraken#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+     * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
      * @param {string[]} [symbols] not used by kraken fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3899,7 +3980,10 @@ final Object finalId = id;
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "docalcs", "true" );
                 put( "consolidation", "market" );
@@ -4023,7 +4107,7 @@ final Object finalId = id;
      * @method
      * @name kraken#transferOut
      * @description transfer from spot wallet to futures wallet
-     * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+     * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
      * @param {str} code Unified currency code
      * @param {float} amount Size of the transfer
      * @param {dict} [params] Exchange specific parameters
@@ -4043,7 +4127,7 @@ final Object finalId = id;
     /**
      * @method
      * @name kraken#transfer
-     * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+     * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
      * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
      * @param {string} code Unified currency code
      * @param {float} amount Size of the transfer
@@ -4058,7 +4142,10 @@ final Object finalId = id;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object fromAccountParsed = this.parseAccountType(fromAccount);
             Object toAccountParsed = this.parseAccountType(toAccount);

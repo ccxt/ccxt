@@ -376,7 +376,9 @@ export default class bitrue extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse'],
                 },

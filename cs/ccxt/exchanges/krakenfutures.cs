@@ -1630,7 +1630,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchClosedOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2173,7 +2174,7 @@ public partial class krakenfutures : Exchange
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
-                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "clientOrderId", this.safeString(orderDictFromFetchOrder, "cliOrdId") },
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
                 { "lastTradeTimestamp", null },

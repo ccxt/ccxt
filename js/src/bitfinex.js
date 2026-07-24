@@ -342,8 +342,12 @@ export default class bitfinex extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0', // P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision': 8, // default currency precision
+                'fetchOrderBook': {
+                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8, // default currency precision
+                },
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -885,7 +889,8 @@ export default class bitfinex extends Exchange {
         const fees = this.safeList(feeValues, 1, []);
         const fee = this.safeNumber(fees, 1);
         const undl = this.safeList(indexed['undl'], id, []);
-        const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
+        const defaultCurrencyPrecision = this.safeString(this.options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
+        const precision = this.handleOption('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision);
         const networks = {};
         const networkIds = this.safeList(indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
@@ -1144,7 +1149,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const precision = this.safeValue(this.options, 'precision', 'R0');
+        const precision = this.handleOption('fetchOrderBook', 'precision', 'R0');
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1171,8 +1176,7 @@ export default class bitfinex extends Exchange {
             const signedAmount = this.safeString(order, 2);
             const amount = Precise.stringAbs(signedAmount);
             const side = Precise.stringGt(signedAmount, '0') ? 'bids' : 'asks';
-            const resultSide = result[side];
-            resultSide.push([price, this.parseNumber(amount)]);
+            result[side].push([price, this.parseNumber(amount)]);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);

@@ -1,0 +1,2610 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
+var kalshi$1 = require('../abstract/prediction/kalshi.js');
+var Precise = require('../base/Precise.js');
+var rsa = require('../base/functions/rsa.js');
+var errors = require('../base/errors.js');
+
+// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+/**
+ * @class kalshi
+ * @augments Exchange
+ */
+class kalshi extends kalshi$1["default"] {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'kalshi',
+            'name': 'Kalshi',
+            'countries': ['US'],
+            'rateLimit': 200,
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': false,
+                'fetchEvent': true,
+                'fetchEvents': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
+                'fetchSettlements': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'prediction': true,
+            },
+            'timeframes': {
+                // kalshi's candlesticks period_interval accepts ONLY 1 (minute), 60 (hour) or
+                // 1440 (day) — advertising 5m/15m/6h would 400 at the API
+                '1m': 1,
+                '1h': 60,
+                '1d': 1440,
+            },
+            'urls': {
+                'logo': 'https://github.com/user-attachments/assets/74fc2acb-58d0-4db0-b316-3124e7dc24db',
+                'api': {
+                    'kalshi': 'https://external-api.kalshi.com/trade-api/v2',
+                    // free-text search (/v1/search/series) lives only on the elections web host —
+                    // external-api returns 404 for it. discovery-only, read-only, no auth.
+                    'elections': 'https://api.elections.kalshi.com/v1',
+                },
+                'test': {
+                    'kalshi': 'https://external-api.demo.kalshi.co/trade-api/v2',
+                    // demo has no synthetic search index; point discovery at the live elections host
+                    'elections': 'https://api.elections.kalshi.com/v1',
+                },
+                'www': 'https://kalshi.com',
+                'doc': ['https://trading-api.readme.io/reference/getting-started'],
+            },
+            'api': {
+                'kalshi': {
+                    'public': {
+                        'get': {
+                            'events': 1,
+                            'events/multivariate': 1,
+                            'events/fee_changes': 1,
+                            'events/{event_ticker}': 1,
+                            'events/{event_ticker}/metadata': 1,
+                            'series': 1,
+                            'series/fee_changes': 1,
+                            'series/{series_ticker}': 1,
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
+                            'markets': 1,
+                            'markets/trades': 1,
+                            'markets/orderbooks': 1,
+                            'markets/candlesticks': 1,
+                            'markets/{ticker}': 1,
+                            'markets/{ticker}/orderbook': 1,
+                            'exchange/status': 1,
+                            'exchange/schedule': 1,
+                            'exchange/announcements': 1,
+                            'exchange/user_data_timestamp': 1,
+                            'milestones': 1,
+                            'milestones/{milestone_id}': 1,
+                            'structured_targets': 1,
+                            'structured_targets/{structured_target_id}': 1,
+                            'search/filters_by_sport': 1,
+                            'search/tags_by_categories': 1,
+                            'live_data/batch': 1,
+                            'live_data/milestone/{milestone_id}': 1,
+                            'historical/markets': 1,
+                            'historical/markets/{ticker}/candlesticks': 1,
+                            'historical/trades': 1,
+                            'historical/cutoff_timestamps': 1,
+                            'multivariate_event_collections': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'incentive_programs': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'portfolio/balance': 1,
+                            'portfolio/orders': 1,
+                            'portfolio/orders/{order_id}': 1,
+                            'portfolio/orders/{order_id}/queue_position': 1,
+                            'portfolio/orders/queue_positions': 1,
+                            'portfolio/positions': 1,
+                            'portfolio/fills': 1,
+                            'portfolio/settlements': 1,
+                            'portfolio/deposits': 1,
+                            'portfolio/withdrawals': 1,
+                            'portfolio/order_groups': 1,
+                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/summary/total_resting_order_value': 1,
+                            'portfolio/subaccounts/balances': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'portfolio/subaccounts/transfers': 1,
+                            'historical/fills': 1,
+                            'historical/orders': 1,
+                        },
+                        'post': {
+                            'portfolio/orders': 1,
+                            'portfolio/events/orders': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/orders/{order_id}/amend': 1,
+                            'portfolio/orders/{order_id}/decrease': 1,
+                            'portfolio/order_groups/create': 1,
+                            'portfolio/subaccounts': 1,
+                            'portfolio/subaccounts/transfer': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                        },
+                        'put': {
+                            'portfolio/order_groups/{order_group_id}/reset': 1,
+                            'portfolio/order_groups/{order_group_id}/trigger': 1,
+                            'portfolio/order_groups/{order_group_id}/limit': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                        },
+                        'delete': {
+                            'portfolio/orders/{order_id}': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': 1,
+                        },
+                    },
+                },
+                'elections': {
+                    'public': {
+                        'get': {
+                            'search/series': 1, // free-text series/event search — elections web host only
+                        },
+                    },
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': true, // KALSHI-ACCESS-KEY (UUID)
+                'secret': false, // not used — signing is RSA with privateKey, override base default
+                'privateKey': true, // RSA PEM private key for signing
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0,
+                    'taker': 0.07, // 7% fee on profit
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'not_found': errors.BadSymbol, // 404 for an unknown market/ticker id — distinguish from an outage
+                    'invalid_order': errors.InvalidOrder, // bad price/size/params on a 400
+                    'fill_or_kill_insufficient_resting_volume': errors.OrderNotFillable, // a killed FOK is a normal outcome, not an outage
+                },
+                'broad': {},
+            },
+            'options': {
+                'defaultFetchEventsLimit': 200, // events page size for the per-series /events cursor scan
+                'maxFetchMarketsLimit': 1000, // markets page size / max markets collected per unscoped listing
+                'searchSeriesLimit': 25, // page_size for the free-text series search endpoint (used when no limit is given)
+                'maxFetchEventsResults': 100, // default cap on events actually fetched when the caller gives no limit
+                'maxEventPagesPerSeries': 20, // safety cap on /events pages fetched per resolved series
+                'defaultEventStatus': 'open', // 'open' | 'closed' | 'settled'
+                // venue-specific fetchEvents scope params accepted by requireEventQuery in
+                // addition to the unified query/queries/tags/eventId/slug
+                'eventScopeParams': ['category', 'series_ticker'],
+            },
+        });
+    }
+    /**
+     * @method
+     * @name kalshi#fetchMarkets
+     * @description fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
+     * @see https://trading-api.readme.io/reference/getmarkets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
+     * @param {string[]} [params.queries] multiple search queries (alternative to query); markets from any matching event are returned
+     * @param {int} [params.limit] for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets(params = {}) {
+        const queries = this.parseSearchQueries(params);
+        const queriesLength = queries.length;
+        // kalshi's public markets endpoint has no free-text search, so a query would otherwise
+        // force a client-side scan of every open market (thousands, paged 1000 at a time, which
+        // hangs). Resolve the query against the events endpoint instead — it is bounded by
+        // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
+        // markets — then flatten those markets.
+        if (queriesLength > 0) {
+            const eventParams = this.omit(params, ['limit']);
+            const events = await this.fetchEvents(eventParams);
+            const eventsLength = events.length;
+            const queryMarkets = [];
+            for (let ei = 0; ei < eventsLength; ei++) {
+                const eventMarkets = this.safeList(events[ei], 'markets', []);
+                const eventMarketsLength = eventMarkets.length;
+                for (let mi = 0; mi < eventMarketsLength; mi++) {
+                    queryMarkets.push(eventMarkets[mi]);
+                }
+            }
+            return queryMarkets;
+        }
+        const rest = this.omit(params, ['query', 'queries', 'limit']);
+        // no query: page the markets listing directly. Cap the total collected so an unscoped
+        // loadMarkets cannot run away through every kalshi market via the cursor.
+        const maxMarkets = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'maxFetchMarketsLimit', 1000));
+        const flatMarkets = [];
+        const eventsDict = {};
+        let cursor = undefined;
+        // don't request a full 1000-market page (3+ MB) when the caller wants fewer
+        const pageLimit = this.safeInteger(this.options, 'marketsPageLimit', 1000);
+        const limit = Math.min(maxMarkets, pageLimit);
+        // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
+        // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
+        // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
+        const status = this.safeString(rest, 'status', 'open');
+        while (true) {
+            const request = { 'limit': limit, 'status': status };
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            const response = await this.kalshiPublicGetMarkets(this.extend(request, rest));
+            const rawMarkets = this.safeList(response, 'markets', []);
+            const rawMarketsLength = rawMarkets.length;
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const parsed = this.parseBinaryMarketToOutcomes(raw);
+                const eventTicker = this.safeString(raw, 'event_ticker');
+                const eventTitle = this.safeString(raw, 'title', eventTicker);
+                const eventKey = eventTitle ? this.shortenSlug(eventTitle) : undefined;
+                for (let j = 0; j < parsed.length; j++) {
+                    const m = parsed[j];
+                    flatMarkets.push(m);
+                    if (eventKey) {
+                        if (!(eventKey in eventsDict)) {
+                            eventsDict[eventKey] = {
+                                'id': eventTicker,
+                                'slug': eventTicker,
+                                'event': eventKey,
+                                'title': eventTitle,
+                                'markets': [],
+                            };
+                        }
+                        const eventEntry = eventsDict[eventKey];
+                        // push through a local and write the slice back — the go transpiler's
+                        // AppendToArray reassigns only a local copy of a map-stored array, so a
+                        // direct push on eventEntry['markets'] loses the element in go
+                        const entryMarkets = eventEntry['markets'];
+                        entryMarkets.push(m);
+                        eventEntry['markets'] = entryMarkets;
+                    }
+                }
+            }
+            cursor = this.safeString(response, 'cursor');
+            const collectedLength = flatMarkets.length;
+            if (!cursor || rawMarketsLength < limit || collectedLength >= maxMarkets) {
+                break;
+            }
+        }
+        this.events = eventsDict;
+        const flatMarketsLength = flatMarkets.length;
+        if (flatMarketsLength > maxMarkets) {
+            return this.arraySlice(flatMarkets, 0, maxMarkets);
+        }
+        return flatMarkets;
+    }
+    parseBinaryMarketToOutcomes(raw) {
+        return [this.parseMarket(raw)];
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcome
+     * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
+     * thousands of markets, so an id-form miss fetches just the requested market by ticker, and a
+     * handle-form miss resolves through the series-scoped events listing (a handle's first token is
+     * its series ticker); both merge into the cache so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
+     * @returns {object} the resolved outcome object
+     */
+    async fetchOutcome(outcomeSymbol) {
+        // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
+        // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
+        // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
+        // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
+        // never satisfies `< 0` and id-form inputs take the wrong branch
+        if (outcomeSymbol.indexOf(':') < 0) {
+            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
+            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
+            // the python transpiler — this form emits strlen()/len() correctly in both
+            const symbolLength = this.parseToInt(outcomeSymbol.length);
+            const suffix = outcomeSymbol.slice(symbolLength - 3);
+            const isNo = (suffix === '-NO');
+            const baseTicker = isNo ? outcomeSymbol.slice(0, symbolLength - 3) : outcomeSymbol;
+            let response = undefined;
+            try {
+                response = await this.kalshiPublicGetMarketsTicker({ 'ticker': baseTicker });
+            }
+            catch (e) {
+                // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
+                // fall through to the search-driven base resolution; let network failures propagate
+                if (!(e instanceof errors.BadSymbol)) {
+                    throw e;
+                }
+                response = undefined;
+            }
+            if (response !== undefined) {
+                const rawMarket = this.safeDict(response, 'market', response);
+                const parsed = this.parseMarket(rawMarket);
+                if (this.markets === undefined) {
+                    this.markets = this.createSafeDictionary();
+                }
+                this.markets[parsed['market']] = parsed;
+                // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+                // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+                this.indexMarketOutcomes(parsed);
+                return this.outcome(outcomeSymbol);
+            }
+        }
+        else {
+            // handle-form: handles are shortenSlug(event_ticker) + '_' + <market slug> and kalshi
+            // series tickers are single alphanumeric segments, so the handle's first '_' token is
+            // its series ticker — fetch that series' open events (server-side filter, one page in
+            // the common case) and re-check the cache for the exact handle
+            const handleParts = outcomeSymbol.split(':');
+            const marketPart = this.safeString(handleParts, 0, '');
+            const parts = marketPart.split('_');
+            const seriesTicker = this.safeString(parts, 0);
+            if ((seriesTicker !== undefined) && (seriesTicker !== '')) {
+                try {
+                    await this.fetchEvents({ 'series_ticker': seriesTicker });
+                }
+                catch (e) {
+                    // an unknown series is a plain miss — the free-text fallback below still runs;
+                    // let network failures propagate
+                    if (!(e instanceof errors.BadSymbol)) {
+                        throw e;
+                    }
+                }
+                if (this.hasOutcome(outcomeSymbol)) {
+                    return this.safeOutcome(outcomeSymbol);
+                }
+            }
+        }
+        // free-text fallback: the base derives a search query from the handle's words, resolves it
+        // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
+        // on a genuine miss
+        return await super.fetchOutcome(outcomeSymbol);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcomes
+     * @description resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+     * @see https://docs.kalshi.com/api-reference/market/get-markets
+     * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes(outcomeSymbols) {
+        const tickers = [];
+        const seen = {};
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            const outcomeSymbol = outcomeSymbols[i];
+            if (outcomeSymbol.indexOf(':') >= 0) {
+                continue;
+            }
+            // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
+            const symbolLength = this.parseToInt(outcomeSymbol.length);
+            const suffix = outcomeSymbol.slice(symbolLength - 3);
+            const baseTicker = (suffix === '-NO') ? outcomeSymbol.slice(0, symbolLength - 3) : outcomeSymbol;
+            if (!(baseTicker in seen)) {
+                seen[baseTicker] = true;
+                tickers.push(baseTicker);
+            }
+        }
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary();
+        }
+        const chunkSize = this.safeInteger(this.options, 'fetchOutcomesBatchSize', 100);
+        const tickersLength = tickers.length;
+        let startIndex = 0;
+        while (startIndex < tickersLength) {
+            let endIndex = this.sum(startIndex, chunkSize);
+            if (endIndex > tickersLength) {
+                endIndex = tickersLength;
+            }
+            const chunk = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push(tickers[i]);
+            }
+            const request = {
+                'tickers': chunk.join(','),
+                'limit': chunkSize,
+            };
+            const response = await this.kalshiPublicGetMarkets(request);
+            const rawMarkets = this.safeList(response, 'markets', []);
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const parsed = this.parseMarket(rawMarkets[i]);
+                this.markets[parsed['market']] = parsed;
+                this.indexMarketOutcomes(parsed);
+            }
+            startIndex = this.sum(startIndex, chunkSize);
+        }
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            if (!this.hasOutcome(outcomeSymbols[i])) {
+                await this.fetchOutcome(outcomeSymbols[i]);
+            }
+        }
+        return this.outcomes;
+    }
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
+        // through to the base http-status handling.
+        if (!response) {
+            return undefined;
+        }
+        const error = this.safeDict(response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString(error, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
+        }
+        // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
+        if (code === 400) {
+            const feedback = this.id + ' ' + body;
+            throw new errors.BadRequest(feedback);
+        }
+        return undefined;
+    }
+    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
+        // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
+        // coefficient; compute the real per-contract formula here so fee estimates are accurate
+        const priceStr = this.numberToString(price);
+        const amountStr = this.numberToString(amount);
+        const oneMinusP = Precise["default"].stringSub('1', priceStr);
+        let feeCost = Precise["default"].stringMul('0.07', amountStr);
+        feeCost = Precise["default"].stringMul(feeCost, priceStr);
+        feeCost = Precise["default"].stringMul(feeCost, oneMinusP);
+        return {
+            'type': takerOrMaker,
+            'currency': 'USD',
+            'rate': 0.07,
+            'cost': this.parseNumber(feeCost),
+        };
+    }
+    parseMarket(raw) {
+        // {
+        //    "can_close_early":true,
+        //    "close_time":"2029-07-01T14:00:00Z",
+        //    "created_time":"0001-01-01T00:00:00Z",
+        //    "early_close_condition":"This market will close and expire early if the event occurs.",
+        //    "event_ticker":"KXBALANCE-29",
+        //    "expected_expiration_time":"2029-07-01T14:00:00Z",
+        //    "expiration_time":"2029-07-01T14:00:00Z",
+        //    "expiration_value":"",
+        //    "fractional_trading_enabled":false,
+        //    "last_price_dollars":"0.1100",
+        //    "latest_expiration_time":"2029-07-01T14:00:00Z",
+        //    "liquidity_dollars":"0.0000",
+        //    "market_type":"binary",
+        //    "no_ask_dollars":"0.9000",
+        //    "no_bid_dollars":"0.8900",
+        //    "no_sub_title":"During Trump's term",
+        //    "notional_value_dollars":"1.0000",
+        //    "open_interest_fp":"16353.00",
+        //    "open_time":"2025-01-03T15:00:00Z",
+        //    "previous_price_dollars":"0.0000",
+        //    "previous_yes_ask_dollars":"0.0000",
+        //    "previous_yes_bid_dollars":"0.0000",
+        //    "price_level_structure":"linear_cent",
+        //    "price_ranges":[
+        //        {
+        //            "end":"1.0000",
+        //            "start":"0.0000",
+        //            "step":"0.0100"
+        //        }
+        //    ],
+        //    "response_price_units":"usd_cent",
+        //    "result":"",
+        //    "rules_primary":"If there is not a budget deficit for any of fiscal years 2025, 2026, 2027, or 2028, then the market resolves to Yes.",
+        //    "rules_secondary":"",
+        //    "settlement_timer_seconds":"1800",
+        //    "status":"active",
+        //    "subtitle":"",
+        //    "tick_size":"1",
+        //    "ticker":"KXBALANCE-29",
+        //    "title":"Will Trump balance the budget?",
+        //    "updated_time":"0001-01-01T00:00:00Z",
+        //    "volume_24h_fp":"85.00",
+        //    "volume_fp":"40208.00",
+        //    "yes_ask_dollars":"0.1100",
+        //    "yes_ask_size_fp":"",
+        //    "yes_bid_dollars":"0.1000",
+        //    "yes_bid_size_fp":"",
+        //    "yes_sub_title":"During Trump's term"
+        // }
+        const ticker = this.safeString(raw, 'ticker');
+        const eventTicker = this.safeString(raw, 'event_ticker');
+        const subtitle = this.safeString(raw, 'subtitle', this.safeString(raw, 'title'));
+        // markets use status 'active' while events use 'open'
+        const status = this.safeString(raw, 'status');
+        const active = (status === 'active') || (status === 'open');
+        // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
+        const result = this.safeStringLower(raw, 'result');
+        const resolved = (status === 'settled') || ((result !== undefined) && (result !== ''));
+        const endDate = this.safeString(raw, 'expiration_time');
+        const volume = this.safeNumber2(raw, 'volume_fp', 'volume');
+        const liquidity = this.safeNumber2(raw, 'liquidity_dollars', 'liquidity');
+        const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');
+        // Derive series ticker: drop last hyphen-segment from event_ticker
+        let eventParts = [];
+        if (eventTicker) {
+            eventParts = eventTicker.split('-');
+        }
+        let seriesTicker = eventTicker;
+        const eventPartsLength = eventParts.length;
+        if (eventPartsLength > 1) {
+            const seriesParts = this.arraySlice(eventParts, 0, eventPartsLength - 1);
+            seriesTicker = seriesParts.join('-');
+        }
+        // market symbol (no outcome suffix)
+        const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
+        const marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
+        // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
+        // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
+        // used tick_size (in cents). amount is a whole number of contracts
+        const priceRanges = this.safeList(raw, 'price_ranges', []);
+        const firstRange = this.safeDict(priceRanges, 0, {});
+        const stepDollars = this.safeString(firstRange, 'step');
+        let pricePrecision = this.parseNumber(Precise["default"].stringDiv(this.safeString(raw, 'tick_size', '1'), '100'));
+        if (stepDollars !== undefined) {
+            pricePrecision = this.parseNumber(stepDollars);
+        }
+        const precision = {
+            'amount': 1,
+            'price': pricePrecision,
+        };
+        // Build outcomes
+        const outcomeLabels = ['YES', 'NO'];
+        const outcomeIds = [ticker, ticker + '-NO'];
+        const outcomes = [];
+        let resolvedOutcome = undefined;
+        for (let oi = 0; oi < outcomeLabels.length; oi++) {
+            const label = outcomeLabels[oi];
+            const outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
+            let winnerRaw = undefined;
+            let settleFractionRaw = undefined;
+            if (resolved && (result !== undefined) && (result !== '')) {
+                winnerRaw = (label.toLowerCase() === result);
+                settleFractionRaw = (winnerRaw) ? 1 : 0;
+                if (winnerRaw) {
+                    resolvedOutcome = outcomeHandle;
+                }
+            }
+            // effectively-final copies for the object literal below (Java cannot capture a
+            // reassigned local into the anonymous inner class it emits for a map literal)
+            const winner = winnerRaw;
+            const settleFraction = settleFractionRaw;
+            outcomes.push({
+                'id': outcomeIds[oi],
+                'outcomeId': outcomeIds[oi],
+                'outcome': outcomeHandle,
+                'market': marketSymbol,
+                'label': label,
+                'active': active,
+                'winner': winner,
+                'settleFraction': settleFraction,
+                'precision': precision,
+                'info': {
+                    'ticker': ticker,
+                    'eventTicker': eventTicker,
+                    'seriesTicker': seriesTicker,
+                    'subtitle': subtitle,
+                    'outcomeLabel': label,
+                    'volume': volume,
+                    'liquidity': liquidity,
+                    'openInterest': openInt,
+                },
+            });
+        }
+        // effectively-final copy for the market object literal below (reassigned in the loop)
+        const marketResolvedOutcome = resolvedOutcome;
+        return {
+            'id': ticker,
+            'market': marketSymbol,
+            'base': 'USD',
+            'quote': 'USD',
+            'settle': undefined,
+            'baseId': ticker,
+            'quoteId': 'USD',
+            'settleId': undefined,
+            'type': 'prediction',
+            'marketType': 'binary',
+            'executionModel': 'clob',
+            'spot': false,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'prediction': true,
+            'active': active,
+            'resolved': resolved,
+            'resolvedOutcome': marketResolvedOutcome,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': endDate ? this.parse8601(endDate) : undefined,
+            'expiryDatetime': endDate,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': 0.07,
+            'maker': 0.0,
+            'percentage': true,
+            'tierBased': false,
+            'feeSide': 'get',
+            'precision': precision,
+            'limits': {
+                'leverage': { 'min': 1, 'max': 1 },
+                'amount': { 'min': 1, 'max': undefined },
+                'price': { 'min': 0.01, 'max': 0.99 },
+                'cost': { 'min': undefined, 'max': undefined },
+            },
+            'outcomes': outcomes,
+            'info': this.extend(raw, {
+                'ticker': ticker,
+                'eventTicker': eventTicker,
+                'seriesTicker': seriesTicker,
+                'subtitle': subtitle,
+                'volume': volume,
+                'liquidity': liquidity,
+                'openInterest': openInt,
+            }),
+            'created': undefined,
+        };
+    }
+    /**
+     * @method
+     * @name kalshi#fetchTicker
+     * @description fetches the current market price and bid/ask for a single kalshi outcome
+     * @see https://docs.kalshi.com/api-reference/market/get-market
+     * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    async fetchTicker(outcome, params = {}) {
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const request = {
+            'ticker': ticker,
+        };
+        const response = await this.kalshiPublicGetMarketsTicker(this.extend(request, params));
+        //
+        //     {
+        //         "market": {
+        //             "can_close_early": true,
+        //             "close_time": "2029-06-30T03:59:00Z",
+        //             "created_time": "2025-06-05T17:55:43.779104Z",
+        //             "early_close_condition": "This market will close and expire early if the event occurs.",
+        //             "event_ticker": "KXGDPSHAREMANU-29",
+        //             "expected_expiration_time": "2029-06-30T14:00:00Z",
+        //             "expiration_time": "2029-07-07T14:00:00Z",
+        //             "expiration_value": "",
+        //             "floor_strike": "13.1",
+        //             "fractional_trading_enabled": true,
+        //             "last_price_dollars": "0.1980",
+        //             "latest_expiration_time": "2029-07-07T14:00:00Z",
+        //             "liquidity_dollars": "0.0000",
+        //             "market_type": "binary",
+        //             "no_ask_dollars": "0.8890",
+        //             "no_bid_dollars": "0.8030",
+        //             "no_sub_title": "Before 2029",
+        //             "notional_value_dollars": "1.0000",
+        //             "open_interest_fp": "11077.21",
+        //             "open_time": "2025-06-05T18:00:00Z",
+        //             "previous_price_dollars": "0.1980",
+        //             "previous_yes_ask_dollars": "0.1970",
+        //             "previous_yes_bid_dollars": "0.1110",
+        //             "price_level_structure": "deci_cent",
+        //             "price_ranges": [
+        //                 {
+        //                     "start": "0.55",
+        //                     "end": "0.56",
+        //                     "step": "0.01"
+        //                 }
+        //             ],
+        //             "response_price_units": "usd_cent",
+        //             "result": "",
+        //             "rules_primary": "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the market resolves to Yes.",
+        //             "rules_secondary": "",
+        //             "settlement_timer_seconds": "1800",
+        //             "status": "active",
+        //             "strike_type": "greater_or_equal",
+        //             "tick_size": "1",
+        //             "ticker": "KXGDPSHAREMANU-29",
+        //             "title": "Will Trump bring back manufacturing?",
+        //             "updated_time": "2026-04-09T10:32:47.890506Z",
+        //             "volume_24h_fp": "0.00",
+        //             "volume_fp": "19617.68",
+        //             "yes_ask_dollars": "0.1970",
+        //             "yes_ask_size_fp": "2750.00",
+        //             "yes_bid_dollars": "0.1110",
+        //             "yes_bid_size_fp": "2505.61",
+        //             "yes_sub_title": "Before 2029"
+        //         }
+        //     }
+        //
+        const raw = this.safeValue(response, 'market', response);
+        return this.parsePredictionTicker(raw, outcomeObj);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchStatus
+     * @description fetches the kalshi exchange status
+     * @see https://docs.kalshi.com/api-reference/exchange/get-exchange-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus(params = {}) {
+        const response = await this.kalshiPublicGetExchangeStatus(params);
+        //
+        //     { "exchange_active": true, "trading_active": true }
+        //
+        const tradingActive = this.safeBool(response, 'trading_active', false);
+        return {
+            'status': tradingActive ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOpenInterest
+     * @description fetches the open interest of a prediction market outcome
+     * @see https://docs.kalshi.com/api-reference/market/get-market
+     * @param {string} outcome unified outcome or outcome id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    async fetchOpenInterest(outcome, params = {}) {
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const request = { 'ticker': ticker };
+        const response = await this.kalshiPublicGetMarketsTicker(this.extend(request, params));
+        const raw = this.safeDict(response, 'market', response);
+        return this.parsePredictionOpenInterest(raw, outcomeObj);
+    }
+    parsePredictionOpenInterest(interest, market = undefined) {
+        //
+        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //
+        const timestamp = this.milliseconds();
+        const openInterest = this.safeOpenInterest({
+            'symbol': this.safeSymbol(undefined, market),
+            'openInterestAmount': this.safeNumber2(interest, 'open_interest_fp', 'open_interest'),
+            'openInterestValue': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, market);
+        openInterest['outcome'] = this.safeOutcomeSymbol(undefined, market);
+        openInterest['outcomeId'] = this.safeString(market, 'outcomeId');
+        delete openInterest['symbol'];
+        return openInterest;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parsePredictionTicker
+     * @description parses a raw kalshi market object into a unified ticker object
+     * @param {object} raw the raw market object
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    parsePredictionTicker(raw, market = undefined) {
+        //
+        //     {
+        //         "market": {
+        //             "can_close_early": true,
+        //             "close_time": "2029-06-30T03:59:00Z",
+        //             "created_time": "2025-06-05T17:55:43.779104Z",
+        //             "early_close_condition": "This market will close and expire early if the event occurs.",
+        //             "event_ticker": "KXGDPSHAREMANU-29",
+        //             "expected_expiration_time": "2029-06-30T14:00:00Z",
+        //             "expiration_time": "2029-07-07T14:00:00Z",
+        //             "expiration_value": "",
+        //             "floor_strike": "13.1",
+        //             "fractional_trading_enabled": true,
+        //             "last_price_dollars": "0.1980",
+        //             "latest_expiration_time": "2029-07-07T14:00:00Z",
+        //             "liquidity_dollars": "0.0000",
+        //             "market_type": "binary",
+        //             "no_ask_dollars": "0.8890",
+        //             "no_bid_dollars": "0.8030",
+        //             "no_sub_title": "Before 2029",
+        //             "notional_value_dollars": "1.0000",
+        //             "open_interest_fp": "11077.21",
+        //             "open_time": "2025-06-05T18:00:00Z",
+        //             "previous_price_dollars": "0.1980",
+        //             "previous_yes_ask_dollars": "0.1970",
+        //             "previous_yes_bid_dollars": "0.1110",
+        //             "price_level_structure": "deci_cent",
+        //             "price_ranges": [
+        //                 {
+        //                     "start": "0.55",
+        //                     "end": "0.56",
+        //                     "step": "0.01"
+        //                 }
+        //             ],
+        //             "response_price_units": "usd_cent",
+        //             "result": "",
+        //             "rules_primary": "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the market resolves to Yes.",
+        //             "rules_secondary": "",
+        //             "settlement_timer_seconds": "1800",
+        //             "status": "active",
+        //             "strike_type": "greater_or_equal",
+        //             "tick_size": "1",
+        //             "ticker": "KXGDPSHAREMANU-29",
+        //             "title": "Will Trump bring back manufacturing?",
+        //             "updated_time": "2026-04-09T10:32:47.890506Z",
+        //             "volume_24h_fp": "0.00",
+        //             "volume_fp": "19617.68",
+        //             "yes_ask_dollars": "0.1970",
+        //             "yes_ask_size_fp": "2750.00",
+        //             "yes_bid_dollars": "0.1110",
+        //             "yes_bid_size_fp": "2505.61",
+        //             "yes_sub_title": "Before 2029"
+        //         }
+        //     }
+        //
+        const marketAny = market;
+        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeLabel = market ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const isNo = outcomeLabel.toUpperCase() === 'NO';
+        const now = this.milliseconds();
+        const outcome = this.safeString(outcomeObj, 'outcome');
+        const yesAsk = this.safeNumber(raw, 'yes_ask_dollars');
+        const yesBid = this.safeNumber(raw, 'yes_bid_dollars');
+        const noAsk = this.safeNumber(raw, 'no_ask_dollars');
+        const noBid = this.safeNumber(raw, 'no_bid_dollars');
+        const last = this.safeNumber(raw, 'last_price_dollars');
+        let bid;
+        let ask;
+        let close;
+        if (isNo) {
+            bid = noBid;
+            ask = noAsk;
+            close = (last !== undefined) ? this.parseNumber(Precise["default"].stringSub('1', this.numberToString(last))) : undefined;
+        }
+        else {
+            bid = yesBid;
+            ask = yesAsk;
+            close = last;
+        }
+        // the book is quoted in the yes token, the no side mirrors with sizes swapped
+        const bidSizeString = (isNo) ? this.safeString(raw, 'yes_ask_size_fp') : this.safeString(raw, 'yes_bid_size_fp');
+        const askSizeString = (isNo) ? this.safeString(raw, 'yes_bid_size_fp') : this.safeString(raw, 'yes_ask_size_fp');
+        // kalshi occasionally reports a negative size for settling/closed markets; a size
+        // can't be negative, so drop it rather than emit an invalid volume
+        let bidVolume = undefined;
+        if ((bidSizeString !== undefined) && Precise["default"].stringGe(bidSizeString, '0')) {
+            bidVolume = this.parseNumber(bidSizeString);
+        }
+        let askVolume = undefined;
+        if ((askSizeString !== undefined) && Precise["default"].stringGe(askSizeString, '0')) {
+            askVolume = this.parseNumber(askSizeString);
+        }
+        let average = undefined;
+        if ((bid !== undefined) && (ask !== undefined)) {
+            average = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(this.numberToString(bid), this.numberToString(ask)), '2'));
+        }
+        return this.safePredictionTicker({
+            'outcome': outcome,
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'outcome'),
+            'timestamp': now,
+            'datetime': this.iso8601(now),
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
+            'vwap': undefined,
+            'open': undefined,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': average,
+            'baseVolume': this.safeNumberN(raw, ['volume_24h_fp', 'volume_24h', 'volume']), // 24h volume in contracts
+            'quoteVolume': undefined,
+            'info': raw,
+        }, market);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchTickers
+     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
+     * @see https://docs.kalshi.com/api-reference/market/get-markets
+     * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    async fetchTickers(outcomes = undefined, params = {}) {
+        if (outcomes === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+        }
+        // batch-resolve the uncached outcomes (one markets request per 100 tickers)
+        await this.loadOutcomes(outcomes);
+        const targets = [];
+        for (let i = 0; i < outcomes.length; i++) {
+            targets.push(outcomes[i]);
+        }
+        // group requested outcomes by their market ticker, yes and no outcomes share one market
+        const outcomesByTicker = {};
+        const tickers = [];
+        for (let i = 0; i < targets.length; i++) {
+            const outcomeObj = this.outcome(targets[i]);
+            const ticker = this.safeString(outcomeObj['info'], 'ticker');
+            if (ticker === undefined) {
+                continue;
+            }
+            if (!(ticker in outcomesByTicker)) {
+                outcomesByTicker[ticker] = [];
+                tickers.push(ticker);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesByTicker[ticker];
+            grouped.push(outcomeObj);
+            outcomesByTicker[ticker] = grouped;
+        }
+        const chunkSize = this.safeInteger(this.options, 'fetchTickersBatchSize', 100);
+        const result = {};
+        const tickersLength = tickers.length;
+        let startIndex = 0;
+        while (startIndex < tickersLength) {
+            let endIndex = this.sum(startIndex, chunkSize);
+            if (endIndex > tickersLength) {
+                endIndex = tickersLength;
+            }
+            const chunk = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push(tickers[i]);
+            }
+            const request = {
+                'tickers': chunk.join(','),
+                'limit': chunkSize,
+            };
+            const response = await this.kalshiPublicGetMarkets(this.extend(request, params));
+            const rawMarkets = this.safeList(response, 'markets', []);
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const marketTicker = this.safeString(raw, 'ticker');
+                if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
+                    continue;
+                }
+                const grouped = outcomesByTicker[marketTicker];
+                for (let j = 0; j < grouped.length; j++) {
+                    const ticker = this.parsePredictionTicker(raw, grouped[j]);
+                    const symbolKey = this.safeString(ticker, 'outcome');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            startIndex = this.sum(startIndex, chunkSize);
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOrderBook
+     * @description fetches the order book for a single kalshi outcome
+     * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
+     * @param {string} outcome unified outcome or outcome id
+     * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    async fetchOrderBook(outcome, limit = undefined, params = {}) {
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const isNo = outcomeObj['label'] === 'NO';
+        const request = {
+            'ticker': ticker,
+        };
+        const response = await this.kalshiPublicGetMarketsTickerOrderbook(this.extend(request, params));
+        //
+        //     {
+        //         "orderbook_fp": {
+        //             "no_dollars": [
+        //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
+        //             ],
+        //             "yes_dollars": [
+        //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
+        //             ]
+        //         }
+        //     }
+        //
+        const book = this.safeValue(response, 'orderbook_fp', response);
+        const timestamp = this.milliseconds();
+        // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
+        const rawYes = this.safeList(book, 'yes_dollars', []);
+        const rawNo = this.safeList(book, 'no_dollars', []);
+        // Convert [price_cents, size] → [price, size]
+        const bids = [];
+        const asks = [];
+        if (isNo) {
+            // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
+            for (let bi = 0; bi < rawNo.length; bi++) {
+                const price = this.safeNumber(rawNo[bi], 0);
+                bids.push([price, this.safeNumber(rawNo[bi], 1)]);
+            }
+            for (let ai = 0; ai < rawYes.length; ai++) {
+                const yesPrice = this.safeNumber(rawYes[ai], 0);
+                const price = (yesPrice !== undefined) ? this.parseNumber(Precise["default"].stringSub('1', this.numberToString(yesPrice))) : undefined;
+                asks.push([price, this.safeNumber(rawYes[ai], 1)]);
+            }
+        }
+        else {
+            // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
+            for (let bi = 0; bi < rawYes.length; bi++) {
+                const price = this.safeNumber(rawYes[bi], 0);
+                bids.push([price, this.safeNumber(rawYes[bi], 1)]);
+            }
+            for (let ai = 0; ai < rawNo.length; ai++) {
+                const noPrice = this.safeNumber(rawNo[ai], 0);
+                const price = (noPrice !== undefined) ? this.parseNumber(Precise["default"].stringSub('1', this.numberToString(noPrice))) : undefined;
+                asks.push([price, this.safeNumber(rawNo[ai], 1)]);
+            }
+        }
+        return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#sortedOrders
+     * @description sorts bids descending and asks ascending, then returns a CCXT-shaped order book object
+     * @param {string} outcome unified outcome
+     * @param {int} timestamp timestamp in ms
+     * @param {object[]} bids array of [price, size] bid levels
+     * @param {object[]} asks array of [price, size] ask levels
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    sortedOrders(outcome, timestamp, bids, asks) {
+        // Sort bids descending, asks ascending, match CCXT OrderBook shape
+        bids = this.sortBy(bids, 0, true);
+        asks = this.sortBy(asks, 0);
+        return {
+            'outcome': outcome,
+            'bids': bids,
+            'asks': asks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'nonce': undefined,
+        };
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOHLCV
+     * @description fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
+     * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
+     * @param {string} outcome unified outcome
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV(outcome, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const seriesTicker = this.safeString(outcomeObj['info'], 'seriesTicker', ticker);
+        const periodMin = this.safeInteger(this.timeframes, timeframe);
+        if (periodMin === undefined) {
+            // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
+            // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
+            const tfKeys = Object.keys(this.timeframes);
+            const supported = tfKeys.join(', ');
+            throw new errors.BadRequest(this.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe (supported: ' + supported + ')');
+        }
+        const request = {
+            'series_ticker': seriesTicker,
+            'ticker': ticker,
+            'period_interval': periodMin,
+        };
+        const now = this.seconds();
+        const tf = this.parseTimeframe(timeframe);
+        if (since !== undefined) {
+            const sinceS = this.parseToInt(since / 1000);
+            request['start_ts'] = sinceS;
+            if (limit !== undefined) {
+                const end = this.sum(sinceS, limit * tf);
+                request['end_ts'] = (end < now) ? end : now;
+            }
+            else {
+                // the candlesticks endpoint requires end_ts - default to now
+                request['end_ts'] = now;
+            }
+        }
+        else {
+            const defaultLimit = this.safeInteger(this.options, 'defaultFetchOHLCVLimit', 200);
+            const candlesCount = (limit !== undefined) ? limit : defaultLimit;
+            request['end_ts'] = now;
+            request['start_ts'] = now - (candlesCount * tf);
+        }
+        const response = await this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, params));
+        //
+        //     {
+        //         "candlesticks": [
+        //             {
+        //                 "end_period_ts": 1776109260,
+        //                 "open_interest_fp": "10869.00",
+        //                 "price": {
+        //                     "open_dollars": "0.5600",
+        //                     "low_dollars": "0.5600",
+        //                     "high_dollars": "0.5600",
+        //                     "close_dollars": "0.5600",
+        //                     "mean_dollars": "0.5600",
+        //                     "previous_dollars": "0.5600",
+        //                     "min_dollars": "0.5600",
+        //                     "max_dollars": "0.5600"
+        //                 },
+        //                 "volume_fp": "0.00",
+        //                 "yes_ask": {
+        //                     "close_dollars": "0.1630",
+        //                     "high_dollars": "0.1630",
+        //                     "low_dollars": "0.1500",
+        //                     "open_dollars": "0.1630"
+        //                 },
+        //                 "yes_bid": {
+        //                     "close_dollars": "0.0800",
+        //                     "high_dollars": "0.0800",
+        //                     "low_dollars": "0.0700",
+        //                     "open_dollars": "0.0800"
+        //                 }
+        //             },
+        //         ],
+        //         "ticker": "KXGDPSHAREMANU-29"
+        //     }
+        //
+        const candles = this.safeList(response, 'candlesticks', []);
+        const usableCandles = [];
+        for (let i = 0; i < candles.length; i++) {
+            const candle = candles[i];
+            const priceObj = this.safeDict(candle, 'price', {});
+            const openPrice = this.safeNumber(priceObj, 'open_dollars');
+            const previousPrice = this.safeNumber(priceObj, 'previous_dollars');
+            if ((openPrice !== undefined) || (previousPrice !== undefined)) {
+                usableCandles.push(candle);
+            }
+        }
+        // kalshi candles carry only the period-END timestamp; thread the candle duration through so
+        // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
+        this.options['ohlcvCandleDurationSeconds'] = tf;
+        return this.parseOHLCVs(usableCandles, outcomeObj, timeframe, since, limit);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseOHLCV
+     * @description parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
+     * @param {object} ohlcv the raw candlestick object
+     * @param {object} [market] the outcome object the candle belongs to
+     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
+     */
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //     {
+        //         "end_period_ts": 1776109260,
+        //         "open_interest_fp": "10869.00",
+        //         "price": {
+        //             "open_dollars": "0.5600",
+        //             "low_dollars": "0.5600",
+        //             "high_dollars": "0.5600",
+        //             "close_dollars": "0.5600",
+        //             "mean_dollars": "0.5600",
+        //             "previous_dollars": "0.5600",
+        //             "min_dollars": "0.5600",
+        //             "max_dollars": "0.5600"
+        //         },
+        //         "volume_fp": "0.00",
+        //         "yes_ask": {
+        //             "close_dollars": "0.1630",
+        //             "high_dollars": "0.1630",
+        //             "low_dollars": "0.1500",
+        //             "open_dollars": "0.1630"
+        //         },
+        //         "yes_bid": {
+        //             "close_dollars": "0.0800",
+        //             "high_dollars": "0.0800",
+        //             "low_dollars": "0.0700",
+        //             "open_dollars": "0.0800"
+        //         }
+        //     }
+        //
+        const price = this.safeDict(ohlcv, 'price', {});
+        // no-trade periods carry only previous_dollars (last trade price) → flat candle
+        const previous = this.safeNumber(price, 'previous_dollars');
+        // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
+        // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
+        const endTimestamp = this.safeTimestamp(ohlcv, 'end_period_ts');
+        const durationSeconds = this.safeInteger(this.options, 'ohlcvCandleDurationSeconds', 0);
+        let timestamp = endTimestamp;
+        if (endTimestamp !== undefined) {
+            timestamp = endTimestamp - durationSeconds * 1000;
+        }
+        return [
+            timestamp,
+            this.safeNumber(price, 'open_dollars', previous),
+            this.safeNumber(price, 'high_dollars', previous),
+            this.safeNumber(price, 'low_dollars', previous),
+            this.safeNumber(price, 'close_dollars', previous),
+            this.safeNumber(ohlcv, 'volume_fp', 0),
+        ];
+    }
+    /**
+     * @method
+     * @name kalshi#fetchTrades
+     * @description fetches public trade history for a single kalshi market ticker
+     * @see https://docs.kalshi.com/api-reference/market/get-trades
+     * @param {string} outcome unified outcome
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const request = { 'ticker': ticker };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.kalshiPublicGetMarketsTrades(this.extend(request, params));
+        const trades = this.safeList(response, 'trades', []);
+        const filteredTrades = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const tradeTicker = this.safeString2(trade, 'ticker', 'market_ticker');
+            if (tradeTicker === undefined || tradeTicker === ticker) {
+                filteredTrades.push(trade);
+            }
+        }
+        return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parsePredictionTrade
+     * @description parses a raw kalshi trade object into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parsePredictionTrade(trade, market = undefined) {
+        const id = this.safeString(trade, 'trade_id');
+        const ts = this.parse8601(this.safeString(trade, 'created_time'));
+        const priceDollars = this.safeNumber2(trade, 'yes_price_dollars', 'price_dollars');
+        const priceCents = this.safeNumber2(trade, 'yes_price', 'price');
+        let price = undefined;
+        if (priceDollars !== undefined) {
+            price = priceDollars;
+        }
+        else if (priceCents !== undefined) {
+            price = priceCents / 100;
+        }
+        const amountFp = this.safeNumber2(trade, 'count_fp', 'size_fp');
+        const amount = this.safeNumber(trade, 'count', amountFp);
+        const rawSide = this.safeStringLower(trade, 'taker_side');
+        const marketAny = market;
+        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const marketInfo = this.safeDict(outcomeObj, 'info', {});
+        const requestedOutcomeLabel = this.safeStringLower(outcomeObj, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
+        const outcomeSymbol = this.safeString(outcomeObj, 'outcome');
+        const outcomeId = this.safeString2(outcomeObj, 'outcomeId', 'id');
+        let side = undefined;
+        if (rawSide === 'yes' || rawSide === 'no') {
+            if (requestedOutcomeLabel === 'yes' || requestedOutcomeLabel === 'no') {
+                side = (rawSide === requestedOutcomeLabel) ? 'buy' : 'sell';
+            }
+            else {
+                side = (rawSide === 'yes') ? 'buy' : 'sell';
+            }
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        return this.safePredictionTrade({
+            'id': id,
+            'info': trade,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'outcome': outcomeSymbol,
+            'outcomeId': outcomeId,
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'outcome'),
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': 'taker',
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        }, market);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchMyTrades
+     * @description fetch the fills (executed trades) of the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getfills
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] the earliest fill timestamp (ms) to fetch
+     * @param {int} [limit] the maximum number of fills to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            // the ticker filter narrows to the market; a market has both legs, so the
+            // wanted-leg filter below still drops the opposite-leg fills
+            outcomeObj = this.outcome(outcome);
+            request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.kalshiPrivateGetPortfolioFills(this.extend(request, params));
+        const fills = this.safeList(response, 'fills', []);
+        const fillsLength = fills.length;
+        const trades = [];
+        for (let i = 0; i < fillsLength; i++) {
+            trades.push(this.parseMyTrade(fills[i], outcomeObj));
+        }
+        let wantedOutcome = undefined;
+        if (outcome !== undefined) {
+            wantedOutcome = this.safeString(this.outcome(outcome), 'outcome');
+        }
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            if ((wantedOutcome === undefined) || (this.safeString(trade, 'outcome') === wantedOutcome)) {
+                result.push(trade);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, 'timestamp');
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseMyTrade
+     * @description parses one raw kalshi fill into the unified trade shape
+     * @param {object} fill the raw kalshi fill
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a unified trade structure
+     */
+    parseMyTrade(fill, market = undefined) {
+        const id = this.safeString2(fill, 'fill_id', 'trade_id');
+        const orderId = this.safeString(fill, 'order_id');
+        const ticker = this.safeString2(fill, 'ticker', 'market_ticker');
+        // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
+        const sideLeg = this.safeStringLower(fill, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome(outcomeKey, market);
+        const ts = this.parse8601(this.safeString(fill, 'created_time'));
+        // action is the order side (buy/sell) of the held leg
+        const action = this.safeStringLower(fill, 'action');
+        const side = (action === 'sell') ? 'sell' : 'buy';
+        // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
+        let price = undefined;
+        if (sideLeg === 'no') {
+            price = this.safeNumber(fill, 'no_price_dollars');
+            if (price === undefined) {
+                const noCents = this.safeNumber(fill, 'no_price');
+                if (noCents !== undefined) {
+                    price = noCents / 100;
+                }
+            }
+        }
+        else {
+            price = this.safeNumber(fill, 'yes_price_dollars');
+            if (price === undefined) {
+                const yesCents = this.safeNumber(fill, 'yes_price');
+                if (yesCents !== undefined) {
+                    price = yesCents / 100;
+                }
+            }
+        }
+        const amount = this.safeNumber2(fill, 'count_fp', 'count');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const isTaker = this.safeBool(fill, 'is_taker', true);
+        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        const feeCost = this.safeNumber(fill, 'fee_cost');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': 'USD',
+            };
+        }
+        return this.safePredictionTrade({
+            'id': id,
+            'info': fill,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'outcome': this.safeString(mkt, 'outcome', outcomeKey),
+            'outcomeId': this.safeString2(mkt, 'outcomeId', 'id'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString2(mkt, 'market', 'outcome'),
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }, market);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchBalance
+     * @description fetches the authenticated user's USD portfolio balance from kalshi
+     * @see https://trading-api.readme.io/reference/getbalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    async fetchBalance(params = {}) {
+        const response = await this.kalshiPrivateGetPortfolioBalance(params);
+        return this.parseBalance(response);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseBalance
+     * @description parses a kalshi balance response (cents) into a unified balances object with a USD entry
+     * @param {object} response the raw balance response
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    parseBalance(response) {
+        // Kalshi balance in cents → divide by 100
+        const result = { 'info': response };
+        const balanceCents = this.safeNumber(response, 'balance');
+        let total = undefined;
+        if (balanceCents !== undefined) {
+            total = balanceCents / 100;
+        }
+        result['USD'] = { 'free': total, 'used': 0, 'total': total };
+        return this.safeBalance(result);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchPositions
+     * @description fetches open market positions for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getportfoliopositions
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPositions(outcomes = undefined, params = {}) {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
+            await this.loadOutcomes(outcomes);
+        }
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
+        const response = await this.kalshiPrivateGetPortfolioPositions(params);
+        const positions = this.safeList(response, 'market_positions', []);
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
+        // ticker and covers both the YES and the NO leg
+        const parsed = this.parsePredictionPositions(positions);
+        if (outcomesLength === 0) {
+            return parsed;
+        }
+        const wantedTickers = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome(outcomes[i]);
+            const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
+            const marketTicker = this.safeString(outcomeInfo, 'ticker');
+            if (marketTicker !== undefined) {
+                wantedTickers[marketTicker] = true;
+            }
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const positionInfo = this.safeDict(position, 'info', {});
+            const positionTicker = this.safeString(positionInfo, 'ticker');
+            if ((positionTicker !== undefined) && (positionTicker in wantedTickers)) {
+                result.push(position);
+            }
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name kalshi#fetchSettlements
+     * @description fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+     * @see https://trading-api.readme.io/reference/getportfoliosettlements
+     * @param {string} [outcome] filter to a single unified outcome
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    async fetchSettlements(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.kalshiPrivateGetPortfolioSettlements(this.extend(request, params));
+        const rawSettlements = this.safeList(response, 'settlements', []);
+        const rawSettlementsLength = rawSettlements.length;
+        const parsed = [];
+        for (let i = 0; i < rawSettlementsLength; i++) {
+            parsed.push(this.parseSettlement(rawSettlements[i]));
+        }
+        let wantedOutcome = undefined;
+        if (outcome !== undefined) {
+            wantedOutcome = this.safeString(this.outcome(outcome), 'outcome');
+        }
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const settlement = parsed[i];
+            if ((wantedOutcome === undefined) || (this.safeString(settlement, 'outcome') === wantedOutcome)) {
+                result.push(settlement);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, 'timestamp');
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseSettlement
+     * @description parses one raw kalshi settlement into the unified prediction settlement shape
+     * @param {object} settlement the raw kalshi settlement
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a prediction settlement structure
+     */
+    parseSettlement(settlement, market = undefined) {
+        const ticker = this.safeString(settlement, 'ticker');
+        // the leg the user actually held (kalshi reports separate yes/no counts + costs)
+        const yesCount = this.safeNumber2(settlement, 'yes_count_fp', 'yes_count', 0);
+        const noCount = this.safeNumber2(settlement, 'no_count_fp', 'no_count', 0);
+        const heldYes = (yesCount >= noCount);
+        const heldLabel = (heldYes) ? 'YES' : 'NO';
+        const tickerMissing = (ticker === undefined);
+        const useHeldYesTicker = (heldYes || tickerMissing);
+        const heldTicker = (useHeldYesTicker) ? ticker : (ticker + '-NO');
+        const mkt = this.safeOutcome(heldTicker, market);
+        // which leg won; market_result is yes or no
+        const marketResult = this.safeStringUpper(settlement, 'market_result');
+        const won = (marketResult === heldLabel);
+        // kalshi reports money as dollar keys on V2, else cents
+        let payout = this.safeNumber(settlement, 'revenue_dollars');
+        if (payout === undefined) {
+            const revenueCents = this.safeNumber(settlement, 'revenue');
+            if (revenueCents !== undefined) {
+                payout = revenueCents / 100;
+            }
+        }
+        const costKey = (heldYes) ? 'yes_total_cost' : 'no_total_cost';
+        const costDollarsKey = (heldYes) ? 'yes_total_cost_dollars' : 'no_total_cost_dollars';
+        let cost = this.safeNumber(settlement, costDollarsKey);
+        if (cost === undefined) {
+            const costCents = this.safeNumber(settlement, costKey);
+            if (costCents !== undefined) {
+                cost = costCents / 100;
+            }
+        }
+        let pnl = undefined;
+        if ((payout !== undefined) && (cost !== undefined)) {
+            pnl = payout - cost;
+        }
+        const ts = this.parse8601(this.safeString(settlement, 'settled_time'));
+        return {
+            'info': settlement,
+            'id': ticker,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'outcome': this.safeString(mkt, 'outcome', heldTicker),
+            'outcomeId': this.safeString2(mkt, 'outcomeId', 'id', heldTicker),
+            'market': this.safeString2(mkt, 'market', 'outcome'),
+            'event': undefined,
+            'result': marketResult,
+            'won': won,
+            'amount': (heldYes) ? yesCount : noCount,
+            'price': (won) ? 1 : 0,
+            'cost': cost,
+            'payout': payout,
+            'pnl': pnl,
+        };
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parsePredictionPosition
+     * @description parses a raw kalshi portfolio position into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    parsePredictionPosition(position, market = undefined) {
+        const ticker = this.safeString(position, 'ticker');
+        const outcomeObj = this.safeOutcome(ticker, market);
+        const yesContracts = this.safeNumber(position, 'position'); // positive = long YES
+        let positionSide = undefined;
+        let contractsValue = undefined;
+        if (yesContracts !== undefined) {
+            positionSide = (yesContracts >= 0) ? 'long' : 'short';
+            contractsValue = this.parseNumber(Precise["default"].stringAbs(this.numberToString(yesContracts)));
+        }
+        return this.safePredictionPosition({
+            'id': undefined,
+            'outcome': this.safeString(outcomeObj, 'outcome', ticker),
+            'outcomeId': this.safeString2(outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString(outcomeObj, 'label'),
+            'market': this.safeString2(outcomeObj, 'market', 'outcome'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': contractsValue,
+            'contractSize': 1,
+            'side': positionSide,
+            'notional': undefined,
+            'leverage': 1,
+            'unrealizedPnl': undefined,
+            'realizedPnl': undefined,
+            'collateral': undefined,
+            'entryPrice': undefined,
+            'markPrice': undefined,
+            'liquidationPrice': undefined,
+            'hedged': false,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'marginMode': 'cross',
+            'marginType': 'cross',
+            'percentage': undefined,
+            'info': position,
+        });
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOpenOrders
+     * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        const request = { 'status': 'resting' };
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = this.outcome(outcome);
+            request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
+        }
+        const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
+        const orders = this.safeList(response, 'orders', []);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOrders
+     * @description fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        // no status filter — the endpoint returns every order; pass params.status to narrow
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = this.outcome(outcome);
+            request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
+        }
+        const response = await this.kalshiPrivateGetPortfolioOrders(this.extend(request, params));
+        const orders = this.safeList(response, 'orders', []);
+        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+    }
+    /**
+     * @method
+     * @name kalshi#fetchClosedOrders
+     * @description fetches the closed (executed or canceled) orders for the authenticated kalshi user
+     * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [outcome] filter by unified outcome
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchClosedOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
+        // both executed and canceled, so fetch every order and keep the non-open ones client-side
+        const orders = await this.fetchOrders(outcome, undefined, undefined, params);
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const status = this.safeString(order, 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push(order);
+            }
+        }
+        return this.filterBySinceLimit(result, since, limit, 'timestamp');
+    }
+    /**
+     * @method
+     * @name kalshi#fetchOrder
+     * @description fetches a single order by id from the kalshi portfolio endpoint
+     * @see https://trading-api.readme.io/reference/getorder
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrder(id, outcome = undefined, params = {}) {
+        // outcome is only a labelling hint here — the request needs just the id, and
+        // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        const response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend({ 'order_id': id }, params));
+        return this.parsePredictionOrder(this.safeValue(response, 'order', response));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parsePredictionOrder
+     * @description parses a raw kalshi order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parsePredictionOrder(order, market = undefined) {
+        const id = this.safeString(order, 'order_id');
+        const ticker = this.safeString(order, 'ticker');
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
+        const sideLeg = this.safeStringLower(order, 'side');
+        let outcomeKey = ticker;
+        if ((sideLeg === 'no') && (ticker !== undefined)) {
+            outcomeKey = ticker + '-NO';
+        }
+        const mkt = this.safeOutcome(outcomeKey, market);
+        const status = this.parseOrderStatus(this.safeString(order, 'status'));
+        // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
+        // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
+        const action = this.safeStringLower(order, 'action');
+        let side = undefined;
+        if (action === 'buy') {
+            side = 'buy';
+        }
+        else if (action === 'sell') {
+            side = 'sell';
+        }
+        // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
+        // legacy returned yes_price/no_price in cents
+        const labelIsNo = (this.safeStringUpper(mkt, 'label') === 'NO');
+        const dollarsKey = (labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
+        const centsKey = (labelIsNo) ? 'no_price' : 'yes_price';
+        let price = this.safeNumber(order, dollarsKey);
+        if (price === undefined) {
+            const priceCents = this.safeNumber(order, centsKey);
+            if (priceCents !== undefined) {
+                price = priceCents / 100;
+            }
+        }
+        // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
+        const amount = this.safeNumber2(order, 'initial_count_fp', 'count');
+        const filled = this.safeNumber2(order, 'fill_count_fp', 'filled_count', 0);
+        let remaining = this.safeNumber(order, 'remaining_count_fp');
+        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
+        const ts = this.parse8601(this.safeString(order, 'created_time'));
+        return this.safePredictionOrder({
+            'id': id,
+            'clientOrderId': this.safeString(order, 'client_order_id'),
+            'info': order,
+            'timestamp': ts,
+            'datetime': this.iso8601(ts),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'outcome': this.safeString(mkt, 'outcome'),
+            'outcomeId': this.safeString2(mkt, 'outcomeId', 'id'),
+            'label': this.safeString(mkt, 'label'),
+            'market': this.safeString2(mkt, 'market', 'outcome'),
+            'type': this.safeStringLower(order, 'type', 'limit'),
+            'timeInForce': 'GTC',
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': [],
+        }, mkt);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseOrderStatus
+     * @description maps a kalshi order status string to the CCXT unified status vocabulary
+     * @param {string} status the raw kalshi order status
+     * @returns {string} the unified order status
+     */
+    parseOrderStatus(status) {
+        const statuses = {
+            'resting': 'open',
+            'executed': 'closed',
+            'canceled': 'canceled',
+            'pending': 'open',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    /**
+     * @method
+     * @name kalshi#createOrder
+     * @description places a limit or market order on kalshi for the given outcome token
+     * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of contracts
+     * @param {float} [price] limit price in dollars (0–1 range)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
+        // kalshi has no market orders — every order is a limit order and the price is required
+        if (price === undefined) {
+            throw new errors.ArgumentsRequired(this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }");
+        }
+        await this.loadOutcome(outcome);
+        const outcomeObj = this.outcome(outcome);
+        const ticker = this.safeString(outcomeObj['info'], 'ticker');
+        const isNo = (outcomeObj['label'] === 'NO');
+        const isBuy = (side === 'buy');
+        // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
+        // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
+        // buy NO @ q == sell YES @ 1-q - flip the book side and the price
+        let bookSide = (isBuy) ? 'bid' : 'ask';
+        let yesPrice = price;
+        if (isNo) {
+            bookSide = (isBuy) ? 'ask' : 'bid';
+            if (price !== undefined) {
+                yesPrice = this.parseNumber(Precise["default"].stringSub('1', this.numberToString(price)));
+            }
+        }
+        const isMarket = (type === 'market');
+        // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
+        // `time_in_force` param (handled below) still overrides
+        const unifiedTif = this.safeStringUpper(params, 'timeInForce');
+        params = this.omit(params, 'timeInForce');
+        let defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
+        // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
+        if (unifiedTif === 'IOC') {
+            defaultTif = 'immediate_or_cancel';
+        }
+        else if (unifiedTif === 'FOK') {
+            defaultTif = 'fill_or_kill';
+        }
+        else if (unifiedTif === 'GTC') {
+            defaultTif = 'good_till_canceled';
+        }
+        let timeInForce = undefined;
+        [timeInForce, params] = this.handleOptionAndParams(params, 'createOrder', 'time_in_force', defaultTif);
+        let stp = undefined;
+        [stp, params] = this.handleOptionAndParams(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
+        const request = {
+            'ticker': ticker,
+            'side': bookSide,
+            'count': this.numberToString(amount),
+            'time_in_force': timeInForce,
+            'self_trade_prevention_type': stp,
+        };
+        if (yesPrice !== undefined) {
+            request['price'] = this.numberToString(yesPrice);
+        }
+        const response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, params));
+        // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
+        // the known order details and resolve the status from the remaining count
+        const order = this.parsePredictionOrder(response, outcomeObj);
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
+        // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
+        // otherwise a fully-filled order would return status 'closed' with filled 0
+        const remainingCount = this.safeNumber(response, 'remaining_count');
+        const filledCount = this.safeNumber(response, 'fill_count');
+        if (filledCount !== undefined) {
+            order['filled'] = filledCount;
+        }
+        else if ((remainingCount !== undefined) && (amount !== undefined)) {
+            order['filled'] = amount - remainingCount;
+        }
+        if (remainingCount !== undefined) {
+            order['remaining'] = remainingCount;
+        }
+        if (order['status'] === undefined) {
+            let resolvedStatus = 'open';
+            if ((remainingCount !== undefined) && (remainingCount === 0)) {
+                resolvedStatus = 'closed';
+            }
+            order['status'] = resolvedStatus;
+        }
+        return order;
+    }
+    /**
+     * @method
+     * @name kalshi#editOrder
+     * @description edits a resting order by cancelling it and placing a new one with the updated terms
+     * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} id the id of the order to edit
+     * @param {string} outcome unified outcome
+     * @param {string} type 'limit' (kalshi has only limit orders)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] the new number of contracts
+     * @param {float} [price] the new price (0..1)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async editOrder(id, outcome, type, side, amount = undefined, price = undefined, params = {}) {
+        // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
+        // so edit = cancel the resting order then place a fresh one with the new terms. validate the
+        // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
+        // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
+        if (price === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price - kalshi has only limit orders');
+        }
+        if (amount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount');
+        }
+        await this.loadOutcome(outcome);
+        await this.cancelOrder(id, outcome);
+        return await this.createOrder(outcome, type, side, amount, price, params);
+    }
+    /**
+     * @method
+     * @name kalshi#cancelOrder
+     * @description cancels a single open order by id on kalshi
+     * @see https://trading-api.readme.io/reference/cancelorder
+     * @param {string} id order id
+     * @param {string} [outcome] unified outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrder(id, outcome = undefined, params = {}) {
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome(outcome);
+        }
+        // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
+        // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
+        const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend({ 'order_id': id }, params));
+        // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
+        // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
+        const order = this.parsePredictionOrder(this.safeDict(response, 'order', response), outcomeObj);
+        if (order['id'] === undefined) {
+            order['id'] = id;
+        }
+        if (order['status'] === undefined) {
+            order['status'] = 'canceled';
+        }
+        return order;
+    }
+    /**
+     * @method
+     * @name kalshi#cancelAllOrders
+     * @description cancels all open orders on kalshi, optionally scoped to one outcome ticker
+     * @see https://trading-api.readme.io/reference/cancelorders
+     * @param {string} [outcome] unified outcome to scope the cancellation to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelAllOrders(outcome = undefined, params = {}) {
+        if (outcome !== undefined) {
+            await this.loadOutcome(outcome);
+        }
+        // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
+        // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
+        // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
+        const request = { 'status': 'resting' };
+        if (outcome !== undefined) {
+            const outcomeObj = this.outcome(outcome);
+            request['ticker'] = this.safeString(outcomeObj['info'], 'ticker');
+        }
+        const restingResponse = await this.kalshiPrivateGetPortfolioOrders(request);
+        const restingOrders = this.safeList(restingResponse, 'orders', []);
+        const restingOrdersLength = restingOrders.length;
+        const canceledOrders = [];
+        for (let i = 0; i < restingOrdersLength; i++) {
+            const restingOrder = restingOrders[i];
+            const orderId = this.safeString(restingOrder, 'order_id');
+            if (orderId !== undefined) {
+                await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend({ 'order_id': orderId }, params));
+                // the DELETE body is minimal — parse the already-fetched resting order instead, which
+                // carries the true side/outcome/price/count, then mark it canceled
+                const parsed = this.parsePredictionOrder(restingOrder);
+                parsed['status'] = 'canceled';
+                canceledOrders.push(parsed);
+            }
+        }
+        return canceledOrders;
+    }
+    /**
+     * @method
+     * @name kalshi#fetchEvents
+     * @description fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+     * @see https://docs.kalshi.com/api-reference/events/get-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
+     * @param {string} [params.query] free-text search resolved server-side via kalshi's series search endpoint
+     * @param {string[]} [params.queries] multiple free-text searches (alternative to query, unioned)
+     * @param {string} [params.series_ticker] one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
+     * @param {string[]} [params.tags] kalshi series tags (e.g. ['BTC']) — resolved to series via the /series listing
+     * @param {string} [params.category] a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
+     * @param {string} [params.status] 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] max number of events to return
+     * @returns {object[]} an array of event structures
+     */
+    async fetchEvents(params = {}) {
+        const queries = this.parseSearchQueries(params);
+        const queriesLength = queries.length;
+        params = this.omit(params, ['query', 'queries']);
+        const userLimit = this.safeInteger(params, 'limit');
+        // bound how many events are actually FETCHED (not just returned) so a broad scope like
+        // category='Crypto' (hundreds of series) doesn't page every one of them
+        let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
+        if (userLimit !== undefined) {
+            fetchCap = userLimit;
+        }
+        // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
+        // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
+        // silently rewritten to 'open'); 'all' sends no filter
+        const requestedStatus = this.safeString(params, 'status', this.safeString(this.options, 'defaultEventStatus', 'open'));
+        let status = undefined;
+        if ((requestedStatus === 'active') || (requestedStatus === 'open')) {
+            status = 'open';
+        }
+        else if ((requestedStatus === 'closed') || (requestedStatus === 'inactive')) {
+            status = 'closed';
+        }
+        else if ((requestedStatus === 'settled') || (requestedStatus === 'resolved')) {
+            status = 'settled';
+        }
+        // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
+        const rest = this.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker']);
+        if (!this.markets) {
+            this.markets = this.createSafeDictionary();
+        }
+        const eventId = this.safeString2(params, 'eventId', 'slug');
+        let rawEvents = [];
+        if (queriesLength > 0) {
+            // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
+            rawEvents = await this.fetchEventsByQuery(queries, fetchCap, rest);
+        }
+        else if (eventId !== undefined) {
+            // kalshi's event id (and slug) is the event_ticker — fetch it directly
+            const fullEvent = await this.fetchRawEventByTicker(eventId, rest);
+            rawEvents = [fullEvent];
+        }
+        else {
+            // tags / category / series_ticker resolve to a set of series; fetch their events, capped
+            const seriesTickers = await this.resolveEventSeriesTickers(params);
+            const seriesTickersLength = seriesTickers.length;
+            if (seriesTickersLength === 0) {
+                this.requireEventQuery(params);
+            }
+            rawEvents = await this.fetchSeriesEvents(seriesTickers, status, fetchCap, rest);
+        }
+        const rawEventsLength = rawEvents.length;
+        const result = [];
+        for (let di = 0; di < rawEventsLength; di++) {
+            const parsedEvent = this.parseEvent(rawEvents[di]);
+            result.push(parsedEvent);
+            // register the parsed markets so populateOutcomes can index their outcomes
+            const parsedMarketsRaw = parsedEvent['markets'];
+            const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
+            const parsedMarketsLength = parsedMarkets.length;
+            for (let mi = 0; mi < parsedMarketsLength; mi++) {
+                const m = parsedMarkets[mi];
+                this.markets[m['market']] = m;
+            }
+        }
+        this.populateOutcomes();
+        // scoping already happened server-side, so strip the resolved scopes before the client-side
+        // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
+        // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
+        const postParams = this.omit(params, ['tags', 'category', 'series_ticker']);
+        return this.applyEventFetchParams(result, postParams, []);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchEventsByQuery
+     * @description resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
+     * @param {string[]} queries free-text search strings
+     * @param {int} [limit] max number of events to fetch
+     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+     * @returns {object[]} raw kalshi event objects with nested markets
+     */
+    async fetchEventsByQuery(queries, limit, rest = {}) {
+        const pageSize = (limit !== undefined) ? limit : this.safeInteger(this.options, 'searchSeriesLimit', 25);
+        // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
+        const seen = {};
+        const eventTickers = [];
+        const queriesLength = queries.length;
+        for (let qi = 0; qi < queriesLength; qi++) {
+            const searchResponse = await this.electionsPublicGetSearchSeries({
+                'query': queries[qi],
+                'order_by': 'querymatch',
+                'page_size': pageSize,
+            });
+            const page = this.safeList(searchResponse, 'current_page', []);
+            const pageLength = page.length;
+            for (let pi = 0; pi < pageLength; pi++) {
+                const et = this.safeString(page[pi], 'event_ticker');
+                if (et !== undefined) {
+                    const already = this.safeString(seen, et);
+                    if (already === undefined) {
+                        seen[et] = et;
+                        eventTickers.push(et);
+                    }
+                }
+            }
+        }
+        const rawEvents = [];
+        const eventTickersLength = eventTickers.length;
+        for (let ei = 0; ei < eventTickersLength; ei++) {
+            const collectedLength = rawEvents.length;
+            if ((limit !== undefined) && (collectedLength >= limit)) {
+                break;
+            }
+            // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
+            // ticker, or one absent on the demo host) — skip it rather than failing the whole query
+            try {
+                const fullEvent = await this.fetchRawEventByTicker(eventTickers[ei], rest);
+                rawEvents.push(fullEvent);
+            }
+            catch (e) {
+                if (!(e instanceof errors.BadSymbol)) {
+                    throw e;
+                }
+            }
+        }
+        return rawEvents;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchRawEventByTicker
+     * @description fetches a single raw kalshi event object (with nested markets) by its event ticker
+     * @param {string} ticker the kalshi event ticker
+     * @param {object} [params] extra params forwarded verbatim to the events endpoint
+     * @returns {object} the raw kalshi event object with nested markets
+     */
+    async fetchRawEventByTicker(ticker, params = {}) {
+        const request = { 'event_ticker': ticker, 'with_nested_markets': true };
+        const response = await this.kalshiPublicGetEventsEventTicker(this.extend(request, params));
+        const fullEvent = this.safeDict(response, 'event', response);
+        const nestedMarkets = this.safeList(fullEvent, 'markets');
+        if (nestedMarkets === undefined) {
+            fullEvent['markets'] = this.safeList(response, 'markets', []);
+        }
+        return fullEvent;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#resolveEventSeriesTickers
+     * @description resolves a fetchEvents scope (tags, category or series_ticker) to a deduplicated list of kalshi series tickers, preserving discovery order
+     * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
+     * @returns {string[]} deduplicated series tickers
+     */
+    async resolveEventSeriesTickers(params = {}) {
+        const collected = [];
+        // tags / category -> documented /series listing
+        const tags = this.safeList(params, 'tags', []);
+        const tagsLength = tags.length;
+        for (let ti = 0; ti < tagsLength; ti++) {
+            const seriesResponse = await this.kalshiPublicGetSeries({ 'tags': tags[ti] });
+            const seriesList = this.safeList(seriesResponse, 'series', []);
+            const seriesListLength = seriesList.length;
+            for (let si = 0; si < seriesListLength; si++) {
+                const st = this.safeString(seriesList[si], 'ticker');
+                if (st !== undefined) {
+                    collected.push(st);
+                }
+            }
+        }
+        const category = this.safeString(params, 'category');
+        if (category !== undefined) {
+            const seriesResponse = await this.kalshiPublicGetSeries({ 'category': category });
+            const seriesList = this.safeList(seriesResponse, 'series', []);
+            const seriesListLength = seriesList.length;
+            for (let si = 0; si < seriesListLength; si++) {
+                const st = this.safeString(seriesList[si], 'ticker');
+                if (st !== undefined) {
+                    collected.push(st);
+                }
+            }
+        }
+        // explicit series_ticker(s) — comma-separated accepted, used verbatim
+        const seriesParam = this.safeString(params, 'series_ticker');
+        if (seriesParam !== undefined) {
+            const parts = seriesParam.split(',');
+            const partsLength = parts.length;
+            for (let pi = 0; pi < partsLength; pi++) {
+                collected.push(parts[pi]);
+            }
+        }
+        // deduplicate preserving order
+        const seen = {};
+        const ordered = [];
+        const collectedLength = collected.length;
+        for (let ci = 0; ci < collectedLength; ci++) {
+            const st = collected[ci];
+            const already = this.safeString(seen, st);
+            if ((st !== undefined) && (st !== '') && (already === undefined)) {
+                seen[st] = st;
+                ordered.push(st);
+            }
+        }
+        return ordered;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchSeriesEvents
+     * @description fetches the canonical events (with nested markets) of the given kalshi series, cursor-paginated per series and stopping once `limit` events are gathered
+     * @param {string[]} seriesTickers the series to fetch events for
+     * @param {string} status the kalshi event status ('open' | 'closed')
+     * @param {int} [limit] stop fetching once this many events are gathered
+     * @param {object} [rest] extra params forwarded verbatim to the events endpoint
+     * @returns {object[]} raw kalshi event objects with nested markets
+     */
+    async fetchSeriesEvents(seriesTickers, status, limit, rest = {}) {
+        const rawEvents = [];
+        const seriesTickersLength = seriesTickers.length;
+        const pageLimit = this.safeInteger(this.options, 'defaultFetchEventsLimit', 200);
+        const maxPages = this.safeInteger(this.options, 'maxEventPagesPerSeries', 20);
+        for (let si = 0; si < seriesTickersLength; si++) {
+            const collectedLength = rawEvents.length;
+            if ((limit !== undefined) && (collectedLength >= limit)) {
+                break;
+            }
+            let cursor = undefined;
+            for (let page = 0; page < maxPages; page++) {
+                let reqLimit = pageLimit;
+                if (limit !== undefined) {
+                    const remaining = limit - rawEvents.length;
+                    if (remaining < reqLimit) {
+                        reqLimit = remaining;
+                    }
+                    if (reqLimit <= 0) {
+                        break;
+                    }
+                }
+                const request = {
+                    'series_ticker': seriesTickers[si],
+                    'status': status,
+                    'with_nested_markets': true,
+                    'limit': reqLimit,
+                };
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
+                }
+                const response = await this.kalshiPublicGetEvents(this.extend(request, rest));
+                const pageEvents = this.safeList(response, 'events', []);
+                const pageEventsLength = pageEvents.length;
+                for (let ei = 0; ei < pageEventsLength; ei++) {
+                    rawEvents.push(pageEvents[ei]);
+                }
+                cursor = this.safeString(response, 'cursor');
+                const collectedAfterPage = rawEvents.length;
+                if ((limit !== undefined) && (collectedAfterPage >= limit)) {
+                    break;
+                }
+                if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {
+                    break;
+                }
+            }
+        }
+        return rawEvents;
+    }
+    /**
+     * @method
+     * @name kalshi#fetchEvent
+     * @description fetches a single prediction-market event by its event ticker
+     * @see https://trading-api.readme.io/reference/getevent
+     * @param {string} id the event ticker
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent(id, params = {}) {
+        const fullEvent = await this.fetchRawEventByTicker(id, params);
+        const event = this.parseEvent(fullEvent);
+        this.indexEventOutcomes(event);
+        return event;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#parseEvent
+     * @description parses a raw kalshi event object (with nested markets) into the unified CCXT event shape
+     * @param {object} rawEvent the raw event object
+     * @returns {object} an event structure
+     */
+    parseEvent(rawEvent) {
+        // {
+        //         "available_on_brokers": true,
+        //         "category": "Politics",
+        //         "collateral_return_type": "",
+        //         "event_ticker": "KXBALANCE-29",
+        //         "last_updated_ts": "0001-01-01T00:00:00Z",
+        //         "markets": [
+        //             {
+        //                 "can_close_early": true,
+        //                 "close_time": "2029-07-01T14:00:00Z",
+        //                 "created_time": "0001-01-01T00:00:00Z",
+        //                 "early_close_condition": "This market will close and expire early if the event occurs.",
+        //                 "event_ticker": "KXBALANCE-29",
+        //                 "expected_expiration_time": "2029-07-01T14:00:00Z",
+        //                 "expiration_time": "2029-07-01T14:00:00Z",
+        //                 "expiration_value": "",
+        //                 "fractional_trading_enabled": false,
+        //                 "last_price_dollars": "0.1000",
+        //                 "latest_expiration_time": "2029-07-01T14:00:00Z",
+        //                 "liquidity_dollars": "0.0000",
+        //                 "market_type": "binary",
+        //                 "no_ask_dollars": "0.9000",
+        //                 "no_bid_dollars": "0.8900",
+        //                 "no_sub_title": "During Trump's term",
+        //                 "notional_value_dollars": "1.0000",
+        //                 "open_interest_fp": "16268.00",
+        //                 "open_time": "2025-01-03T15:00:00Z",
+        //                 "previous_price_dollars": "0.0000",
+        //                 "previous_yes_ask_dollars": "0.0000",
+        //                 "previous_yes_bid_dollars": "0.0000",
+        //                 "price_level_structure": "linear_cent",
+        //                 "price_ranges": [
+        //                     {
+        //                         "end": "1.0000",
+        //                         "start": "0.0000",
+        //                         "step": "0.0100"
+        //                     }
+        //                 ],
+        //                 "response_price_units": "usd_cent",
+        //                 "result": "",
+        //                 "rules_primary": "If there is not a budget deficit for any of fiscal years 2025, 2026, 2027, or 2028, then the market resolves to Yes.",
+        //                 "rules_secondary": "",
+        //                 "settlement_timer_seconds": "1800",
+        //                 "status": "active",
+        //                 "subtitle": "",
+        //                 "tick_size": "1",
+        //                 "ticker": "KXBALANCE-29",
+        //                 "title": "Will Trump balance the budget?",
+        //                 "updated_time": "0001-01-01T00:00:00Z",
+        //                 "volume_24h_fp": "28.00",
+        //                 "volume_fp": "40111.00",
+        //                 "yes_ask_dollars": "0.1100",
+        //                 "yes_ask_size_fp": "",
+        //                 "yes_bid_dollars": "0.1000",
+        //                 "yes_bid_size_fp": "",
+        //                 "yes_sub_title": "During Trump's term"
+        //             }
+        //         ],
+        //         "mutually_exclusive": false,
+        //         "series_ticker": "KXBALANCE",
+        //         "strike_period": "",
+        //         "sub_title": "During Trump's term",
+        //         "title": "Will Trump balance the budget?"
+        // }
+        const rawMarkets = this.safeList(rawEvent, 'markets', []);
+        const marketsList = [];
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works;
+        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
+        // resolved and the resolution deadline are aggregated from the child markets too
+        let totalVolume = 0;
+        let totalLiquidity = 0;
+        let earliestCreated = undefined;
+        let anyActive = false;
+        let allResolved = true;
+        let latestClose = undefined;
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const rawMarket = rawMarkets[i];
+            const parsed = this.parseMarket(rawMarket);
+            marketsList.push(parsed);
+            totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, 'volume_fp', 'volume', 0));
+            totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, 'liquidity_dollars', 'liquidity', 0));
+            const marketCreated = this.parse8601(this.safeString(rawMarket, 'open_time'));
+            if ((marketCreated !== undefined) && ((earliestCreated === undefined) || (marketCreated < earliestCreated))) {
+                earliestCreated = marketCreated;
+            }
+            const marketStatus = this.safeString(rawMarket, 'status');
+            if (marketStatus === 'active') {
+                anyActive = true;
+            }
+            const marketResult = this.safeString(rawMarket, 'result');
+            const marketResolved = (marketStatus === 'settled') || ((marketResult !== undefined) && (marketResult !== ''));
+            if (!marketResolved) {
+                allResolved = false;
+            }
+            const marketClose = this.parse8601(this.safeString(rawMarket, 'close_time'));
+            if ((marketClose !== undefined) && ((latestClose === undefined) || (marketClose > latestClose))) {
+                latestClose = marketClose;
+            }
+        }
+        // the aggregates only mean something when the payload nested any markets at all
+        const marketsCount = marketsList.length;
+        let active = undefined;
+        if (marketsCount > 0) {
+            active = anyActive;
+        }
+        let resolved = this.safeBool(rawEvent, 'resolved');
+        if ((resolved === undefined) && (marketsCount > 0)) {
+            resolved = allResolved;
+        }
+        let end = this.parse8601(this.safeString(rawEvent, 'end_date_iso'));
+        if (end === undefined) {
+            end = latestClose;
+        }
+        const ticker = this.safeString(rawEvent, 'event_ticker');
+        const title = this.safeString(rawEvent, 'title');
+        let created = this.parse8601(this.safeString(rawEvent, 'created_date_iso'));
+        if (created === undefined) {
+            created = earliestCreated;
+        }
+        return this.extend({
+            'id': ticker,
+            'slug': ticker,
+            'event': title ? this.shortenSlug(title) : undefined,
+            'title': title,
+            'markets': marketsList,
+            'volume': totalVolume,
+            'liquidity': totalLiquidity,
+            'url': this.safeString(rawEvent, 'url'),
+            'image': this.safeString(rawEvent, 'image_url'),
+            'created': created,
+            'createdDatetime': this.safeString(rawEvent, 'created_date_iso'),
+            'end': end,
+            'endDatetime': this.iso8601(end),
+            'category': this.safeString(rawEvent, 'category'),
+            'lastUpdatedAt': this.parse8601(this.safeString(rawEvent, 'last_updated_date_iso')),
+            'lastUpdatedAtDatetime': this.safeString(rawEvent, 'last_updated_date_iso'),
+            'resolutionSource': this.safeString(rawEvent, 'resolution_source'),
+            'active': active,
+            'resolved': resolved,
+            'info': rawEvent,
+        });
+    }
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#sign
+     * @description builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} [api] the api group and access level
+     * @param {string} [method] HTTP method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {object} [body] request body
+     * @returns {object} a dictionary with url, method, body and headers
+     */
+    sign(path, api = 'kalshi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
+        const baseUrls = this.urls['api'];
+        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['kalshi']);
+        const implodedPath = this.implodeParams(path, params);
+        let url = baseUrl + '/' + implodedPath;
+        const query = this.omit(params, this.extractParams(path));
+        const querystring = this.urlencode(query);
+        if (method === 'GET' && querystring) {
+            url += '?' + querystring;
+        }
+        const existingHeaders = (headers !== undefined) ? headers : {};
+        headers = this.extend({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }, existingHeaders);
+        if (access === 'private') {
+            this.checkRequiredCredentials();
+            const timestamp = this.milliseconds().toString();
+            // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
+            // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
+            // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
+            const tradeApiIndex = baseUrl.indexOf('/trade-api');
+            const versionPrefix = baseUrl.slice(tradeApiIndex);
+            const pathForSigning = versionPrefix + '/' + implodedPath;
+            const payload = timestamp + method + pathForSigning;
+            // RSA-PSS SHA-256 signature with the private key PEM
+            const keyParts = this.privateKey.split('\\n');
+            const cleanPrivateKey = keyParts.join('\n');
+            const signature = rsa.rsa(payload, cleanPrivateKey, sha2_js.sha256, 'pss');
+            headers = this.extend(headers, {
+                'KALSHI-ACCESS-KEY': this.apiKey,
+                'KALSHI-ACCESS-SIGNATURE': signature,
+                'KALSHI-ACCESS-TIMESTAMP': timestamp,
+            });
+            if (method !== 'GET' && querystring) {
+                // kalshi expects a JSON body; the signature covers only timestamp+method+path
+                body = this.json(query);
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}
+
+exports["default"] = kalshi;

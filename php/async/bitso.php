@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitso extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -54,7 +56,7 @@ class bitso extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -147,12 +149,6 @@ class bitso extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'precision' => array(
-                    'XRP' => 0.000001,
-                    'MXN' => 0.01,
-                    'TUSD' => 0.01,
-                ),
-                'defaultPrecision' => 0.00000001,
                 'networks' => array(
                     'TRC20' => 'trx',
                     'ERC20' => 'erc20',
@@ -175,6 +171,7 @@ class bitso extends Exchange {
                 'public' => array(
                     'get' => array(
                         'available_books',
+                        'catalogues',
                         'ticker',
                         'order_book',
                         'trades',
@@ -496,6 +493,7 @@ class bitso extends Exchange {
             //         )
             //     }
             $markets = $this->safe_value($response, 'payload', array());
+            $currencies = $this->safe_dict($this->options, 'cachedCurrencies');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -537,8 +535,7 @@ class bitso extends Exchange {
                     'maker' => $makerFees,
                 );
                 $fee['tiers'] = $tiers;
-                // TODO => precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies(or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
-                $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
+                $baseCurrency = $this->safe_dict($currencies, $base);
                 $result[] = $this->extend(array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -566,8 +563,8 @@ class bitso extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_number($this->options['precision'], $base, $this->options['defaultPrecision']),
-                        'price' => $this->safe_number($market, 'tick_size', $defaultPricePrecision),
+                        'amount' => $this->safe_number($baseCurrency, 'precision'),
+                        'price' => $this->safe_number($market, 'tick_size'),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -593,6 +590,79 @@ class bitso extends Exchange {
             }
             return $result;
         })();
+    }
+
+    public function fetch_currencies($params = array()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             *
+             * @see https://docs.bitso.com/bitso-payouts-funding/docs
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $catalogues = Async\await($this->publicGetCatalogues($params));
+            //
+            //     {
+            //         "payload" => {
+            //             "currencies" => {
+            //                 "metadata" => [
+            //                     array(
+            //                         "code" => "brl",
+            //                         "full_name" => "Brazilian Reais",
+            //                         "color" => "02A630",
+            //                         "precision" => 2,
+            //                         "display_ticker" => "BRL",
+            //                         "type" => "fiat"
+            //                     ),
+            //                     array(
+            //                         "code" => "usdt",
+            //                         "full_name" => "USDT (Digital Dollars)",
+            //                         "color" => "50AF95",
+            //                         "precision" => 2,
+            //                         "display_ticker" => "USDT",
+            //                         "type" => "crypto"
+            //                     ), ...
+            //
+            $payload = $this->safe_dict($catalogues, 'payload');
+            $currencies = $this->safe_dict($payload, 'currencies');
+            $metadata = $this->safe_list($currencies, 'metadata', array());
+            return $this->parse_currencies($metadata);
+        })();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'code');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $this->safe_string($rawCurrency, 'full_name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
+            'margin' => $this->safe_bool($rawCurrency, 'marginAvailable'),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+            'type' => $this->safe_string($rawCurrency, 'type'),
+        ));
     }
 
     public function parse_balance($response): array {

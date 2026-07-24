@@ -323,7 +323,9 @@ class alpaca(Exchange, ImplicitAPI):
                     'GNSS',  # Genesis
                     'ERSX',  # ErisX
                 ],
-                'defaultTimeInForce': 'gtc',  # fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc',  # fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -1047,7 +1049,7 @@ class alpaca(Exchange, ImplicitAPI):
             'side': side,
             'type': type,  # market, limit, stop_limit
         }
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stop_price')
         if triggerPrice is not None:
             newType: str
             if type.find('limit') >= 0:
@@ -1064,8 +1066,9 @@ class alpaca(Exchange, ImplicitAPI):
             request['notional'] = self.cost_to_precision(symbol, cost)
         else:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        defaultTIF = self.safe_string(self.options, 'defaultTimeInForce')
-        request['time_in_force'] = self.safe_string(params, 'timeInForce', defaultTIF)
+        defaultTIF = None
+        defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        request['time_in_force'] = defaultTIF
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
@@ -1311,14 +1314,14 @@ class alpaca(Exchange, ImplicitAPI):
             market = self.market(symbol)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stop_price')
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, 'triggerPrice')
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params_2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce')
+        timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         request['client_order_id'] = self.generate_client_order_id(params)

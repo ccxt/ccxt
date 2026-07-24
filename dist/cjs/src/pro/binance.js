@@ -277,8 +277,8 @@ class binance extends binance$1["default"] {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -312,7 +312,10 @@ class binance extends binance$1["default"] {
             }
             streamHash += '::' + symbols.join(',');
         }
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        let firstMarket = undefined;
+        if (!this.isEmpty(symbols)) {
+            firstMarket = this.getMarketFromSymbols(symbols);
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
@@ -500,7 +503,7 @@ class binance extends binance$1["default"] {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
@@ -627,7 +630,7 @@ class binance extends binance$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
+    watchOrderBook(symbol, limit = undefined, params = {}) {
         //
         // todo add support for <levels>-snapshots (depth)
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
@@ -665,7 +668,7 @@ class binance extends binance$1["default"] {
         // 8. If the quantity is 0, remove the price level.
         // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         //
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -815,8 +818,8 @@ class binance extends binance$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     /**
      * @method
@@ -1264,11 +1267,8 @@ class binance extends binance$1["default"] {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method
@@ -1993,8 +1993,8 @@ class binance extends binance$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrice(symbol, params = {}) {
-        return await this.unWatchMarkPrices([symbol], params);
+    unWatchMarkPrice(symbol, params = {}) {
+        return this.unWatchMarkPrices([symbol], params);
     }
     /**
      * @method
@@ -2010,8 +2010,8 @@ class binance extends binance$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -2879,8 +2879,8 @@ class binance extends binance$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionWs(symbol, params = {}) {
-        return await this.fetchPositionsWs([symbol], params);
+    fetchPositionWs(symbol, params = {}) {
+        return this.fetchPositionsWs([symbol], params);
     }
     /**
      * @method

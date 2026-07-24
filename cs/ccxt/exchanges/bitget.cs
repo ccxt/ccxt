@@ -1438,63 +1438,66 @@ public partial class bitget : Exchange
                 { "uta", null },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
-                { "timeframes", new Dictionary<string, object>() {
-                    { "spot", new Dictionary<string, object>() {
-                        { "1m", "1min" },
-                        { "5m", "5min" },
-                        { "3m", "3min" },
-                        { "15m", "15min" },
-                        { "30m", "30min" },
-                        { "1h", "1h" },
-                        { "4h", "4h" },
-                        { "6h", "6Hutc" },
-                        { "12h", "12Hutc" },
-                        { "1d", "1Dutc" },
-                        { "3d", "3Dutc" },
-                        { "1w", "1Wutc" },
-                        { "1M", "1Mutc" },
-                    } },
-                    { "swap", new Dictionary<string, object>() {
-                        { "1m", "1m" },
-                        { "3m", "3m" },
-                        { "5m", "5m" },
-                        { "15m", "15m" },
-                        { "30m", "30m" },
-                        { "1h", "1H" },
-                        { "2h", "2H" },
-                        { "4h", "4H" },
-                        { "6h", "6Hutc" },
-                        { "12h", "12Hutc" },
-                        { "1d", "1Dutc" },
-                        { "3d", "3Dutc" },
-                        { "1w", "1Wutc" },
-                        { "1M", "1Mutc" },
-                    } },
-                    { "uta", new Dictionary<string, object>() {
-                        { "1m", "1m" },
-                        { "3m", "3m" },
-                        { "5m", "5m" },
-                        { "15m", "15m" },
-                        { "30m", "30m" },
-                        { "1h", "1H" },
-                        { "2h", "2H" },
-                        { "4h", "4H" },
-                        { "6h", "6H" },
-                        { "12h", "12H" },
-                        { "1d", "1D" },
-                    } },
-                } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "swap"} },
                 } },
                 { "defaultType", "spot" },
                 { "defaultSubType", "linear" },
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", true },
+                    { "timeInForce", "GTC" },
+                } },
                 { "broker", "p4sve" },
                 { "withdraw", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
                 } },
                 { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "timeframes", new Dictionary<string, object>() {
+                        { "spot", new Dictionary<string, object>() {
+                            { "1m", "1min" },
+                            { "5m", "5min" },
+                            { "3m", "3min" },
+                            { "15m", "15min" },
+                            { "30m", "30min" },
+                            { "1h", "1h" },
+                            { "4h", "4h" },
+                            { "6h", "6Hutc" },
+                            { "12h", "12Hutc" },
+                            { "1d", "1Dutc" },
+                            { "3d", "3Dutc" },
+                            { "1w", "1Wutc" },
+                            { "1M", "1Mutc" },
+                        } },
+                        { "swap", new Dictionary<string, object>() {
+                            { "1m", "1m" },
+                            { "3m", "3m" },
+                            { "5m", "5m" },
+                            { "15m", "15m" },
+                            { "30m", "30m" },
+                            { "1h", "1H" },
+                            { "2h", "2H" },
+                            { "4h", "4H" },
+                            { "6h", "6Hutc" },
+                            { "12h", "12Hutc" },
+                            { "1d", "1Dutc" },
+                            { "3d", "3Dutc" },
+                            { "1w", "1Wutc" },
+                            { "1M", "1Mutc" },
+                        } },
+                        { "uta", new Dictionary<string, object>() {
+                            { "1m", "1m" },
+                            { "3m", "3m" },
+                            { "5m", "5m" },
+                            { "15m", "15m" },
+                            { "30m", "30m" },
+                            { "1h", "1H" },
+                            { "2h", "2H" },
+                            { "4h", "4H" },
+                            { "6h", "6H" },
+                            { "12h", "12H" },
+                            { "1d", "1D" },
+                        } },
+                    } },
                     { "maxRecentDaysPerTimeframe", new Dictionary<string, object>() {
                         { "1m", 30 },
                         { "3m", 30 },
@@ -1653,8 +1656,9 @@ public partial class bitget : Exchange
                 { "fetchPositions", new Dictionary<string, object>() {
                     { "method", "privateMixGetV2MixPositionAllPosition" },
                 } },
-                { "defaultTimeInForce", "GTC" },
-                { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
+                } },
             } },
             { "rollingWindowSize", 1000 },
             { "features", new Dictionary<string, object>() {
@@ -2544,7 +2548,7 @@ public partial class bitget : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object entry = rawCurrency;
         object id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         object code = this.safeCurrencyCode(id);
@@ -4487,18 +4491,19 @@ public partial class bitget : Exchange
         };
         object marketType = null;
         object timeframes = null;
+        object timeframesOption = this.handleOption("fetchOHLCV", "timeframes");
         object uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOHLCV", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(uta))
         {
-            timeframes = getValue(getValue(this.options, "timeframes"), "uta");
+            timeframes = getValue(timeframesOption, "uta");
             ((IDictionary<string,object>)request)["interval"] = this.safeString(timeframes, timeframe, timeframe);
         } else
         {
             marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
-            timeframes = getValue(getValue(this.options, "timeframes"), marketType);
+            timeframes = getValue(timeframesOption, marketType);
             ((IDictionary<string,object>)request)["granularity"] = this.safeString(timeframes, timeframe, timeframe);
         }
         object msInDay = 86400000;
@@ -5580,8 +5585,14 @@ public partial class bitget : Exchange
             var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(exchangeSpecificTifParam, "post_only"), parameters);
             postOnly = ((IList<object>)postOnlyparametersVariable)[0];
             parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            object defaultTimeInForce = this.safeStringUpper(this.options, "defaultTimeInForce");
-            object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTimeInForce);
+            object timeInForce = null;
+            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
+            parameters = ((IList<object>)timeInForceparametersVariable)[1];
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                timeInForce = ((string)timeInForce).ToUpper();
+            }
             if (isTrue(postOnly))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "post_only";
@@ -5691,8 +5702,14 @@ public partial class bitget : Exchange
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(exchangeSpecificTifParam, "post_only"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        object defaultTimeInForce = this.safeStringUpper(this.options, "defaultTimeInForce");
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTimeInForce);
+        object timeInForce = null;
+        var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+        timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
+        parameters = ((IList<object>)timeInForceparametersVariable)[1];
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            timeInForce = ((string)timeInForce).ToUpper();
+        }
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)request)["force"] = "post_only";
@@ -5856,7 +5873,7 @@ public partial class bitget : Exchange
                 {
                     if (isTrue(isEqual(price, null)))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         object amountString = this.numberToString(amount);
@@ -7694,7 +7711,7 @@ public partial class bitget : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                 }
-                object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                object endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
                 if (isTrue(isEqual(since, null)))
                 {

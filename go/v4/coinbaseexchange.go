@@ -2466,7 +2466,7 @@ func (this *CoinbaseexchangeCore) CreateDepositAddress(code any, optionalArgs ..
 		var currencyId any = GetValue(currency, "id")
 		var account any = this.SafeValue(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 		if IsTrue(IsEqual(account, nil)) {
-			panic(InvalidAddress(Add(Add(Add(Add(Add(this.Id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options[\\'coinbaseAccountsByCurrencyId\\']")))
+			panic(InvalidAddress(Add(Add(Add(Add(Add(this.Id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
 		}
 		var request any = map[string]any{
 			"id": GetValue(account, "id"),

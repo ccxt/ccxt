@@ -2,92 +2,92 @@
  * @param {any} provider
  * @returns {JsonRpcSigner}
  */
-export function newRpcSignerWithProvider(provider: any): JsonRpcSigner;
+export declare function newRpcSignerWithProvider(provider: any): JsonRpcSigner;
 /**
  * @param {any} signer
  * @param {string} pub_key
  * @param {string} chain_id
  * @returns {JsonRpcSigner}
  */
-export function newRpcSignerWithSigner(signer: any, pub_key: string, chain_id: string): JsonRpcSigner;
+export declare function newRpcSignerWithSigner(signer: any, pub_key: string, chain_id: string): JsonRpcSigner;
 /**
  * @param {ChangePubKeyBuilder} builder
  * @returns {ChangePubKey}
  */
-export function newChangePubkey(builder: ChangePubKeyBuilder): ChangePubKey;
+export declare function newChangePubkey(builder: ChangePubKeyBuilder): ChangePubKey;
 /**
  * @param {LiquidationBuilder} builder
  * @returns {Liquidation}
  */
-export function newLiquidation(builder: LiquidationBuilder): Liquidation;
+export declare function newLiquidation(builder: LiquidationBuilder): Liquidation;
 /**
  * @param {ForcedExitBuilder} builder
  * @returns {ForcedExit}
  */
-export function newForcedExit(builder: ForcedExitBuilder): ForcedExit;
+export declare function newForcedExit(builder: ForcedExitBuilder): ForcedExit;
 /**
  * @param {TransferBuilder} builder
  * @returns {Transfer}
  */
-export function newTransfer(builder: TransferBuilder): Transfer;
+export declare function newTransfer(builder: TransferBuilder): Transfer;
 /**
  * @param {AutoDeleveragingBuilder} builder
  * @returns {AutoDeleveraging}
  */
-export function newAutoDeleveraging(builder: AutoDeleveragingBuilder): AutoDeleveraging;
+export declare function newAutoDeleveraging(builder: AutoDeleveragingBuilder): AutoDeleveraging;
 /**
  * @param {UpdateGlobalVarBuilder} builder
  * @returns {UpdateGlobalVar}
  */
-export function newUpdateGlobalVar(builder: UpdateGlobalVarBuilder): UpdateGlobalVar;
+export declare function newUpdateGlobalVar(builder: UpdateGlobalVarBuilder): UpdateGlobalVar;
 /**
  * @param {FundingBuilder} builder
  * @returns {Funding}
  */
-export function newFunding(builder: FundingBuilder): Funding;
+export declare function newFunding(builder: FundingBuilder): Funding;
 /**
  * @param {WithdrawBuilder} builder
  * @returns {Withdraw}
  */
-export function newWithdraw(builder: WithdrawBuilder): Withdraw;
+export declare function newWithdraw(builder: WithdrawBuilder): Withdraw;
 /**
  * @param {ContractMatchingBuilder} builder
  * @returns {ContractMatching}
  */
-export function newContractMatching(builder: ContractMatchingBuilder): ContractMatching;
+export declare function newContractMatching(builder: ContractMatchingBuilder): ContractMatching;
 /**
  * @param {ContractBuilder} builder
  * @returns {Contract}
  */
-export function newContract(builder: ContractBuilder): Contract;
+export declare function newContract(builder: ContractBuilder): Contract;
 /**
  * @param {OrderMatchingBuilder} builder
  * @returns {OrderMatching}
  */
-export function newOrderMatching(builder: OrderMatchingBuilder): OrderMatching;
+export declare function newOrderMatching(builder: OrderMatchingBuilder): OrderMatching;
 /**
  * @param {string} amount
  * @returns {boolean}
  */
-export function isTokenAmountPackable(amount: string): boolean;
+export declare function isTokenAmountPackable(amount: string): boolean;
 /**
  * @param {string} fee
  * @returns {boolean}
  */
-export function isFeeAmountPackable(fee: string): boolean;
+export declare function isFeeAmountPackable(fee: string): boolean;
 /**
  * @param {string} amount
  * @returns {string}
  */
-export function closestPackableTransactionAmount(amount: string): string;
+export declare function closestPackableTransactionAmount(amount: string): string;
 /**
  * @param {string} fee
  * @returns {string}
  */
-export function closestPackableTransactionFee(fee: string): string;
+export declare function closestPackableTransactionFee(fee: string): string;
 /**
  */
-export const WaitForTxStatus: Readonly<{
+export declare const WaitForTxStatus: Readonly<{
     Success: 0;
     0: "Success";
     Failed: 1;
@@ -97,7 +97,7 @@ export const WaitForTxStatus: Readonly<{
 }>;
 /**
  */
-export const EthAuthType: Readonly<{
+export declare const EthAuthType: Readonly<{
     OnChain: 0;
     0: "OnChain";
     EthECDSA: 1;
@@ -107,7 +107,7 @@ export const EthAuthType: Readonly<{
 }>;
 /**
  */
-export const L1SignatureType: Readonly<{
+export declare const L1SignatureType: Readonly<{
     Eth: 0;
     0: "Eth";
     Eip1271: 1;
@@ -118,7 +118,7 @@ export const L1SignatureType: Readonly<{
 /**
  * A set of L2 transaction type supported by the zklink network.
  */
-export const ZkLinkTxType: Readonly<{
+export declare const ZkLinkTxType: Readonly<{
     Deposit: 1;
     1: "Deposit";
     FullExit: 5;
@@ -146,7 +146,7 @@ export const ZkLinkTxType: Readonly<{
 }>;
 /**
  */
-export const BlockNumber: Readonly<{
+export declare const BlockNumber: Readonly<{
     Latest: 0;
     0: "Latest";
     Finalized: 1;
@@ -162,7 +162,7 @@ export const BlockNumber: Readonly<{
 }>;
 /**
  */
-export const ParameterType: Readonly<{
+export declare const ParameterType: Readonly<{
     FeeAccount: 0;
     0: "FeeAccount";
     InsuranceFundAccount: 1;
@@ -176,7 +176,7 @@ export const ParameterType: Readonly<{
 }>;
 /**
  */
-export const AccountQueryType: Readonly<{
+export declare const AccountQueryType: Readonly<{
     AccountId: 0;
     0: "AccountId";
     Address: 1;
@@ -184,27 +184,22 @@ export const AccountQueryType: Readonly<{
 }>;
 /**
  */
-export class AccountQuery {
+export declare class AccountQuery {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {AccountQueryType} query_type
      * @param {string} query_param
      */
-    constructor(query_type: Readonly<{
-        AccountId: 0;
-        0: "AccountId";
-        Address: 1;
-        1: "Address";
-    }>, query_param: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
+    constructor(query_type: AccountQueryType, query_param: string);
 }
 /**
  */
-export class AutoDeleveraging {
+export declare class AutoDeleveraging {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -218,7 +213,10 @@ export class AutoDeleveraging {
 }
 /**
  */
-export class AutoDeleveragingBuilder {
+export declare class AutoDeleveragingBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -233,9 +231,6 @@ export class AutoDeleveragingBuilder {
      * @param {number} fee_token
      */
     constructor(account_id: number, sub_account_id: number, sub_account_nonce: number, contract_prices: any[], margin_prices: any[], adl_account_id: number, pair_id: number, adl_size: string, adl_price: string, fee: string, fee_token: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {AutoDeleveraging}
      */
@@ -243,10 +238,10 @@ export class AutoDeleveragingBuilder {
 }
 /**
  */
-export class ChangePubKey {
+export declare class ChangePubKey {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -277,7 +272,10 @@ export class ChangePubKey {
 }
 /**
  */
-export class ChangePubKeyBuilder {
+export declare class ChangePubKeyBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} chain_id
      * @param {number} account_id
@@ -290,9 +288,6 @@ export class ChangePubKeyBuilder {
      * @param {number | undefined} [ts]
      */
     constructor(chain_id: number, account_id: number, sub_account_id: number, new_pubkey_hash: string, fee_token: number, fee: string, nonce: number, eth_signature?: string | undefined, ts?: number | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {ChangePubKey}
      */
@@ -300,10 +295,10 @@ export class ChangePubKeyBuilder {
 }
 /**
  */
-export class Contract {
+export declare class Contract {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -317,7 +312,10 @@ export class Contract {
 }
 /**
  */
-export class ContractBuilder {
+export declare class ContractBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -332,9 +330,6 @@ export class ContractBuilder {
      * @param {boolean} has_subsidy
      */
     constructor(account_id: number, sub_account_id: number, slot_id: number, nonce: number, pair_id: number, size: string, price: string, direction: boolean, maker_fee_rate: number, taker_fee_rate: number, has_subsidy: boolean);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Contract}
      */
@@ -342,7 +337,10 @@ export class ContractBuilder {
 }
 /**
  */
-export class ContractInfo {
+export declare class ContractInfo {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} pair_id
      * @param {string} symbol
@@ -350,9 +348,6 @@ export class ContractInfo {
      * @param {number} maintenance_margin_rate
      */
     constructor(pair_id: number, symbol: string, initial_margin_rate: number, maintenance_margin_rate: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -360,10 +355,10 @@ export class ContractInfo {
 }
 /**
  */
-export class ContractMatching {
+export declare class ContractMatching {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -377,7 +372,10 @@ export class ContractMatching {
 }
 /**
  */
-export class ContractMatchingBuilder {
+export declare class ContractMatchingBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -389,9 +387,6 @@ export class ContractMatchingBuilder {
      * @param {any[]} margin_prices
      */
     constructor(account_id: number, sub_account_id: number, taker: any, maker: any[], fee: string, fee_token: number, contract_prices: any[], margin_prices: any[]);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {ContractMatching}
      */
@@ -399,15 +394,15 @@ export class ContractMatchingBuilder {
 }
 /**
  */
-export class ContractPrice {
+export declare class ContractPrice {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} pair_id
      * @param {string} market_price
      */
     constructor(pair_id: number, market_price: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -415,16 +410,16 @@ export class ContractPrice {
 }
 /**
  */
-export class Create2Data {
+export declare class Create2Data {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {string} creator_address
      * @param {string} salt
      * @param {string} code_hash
      */
     constructor(creator_address: string, salt: string, code_hash: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @param {string} pubkey_hash
      * @returns {string}
@@ -437,7 +432,10 @@ export class Create2Data {
 }
 /**
  */
-export class EthTxOption {
+export declare class EthTxOption {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {boolean} is_support_eip1559
      * @param {string} to
@@ -447,9 +445,6 @@ export class EthTxOption {
      * @param {string | undefined} [gas_price]
      */
     constructor(is_support_eip1559: boolean, to: string, nonce?: number | undefined, value?: string | undefined, gas?: number | undefined, gas_price?: string | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -457,10 +452,10 @@ export class EthTxOption {
 }
 /**
  */
-export class ForcedExit {
+export declare class ForcedExit {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -474,7 +469,10 @@ export class ForcedExit {
 }
 /**
  */
-export class ForcedExitBuilder {
+export declare class ForcedExitBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} to_chain_id
      * @param {number} initiator_account_id
@@ -489,9 +487,6 @@ export class ForcedExitBuilder {
      * @param {number | undefined} [ts]
      */
     constructor(to_chain_id: number, initiator_account_id: number, initiator_sub_account_id: number, target_sub_account_id: number, target: string, l2_source_token: number, l1_target_token: number, exit_amount: string, initiator_nonce: number, withdraw_to_l1: boolean, ts?: number | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {ForcedExit}
      */
@@ -499,10 +494,10 @@ export class ForcedExitBuilder {
 }
 /**
  */
-export class Funding {
+export declare class Funding {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -516,7 +511,10 @@ export class Funding {
 }
 /**
  */
-export class FundingBuilder {
+export declare class FundingBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -526,9 +524,6 @@ export class FundingBuilder {
      * @param {number} fee_token
      */
     constructor(account_id: number, sub_account_id: number, sub_account_nonce: number, funding_account_ids: Uint32Array, fee: string, fee_token: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Funding}
      */
@@ -536,16 +531,16 @@ export class FundingBuilder {
 }
 /**
  */
-export class FundingInfo {
+export declare class FundingInfo {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} pair_id
      * @param {number} funding_rate
      * @param {string} price
      */
     constructor(pair_id: number, funding_rate: number, price: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -553,10 +548,10 @@ export class FundingInfo {
 }
 /**
  */
-export class JsonRpcSigner {
+export declare class JsonRpcSigner {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @param {string | undefined} [signature]
@@ -659,10 +654,10 @@ export class JsonRpcSigner {
 }
 /**
  */
-export class Liquidation {
+export declare class Liquidation {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -676,7 +671,10 @@ export class Liquidation {
 }
 /**
  */
-export class LiquidationBuilder {
+export declare class LiquidationBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -688,9 +686,6 @@ export class LiquidationBuilder {
      * @param {number} fee_token
      */
     constructor(account_id: number, sub_account_id: number, sub_account_nonce: number, contract_prices: any[], margin_prices: any[], liquidation_account_id: number, fee: string, fee_token: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Liquidation}
      */
@@ -698,16 +693,16 @@ export class LiquidationBuilder {
 }
 /**
  */
-export class MarginInfo {
+export declare class MarginInfo {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} margin_id
      * @param {number} token_id
      * @param {number} ratio
      */
     constructor(margin_id: number, token_id: number, ratio: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -715,7 +710,10 @@ export class MarginInfo {
 }
 /**
  */
-export class Order {
+export declare class Order {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -731,9 +729,6 @@ export class Order {
      * @param {boolean} has_subsidy
      */
     constructor(account_id: number, sub_account_id: number, slot_id: number, nonce: number, base_token_id: number, quote_token_id: number, amount: string, price: string, is_sell: boolean, maker_fee_rate: number, taker_fee_rate: number, has_subsidy: boolean);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -746,10 +741,10 @@ export class Order {
 }
 /**
  */
-export class OrderMatching {
+export declare class OrderMatching {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -758,7 +753,10 @@ export class OrderMatching {
 }
 /**
  */
-export class OrderMatchingBuilder {
+export declare class OrderMatchingBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -772,9 +770,6 @@ export class OrderMatchingBuilder {
      * @param {string} expect_quote_amount
      */
     constructor(account_id: number, sub_account_id: number, taker: any, maker: any, fee: string, fee_token: number, contract_prices: any[], margin_prices: any[], expect_base_amount: string, expect_quote_amount: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {OrderMatching}
      */
@@ -782,45 +777,34 @@ export class OrderMatchingBuilder {
 }
 /**
  */
-export class Parameter {
+export declare class Parameter {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {ParameterType} parameter_type
      * @param {any} parameter_value
      */
-    constructor(parameter_type: Readonly<{
-        FeeAccount: 0;
-        0: "FeeAccount";
-        InsuranceFundAccount: 1;
-        1: "InsuranceFundAccount";
-        MarginInfo: 2;
-        2: "MarginInfo";
-        FundingInfos: 3;
-        3: "FundingInfos";
-        ContractInfo: 4;
-        4: "ContractInfo";
-    }>, parameter_value: any);
-    __destroy_into_raw(): number;
+    constructor(parameter_type: ParameterType, parameter_value: any);
+}
+/**
+ */
+export declare class RequestArguments {
     __wbg_ptr: number;
+    __destroy_into_raw(): number;
     free(): void;
 }
 /**
  */
-export class RequestArguments {
-    __destroy_into_raw(): number;
+export declare class RpcClient {
     __wbg_ptr: number;
+    __destroy_into_raw(): number;
     free(): void;
-}
-/**
- */
-export class RpcClient {
     /**
      * @param {string} network
      * @param {string | undefined} [custom_url]
      */
     constructor(network: string, custom_url?: string | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Promise<any>}
      */
@@ -903,32 +887,7 @@ export class RpcClient {
      * @param {number} page_size
      * @returns {Promise<any>}
      */
-    getAccountTransactionHistory(tx_type: Readonly<{
-        Deposit: 1;
-        1: "Deposit";
-        FullExit: 5;
-        5: "FullExit";
-        ChangePubKey: 6;
-        6: "ChangePubKey";
-        Transfer: 4;
-        4: "Transfer";
-        Withdraw: 3;
-        3: "Withdraw";
-        ForcedExit: 7;
-        7: "ForcedExit";
-        OrderMatching: 8;
-        8: "OrderMatching";
-        AutoDeleveraging: 11;
-        11: "AutoDeleveraging";
-        ContractMatching: 9;
-        9: "ContractMatching";
-        Funding: 13;
-        13: "Funding";
-        Liquidation: 10;
-        10: "Liquidation";
-        UpdateGlobalVar: 12;
-        12: "UpdateGlobalVar";
-    }>, address: string, page_index: bigint, page_size: number): Promise<any>;
+    getAccountTransactionHistory(tx_type: ZkLinkTxType, address: string, page_index: bigint, page_size: number): Promise<any>;
     /**
      * @param {bigint} last_tx_timestamp
      * @param {number} max_txs
@@ -952,15 +911,15 @@ export class RpcClient {
 }
 /**
  */
-export class SpotPriceInfo {
+export declare class SpotPriceInfo {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} token_id
      * @param {string} price
      */
     constructor(token_id: number, price: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {any}
      */
@@ -968,10 +927,10 @@ export class SpotPriceInfo {
 }
 /**
  */
-export class Transfer {
+export declare class Transfer {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -990,7 +949,10 @@ export class Transfer {
 }
 /**
  */
-export class TransferBuilder {
+export declare class TransferBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {string} to_address
@@ -1003,9 +965,6 @@ export class TransferBuilder {
      * @param {number | undefined} [ts]
      */
     constructor(account_id: number, to_address: string, from_sub_account_id: number, to_sub_account_id: number, token: number, fee: string, amount: string, nonce: number, ts?: number | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Transfer}
      */
@@ -1013,33 +972,19 @@ export class TransferBuilder {
 }
 /**
  */
-export class TxLayer1Signature {
+export declare class TxLayer1Signature {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {L1SignatureType} sign_type
      * @param {string} signature
      */
-    constructor(sign_type: Readonly<{
-        Eth: 0;
-        0: "Eth";
-        Eip1271: 1;
-        1: "Eip1271";
-        Stark: 2;
-        2: "Stark";
-    }>, signature: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
+    constructor(sign_type: L1SignatureType, signature: string);
     /**
      * @returns {L1SignatureType}
      */
-    signType(): Readonly<{
-        Eth: 0;
-        0: "Eth";
-        Eip1271: 1;
-        1: "Eip1271";
-        Stark: 2;
-        2: "Stark";
-    }>;
+    signType(): L1SignatureType;
     /**
      * @returns {string}
      */
@@ -1047,16 +992,16 @@ export class TxLayer1Signature {
 }
 /**
  */
-export class TxZkLinkSignature {
+export declare class TxZkLinkSignature {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {string} pub_key
      * @param {string} signature
      */
     constructor(pub_key: string, signature: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {string}
      */
@@ -1068,10 +1013,10 @@ export class TxZkLinkSignature {
 }
 /**
  */
-export class UpdateGlobalVar {
+export declare class UpdateGlobalVar {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -1084,7 +1029,10 @@ export class UpdateGlobalVar {
 }
 /**
  */
-export class UpdateGlobalVarBuilder {
+export declare class UpdateGlobalVarBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} from_chain_id
      * @param {number} sub_account_id
@@ -1092,9 +1040,6 @@ export class UpdateGlobalVarBuilder {
      * @param {number} serial_id
      */
     constructor(from_chain_id: number, sub_account_id: number, parameter: Parameter, serial_id: number);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {UpdateGlobalVar}
      */
@@ -1102,15 +1047,15 @@ export class UpdateGlobalVarBuilder {
 }
 /**
  */
-export class Wallet {
+export declare class Wallet {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {string} url
      * @param {string} private_key
      */
     constructor(url: string, private_key: string);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Promise<string>}
      */
@@ -1120,20 +1065,7 @@ export class Wallet {
      * @param {number | undefined} [block]
      * @returns {Promise<number>}
      */
-    getNonce(block_number: Readonly<{
-        Latest: 0;
-        0: "Latest";
-        Finalized: 1;
-        1: "Finalized";
-        Safe: 2;
-        2: "Safe";
-        Earliest: 3;
-        3: "Earliest";
-        Pending: 4;
-        4: "Pending";
-        Number: 5;
-        5: "Number";
-    }>, block?: number | undefined): Promise<number>;
+    getNonce(block_number: BlockNumber, block?: number | undefined): Promise<number>;
     /**
      * @param {EthTxOption} eth_params
      * @returns {Promise<string>}
@@ -1144,14 +1076,7 @@ export class Wallet {
      * @param {number | undefined} [timeout]
      * @returns {Promise<WaitForTxStatus>}
      */
-    waitForTransaction(tx_hash: string, timeout?: number | undefined): Promise<Readonly<{
-        Success: 0;
-        0: "Success";
-        Failed: 1;
-        1: "Failed";
-        Pending: 2;
-        2: "Pending";
-    }>>;
+    waitForTransaction(tx_hash: string, timeout?: number | undefined): Promise<WaitForTxStatus>;
     /**
      * @param {string} contract
      * @param {string} amount
@@ -1197,10 +1122,10 @@ export class Wallet {
 }
 /**
  */
-export class Withdraw {
+export declare class Withdraw {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
     __destroy_into_raw(): number;
-    __wbg_ptr: number;
     free(): void;
     /**
      * @returns {any}
@@ -1219,7 +1144,10 @@ export class Withdraw {
 }
 /**
  */
-export class WithdrawBuilder {
+export declare class WithdrawBuilder {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} account_id
      * @param {number} sub_account_id
@@ -1236,9 +1164,6 @@ export class WithdrawBuilder {
      * @param {number | undefined} [ts]
      */
     constructor(account_id: number, sub_account_id: number, to_chain_id: number, to_address: string, l2_source_token: number, l1_target_token: number, amount: string, call_data: string | undefined, fee: string, nonce: number, withdraw_to_l1: boolean, withdraw_fee_ratio: number, ts?: number | undefined);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
     /**
      * @returns {Withdraw}
      */
@@ -1246,8 +1171,11 @@ export class WithdrawBuilder {
 }
 /**
  */
-export class ZkLinkSigner {
+export declare class ZkLinkSigner {
+    __wbg_ptr: number;
     static __wrap(ptr: any): any;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {string} sig
      * @returns {ZkLinkSigner}
@@ -1258,22 +1186,20 @@ export class ZkLinkSigner {
      * @returns {ZkLinkSigner}
      */
     static starknetSig(sig: string): ZkLinkSigner;
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
 }
 /**
  */
-export class ZkLinkTx {
+export declare class ZkLinkTx {
+    __wbg_ptr: number;
+    __destroy_into_raw(): number;
+    free(): void;
     /**
      * @param {number} tx_type
      * @param {any} tx
      */
     constructor(tx_type: number, tx: any);
-    __destroy_into_raw(): number;
-    __wbg_ptr: number;
-    free(): void;
 }
-export default __wbg_init;
-export function initSync(module: any): any;
+declare function initSync(module: any): any;
 declare function __wbg_init(input: any): Promise<any>;
+export { initSync };
+export default __wbg_init;

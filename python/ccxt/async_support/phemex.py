@@ -2658,10 +2658,10 @@ class phemex(Exchange, ImplicitAPI):
                     elif cost is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
-                costString = self.number_to_string(cost)
+                costString = self.cost_to_precision(symbol, cost)
                 request['quoteQtyEv'] = self.to_ev(costString, market)
             else:
-                amountString = self.number_to_string(amount)
+                amountString = self.amount_to_precision(symbol, amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
             hedged = self.safe_bool(params, 'hedged', False)

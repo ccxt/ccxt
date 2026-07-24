@@ -106,7 +106,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -201,12 +204,12 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "id", "v")));
-        Object marketId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("s", "symbol")));
+        Object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
-        Object side = this.safeStringLowerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("S", "side")));
-        Object price = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("p", "price")));
+        Object side = this.safeStringLower2(trade, "S", "side");
+        Object price = this.safeString2(trade, "p", "price");
         Object amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "v", "size")));
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -264,7 +267,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
@@ -451,7 +457,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = this.getWsPublicUrl();
@@ -479,7 +488,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object url = this.getWsPublicUrl();
@@ -604,7 +616,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = this.getWsPublicUrl();
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -731,7 +746,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object messageHash = "myTrades";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
@@ -769,7 +787,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "";
             if (!Helpers.isTrue(this.isEmpty((java.util.List<Object>)(symbols))))
             {
@@ -818,7 +839,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {

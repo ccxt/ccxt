@@ -3313,7 +3313,7 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var request any = map[string]any{
 			"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var priceType any = this.SafeStringN(params, []any{"priceType", "price"})
+		var priceType any = this.SafeString2(params, "priceType", "price")
 		params = this.Omit(params, []any{"priceType", "price"})
 		var until any = nil
 		untilparamsVariable := this.HandleParamInteger(params, "until")
@@ -5527,7 +5527,7 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(isLinearOrder) {
 		typeVar = this.SafeString(order, "type")
 		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, nil))) || IsTrue((IsEqual(typeVar, "tp")))) || IsTrue((IsEqual(typeVar, "sl")))) || IsTrue((IsEqual(typeVar, "tpsl")))) {
-			typeVar = this.SafeStringN(order, []any{"tp_type", "sl_type"})
+			typeVar = this.SafeString2(order, "tp_type", "sl_type")
 		}
 		if IsTrue(IsEqual(typeVar, "0")) {
 			typeVar = nil

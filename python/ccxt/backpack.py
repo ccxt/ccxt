@@ -866,9 +866,13 @@ class backpack(Exchange, ImplicitAPI):
         low = self.safe_string(ticker, 'low')
         baseVolume = self.safe_string(ticker, 'volume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
-        percentage = self.safe_string(ticker, 'priceChangePercent')
+        percentage = None
+        percentageNumber = self.safe_float(ticker, 'priceChangePercent')
+        # in some cases priceChangePercent is a non-numeric string like "N/A"
+        if percentageNumber is not None:
+            percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
         change = self.safe_string(ticker, 'priceChange')
-        return self.safe_ticker({
+        parsedTicker = self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -892,6 +896,7 @@ class backpack(Exchange, ImplicitAPI):
             'indexPrice': None,
             'info': ticker,
         }, market)
+        return parsedTicker
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
