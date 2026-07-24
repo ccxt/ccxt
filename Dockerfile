@@ -25,26 +25,24 @@ RUN apt-get update && apt-get install -y nodejs
 # Python 3
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
 RUN pip3 install 'idna==2.9' --force-reinstall
-RUN pip3 install --upgrade setuptools==65.7.0
+RUN pip3 install --upgrade pip setuptools==83.0.0
 RUN pip3 install tox
 RUN pip3 install aiohttp
 RUN pip3 install cryptography
 RUN pip3 install requests
 RUN pip3 install psutil
-# Dotnet - Using direct installation script
-RUN apt-get update && apt-get install -y wget apt-transport-https \
-    && wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
-    && rm packages-microsoft-prod.deb \
-    && apt-get update \
-    && apt-get install -y dotnet-sdk-9.0
+# Dotnet
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+    && bash /tmp/dotnet-install.sh --channel 9.0 --install-dir "${DOTNET_ROOT}" --no-path \
+    && rm /tmp/dotnet-install.sh \
+    && dotnet --list-sdks
 # Installs as a local Node & Python module so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/
 RUN echo "export NODE_PATH=/usr/lib/node_modules" >> $HOME/.bashrc
-RUN cd python \
-    && pip3 install -e . \
-    && cd ..
+RUN pip3 install -e .
 ## Install composer and everything else that it needs and manages
 RUN /ccxt/build/composer-install.sh
 RUN apt-get update && apt-get install -y --no-install-recommends zip unzip php-zip
