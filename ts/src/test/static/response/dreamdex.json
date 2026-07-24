@@ -45,7 +45,7 @@
                         "amount": 500,
                         "filled": 150,
                         "remaining": 350,
-                        "average": 1.25,
+                        "average": null,
                         "cost": 187.5,
                         "trades": [],
                         "fee": null,
@@ -112,7 +112,7 @@
                         "amount": 200,
                         "filled": 200,
                         "remaining": 0,
-                        "average": 1.3,
+                        "average": null,
                         "cost": 260,
                         "trades": [],
                         "fee": null,
@@ -179,7 +179,7 @@
                         "amount": 500,
                         "filled": 200,
                         "remaining": 300,
-                        "average": 1.2,
+                        "average": null,
                         "cost": 240,
                         "trades": [],
                         "fee": null,
@@ -274,7 +274,8 @@
                         "stopPrice": 1.0,
                         "triggerPrice": 1.0,
                         "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopLossPrice": null,
+                        "order": null
                     }
                 ]
             },
@@ -346,7 +347,8 @@
                         "stopPrice": 1.5,
                         "triggerPrice": 1.5,
                         "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopLossPrice": null,
+                        "order": "01KC5D3R6TFT9KCCOK00GVN78E"
                     }
                 ]
             },
@@ -386,7 +388,7 @@
                         "amount": 500,
                         "filled": 150,
                         "remaining": 350,
-                        "average": 1.25,
+                        "average": null,
                         "cost": 187.5,
                         "trades": [],
                         "fee": null,
@@ -1017,7 +1019,7 @@
                             "name": "Somnia Token",
                             "decimals": 18
                         },
-                        "id": "SOMI",
+                        "id": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
                         "numericId": null,
                         "code": "SOMI",
                         "precision": 1e-18,
@@ -1047,7 +1049,7 @@
                             "name": "USD Somnia",
                             "decimals": 18
                         },
-                        "id": "USDso",
+                        "id": "0x00000022dA000002656c64D9eA6011ea952D008A",
                         "numericId": null,
                         "code": "USDso",
                         "precision": 1e-18,
@@ -1259,7 +1261,7 @@
                     "amount": 500,
                     "filled": 150,
                     "remaining": 350,
-                    "average": 1.25,
+                    "average": null,
                     "cost": 187.5,
                     "trades": [],
                     "fee": null,
@@ -1327,7 +1329,7 @@
                         "amount": 300,
                         "filled": 0,
                         "remaining": 300,
-                        "average": 1.3,
+                        "average": null,
                         "cost": 0,
                         "trades": [],
                         "fee": null,
@@ -1392,7 +1394,7 @@
                     "amount": 500,
                     "filled": 100,
                     "remaining": 400,
-                    "average": 1.25,
+                    "average": null,
                     "cost": 125,
                     "trades": [],
                     "fee": null,
