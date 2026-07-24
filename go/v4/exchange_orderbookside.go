@@ -55,6 +55,7 @@ type IOrderBookSide interface {
 	String() string
 	SetDepth(depth int)
 	GetValue(key string, defaultValue any) any
+	CopySide() IOrderBookSide
 }
 
 type OrderBookSide struct {
@@ -705,6 +706,49 @@ func (obs *OrderBookSide) GetDataCopy() [][]any {
 
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
+}
+
+func (obs *OrderBookSide) CopySide() IOrderBookSide {
+
+	out := NewOrderBookSide(obs.Side, [][]any{}, obs.Depth)
+	base := out
+	base.Length = obs.Length
+	base.Index = make([]float64, len(obs.Index))
+	copy(base.Index, obs.Index)
+	base.Data = make([][]any, len(obs.Data))
+	for i, row := range obs.Data {
+		base.Data[i] = append([]any(nil), row...)
+	}
+	return out
+}
+
+func (cobs *CountedOrderBookSide) CopySide() IOrderBookSide {
+	out := NewCountedOrderBookSide(cobs.OrderBookSide.Side, [][]any{}, cobs.OrderBookSide.Depth)
+	base := out.OrderBookSide
+	base.Length = cobs.OrderBookSide.Length
+	base.Index = make([]float64, len(cobs.OrderBookSide.Index))
+	copy(base.Index, cobs.OrderBookSide.Index)
+	base.Data = make([][]any, len(cobs.OrderBookSide.Data))
+	for i, row := range cobs.OrderBookSide.Data {
+		base.Data[i] = append([]any(nil), row...)
+	}
+	return out
+}
+
+func (iobs *IndexedOrderBookSide) CopySide() IOrderBookSide {
+	out := NewIndexedOrderBookSide(iobs.OrderBookSide.Side, [][]any{}, iobs.OrderBookSide.Depth)
+	out.Length = iobs.Length
+	out.Index = make([]float64, len(iobs.Index))
+	copy(out.Index, iobs.Index)
+	out.Data = make([][]any, len(iobs.Data))
+	for i, row := range iobs.Data {
+		out.Data[i] = append([]any(nil), row...)
+	}
+	out.Hashmap = make(map[any]float64, len(iobs.Hashmap))
+	for k, v := range iobs.Hashmap {
+		out.Hashmap[k] = v
+	}
+	return out
 }
 func (obs *OrderBookSide) SetLen(length int) {
 	obs.Length = length

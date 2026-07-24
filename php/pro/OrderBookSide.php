@@ -64,6 +64,14 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         $this->storeArray(array($price, $size));
     }
 
+    public function copy() {
+        $deltas = array();
+        foreach ($this as $delta) {
+            $deltas[] = $delta;
+        }
+        return new static($deltas, $this->depth);
+    }
+
     public function limit() {
         $difference = count($this) - $this->depth;
         if ($difference > 0) {

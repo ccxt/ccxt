@@ -67,6 +67,24 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         }
     }
 
+    public function copy() {
+        $snapshot = array();
+        if (array_key_exists('outcome', $this)) {
+            $snapshot['outcome'] = @$this['outcome'];
+            $snapshot['outcomeId'] = @$this['outcomeId'];
+            $snapshot['market'] = @$this['market'];
+        } else {
+            $snapshot['symbol'] = @$this['symbol'];
+        }
+        $copy = new static($snapshot, $this['asks']->depth);
+        $copy['asks'] = $this['asks']->copy();
+        $copy['bids'] = $this['bids']->copy();
+        $copy['nonce'] = @$this['nonce'];
+        $copy['timestamp'] = @$this['timestamp'];
+        $copy['datetime'] = @$this['datetime'];
+        return $copy;
+    }
+
     public function update($snapshot) {
         $nonce = @$snapshot['nonce'];
         if ($nonce !== null && $this['nonce'] !== null && $nonce < $this['nonce']) {

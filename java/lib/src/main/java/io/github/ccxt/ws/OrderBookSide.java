@@ -114,6 +114,16 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         return new ArrayList<>(this);
     }
 
+    public synchronized OrderBookSide copy() {
+        if (this instanceof Asks) {
+            return new Asks(this.snapshot(), this.depth);
+        } else if (this instanceof Bids) {
+            return new Bids(this.snapshot(), this.depth);
+        } else {
+            return new OrderBookSide(this.snapshot(), this.depth, this.side);
+        }
+    }
+
     private static BigDecimal toBigDecimal(Object val) {
         if (val == null) return null;
         if (val instanceof BigDecimal bd) return bd;

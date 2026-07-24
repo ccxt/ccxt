@@ -19,6 +19,7 @@ type OrderBookInterface interface {
 	GetNonce() any
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
+	Copy() OrderBookInterface
 }
 
 type WsOrderBook struct {
@@ -486,6 +487,74 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 // func (this *IncrementalIndexedOrderBook) SetCache(cache any) {
 // 	this.WsOrderBook.SetCache(cache)
 // }
+
+func (this *WsOrderBook) Copy() OrderBookInterface {
+	snapshot := make(map[string]any)
+	if this.Outcome != nil {
+		snapshot["outcome"] = this.Outcome
+		snapshot["outcomeId"] = this.OutcomeId
+		snapshot["market"] = this.Market
+	} else {
+		snapshot["symbol"] = this.Symbol
+	}
+
+	// Determine the concrete order-book variant from the side types, because
+	// this method's receiver is *WsOrderBook; a *WsOrderBook is never a
+	// *CountedOrderBook or *IndexedOrderBook, so interface{}(this).(*X) can
+	// never succeed.
+	var copy OrderBookInterface
+	switch this.Asks.(type) {
+	case *CountedOrderBookSide:
+		copy = NewCountedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	case *IndexedOrderBookSide:
+		copy = NewIndexedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	default:
+		copy = NewWsOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
+	}
+
+	var ob *WsOrderBook
+	switch typed := copy.(type) {
+	case *CountedOrderBook:
+		ob = typed.WsOrderBook
+	case *IndexedOrderBook:
+		ob = typed.WsOrderBook
+	case *WsOrderBook:
+		ob = typed
+	}
+
+	lockSide(this.Asks)
+	lockSide(this.Bids)
+	ob.Asks = this.Asks.CopySide()
+	ob.Bids = this.Bids.CopySide()
+	unlockSide(this.Bids)
+	unlockSide(this.Asks)
+	ob.Nonce = this.Nonce
+	ob.Timestamp = this.Timestamp
+	ob.Datetime = this.Datetime
+	return copy
+}
+
+func lockSide(side IOrderBookSide) {
+	switch s := side.(type) {
+	case *OrderBookSide:
+		s.Mutex.RLock()
+	case *CountedOrderBookSide:
+		s.OrderBookSide.Mutex.RLock()
+	case *IndexedOrderBookSide:
+		s.Mutex.RLock()
+	}
+}
+
+func unlockSide(side IOrderBookSide) {
+	switch s := side.(type) {
+	case *OrderBookSide:
+		s.Mutex.RUnlock()
+	case *CountedOrderBookSide:
+		s.OrderBookSide.Mutex.RUnlock()
+	case *IndexedOrderBookSide:
+		s.Mutex.RUnlock()
+	}
+}
 
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce

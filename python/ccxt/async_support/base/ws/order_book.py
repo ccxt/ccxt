@@ -53,6 +53,22 @@ class OrderBook(dict):
             # prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
             self.pop('symbol', None)
 
+    def copy(self):
+        snapshot = {}
+        if 'outcome' in self:
+            snapshot['outcome'] = self.get('outcome')
+            snapshot['outcomeId'] = self.get('outcomeId')
+            snapshot['market'] = self.get('market')
+        else:
+            snapshot['symbol'] = self.get('symbol')
+        copy = self.__class__(snapshot, self['asks']._depth)
+        copy['asks'] = self['asks'].copy()
+        copy['bids'] = self['bids'].copy()
+        copy['nonce'] = self.get('nonce')
+        copy['timestamp'] = self.get('timestamp')
+        copy['datetime'] = self.get('datetime')
+        return copy
+
     def update(self, snapshot):
         nonce = snapshot.get('nonce')
         if nonce is not None and self['nonce'] is not None and nonce < self['nonce']:
