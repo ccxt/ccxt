@@ -23,7 +23,7 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
         }
         if (success === true) {
             now = exchange.milliseconds ();
-            testOrderBook (exchange, skippedProperties, method, orderBookCopy, symbol);
+            testOrderBook (exchange, skippedProperties, method, response, symbol);
         }
     }
     return true;
