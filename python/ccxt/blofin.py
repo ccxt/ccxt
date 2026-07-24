@@ -435,7 +435,6 @@ class blofin(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -475,28 +474,13 @@ class blofin(Exchange, ImplicitAPI):
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC',  # UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder',  # or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': False,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersTpslHistory
@@ -1536,7 +1520,7 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        isTrigger = self.safe_bool_n(params, ['trigger'], False)
+        isTrigger = self.safe_bool(params, 'trigger', False)
         isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1978,9 +1962,7 @@ class blofin(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = []
-        options = self.safe_dict(self.options, 'cancelOrders', {})
-        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
-        method = self.safe_string(params, 'method', defaultMethod)
+        method = self.handle_option('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders')
         clientOrderIds = self.parse_ids(self.safe_value(params, 'clientOrderId'))
         tpslIds = self.parse_ids(self.safe_value(params, 'tpslId'))
         trigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'])
@@ -2500,7 +2482,7 @@ class blofin(Exchange, ImplicitAPI):
             request['begin'] = since
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
+        method, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):

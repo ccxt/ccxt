@@ -1,1 +1,1 @@
-export default function _default(str: any, opts: any): any;
+export default function (str: any, opts: any): any;

@@ -90,13 +90,11 @@ class mexc(ccxt.async_support.mexc):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker  # swap
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -202,13 +200,10 @@ class mexc(ccxt.async_support.mexc):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+        https://www.mexc.com/api-docs/futures/websocket-api/tickers
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -411,7 +406,7 @@ class mexc(ccxt.async_support.mexc):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams
 
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -538,7 +533,8 @@ class mexc(ccxt.async_support.mexc):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/k-line-data  # swap
 
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -725,8 +721,8 @@ class mexc(ccxt.async_support.mexc):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth  # swap
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -911,8 +907,8 @@ class mexc(ccxt.async_support.mexc):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/deal  # swap
 
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1016,8 +1012,8 @@ class mexc(ccxt.async_support.mexc):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/fill-details  # swap
 
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -1186,15 +1182,15 @@ class mexc(ccxt.async_support.mexc):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-orders  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/order  # swap
 
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
+        :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'swap'
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1461,7 +1457,8 @@ class mexc(ccxt.async_support.mexc):
     async def watch_balance(self, params={}) -> Balances:
         """
 
-        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update  # spot
+        https://www.mexc.com/api-docs/futures/websocket-api/assets  # swap
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1524,11 +1521,11 @@ class mexc(ccxt.async_support.mexc):
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
-        currencyId = self.safe_string_n(data, ['currency', 'vcoinName'])
+        currencyId = self.safe_string_2(data, 'currency', 'vcoinName')
         code = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
-        account['used'] = self.safe_string_n(data, ['frozenBalance', 'frozenAmount'])
+        account['used'] = self.safe_string_2(data, 'frozenBalance', 'frozenAmount')
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
@@ -1537,7 +1534,7 @@ class mexc(ccxt.async_support.mexc):
         """
         watch the current funding rate
 
-        https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+        https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1557,7 +1554,7 @@ class mexc(ccxt.async_support.mexc):
         """
         unWatches the current funding rate for a symbol
 
-        https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+        https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint

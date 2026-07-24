@@ -765,7 +765,7 @@ func (this *KucoinCore) Describe() any {
 			"WAX":  "WAXP",
 			"ALT":  "APTOSLAUNCHTOKEN",
 			"KALT": "ALT",
-			"FUD":  "FTX Users\\' Debt",
+			"FUD":  "FTX Users' Debt",
 		},
 		"options": map[string]any{
 			"hf":                      nil,

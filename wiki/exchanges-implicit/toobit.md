@@ -1,6 +1,6 @@
 Every endpoint in `toobit`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/toobit) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `commonGetApiV1Time`); the snake_case alias (`common_get_api_v1_time`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`CommonGetApiV1Time`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `commonGetApiV1Time`); the snake_case alias (`common_get_api_v1_time`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`CommonGetApiV1Time`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,9 +53,9 @@ response := <-toobit.CommonGetApiV1Time(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official toobit API documentation:** [toobit-docs.github.io](https://toobit-docs.github.io/apidocs/spot/v1/en/) · [toobit-docs.github.io](https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/)
+📚 **Official toobit API documentation:** [api-docs.toobit.com](https://api-docs.toobit.com/)
 
-> 59 implicit endpoints across 2 access groups.
+> 87 implicit endpoints across 2 access groups.
 
 ## common
 
@@ -71,15 +71,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `commonGetQuoteV1Trades` | GET | `quote/v1/trades` | 1 |
 | `commonGetQuoteV1Klines` | GET | `quote/v1/klines` | 1 |
 | `commonGetQuoteV1IndexKlines` | GET | `quote/v1/index/klines` | 1 |
+| `commonGetQuoteV1IndexPriceComponents` | GET | `quote/v1/indexPriceComponents` | 1 |
 | `commonGetQuoteV1MarkPriceKlines` | GET | `quote/v1/markPrice/klines` | 1 |
-| `commonGetQuoteV1MarkPrice` | GET | `quote/v1/markPrice` | 1 |
+| `commonGetQuoteV1MarkPrice` | GET | `quote/v1/markPrice` | 10 |
 | `commonGetQuoteV1Index` | GET | `quote/v1/index` | 1 |
 | `commonGetQuoteV1Ticker24hr` | GET | `quote/v1/ticker/24hr` | 40 |
 | `commonGetQuoteV1ContractTicker24hr` | GET | `quote/v1/contract/ticker/24hr` | 40 |
 | `commonGetQuoteV1TickerPrice` | GET | `quote/v1/ticker/price` | 1 |
+| `commonGetQuoteV1ContractTickerPrice` | GET | `quote/v1/contract/ticker/price` | 1 |
 | `commonGetQuoteV1TickerBookTicker` | GET | `quote/v1/ticker/bookTicker` | 1 |
+| `commonGetQuoteV1ContractTickerBookTicker` | GET | `quote/v1/contract/ticker/bookTicker` | 1 |
 | `commonGetApiV1FuturesFundingRate` | GET | `api/v1/futures/fundingRate` | 1 |
 | `commonGetApiV1FuturesHistoryFundingRate` | GET | `api/v1/futures/historyFundingRate` | 1 |
+| `commonGetApiV1FuturesRiskLimits` | GET | `api/v1/futures/riskLimits` | 1 |
 
 ## private
 
@@ -100,14 +104,31 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV1AccountWithdrawOrders` | GET | `api/v1/account/withdrawOrders` | 5 |
 | `privateGetApiV1AccountDepositAddress` | GET | `api/v1/account/deposit/address` | 1 |
 | `privateGetApiV1SubAccount` | GET | `api/v1/subAccount` | 5 |
+| `privateGetApiV1AccountSubAccount` | GET | `api/v1/account/subAccount` | 5 |
+| `privateGetApiV1SubAccountList` | GET | `api/v1/subAccount/list` | 5 |
 | `privateGetApiV1FuturesAccountLeverage` | GET | `api/v1/futures/accountLeverage` | 1 |
 | `privateGetApiV1FuturesOrder` | GET | `api/v1/futures/order` | 1.67 |
 | `privateGetApiV1FuturesPositions` | GET | `api/v1/futures/positions` | 8.35 |
+| `privateGetApiV1FuturesHistoryPositions` | GET | `api/v1/futures/historyPositions` | 5 |
 | `privateGetApiV1FuturesBalance` | GET | `api/v1/futures/balance` | 5 |
 | `privateGetApiV1FuturesUserTrades` | GET | `api/v1/futures/userTrades` | 8.35 |
 | `privateGetApiV1FuturesBalanceFlow` | GET | `api/v1/futures/balanceFlow` | 5 |
 | `privateGetApiV1FuturesCommissionRate` | GET | `api/v1/futures/commissionRate` | 5 |
 | `privateGetApiV1FuturesTodayPnl` | GET | `api/v1/futures/todayPnl` | 5 |
+| `privateGetApiV1AccountDownloadDetail` | GET | `api/v1/account/download/detail` | 10 |
+| `privateGetApiV1AgentInviteUserList` | GET | `api/v1/agent/inviteUserList` | 1 |
+| `privateGetApiV1AgentCommissionDataList` | GET | `api/v1/agent/commissionDataList` | 1 |
+| `privateGetApiV1AgentCommissionDataInfo` | GET | `api/v1/agent/commissionDataInfo` | 1 |
+| `privateGetApiV1AgentInviteRelationCheck` | GET | `api/v1/agent/inviteRelationCheck` | 1 |
+| `privateGetApiV1AgentDepositDetailList` | GET | `api/v1/agent/depositDetailList` | 1 |
+| `privateGetApiV1AgentQuerySubAgentData` | GET | `api/v1/agent/querySubAgentData` | 1 |
+| `privateGetApiV1AgentSpotOrdersList` | GET | `api/v1/agent/spotOrdersList` | 1 |
+| `privateGetApiV1AgentFuturesOrdersList` | GET | `api/v1/agent/futuresOrdersList` | 1 |
+| `privateGetApiV1AgentFuturesPositionsList` | GET | `api/v1/agent/futuresPositionsList` | 1 |
+| `privateGetApiV1AgentInviteCommissionDetail` | GET | `api/v1/agent/invite-commission-detail` | 1 |
+| `privateGetApiV1AgentUserExport` | GET | `api/v1/agent/user/export` | 1 |
+| `privateGetApiV1AgentExportList` | GET | `api/v1/agent/export-list` | 1 |
+| `privateGetApiV1AgentExportUrl` | GET | `api/v1/agent/export-url` | 1 |
 | `privatePostApiV1SpotOrderTest` | POST | `api/v1/spot/orderTest` | 1.67 |
 | `privatePostApiV1SpotOrder` | POST | `api/v1/spot/order` | 1.67 |
 | `privatePostApiV1FuturesOrder` | POST | `api/v1/futures/order` | 1.67 |
@@ -119,14 +140,21 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostApiV1FuturesBatchOrders` | POST | `api/v1/futures/batchOrders` | 3.34 |
 | `privatePostApiV1FuturesPositionTradingStop` | POST | `api/v1/futures/position/trading-stop` | 5.01 |
 | `privatePostApiV1FuturesPositionMargin` | POST | `api/v1/futures/positionMargin` | 1 |
+| `privatePostApiV1FuturesOrderUpdate` | POST | `api/v1/futures/order/update` | 3.34 |
+| `privatePostApiV1FuturesAutoAddMargin` | POST | `api/v1/futures/autoAddMargin` | 1 |
+| `privatePostApiV1FuturesFlashClose` | POST | `api/v1/futures/flashClose` | 1 |
+| `privatePostApiV1FuturesReversePosition` | POST | `api/v1/futures/reversePosition` | 5 |
+| `privatePostApiV1AccountDownloadApply` | POST | `api/v1/account/download/apply` | 1000 |
 | `privatePostApiV1UserDataStream` | POST | `api/v1/userDataStream` | 1 |
 | `privatePostApiV1ListenKey` | POST | `api/v1/listenKey` | 1 |
 | `privateDeleteApiV1SpotOrder` | DELETE | `api/v1/spot/order` | 1.67 |
 | `privateDeleteApiV1FuturesOrder` | DELETE | `api/v1/futures/order` | 1.67 |
 | `privateDeleteApiV1SpotOpenOrders` | DELETE | `api/v1/spot/openOrders` | 8.35 |
-| `privateDeleteApiV1FuturesBatchOrders` | DELETE | `api/v1/futures/batchOrders` | 8.35 |
+| `privateDeleteApiV1FuturesBatchOrders` | DELETE | `api/v1/futures/batchOrders` | 5.01 |
 | `privateDeleteApiV1SpotCancelOrderByIds` | DELETE | `api/v1/spot/cancelOrderByIds` | 8.35 |
-| `privateDeleteApiV1FuturesCancelOrderByIds` | DELETE | `api/v1/futures/cancelOrderByIds` | 8.35 |
+| `privateDeleteApiV1FuturesCancelOrderByIds` | DELETE | `api/v1/futures/cancelOrderByIds` | 5.01 |
+| `privateDeleteApiV1UserDataStream` | DELETE | `api/v1/userDataStream` | 1 |
 | `privateDeleteApiV1ListenKey` | DELETE | `api/v1/listenKey` | 1 |
+| `privatePutApiV1UserDataStream` | PUT | `api/v1/userDataStream` | 1 |
 | `privatePutApiV1ListenKey` | PUT | `api/v1/listenKey` | 1 |
 

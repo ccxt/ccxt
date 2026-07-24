@@ -91,7 +91,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -179,7 +182,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -297,7 +303,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object method = "market_subscribe";
@@ -324,7 +333,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object method = "market_subscribe";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -420,7 +432,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("trades", ":"), symbol);
@@ -507,7 +522,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
@@ -536,7 +554,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -567,7 +588,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
@@ -582,25 +606,46 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object feeCost = this.safeString(trade, 6);
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
+            Object feeCurrencyId = this.safeString(trade, 10);
+            Object feeCurrencyCode = ((Helpers.isTrue((!Helpers.isEqual(feeCurrencyId, null))))) ? this.safeCurrencyCode(feeCurrencyId) : Helpers.GetValue(market, "quote");
             final Object finalFeeCost = feeCost;
-            final Object finalMarket = market;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", Helpers.GetValue(finalMarket, "quote") );
+                put( "currency", feeCurrencyCode );
             }};
         }
-        final Object finalMarket_2 = market;
+        Object rawSide = this.safeInteger(trade, 8);
+        Object side = null;
+        if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
+        {
+            side = "sell";
+        } else if (Helpers.isTrue(Helpers.isEqual(rawSide, 2)))
+        {
+            side = "buy";
+        }
+        Object role = this.safeInteger(trade, 9);
+        Object takerOrMaker = null;
+        if (Helpers.isTrue(Helpers.isEqual(role, 1)))
+        {
+            takerOrMaker = "maker";
+        } else if (Helpers.isTrue(Helpers.isEqual(role, 2)))
+        {
+            takerOrMaker = "taker";
+        }
+        final Object finalMarket = market;
+        final Object finalSide = side;
+        final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", WhitebitCore.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(finalMarket_2, "symbol") );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", orderId );
             put( "type", null );
-            put( "side", null );
-            put( "takerOrMaker", null );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );
@@ -632,7 +677,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
@@ -835,7 +883,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -924,7 +975,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object method = method3;
             Object isNested = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
             Client client = (Client)this.safeValue(this.clients, url);

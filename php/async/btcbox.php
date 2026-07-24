@@ -13,6 +13,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class btcbox extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -153,7 +155,6 @@ class btcbox extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 3,
                 ),
-                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(

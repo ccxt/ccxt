@@ -103,6 +103,7 @@ type MarketInterface struct {
 	OptionType     *string
 	Taker          *float64
 	Maker          *float64
+	Precision      Precision
 	Limits         Limits
 	Created        *int64
 }
@@ -119,6 +120,12 @@ func NewMarketInterface(data any) MarketInterface {
 	var limits Limits
 	if v, ok := m["limits"]; ok {
 		limits = NewLimits(v)
+	}
+
+	// Handle precision if present
+	var precision Precision
+	if v, ok := m["precision"]; ok && v != nil {
+		precision = NewPrecision(v)
 	}
 
 	return MarketInterface{
@@ -151,6 +158,7 @@ func NewMarketInterface(data any) MarketInterface {
 		OptionType:     SafeStringTyped(m, "optionType"),
 		Taker:          SafeFloatTyped(m, "taker"),
 		Maker:          SafeFloatTyped(m, "maker"),
+		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
@@ -998,6 +1006,39 @@ func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
 			"amount": amount,
 			"price":  price,
 			"params": parameters,
+		}
+		result = append(result, individualOrderRequest)
+	}
+
+	return result
+}
+
+// PredictionOrderRequest carries an `outcome` handle instead of a `symbol`
+type PredictionOrderRequest struct {
+	Outcome    *string
+	Type       *string
+	Side       *string
+	Amount     *float64
+	Price      *float64
+	Parameters map[string]any
+}
+
+func ConvertPredictionOrderRequestListToArray(orderRequests []PredictionOrderRequest) []any {
+	var result []any
+	for _, orderRequest := range orderRequests {
+		outcome := *orderRequest.Outcome
+		orderType := *orderRequest.Type
+		side := *orderRequest.Side
+		amount := *orderRequest.Amount
+		price := *orderRequest.Price
+		parameters := orderRequest.Parameters
+		individualOrderRequest := map[string]any{
+			"outcome": outcome,
+			"type":    orderType,
+			"side":    side,
+			"amount":  amount,
+			"price":   price,
+			"params":  parameters,
 		}
 		result = append(result, individualOrderRequest)
 	}

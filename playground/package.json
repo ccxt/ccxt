@@ -13,7 +13,7 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "ccxt": "^4.5.49",
-    "next": "^15.3.0",
+    "next": "^15.5.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "undici": "^7.28.0"
@@ -26,6 +26,7 @@
   },
   "overrides": {
     "postcss": "^8.5.10",
-    "dompurify": "^3.4.0"
+    "dompurify": "^3.4.0",
+    "sharp": "0.35.0"
   }
 }

@@ -66,7 +66,7 @@ public class TestWatchTickers extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
@@ -77,7 +77,13 @@ public class TestWatchTickers extends BaseTest {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
                 {
                     Object ticker = Helpers.GetValue(values, i);
-                    TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    try
+                    {
+                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+                    }
                 }
                 now = exchange.milliseconds();
             }

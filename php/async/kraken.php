@@ -19,6 +19,9 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class kraken extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1349,7 +1352,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
-            $until = $this->safe_string_n($params, array( 'until', 'till' ));
+            $until = $this->safe_string_2($params, 'until', 'till');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until', 'till' ));
                 $untilDivided = Precise::string_div($until, '1000');
@@ -2608,7 +2611,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
-            $until = $this->safe_string_n($params, array( 'until', 'till' ));
+            $until = $this->safe_string_2($params, 'until', 'till');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until', 'till' ));
                 $untilDivided = Precise::string_div($until, '1000');
@@ -3151,7 +3154,7 @@ class kraken extends Exchange {
                 $sinceString = $this->number_to_string($since);
                 $request['start'] = Precise::string_div($sinceString, '1000');
             }
-            $until = $this->safe_string_n($params, array( 'until', 'till' ));
+            $until = $this->safe_string_2($params, 'until', 'till');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until', 'till' ));
                 $untilDivided = Precise::string_div($until, '1000');
@@ -3235,7 +3238,7 @@ class kraken extends Exchange {
                 $sinceString = $this->number_to_string($since);
                 $request['start'] = Precise::string_div($sinceString, '1000');
             }
-            $until = $this->safe_string_n($params, array( 'until', 'till' ));
+            $until = $this->safe_string_2($params, 'until', 'till');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until', 'till' ));
                 $untilDivided = Precise::string_div($until, '1000');

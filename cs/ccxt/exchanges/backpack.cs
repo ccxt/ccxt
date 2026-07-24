@@ -872,9 +872,15 @@ public partial class backpack : Exchange
         object low = this.safeString(ticker, "low");
         object baseVolume = this.safeString(ticker, "volume");
         object quoteVolume = this.safeString(ticker, "quoteVolume");
-        object percentage = this.safeString(ticker, "priceChangePercent");
+        object percentage = null;
+        object percentageNumber = this.safeFloat(ticker, "priceChangePercent");
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (isTrue(!isEqual(percentageNumber, null)))
+        {
+            percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
+        }
         object change = this.safeString(ticker, "priceChange");
-        return this.safeTicker(new Dictionary<string, object>() {
+        object parsedTicker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -898,6 +904,7 @@ public partial class backpack : Exchange
             { "indexPrice", null },
             { "info", ticker },
         }, market);
+        return parsedTicker;
     }
 
     /**

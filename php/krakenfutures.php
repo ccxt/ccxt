@@ -2084,7 +2084,7 @@ class krakenfutures extends Exchange {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId' => $this->safe_string_n($orderDictFromFetchOrder, array( 'cliOrdId' )),
+                'clientOrderId' => $this->safe_string($orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
                 'lastTradeTimestamp' => null,

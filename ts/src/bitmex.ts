@@ -288,7 +288,7 @@ export default class bitmex extends Exchange {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5, // in seconds
+                'recvWindow': 5000,
                 'fetchOHLCV': {
                     'useOpenTimestamp': true,
                 },
@@ -1095,8 +1095,7 @@ export default class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
-                const resultSide = result[side];
-                resultSide.push ([ price, amount ]);
+                result[side].push ([ price, amount ]);
             }
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -3735,7 +3734,8 @@ export default class bitmex extends Exchange {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
             let auth = method + query;
-            let expires = this.safeInteger (this.options, 'api-expires');
+            const apiExpires = this.safeInteger (this.options, 'api-expires'); // backwards compatibility
+            let expires = this.safeIntegerProduct (this.options, 'recvWindow', 0.001, apiExpires);
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,

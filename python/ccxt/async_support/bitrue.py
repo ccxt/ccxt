@@ -394,7 +394,9 @@ class bitrue(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                },
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse'],
                 },

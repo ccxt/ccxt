@@ -3641,7 +3641,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeIntegerN (params, [ 'until' ]);
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
@@ -3720,7 +3720,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeIntegerN (params, [ 'until' ]);
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
@@ -3823,7 +3823,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
@@ -3875,7 +3875,7 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'granularity': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeIntegerN (params, [ 'until', 'end' ]);
+        const until = this.safeInteger2 (params, 'until', 'end');
         params = this.omit (params, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);
         const requestedDuration = limit * duration;
@@ -4040,7 +4040,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601 (since);
         }
-        const until = this.safeIntegerN (params, [ 'until' ]);
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['end_sequence_timestamp'] = this.iso8601 (until);

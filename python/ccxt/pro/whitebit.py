@@ -439,7 +439,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",
         #         "0.16717",
         #         "0.0094919126",
-        #         ''
+        #         '',
+        #         "2",
+        #         "2",
+        #         "LTC"
         #       ],
         #       "id": null
         #   }
@@ -465,7 +468,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",  # price
         #         "0.16717",  # amount
         #         "0.0094919126",  # fee
-        #         ''  # client order id
+        #         '',  # client order id
+        #         "2",  # side, 1 = sell, 2 = buy
+        #         "2",  # role, 1 = maker, 2 = taker
+        #         "LTC"  # fee asset
         #    ]
         #
         orderId = self.safe_string(trade, 3)
@@ -478,10 +484,24 @@ class whitebit(ccxt.async_support.whitebit):
         fee = None
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId) if (feeCurrencyId is not None) else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             }
+        rawSide = self.safe_integer(trade, 8)
+        side = None
+        if rawSide == 1:
+            side = 'sell'
+        elif rawSide == 2:
+            side = 'buy'
+        role = self.safe_integer(trade, 9)
+        takerOrMaker = None
+        if role == 1:
+            takerOrMaker = 'maker'
+        elif role == 2:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -490,8 +510,8 @@ class whitebit(ccxt.async_support.whitebit):
             'symbol': market['symbol'],
             'order': orderId,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,

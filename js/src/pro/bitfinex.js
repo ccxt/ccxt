@@ -291,8 +291,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        return await this.unSubscribe('trades', 'trades', symbol, params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unSubscribe('trades', 'trades', symbol, params);
     }
     /**
      * @method
@@ -327,8 +327,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker(symbol, params = {}) {
-        return await this.subscribe('ticker', symbol, params);
+    watchTicker(symbol, params = {}) {
+        return this.subscribe('ticker', symbol, params);
     }
     /**
      * @method
@@ -338,8 +338,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unSubscribe('ticker', 'ticker', symbol, params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unSubscribe('ticker', 'ticker', symbol, params);
     }
     handleMyTrade(client, message, subscription = {}) {
         //

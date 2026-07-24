@@ -1143,16 +1143,20 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': False,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                    'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
-                'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                },
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
@@ -1161,8 +1165,6 @@ class bybit(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'loadAllOptions': False,  # load all possible option markets, adds signficant load time
-                'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1593,8 +1595,9 @@ class bybit(Exchange, ImplicitAPI):
             'settleId': settle,
             'active': False,
             'type': 'option',
-            'linear': None,
-            'inverse': None,
+            'subType': 'inverse' if (base == settle) else 'linear',
+            'linear': (base != settle),
+            'inverse': (base == settle),
             'spot': False,
             'swap': False,
             'future': False,
@@ -1915,7 +1918,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'spot',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -2030,7 +2033,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response = None
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(params)
@@ -2213,7 +2216,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'option',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -2221,7 +2224,8 @@ class bybit(Exchange, ImplicitAPI):
             response = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
-        if self.options['loadAllOptions']:
+        loadAllOptions = self.handle_option('fetchMarkets', 'loadAllOptions')
+        if loadAllOptions:
             request['limit'] = 1000
             paginationCursor = self.safe_string(data, 'nextPageCursor')
             if paginationCursor is not None:
@@ -2293,7 +2297,8 @@ class bybit(Exchange, ImplicitAPI):
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
             isInverse = base == settle
-            if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
+            loadExpiredOptions = self.handle_option('fetchMarkets', 'loadExpiredOptions')
+            if isActive or loadAllOptions or loadExpiredOptions:
                 result.append(self.safe_market_structure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
@@ -4908,7 +4913,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5065,7 +5070,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
         request['category'] = type
-        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
         if isTrigger:
             request['orderFilter'] = 'StopOrder'
@@ -5156,7 +5161,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5189,7 +5194,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+            isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
@@ -5229,7 +5234,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         type = None
         type, params = self.get_bybit_type('fetchCanceledAndClosedOrders', market, params)
         request['category'] = type
-        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
         if isTrigger:
             request['orderFilter'] = 'StopOrder'
@@ -6572,10 +6577,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
-        timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
+        timestamp = self.safe_integer_2(position, 'createdTime', 'createdAt')
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
-            lastUpdateTimestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt', 'updatedTime'])
+            lastUpdateTimestamp = self.safe_integer_2(position, 'updatedTime', 'updatedAt')
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -7236,7 +7241,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         timestamp = self.safe_integer(response, 'time')
         transfer = self.safe_dict(response, 'result', {})
-        statusRaw = self.safe_string_n(response, ['retCode', 'retMsg'])
+        statusRaw = self.safe_string_2(response, 'retCode', 'retMsg')
         status = self.parse_transfer_status(statusRaw)
         return self.extend(self.parse_transfer(transfer, currency), {
             'timestamp': timestamp,

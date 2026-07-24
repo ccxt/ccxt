@@ -686,6 +686,7 @@ closes all open positions for a market type
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#closeallpositions)
 * [delta](/exchanges/delta.md#closeallpositions)
+* [mexc](/exchanges/mexc.md#closeallpositions)
 * [weex](/exchanges/weex.md#closeallpositions)
 
 ---
@@ -1609,6 +1610,7 @@ edit a trade order
 * [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [mudrex](/exchanges/mudrex.md#editorder)
+* [ndax](/exchanges/ndax.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
 * [paradex](/exchanges/paradex.md#editorder)
@@ -2606,6 +2608,7 @@ fetches all available currencies on an exchange
 * [bitmex](/exchanges/bitmex.md#fetchcurrencies)
 * [bitopro](/exchanges/bitopro.md#fetchcurrencies)
 * [bitrue](/exchanges/bitrue.md#fetchcurrencies)
+* [bitso](/exchanges/bitso.md#fetchcurrencies)
 * [bitstamp](/exchanges/bitstamp.md#fetchcurrencies)
 * [bitteam](/exchanges/bitteam.md#fetchcurrencies)
 * [bittrade](/exchanges/bittrade.md#fetchcurrencies)
@@ -5804,6 +5807,7 @@ the latest known information on the availability of the exchange API
 * [lighter](/exchanges/lighter.md#fetchstatus)
 * [mexc](/exchanges/mexc.md#fetchstatus)
 * [modetrade](/exchanges/modetrade.md#fetchstatus)
+* [ndax](/exchanges/ndax.md#fetchstatus)
 * [okx](/exchanges/okx.md#fetchstatus)
 * [paradex](/exchanges/paradex.md#fetchstatus)
 * [toobit](/exchanges/toobit.md#fetchstatus)
@@ -6033,6 +6037,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [luno](/exchanges/luno.md#fetchtickers)
 * [mexc](/exchanges/mexc.md#fetchtickers)
 * [mudrex](/exchanges/mudrex.md#fetchtickers)
+* [ndax](/exchanges/ndax.md#fetchtickers)
 * [okx](/exchanges/okx.md#fetchtickers)
 * [onetrading](/exchanges/onetrading.md#fetchtickers)
 * [p2b](/exchanges/p2b.md#fetchtickers)
@@ -6489,6 +6494,7 @@ fetches a transfer
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
+* [okx](/exchanges/okx.md#fetchtransfer)
 
 ---
 

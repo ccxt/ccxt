@@ -2,6 +2,85 @@ package ccxt
 
 import "sync"
 
+// IPredictionDispatch lets PredictionExchange's base parse loops (parsePredictionTrades →
+// parsePredictionTrade, etc.) reach the venue override via this.DerivedExchange instead of calling
+// the base NotSupported stub. These parsers are prediction-only (regular cores lack them), so they
+// cannot live on the shared IDerivedExchange; the base loops run only on prediction instances, so
+// the transpiler type-asserts DerivedExchange to this interface there.
+type IPredictionDispatch interface {
+	ParsePredictionOrder(order any, optionalArgs ...any) any
+	ParsePredictionTrade(trade any, optionalArgs ...any) any
+	ParsePredictionPosition(position any, optionalArgs ...any) any
+}
+
+// Per-method interfaces for the 62 symbol-based methods that were trimmed from ICoreExchange/
+// IDerivedExchange so prediction cores (which lack them) can satisfy those interfaces. The base +
+// test transpilers type-assert individual call sites to the single-method interface for exactly the
+// method being called — NOT to a bundle. A prediction venue that overrides only some of these (e.g.
+// kalshi has FetchTickers but not FetchL2OrderBook) runs the has-gated test for the ones it has, and
+// each per-method assertion succeeds because it requires only that one method. Regular venues have
+// all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
+type IEditOrder interface {
+	EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+}
+type IEditOrderWithClientOrderId interface {
+	EditOrderWithClientOrderId(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+}
+type ICancelOrderWithClientOrderId interface {
+	CancelOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
+}
+type ICancelOrdersWithClientOrderIds interface {
+	CancelOrdersWithClientOrderIds(clientOrderIds any, optionalArgs ...any) <-chan any
+}
+type IFetchL2OrderBook interface {
+	FetchL2OrderBook(symbol any, optionalArgs ...any) <-chan any
+}
+type IFetchOpenOrders interface {
+	FetchOpenOrders(optionalArgs ...any) <-chan any
+}
+type IFetchOrder interface {
+	FetchOrder(id any, optionalArgs ...any) <-chan any
+}
+type IFetchOrderWithClientOrderId interface {
+	FetchOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
+}
+type IFetchPositions interface {
+	FetchPositions(optionalArgs ...any) <-chan any
+}
+type IFetchTickers interface {
+	FetchTickers(optionalArgs ...any) <-chan any
+}
+type ICancelOrderWs interface {
+	CancelOrderWs(id any, optionalArgs ...any) <-chan any
+}
+type ICreateOrderWs interface {
+	CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
+}
+type IFetchOrdersWs interface {
+	FetchOrdersWs(optionalArgs ...any) <-chan any
+}
+type IFetchTickersWs interface {
+	FetchTickersWs(optionalArgs ...any) <-chan any
+}
+type IFetchPositionsHistory interface {
+	FetchPositionsHistory(optionalArgs ...any) <-chan any
+}
+type IFetchBidsAsks interface {
+	FetchBidsAsks(optionalArgs ...any) <-chan any
+}
+type IWatchBidsAsks interface {
+	WatchBidsAsks(optionalArgs ...any) <-chan any
+}
+type IWatchOrderBookForSymbols interface {
+	WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any
+}
+type IWatchPosition interface {
+	WatchPosition(optionalArgs ...any) <-chan any
+}
+type IWatchTradesForSymbols interface {
+	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
+}
+
 type IBaseExchange interface {
 	SetEnableRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options any)
@@ -107,6 +186,7 @@ type ICoreExchange interface {
 	NumberToString(num any) any
 	ParseToNumeric(value any) any
 	LoadMarkets(params ...any) <-chan any
+	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
 	IsDictionary(dictionary any) any
 	InArray(needle any, haystack any) bool
@@ -128,7 +208,6 @@ type ICoreExchange interface {
 	FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 	FetchStatus(optionalArgs ...any) <-chan any
 	FetchTicker(symbol any, optionalArgs ...any) <-chan any
-	FetchBidsAsks(optionalArgs ...any) <-chan any
 	FetchLastPrices(optionalArgs ...any) <-chan any
 	ParseOpenInterest(interest any, optionalArgs ...any) any
 	FetchMyLiquidations(optionalArgs ...any) <-chan any
@@ -159,11 +238,10 @@ type ICoreExchange interface {
 	SafeCurrency(currencyId any, optionalArgs ...any) any
 	Parse8601(datetime2 any) any
 	Iso8601(ts2 any) any
-	FetchPositions(optionalArgs ...any) <-chan any
 	FetchPosition(symbol any, optionalArgs ...any) <-chan any
 	FetchClosedOrders(optionalArgs ...any) <-chan any
-	FetchOpenOrders(optionalArgs ...any) <-chan any
 	FetchTransactions(optionalArgs ...any) <-chan any
+	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchFundingHistory(optionalArgs ...any) <-chan any
 	FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFees(optionalArgs ...any) <-chan any
@@ -171,7 +249,6 @@ type ICoreExchange interface {
 	ArrayConcat(aa, bb any) any
 	FetchAccounts(optionalArgs ...any) <-chan any
 	FetchBorrowInterest(optionalArgs ...any) <-chan any
-	FetchL2OrderBook(symbol any, optionalArgs ...any) <-chan any
 	FetchLiquidations(symbol any, optionalArgs ...any) <-chan any
 	FetchLedgerEntry(id any, optionalArgs ...any) <-chan any
 	FetchFundingRateHistory(optionalArgs ...any) <-chan any
@@ -181,9 +258,7 @@ type ICoreExchange interface {
 	FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any
 	FetchOpenInterests(optionalArgs ...any) <-chan any
 	FetchOrderBooks(optionalArgs ...any) <-chan any
-	FetchTickers(optionalArgs ...any) <-chan any
 	FetchTrades(symbol any, optionalArgs ...any) <-chan any
-	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchWithdrawals(optionalArgs ...any) <-chan any
 	Currency(code any) any
 	ParseDate(datetime2 any) any
@@ -203,7 +278,7 @@ type ICoreExchange interface {
 	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any
 	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any
 	SafeFloat(obj any, key any, defaultValue ...any) any
-	SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any
+	SafeStringLowerN(obj any, keys []any, defaultValue ...any) any
 	SafeStringUpperN(obj any, keys []any, defaultValue ...any) any
 	SafeInteger(obj any, key any, defaultValue ...any) any
 	SafeStringUpper(obj any, key any, defaultValue ...any) any
@@ -249,48 +324,12 @@ type ICoreExchange interface {
 	CreateOrders(orders any, optionalArgs ...any) <-chan any
 	Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any
 	// WS methods
-	CancelAllOrdersWs(optionalArgs ...any) <-chan any
-	CancelOrdersWs(ids any, optionalArgs ...any) <-chan any
-	CancelOrderWs(id any, optionalArgs ...any) <-chan any
-	CreateLimitBuyOrderWs(symbol any, amount any, price any, optionalArgs ...any) <-chan any
-	CreateLimitOrderWs(symbol any, side any, amount any, price any, optionalArgs ...any) <-chan any
-	CreateLimitSellOrderWs(symbol any, amount any, price any, optionalArgs ...any) <-chan any
-	CreateMarketBuyOrderWs(symbol any, amount any, optionalArgs ...any) <-chan any
-	CreateMarketOrderWithCostWs(symbol any, side any, cost any, optionalArgs ...any) <-chan any
-	CreateMarketOrderWs(symbol any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateMarketSellOrderWs(symbol any, amount any, optionalArgs ...any) <-chan any
-	CreateOrdersWs(orders any, optionalArgs ...any) <-chan any
-	CreateOrderWithTakeProfitAndStopLossWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreatePostOnlyOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateReduceOnlyOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateStopLimitOrderWs(symbol any, side any, amount any, price any, triggerPrice any, optionalArgs ...any) <-chan any
-	CreateStopLossOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateStopMarketOrderWs(symbol any, side any, amount any, triggerPrice any, optionalArgs ...any) <-chan any
-	CreateStopOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateTakeProfitOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateTrailingAmountOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateTrailingPercentOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	CreateTriggerOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
-	EditOrderWs(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
 	FetchBalanceWs(optionalArgs ...any) <-chan any
-	FetchClosedOrdersWs(optionalArgs ...any) <-chan any
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan any
 	FetchDepositsWs(optionalArgs ...any) <-chan any
 	// FetchMarketsWs(optionalArgs ...any) <-chan any
-	FetchMyTradesWs(optionalArgs ...any) <-chan any
 	FetchOHLCVWs(symbol any, optionalArgs ...any) <-chan any
-	FetchOpenOrdersWs(optionalArgs ...any) <-chan any
-	FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan any
 	FetchOrdersByStatusWs(status any, optionalArgs ...any) <-chan any
-	FetchOrdersWs(optionalArgs ...any) <-chan any
-	FetchOrderWs(id any, optionalArgs ...any) <-chan any
-	FetchPositionsForSymbolWs(symbol any, optionalArgs ...any) <-chan any
-	FetchPositionsWs(optionalArgs ...any) <-chan any
-	FetchPositionWs(symbol any, optionalArgs ...any) <-chan any
-	FetchTickersWs(optionalArgs ...any) <-chan any
-	FetchTickerWs(symbol any, optionalArgs ...any) <-chan any
-	FetchTradesWs(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFeesWs(optionalArgs ...any) <-chan any
 	FetchWithdrawalsWs(optionalArgs ...any) <-chan any
 	UnWatchBidsAsks(optionalArgs ...any) <-chan any
@@ -307,27 +346,19 @@ type ICoreExchange interface {
 	UnWatchTrades(symbol any, optionalArgs ...any) <-chan any
 	UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchBalance(optionalArgs ...any) <-chan any
-	WatchBidsAsks(optionalArgs ...any) <-chan any
 	WatchLiquidations(symbol any, optionalArgs ...any) <-chan any
 	WatchLiquidationsForSymbols(symbol any, optionalArgs ...any) <-chan any
-	WatchMarkPrice(symbol any, optionalArgs ...any) <-chan any
-	WatchMarkPrices(optionalArgs ...any) <-chan any
 	WatchMyLiquidations(symbol any, optionalArgs ...any) <-chan any
 	WatchMyLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchMyTrades(optionalArgs ...any) <-chan any
-	WatchMyTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchOHLCV(symbol any, optionalArgs ...any) <-chan any
 	WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <-chan any
 	WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
-	WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchOrders(optionalArgs ...any) <-chan any
-	WatchOrdersForSymbols(symbols any, optionalArgs ...any) <-chan any
-	WatchPosition(optionalArgs ...any) <-chan any
 	WatchPositions(optionalArgs ...any) <-chan any
 	WatchTicker(symbol any, optionalArgs ...any) <-chan any
 	WatchTickers(optionalArgs ...any) <-chan any
 	WatchTrades(symbol any, optionalArgs ...any) <-chan any
-	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
@@ -372,21 +403,18 @@ type IDerivedExchange interface {
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeverages(optionalArgs ...any) <-chan any
 	SafeMarket(optionalArgs ...any) any
-	FetchTickers(optionalArgs ...any) <-chan any
 	Sign(path any, optionalArgs ...any) any
 	FetchBalance(optionalArgs ...any) <-chan any
 	CancelOrder(id any, optionalArgs ...any) <-chan any
 	CancelOrders(ids any, optionalArgs ...any) <-chan any
-	CancelOrdersWithClientOrderIds(clientOrderIds any, optionalArgs ...any) <-chan any
-	CancelOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
 	FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
-	EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
-	EditOrderWithClientOrderId(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
-	FetchOrder(id any, optionalArgs ...any) <-chan any
-	FetchOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
 	FetchOrders(optionalArgs ...any) <-chan any
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTime(optionalArgs ...any) <-chan any
+	FetchEvents(optionalArgs ...any) <-chan any
+	FetchOutcome(outcomeSymbol any) <-chan any
+	FetchOutcomes(outcomeSymbols any) <-chan any
+	SignEvmTransaction(tx any, privateKey any) any
 	FetchLeverageTiers(optionalArgs ...any) <-chan any
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any
 	FetchTradingFees(optionalArgs ...any) <-chan any
@@ -397,7 +425,6 @@ type IDerivedExchange interface {
 	FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 	FetchFundingRates(optionalArgs ...any) <-chan any
 	FetchFundingIntervals(optionalArgs ...any) <-chan any
-	FetchPositionsHistory(optionalArgs ...any) <-chan any
 	FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 	ParseMarginModification(data any, optionalArgs ...any) any
 	FetchMarkets(optionalArgs ...any) <-chan any
@@ -412,13 +439,9 @@ type IDerivedExchange interface {
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
-	CancelOrderWs(id any, optionalArgs ...any) <-chan any
-	CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
 	WatchPositions(optionalArgs ...any) <-chan any
-	FetchTickersWs(optionalArgs ...any) <-chan any
 	WatchLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchMyLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any
-	FetchOrdersWs(optionalArgs ...any) <-chan any
 	ParseWsTrade(trade any, optionalArgs ...any) any
 	FetchPositionsADLRank(optionalArgs ...any) <-chan any
 	ParseADLRank(info any, optionalArgs ...any) any

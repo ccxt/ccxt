@@ -357,8 +357,12 @@ class bitfinex(Exchange, ImplicitAPI):
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0',  # P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision': 8,  # default currency precision
+                'fetchOrderBook': {
+                    'precision': 'R0',  # P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8,  # default currency precision
+                },
                 # convert 'EXCHANGE MARKET' to lowercase 'market'
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
@@ -889,7 +893,8 @@ class bitfinex(Exchange, ImplicitAPI):
         fees = self.safe_list(feeValues, 1, [])
         fee = self.safe_number(fees, 1)
         undl = self.safe_list(indexed['undl'], id, [])
-        precision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')
+        defaultCurrencyPrecision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')  # kept here for backward-compatibility
+        precision = self.handle_option('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision)
         networks = {}
         networkIds = self.safe_list(indexedNetworks, id, [])
         for j in range(0, len(networkIds)):
@@ -1133,7 +1138,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        precision = self.safe_value(self.options, 'precision', 'R0')
+        precision = self.handle_option('fetchOrderBook', 'precision', 'R0')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1159,8 +1164,7 @@ class bitfinex(Exchange, ImplicitAPI):
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
             side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
-            resultSide = result[side]
-            resultSide.append([price, self.parse_number(amount)])
+            result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result

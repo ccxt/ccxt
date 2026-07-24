@@ -867,6 +867,18 @@ public partial class okx : Exchange
                     { "51734", typeof(AuthenticationError) },
                     { "51735", typeof(ExchangeError) },
                     { "51736", typeof(InsufficientFunds) },
+                    { "51763", typeof(AccountNotEnabled) },
+                    { "51764", typeof(InsufficientFunds) },
+                    { "51765", typeof(BadRequest) },
+                    { "51766", typeof(ExchangeError) },
+                    { "51767", typeof(OnMaintenance) },
+                    { "51768", typeof(BadRequest) },
+                    { "51769", typeof(ExchangeError) },
+                    { "51770", typeof(BadRequest) },
+                    { "51771", typeof(ExchangeError) },
+                    { "51772", typeof(InsufficientFunds) },
+                    { "51773", typeof(PermissionDenied) },
+                    { "51774", typeof(OnMaintenance) },
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
@@ -876,6 +888,7 @@ public partial class okx : Exchange
                     { "54072", typeof(ExchangeError) },
                     { "54073", typeof(BadRequest) },
                     { "54074", typeof(ExchangeError) },
+                    { "54094", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -947,6 +960,7 @@ public partial class okx : Exchange
                     { "59107", typeof(ExchangeError) },
                     { "59108", typeof(InsufficientFunds) },
                     { "59109", typeof(ExchangeError) },
+                    { "59113", typeof(AuthenticationError) },
                     { "59128", typeof(InvalidOrder) },
                     { "59200", typeof(InsufficientFunds) },
                     { "59201", typeof(InsufficientFunds) },
@@ -1018,6 +1032,8 @@ public partial class okx : Exchange
                     { "64001", typeof(BadRequest) },
                     { "64002", typeof(BadRequest) },
                     { "64003", typeof(AccountNotEnabled) },
+                    { "64004", typeof(BadRequest) },
+                    { "64008", typeof(NetworkError) },
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
@@ -1196,9 +1212,11 @@ public partial class okx : Exchange
                 } },
                 { "fetchCanceledOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
+                    { "paginationDirection", "forward" },
                 } },
                 { "fetchClosedOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
+                    { "paginationDirection", "forward" },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "password", null },
@@ -2095,6 +2113,7 @@ public partial class okx : Exchange
      * @name okx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2163,18 +2182,11 @@ public partial class okx : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        //      {
-        //          "instType":"SWAP",
-        //          "instId":"BTC-USDT-SWAP",
-        //          "markPx":"200",
-        //          "ts":"1597026383085"
-        //      }
-        //
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "ETH-BTC",
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
         //         "last": "0.07319",
-        //         "lastSz": "0.044378",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
         //         "askPx": "0.07322",
         //         "askSz": "4.2",
         //         "bidPx": "0.0732",
@@ -2182,12 +2194,13 @@ public partial class okx : Exchange
         //         "open24h": "0.07801",
         //         "high24h": "0.07975",
         //         "low24h": "0.06019",
-        //         "volCcy24h": "11788.887619",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
         //         "vol24h": "167493.829229",
         //         "ts": "1621440583784",
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //
         //     {
         //          instId: 'LTC-USDT',
         //          idxPx: '65.74',
@@ -2545,6 +2558,7 @@ public partial class okx : Exchange
      * @name okx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -6921,6 +6935,16 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name okx#fetchTransfer
+     * @description fetch a transfer
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();

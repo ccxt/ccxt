@@ -334,6 +334,11 @@ public class MexcApi extends Exchange
         return this.callAsync ("spotPrivateGetRebateAffiliateSubaffiliates", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetRebateAffiliateList (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetRebateAffiliateList", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  spotPrivateGetMxDeductEnable (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMxDeductEnable", optionalArgs);
@@ -362,6 +367,11 @@ public class MexcApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostOrderTest (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostOrderTest", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostApiKeyInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostApiKeyInfo", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  spotPrivatePostSubAccountVirtualSubAccount (Object... optionalArgs)
@@ -452,6 +462,11 @@ public class MexcApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  spotPrivateDeleteOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteOpenOrders", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  spotPrivateDeleteOrderAll (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateDeleteOrderAll", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  spotPrivateDeleteSubAccountApiKey (Object... optionalArgs)

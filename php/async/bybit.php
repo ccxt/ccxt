@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bybit extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1130,16 +1132,20 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array(
+                    'usePrivateInstrumentsInfo' => false,
                     'types' => array( 'spot', 'linear', 'inverse', 'option' ),
                     'options' => array( 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ),
+                    'loadAllOptions' => false, // load all possible option markets, adds signficant load time
+                    'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
-                'createMarketBuyOrderRequiresPrice' => false, // only true for classic accounts
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => false, // only true for classic accounts
+                ),
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType' => 'linear',  // 'linear', 'inverse'
@@ -1148,8 +1154,6 @@ class bybit extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
-                'loadAllOptions' => false, // load all possible option markets, adds signficant load time
-                'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId' => 'CCXT',
                 'accountsByType' => array(
                     'spot' => 'SPOT',
@@ -1598,8 +1602,9 @@ class bybit extends Exchange {
             'settleId' => $settle,
             'active' => false,
             'type' => 'option',
-            'linear' => null,
-            'inverse' => null,
+            'subType' => ($base === $settle) ? 'inverse' : 'linear',
+            'linear' => ($base !== $settle),
+            'inverse' => ($base === $settle),
             'spot' => false,
             'swap' => false,
             'future' => false,
@@ -1957,7 +1962,7 @@ class bybit extends Exchange {
             $request = array(
                 'category' => 'spot',
             );
-            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $usePrivateInstrumentsInfo = $this->handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', false);
             if ($usePrivateInstrumentsInfo) {
                 $response = Async\await($this->privateGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             } else {
@@ -2076,7 +2081,7 @@ class bybit extends Exchange {
             $params = $this->extend($params, array());
             $params['limit'] = 1000; // minimize number of requests
             $preLaunchMarkets = array();
-            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $usePrivateInstrumentsInfo = $this->handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', false);
             $response = null;
             if ($usePrivateInstrumentsInfo) {
                 $response = Async\await($this->privateGetV5MarketInstrumentsInfo($params));
@@ -2273,7 +2278,7 @@ class bybit extends Exchange {
             $request = array(
                 'category' => 'option',
             );
-            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $usePrivateInstrumentsInfo = $this->handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', false);
             if ($usePrivateInstrumentsInfo) {
                 $response = Async\await($this->privateGetV5MarketInstrumentsInfo($this->extend($request, $params)));
             } else {
@@ -2281,7 +2286,8 @@ class bybit extends Exchange {
             }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
-            if ($this->options['loadAllOptions']) {
+            $loadAllOptions = $this->handle_option('fetchMarkets', 'loadAllOptions');
+            if ($loadAllOptions) {
                 $request['limit'] = 1000;
                 $paginationCursor = $this->safe_string($data, 'nextPageCursor');
                 if ($paginationCursor !== null) {
@@ -2357,7 +2363,8 @@ class bybit extends Exchange {
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
                 $isInverse = $base === $settle;
-                if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
+                $loadExpiredOptions = $this->handle_option('fetchMarkets', 'loadExpiredOptions');
+                if ($isActive || $loadAllOptions || $loadExpiredOptions) {
                     $result[] = $this->safe_market_structure(array(
                         'id' => $id,
                         'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter,
@@ -5227,7 +5234,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_orders($symbol, null, null, $this->extend($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+                $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
                 $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
@@ -5405,7 +5412,7 @@ class bybit extends Exchange {
                 throw new NotSupported($this->id . ' fetchOrders() is not supported for spot markets');
             }
             $request['category'] = $type;
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($isTrigger) {
                 $request['orderFilter'] = 'StopOrder';
@@ -5504,7 +5511,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+                $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
                 $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
@@ -5543,7 +5550,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+                $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
                 $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
@@ -5591,7 +5598,7 @@ class bybit extends Exchange {
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchCanceledAndClosedOrders', $market, $params);
             $request['category'] = $type;
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($isTrigger) {
                 $request['orderFilter'] = 'StopOrder';
@@ -7045,10 +7052,10 @@ class bybit extends Exchange {
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
         $initialMarginString = $this->safe_string_2($position, 'positionIM', 'cumEntryValue');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
-        $timestamp = $this->safe_integer_n($position, array( 'createdTime', 'createdAt' ));
+        $timestamp = $this->safe_integer_2($position, 'createdTime', 'createdAt');
         $lastUpdateTimestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
         if ($lastUpdateTimestamp === null) {
-            $lastUpdateTimestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt', 'updatedTime' ));
+            $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedTime', 'updatedAt');
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
@@ -7789,7 +7796,7 @@ class bybit extends Exchange {
             //
             $timestamp = $this->safe_integer($response, 'time');
             $transfer = $this->safe_dict($response, 'result', array());
-            $statusRaw = $this->safe_string_n($response, array( 'retCode', 'retMsg' ));
+            $statusRaw = $this->safe_string_2($response, 'retCode', 'retMsg');
             $status = $this->parse_transfer_status($statusRaw);
             return $this->extend($this->parse_transfer($transfer, $currency), array(
                 'timestamp' => $timestamp,

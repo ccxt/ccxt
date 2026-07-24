@@ -18,6 +18,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitmex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -291,7 +293,7 @@ class bitmex extends Exchange {
             'options' => array(
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires' => 5, // in seconds
+                'recvWindow' => 5000,
                 'fetchOHLCV' => array(
                     'useOpenTimestamp' => true,
                 ),
@@ -1105,8 +1107,7 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4927
                 // the exchange sometimes returns null $price in the orderbook
                 if ($price !== null) {
-                    $resultSide = $result[$side];
-                    $resultSide[] = array( $price, $amount );
+                    $result[$side][] = array( $price, $amount );
                 }
             }
             $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -3808,7 +3809,8 @@ class bitmex extends Exchange {
         if ($api === 'private' || ($api === 'public' && $isAuthenticated)) {
             $this->check_required_credentials();
             $auth = $method . $query;
-            $expires = $this->safe_integer($this->options, 'api-expires');
+            $apiExpires = $this->safe_integer($this->options, 'api-expires'); // backwards compatibility
+            $expires = $this->safe_integer_product($this->options, 'recvWindow', 0.001, $apiExpires);
             $headers = array(
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,

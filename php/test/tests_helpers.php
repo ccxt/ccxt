@@ -17,7 +17,7 @@ use Exception; // a common import
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
-ini_set('memory_limit', '512M');
+ini_set('memory_limit', '2048M');
 
 define('rootDir', __DIR__ . '/../../');
 
@@ -261,9 +261,18 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
 }
 
 function init_exchange ($exchangeId, $args, $is_ws = false) {
-    $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
-    if ($is_ws) {
+    $regularClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+    // prediction-markets exchanges are async-only at \ccxt\prediction\<id> and carry their watch*
+    // methods on that same class (no \ccxt\pro\ variant), so the --prediction flag routes both REST
+    // and WS there for ids present in both (e.g. hyperliquid); otherwise regular ccxt/pro wins
+    $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
+    $forcePrediction = get_cli_arg_value('--prediction');
+    if (class_exists($predictionClassString) && ($forcePrediction || !class_exists($regularClassString))) {
+        $exchangeClassString = $predictionClassString;
+    } elseif ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+    } else {
+        $exchangeClassString = $regularClassString;
     }
     $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
     return $newClass;

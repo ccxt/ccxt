@@ -5,7 +5,9 @@ interface Exchange {
     publicGetBboMarketInteractive(params?: {}): Promise<implicitReturnType>;
     publicGetFundingData(params?: {}): Promise<implicitReturnType>;
     publicGetMarkets(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsHistory(params?: {}): Promise<implicitReturnType>;
     publicGetMarketsKlines(params?: {}): Promise<implicitReturnType>;
+    publicGetMarketsSettlementPrice(params?: {}): Promise<implicitReturnType>;
     publicGetMarketsSummary(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookMarket(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookMarketImpactPrice(params?: {}): Promise<implicitReturnType>;

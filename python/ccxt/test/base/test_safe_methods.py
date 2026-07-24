@@ -18,11 +18,8 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, 
 def equals(a, b):
     return a == b
 
-def test_safe_methods():
-    exchange = ccxt.Exchange({
-        'id': 'regirock',
-    })
-    input_dict = {
+def helper_default_input_dict():
+    return {
         'i': 1,
         'f': 0.123,
         'bool': True,
@@ -43,12 +40,81 @@ def test_safe_methods():
         'floatString': '0.123',
         'longInt': 123456789012345,
     }
+
+
+def test_safe_string():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
+    # safeString
+    assert exchange.safe_string(input_dict, 'i') == '1'
+    assert exchange.safe_string(input_dict, 'f') == '0.123'
+    # assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
+    assert exchange.safe_string(input_dict, 'str') == 'heLlo'
+    assert exchange.safe_string(input_dict, 'strNumber') == '3'
+    assert exchange.safe_string(input_list, 0) == 'Hi'
+    # safeString2
+    assert exchange.safe_string_2(input_dict, 'a', 'i') == '1'
+    assert exchange.safe_string_2(input_dict, 'a', 'f') == '0.123'
+    assert exchange.safe_string_2(input_dict, 'a', 'str') == 'heLlo'
+    assert exchange.safe_string_2(input_dict, 'a', 'strNumber') == '3'
+    assert exchange.safe_string_2(input_list, 2, 0) == 'Hi'
+    # safeStringN
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'i']) == '1'
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'f']) == '0.123'
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'str']) == 'heLlo'
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'strNumber']) == '3'
+    assert exchange.safe_string_n(input_list, [3, 2, 0]) == 'Hi'
+    # safeStringLower
+    assert exchange.safe_string_lower(input_dict, 'i') == '1'
+    assert exchange.safe_string_lower(input_dict, 'f') == '0.123'
+    assert exchange.safe_string_lower(input_dict, 'str') == 'hello'
+    assert exchange.safe_string_lower(input_dict, 'strNumber') == '3'
+    assert exchange.safe_string_lower(input_list, 0) == 'hi'
+    # safeStringLower2testSafeString
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'i') == '1'
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'f') == '0.123'
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'str') == 'hello'
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'strNumber') == '3'
+    assert exchange.safe_string_lower_2(input_list, 2, 0) == 'hi'
+    # safeStringLowerN
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'i']) == '1'
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'f']) == '0.123'
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'str']) == 'hello'
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'strNumber']) == '3'
+    assert exchange.safe_string_lower_n(input_list, [3, 2, 0]) == 'hi'
+    # safeStringUpper
+    assert exchange.safe_string_upper(input_dict, 'i') == '1'
+    assert exchange.safe_string_upper(input_dict, 'f') == '0.123'
+    assert exchange.safe_string_upper(input_dict, 'str') == 'HELLO'
+    assert exchange.safe_string_upper(input_dict, 'strNumber') == '3'
+    assert exchange.safe_string_upper(input_list, 0) == 'HI'
+    # safeStringUpper2
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'i') == '1'
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'f') == '0.123'
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'str') == 'HELLO'
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'strNumber') == '3'
+    assert exchange.safe_string_upper_2(input_list, 2, 0) == 'HI'
+    # safeStringUpperN
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'i']) == '1'
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'f']) == '0.123'
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'str']) == 'HELLO'
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'strNumber']) == '3'
+    assert exchange.safe_string_upper_n(input_list, [3, 2, 0]) == 'HI'
+
+
+def test_safe_value():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
     input_list = ['Hi', 2]
     compare_dict = {
         'a': 1,
     }
     compare_list = [1, 2, 3]
-    factor = 10
     # safeValue
     assert exchange.safe_value(input_dict, 'i') == 1
     assert exchange.safe_value(input_dict, 'f') == 0.123
@@ -79,6 +145,17 @@ def test_safe_methods():
     assert exchange.safe_value_n(input_dict, ['a', 'b', 'str']) == 'heLlo'
     assert exchange.safe_value_n(input_dict, ['a', 'b', 'strNumber']) == '3'
     assert exchange.safe_value_n(input_list, [3, 2, 0]) == 'Hi'
+
+
+def test_safe_dict():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
+    compare_dict = {
+        'a': 1,
+    }
     # safeDict
     dict_object = exchange.safe_dict(input_dict, 'dict')
     assert equals(dict_object, compare_dict)
@@ -98,9 +175,15 @@ def test_safe_methods():
     list_object = exchange.safe_dict_n(input_dict, ['a', 'b', 'list'])
     assert list_object is None
     assert exchange.safe_dict_n(input_list, [3, 2, 1]) is None
+
+
+def test_safe_list():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
     # safeList
-    list_object = exchange.safe_list(input_dict, 'list')
-    assert equals(dict_object, compare_dict)
     assert exchange.safe_list(input_dict, 'dict') is None
     assert exchange.safe_list(input_list, 1) is None
     array_of_dicts = exchange.safe_list(input_dict, 'listOfDicts')
@@ -108,72 +191,22 @@ def test_safe_methods():
         'a': 1,
     }))
     # safeList2
-    list_object = exchange.safe_list_2(input_dict, 'a', 'list')
-    assert equals(dict_object, compare_dict)
     assert exchange.safe_list_2(input_dict, 'a', 'dict') is None
     # @ts-expect-error
     assert exchange.safe_list_2(input_list, 2, 1) is None
     # safeListN
-    list_object = exchange.safe_list_n(input_dict, ['a', 'b', 'list'])
-    assert equals(dict_object, compare_dict)
     assert exchange.safe_list_n(input_dict, ['a', 'b', 'dict']) is None
     assert exchange.safe_list_n(input_list, [3, 2, 1]) is None
-    # safeString
-    assert exchange.safe_string(input_dict, 'i') == '1'
-    assert exchange.safe_string(input_dict, 'f') == '0.123'
-    # assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-    assert exchange.safe_string(input_dict, 'str') == 'heLlo'
-    assert exchange.safe_string(input_dict, 'strNumber') == '3'
-    assert exchange.safe_string(input_list, 0) == 'Hi'
-    # safeString2
-    assert exchange.safe_string_2(input_dict, 'a', 'i') == '1'
-    assert exchange.safe_string_2(input_dict, 'a', 'f') == '0.123'
-    assert exchange.safe_string_2(input_dict, 'a', 'str') == 'heLlo'
-    assert exchange.safe_string_2(input_dict, 'a', 'strNumber') == '3'
-    assert exchange.safe_string_2(input_list, 2, 0) == 'Hi'
-    # safeStringN
-    assert exchange.safe_string_n(input_dict, ['a', 'b', 'i']) == '1'
-    assert exchange.safe_string_n(input_dict, ['a', 'b', 'f']) == '0.123'
-    assert exchange.safe_string_n(input_dict, ['a', 'b', 'str']) == 'heLlo'
-    assert exchange.safe_string_n(input_dict, ['a', 'b', 'strNumber']) == '3'
-    assert exchange.safe_string_n(input_list, [3, 2, 0]) == 'Hi'
-    # safeStringLower
-    assert exchange.safe_string_lower(input_dict, 'i') == '1'
-    assert exchange.safe_string_lower(input_dict, 'f') == '0.123'
-    assert exchange.safe_string_lower(input_dict, 'str') == 'hello'
-    assert exchange.safe_string_lower(input_dict, 'strNumber') == '3'
-    assert exchange.safe_string_lower(input_list, 0) == 'hi'
-    # safeStringLower2
-    assert exchange.safe_string_lower_2(input_dict, 'a', 'i') == '1'
-    assert exchange.safe_string_lower_2(input_dict, 'a', 'f') == '0.123'
-    assert exchange.safe_string_lower_2(input_dict, 'a', 'str') == 'hello'
-    assert exchange.safe_string_lower_2(input_dict, 'a', 'strNumber') == '3'
-    assert exchange.safe_string_lower_2(input_list, 2, 0) == 'hi'
-    # safeStringLowerN
-    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'i']) == '1'
-    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'f']) == '0.123'
-    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'str']) == 'hello'
-    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'strNumber']) == '3'
-    assert exchange.safe_string_lower_n(input_list, [3, 2, 0]) == 'hi'
-    # safeStringUpper
-    assert exchange.safe_string_upper(input_dict, 'i') == '1'
-    assert exchange.safe_string_upper(input_dict, 'f') == '0.123'
-    assert exchange.safe_string_upper(input_dict, 'str') == 'HELLO'
-    assert exchange.safe_string_upper(input_dict, 'strNumber') == '3'
-    assert exchange.safe_string_upper(input_list, 0) == 'HI'
-    # safeStringUpper2
-    assert exchange.safe_string_upper_2(input_dict, 'a', 'i') == '1'
-    assert exchange.safe_string_upper_2(input_dict, 'a', 'f') == '0.123'
-    assert exchange.safe_string_upper_2(input_dict, 'a', 'str') == 'HELLO'
-    assert exchange.safe_string_upper_2(input_dict, 'a', 'strNumber') == '3'
-    assert exchange.safe_string_upper_2(input_list, 2, 0) == 'HI'
-    # safeStringUpperN
-    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'i']) == '1'
-    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'f']) == '0.123'
-    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'str']) == 'HELLO'
-    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'strNumber']) == '3'
-    assert exchange.safe_string_upper_n(input_list, [3, 2, 0]) == 'HI'
+
+
+def test_safe_integer():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
     # safeInteger
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
+    factor = 10
     assert exchange.safe_integer(input_dict, 'i') == 1
     assert exchange.safe_integer(input_dict, 'f') == 0
     assert exchange.safe_integer(input_dict, 'strNumber') == 3
@@ -210,6 +243,14 @@ def test_safe_methods():
     assert exchange.safe_integer_product_n(input_dict, ['a', 'b', 'f'], factor) == 1  # NB the result is 1
     assert exchange.safe_integer_product_n(input_dict, ['a', 'b', 'strNumber'], factor) == 30
     assert exchange.safe_integer_product_n(input_list, [3, 2, 1], factor) == 20
+
+
+def test_safe_timestamp():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
     # safeTimestamp
     assert exchange.safe_timestamp(input_dict, 'i') == 1000
     assert exchange.safe_timestamp(input_dict, 'f') == 123
@@ -225,6 +266,14 @@ def test_safe_methods():
     assert exchange.safe_timestamp_n(input_dict, ['a', 'b', 'f']) == 123
     assert exchange.safe_timestamp_n(input_dict, ['a', 'b', 'strNumber']) == 3000
     assert exchange.safe_timestamp_n(input_list, [3, 2, 1]) == 2000
+
+
+def test_safe_float():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
     # safeFloat
     # @ts-expect-error
     assert exchange.safe_float(input_dict, 'i') == float(1)
@@ -249,6 +298,14 @@ def test_safe_methods():
     assert exchange.safe_float_n(input_dict, ['a', 'b', 'strNumber']) == float(3)
     # @ts-expect-error
     assert exchange.safe_float_n(input_list, [3, 2, 1]) == float(2)
+
+
+def test_safe_number():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
     # safeNumber
     assert exchange.safe_number(input_dict, 'i') == exchange.parse_number(1)
     assert exchange.safe_number(input_dict, 'f') == exchange.parse_number(0.123)
@@ -268,6 +325,21 @@ def test_safe_methods():
     assert exchange.safe_number_n(input_dict, ['a', 'b', 'f']) == exchange.parse_number(0.123)
     assert exchange.safe_number_n(input_dict, ['a', 'b', 'strNumber']) == exchange.parse_number(3)
     assert exchange.safe_number_n(input_list, [3, 2, 1]) == exchange.parse_number(2)
+    # safeNumberOmitZero
+    assert exchange.safe_number_omit_zero(input_dict, 'zeroNumeric') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'zeroString') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'undefined') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'emptyString') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'floatNumeric') is not None
+    assert exchange.safe_number_omit_zero(input_dict, 'floatString') is not None
+
+
+def test_safe_bool():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
+    input_dict = helper_default_input_dict()
+    input_list = ['Hi', 2]
     # safeBool
     assert exchange.safe_bool(input_dict, 'bool')
     assert exchange.safe_bool(input_list, 1) is None
@@ -277,15 +349,12 @@ def test_safe_methods():
     # safeBoolN
     assert exchange.safe_bool_n(input_dict, ['a', 'b', 'bool'])
     assert exchange.safe_bool_n(input_list, [3, 2, 1]) is None
-    # safeNumberOmitZero
-    assert exchange.safe_number_omit_zero(input_dict, 'zeroNumeric') is None
-    assert exchange.safe_number_omit_zero(input_dict, 'zeroString') is None
-    assert exchange.safe_number_omit_zero(input_dict, 'undefined') is None
-    assert exchange.safe_number_omit_zero(input_dict, 'emptyString') is None
-    assert exchange.safe_number_omit_zero(input_dict, 'floatNumeric') is not None
-    assert exchange.safe_number_omit_zero(input_dict, 'floatString') is not None
-    # tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
-    # tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+
+
+def test_cache_safe_calls():
+    exchange = ccxt.Exchange({
+        'id': 'sampleex',
+    })
     # init array cache tests
     # Test cache types - ArrayCache
     array_cache = ArrayCache(100)
@@ -370,3 +439,16 @@ def test_safe_methods():
     retrieved_array_cache_by_symbol_by_side_hashmap = retrieved_array_cache_by_symbol_by_side.hashmap
     assert retrieved_array_cache_by_symbol_by_side_hashmap is not None
     assert exchange.safe_value(cache_by_side_map, 'NONEXISTENT') is None
+
+
+def test_safe_methods():
+    test_safe_string()
+    test_safe_value()
+    test_safe_dict()
+    test_safe_list()
+    test_safe_integer()
+    test_safe_timestamp()
+    test_safe_float()
+    test_safe_number()
+    test_safe_bool()
+    test_cache_safe_calls()
