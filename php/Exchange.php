@@ -471,19 +471,37 @@ class BaseExchange {
     }
 
     public static function safe_string($object, $key, $default_value = null) {
-        return static::valid_object_value($object, $key) ? strval($object[$key]) : $default_value;
+        $val = $object[$key] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') {
+                return $val;
+            } else if (is_numeric($val)) {
+                return (string)$val;
+            }
+        }
+        return $default_value;
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        if (static::valid_object_value($object, $key)) {
-            return strtolower(strval($object[$key]));
+        $val = $object[$key] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') {
+                return strtolower($val);
+            } else if (is_numeric($val)) {
+                return strtolower((string)$val);
+            }
         }
         return $default_value;
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
-        if (static::valid_object_value($object, $key)) {
-            return strtoupper(strval($object[$key]));
+        $val = $object[$key] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') {
+                return strtoupper($val);
+            } else if (is_numeric($val)) {
+                return strtoupper((string)$val);
+            }
         }
         return $default_value;
     }
@@ -514,17 +532,17 @@ class BaseExchange {
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string($object, $key1);
-        return static::valid_string($value) ? $value : static::safe_string($object, $key2, $default_value);
+        return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
     }
 
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string_lower($object, $key1);
-        return static::valid_string($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
     }
 
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string_upper($object, $key1);
-        return static::valid_string($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
@@ -554,21 +572,28 @@ class BaseExchange {
 
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strval($value) : $default_value;
+        if ($value !== null) {
+            if (is_string($value) && $value !== '') {
+                return $value;
+            } else if (is_numeric($value)) {
+                return (string)$value;
+            }
+        }
+        return $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
-        if (static::valid_string($value) && is_scalar($value)) {
-            return strtolower(strval($value));
+        $value = static::safe_string_n($object, $array);
+        if (isset($value)) {
+            return strtolower($value);
         }
         return $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
-        if (static::valid_string($value) && is_scalar($value)) {
-            return strtoupper(strval($value));
+        $value = static::safe_string_n($object, $array);
+        if (isset($value)) {
+            return strtoupper($value);
         }
         return $default_value;
     }

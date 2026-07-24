@@ -26,11 +26,11 @@ function helperDefaultInputDict () {
         'listOfDicts': [ { 'a': 1 } ],
         'str': 'heLlo',
         'strNumber': '3',
-        //
         'zeroNumeric': 0,
         'zeroString': '0',
         'undefined': undefined,
         'emptyString': '',
+        'randomList': [ 'Hi', 4 ],
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
@@ -47,12 +47,32 @@ function testSafeString () {
     const inputList = [ 'Hi', 2 ];
 
     // safeString
-    assert (exchange.safeString (inputDict, 'i') === '1');
-    assert (exchange.safeString (inputDict, 'f') === '0.123');
-    // assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-    assert (exchange.safeString (inputDict, 'str') === 'heLlo');
-    assert (exchange.safeString (inputDict, 'strNumber') === '3');
-    assert (exchange.safeString (inputList, 0) === 'Hi');
+    assert (exchange.safeString (inputDict, 'i') === '1', 'safeString failed for integer');
+    assert (exchange.safeString (inputDict, 'f') === '0.123', 'safeString failed for float');
+    assert (exchange.safeString (inputDict, 'bool') === undefined, 'safeString failed for boolean');
+    assert (exchange.safeString (inputDict, 'list') === undefined, 'safeString failed for list');
+    assert (exchange.safeString (inputDict, 'dict') === undefined, 'safeString failed for dict');
+    assert (exchange.safeString (inputDict, 'str') === 'heLlo', 'safeString failed for string');
+    assert (exchange.safeString (inputDict, 'strNumber') === '3', 'safeString failed for string number');
+    assert (exchange.safeString (inputDict, 'zeroNumeric') === '0', 'safeString failed for zero numeric');
+    assert (exchange.safeString (inputDict, 'zeroString') === '0', 'safeString failed for zero string');
+    assert (exchange.safeString (inputDict, 'undefined') === undefined, 'safeString failed for undefined');
+    assert (exchange.safeString (inputDict, 'emptyString') === undefined, 'safeString failed for empty string');
+    assert (exchange.safeString (inputList, 0) === 'Hi', 'safeString failed for list element');
+    assert (exchange.safeString (inputDict, 'floatNumeric') === '0.123', 'safeString failed for float numeric');
+    assert (exchange.safeString (inputDict, 'floatString') === '0.123', 'safeString failed for float string');
+    assert (exchange.safeString (inputDict, 'longInt') === '123456789012345', 'safeString failed for long integer');
+    // With defaults
+    assert (exchange.safeString (inputDict, 'nonexistent', 'MiXed_Case') === 'MiXed_Case', 'safeString failed for nonexistent key with default');
+    // the below fails in other langs
+    // // @ts-expect-error
+    // assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
+    // // @ts-expect-error
+    // assert (exchange.safeString (inputDict, 'nonexistent', true) === true, 'safeString failed for nonexistent key with default bool');
+    // // @ts-expect-error
+    // assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
+    
+
 
     // safeString2
     assert (exchange.safeString2 (inputDict, 'a', 'i') === '1');
@@ -60,55 +80,79 @@ function testSafeString () {
     assert (exchange.safeString2 (inputDict, 'a', 'str') === 'heLlo');
     assert (exchange.safeString2 (inputDict, 'a', 'strNumber') === '3');
     assert (exchange.safeString2 (inputList, 2, 0) === 'Hi');
+    assert (exchange.safeString2 (inputList, 2, 'emptyString') === undefined);
 
     // safeStringN
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'i' ]) === '1');
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'f' ]) === '0.123');
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'str' ]) === 'heLlo');
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
+    assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'emptyString' ]) === undefined);
     assert (exchange.safeStringN (inputList, [ 3, 2, 0 ]) === 'Hi');
+    // With defaults
+    assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'nonexistent' ], 'MiXed_Case') === 'MiXed_Case');
+
 
     // safeStringLower
     assert (exchange.safeStringLower (inputDict, 'i') === '1');
     assert (exchange.safeStringLower (inputDict, 'f') === '0.123');
     assert (exchange.safeStringLower (inputDict, 'str') === 'hello');
     assert (exchange.safeStringLower (inputDict, 'strNumber') === '3');
+    assert (exchange.safeStringLower (inputDict, 'emptyString') === undefined);
     assert (exchange.safeStringLower (inputList, 0) === 'hi');
+    // With defaults
+    assert (exchange.safeStringLower (inputDict, 'nonexistent', 'MiXed_Case') === 'MiXed_Case');
 
     // safeStringLower2testSafeString
     assert (exchange.safeStringLower2 (inputDict, 'a', 'i') === '1');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'str') === 'hello');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'strNumber') === '3');
+    assert (exchange.safeStringLower2 (inputDict, 'a', 'emptyString') === undefined);
     assert (exchange.safeStringLower2 (inputList, 2, 0) === 'hi');
+    // With defaults
+    assert (exchange.safeStringLower2 (inputDict, 'a', 'nonexistent', 'MiXed_Case') === 'MiXed_Case');
+
 
     // safeStringLowerN
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'i' ]) === '1');
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'f' ]) === '0.123');
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'str' ]) === 'hello');
+    assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'emptyString' ]) === undefined);
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
     assert (exchange.safeStringLowerN (inputList, [ 3, 2, 0 ]) === 'hi');
+    // With defaults
+    assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'nonexistent' ], 'MiXed_Case') === 'MiXed_Case');
 
     // safeStringUpper
     assert (exchange.safeStringUpper (inputDict, 'i') === '1');
     assert (exchange.safeStringUpper (inputDict, 'f') === '0.123');
     assert (exchange.safeStringUpper (inputDict, 'str') === 'HELLO');
     assert (exchange.safeStringUpper (inputDict, 'strNumber') === '3');
+    assert (exchange.safeStringUpper (inputDict, 'emptyString') === undefined);
     assert (exchange.safeStringUpper (inputList, 0) === 'HI');
+    // With defaults
+    assert (exchange.safeStringUpper (inputDict, 'nonexistent', 'MiXed_Case') === 'MiXed_Case');
 
     // safeStringUpper2
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'i') === '1');
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'str') === 'HELLO');
+    assert (exchange.safeStringUpper2 (inputDict, 'a', 'emptyString') === undefined);
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'strNumber') === '3');
     assert (exchange.safeStringUpper2 (inputList, 2, 0) === 'HI');
+    // With defaults
+    assert (exchange.safeStringUpper2 (inputDict, 'a', 'nonexistent', 'MiXed_Case') === 'MiXed_Case');
 
     // safeStringUpperN
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'i' ]) === '1');
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'f' ]) === '0.123');
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'str' ]) === 'HELLO');
+    assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'emptyString' ]) === undefined);
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
     assert (exchange.safeStringUpperN (inputList, [ 3, 2, 0 ]) === 'HI');
+    // With defaults
+    assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'nonexistent' ], 'MiXed_Case') === 'MiXed_Case');
 }
 
 function testSafeValue () {

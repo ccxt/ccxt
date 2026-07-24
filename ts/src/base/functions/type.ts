@@ -64,23 +64,23 @@ const safeValue = (o: implicitReturnType, k: IndexType, $default?: any) => {
 function safeString (o: implicitReturnType, k: IndexType, $default: string): string;
 function safeString (o: implicitReturnType, k: IndexType, $default?: string): Str;
 function safeString (o: implicitReturnType, k: IndexType, $default?: string): Str {
-    const x = prop (o, k);
-    return isStringCoercible (x) ? String (x) : $default;
+    const x = prop(o, k);
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
+    return $default;
 }
 
 const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
     return $default;
 };
 
 const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
-    const x = prop (o, k)
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    const x = prop (o, k);
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 };
 /*  .............................................   */
@@ -116,22 +116,22 @@ function safeString2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $defa
 function safeString2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str;
 function safeString2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
-    return isStringCoercible (x) ? String (x) : $default;
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
+    return $default;
 }
 
 const safeStringLower2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
     return $default;
 };
 
 const safeStringUpper2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 };
 
@@ -171,26 +171,26 @@ const safeValueN = (o: implicitReturnType, k: (IndexType)[], $default?: any) => 
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default: string): string;
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str;
 function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str {
-    if (o === undefined) {
-        return $default;
-    }
-    const x = getValueFromKeysInArray (o, k);
-    return isStringCoercible (x) ? String (x) : $default;
+    if (o === undefined) return $default; 
+    const x = getValueFromKeysInArray (o, k); 
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
+    return $default;
 }
 
 const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
     return $default;
 };
 
 const safeStringUpperN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 };
 

@@ -247,41 +247,27 @@ public partial class BaseExchange
 
     public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
-        var result = SafeValueN(obj, keys, defaultValue);
-        if (result == null)
-            return defaultValue as string;
-        string returnResult = null;
-        if (result is IList || result is IDictionary)
-        {
-            return defaultValue as string;
-        }
-        if (result.GetType() == typeof(float))
-        {
-            returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else if (result.GetType() == typeof(double))
-        {
-            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else if (result is double)
-        {
-            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
-
-        }
-        else if (result is decimal)
-        {
-            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else
-        {
-            returnResult = result.ToString();
-        }
-        if (returnResult != null)
-        {
-            var stringRest = (string)returnResult;
-            if (stringRest.Length > 0)
+        var result = SafeValueN(obj, keys);
+        if (result != null) {
+            if (result is string && ((string)result).Length > 0)
             {
-                return stringRest;
+                return (string)result;
+            }
+            else if (result is float)
+            {
+                return ((float)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is double)
+            {
+                return ((double)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is decimal)
+            {
+                return ((decimal)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is sbyte || result is byte || result is short || result is ushort || result is int || result is uint || result is long || result is ulong)
+            {
+                return Convert.ToString(result, CultureInfo.InvariantCulture);
             }
         }
         return defaultValue as string;
