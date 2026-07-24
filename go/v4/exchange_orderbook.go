@@ -497,15 +497,31 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 	} else {
 		snapshot["symbol"] = this.Symbol
 	}
+
+	// Determine the concrete order-book variant from the side types, because
+	// this method's receiver is *WsOrderBook; a *WsOrderBook is never a
+	// *CountedOrderBook or *IndexedOrderBook, so interface{}(this).(*X) can
+	// never succeed.
 	var copy OrderBookInterface
-	if _, ok := interface{}(this).(*CountedOrderBook); ok {
+	switch this.Asks.(type) {
+	case *CountedOrderBookSide:
 		copy = NewCountedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
-	} else if _, ok := interface{}(this).(*IndexedOrderBook); ok {
+	case *IndexedOrderBookSide:
 		copy = NewIndexedOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
-	} else {
+	default:
 		copy = NewWsOrderBook(snapshot, this.Asks.GetValue("Depth", nil))
 	}
-	ob := copy.(*WsOrderBook)
+
+	var ob *WsOrderBook
+	switch typed := copy.(type) {
+	case *CountedOrderBook:
+		ob = typed.WsOrderBook
+	case *IndexedOrderBook:
+		ob = typed.WsOrderBook
+	case *WsOrderBook:
+		ob = typed
+	}
+
 	lockSide(this.Asks)
 	lockSide(this.Bids)
 	ob.Asks = this.Asks.CopySide()
