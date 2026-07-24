@@ -26,7 +26,7 @@
     "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^1.16.0",
     "next": "16.2.11",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.18",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-icons": "^5.6.0",
