@@ -910,7 +910,9 @@ export default class myriad extends Exchange {
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId', this.safeString (this.options, 'defaultNetworkId', '56'));
         const marketId = this.safeString (info, 'marketId');
-        const outcomeId = this.safeInteger (info, 'outcomeId', 0);
+        // keep outcomeId as a generic numeric value so strict static-response checks in transpiled
+        // languages (notably Go) don't diverge on integer-vs-float runtime representation
+        const outcomeId = this.safeNumber (info, 'outcomeId', 0);
         const trader = this.ethGetAddressFromPrivateKey (this.privateKey);
         const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
         const sideStr = (side as string).toLowerCase ();
@@ -1007,11 +1009,14 @@ export default class myriad extends Exchange {
      * @param {float} amount number of outcome shares for the new order
      * @param {float} [price] price per share as a fraction in [0, 1]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.orderResponse] a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
+     * @param {object} [params.rawOrder] the raw order payload to cancel as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+     * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async editOrder (id: string, outcome: string, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.loadOutcome (outcome);
-        await this.cancelOrder (id, outcome);
+        await this.cancelOrder (id, outcome, params);
         return await this.createOrderbookOrder (outcome, type, side, amount, price, params);
     }
 
@@ -1020,6 +1025,16 @@ export default class myriad extends Exchange {
      * @method
      * @name myriad#createAmmOrder
      * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
+     * @param {string} outcome unified outcome or outcome id
+     * @param {string} [type] not used by the AMM path
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount for buys this is collateral value to spend (when costDenominated=true); for sells this is shares to sell
+     * @param {float} [price] not used by the AMM path
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.quote] a pre-fetched fetchTradeQuote result to reuse instead of requesting a new quote, call fetchTradeQuote to retrieve this data
+     * @param {string} [params.transactionHash] a pre-broadcast transaction hash; when provided the method skips transaction submission and only parses the order result, capture this value from sendEvmTransaction
+     * @param {boolean} [params.skipAllowance] optional override to skip the ERC20 allowance check/approval before a buy; implied true when params.transactionHash is provided
+     * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createAmmOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
@@ -1049,18 +1064,31 @@ export default class myriad extends Exchange {
         const tokenAddress = this.safeString2 (params, 'token', 'tokenAddress', this.safeString (info, 'tokenAddress'));
         const gasLimit = this.safeString (params, 'gasLimit', '0xaae60');
         const sideStr = sideLower;
-        const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ]);
-        const quote = await this.fetchTradeQuote (outcome, sideStr, amount, quoteParams);
+        const quoteParams = this.omit (params, [ 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated', 'quote', 'transactionHash', 'txHash', 'skipAllowance', 'skipWaitForReceipt' ]);
+        let quote = this.safeDict (params, 'quote');
+        if (quote === undefined) {
+            quote = await this.fetchTradeQuote (outcome, sideStr, amount, quoteParams);
+        }
         const calldata = this.safeString (this.safeDict (quote, 'info', {}), 'calldata');
         if (calldata === undefined) {
             throw new BadRequest (this.id + ' createAmmOrder is missing calldata from fetchTradeQuote');
         }
         const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+        const txHashParam = this.safeString2 (params, 'transactionHash', 'txHash');
+        const hasPreBroadcastTxHash = (txHashParam !== undefined);
         // a buy spends the collateral token, so the prediction-market contract must be approved first
-        if ((sideStr === 'buy') && (tokenAddress !== undefined)) {
+        const skipAllowance = this.safeBool (params, 'skipAllowance', hasPreBroadcastTxHash);
+        if ((sideStr === 'buy') && (tokenAddress !== undefined) && !skipAllowance) {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
-        const txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
+        let txHash = txHashParam;
+        if (txHash === undefined) {
+            txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
+            const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
+            if (!skipWaitForReceipt) {
+                await this.waitForTransactionReceipt (rpcUrl, txHash);
+            }
+        }
         return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
     }
 
@@ -1068,9 +1096,10 @@ export default class myriad extends Exchange {
      * @method
      * @name myriad#createMarketBuyOrderWithCost
      * @description buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+     * @see createAmmOrder supports params.quote from fetchTradeQuote(outcome, 'buy', amount)
      * @param {string} outcome unified outcome handle
-     * @param {float} cost the collateral (USDC) amount to spend
-     * @param {object} [params] extra exchange-specific parameters
+     * @param {number} cost collateral amount to spend
+     * @param {object} [params] extra parameters passed through to createAmmOrder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
@@ -1171,6 +1200,47 @@ export default class myriad extends Exchange {
             'nonce': this.safeString (rawOrder, 'nonce'),
             'expiration': this.safeString (rawOrder, 'expiration', '0'),
         };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#getOrderResponseFromParams
+     * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
+     * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
+     */
+    getOrderResponseFromParams (id: Str, params = {}): Dict {
+        const orderResponse = this.safeDict (params, 'orderResponse');
+        if (orderResponse !== undefined) {
+            return orderResponse;
+        }
+        const rawOrder = this.safeDict (params, 'rawOrder');
+        if (rawOrder !== undefined) {
+            return {
+                'orderHash': id,
+                'order': rawOrder,
+                'networkId': this.safeString2 (params, 'networkId', 'network_id'),
+            };
+        }
+        const orderResponsesById = this.safeDict (params, 'orderResponses');
+        if (orderResponsesById !== undefined) {
+            const keyedResponse = this.safeValue (orderResponsesById, id);
+            if (keyedResponse !== undefined) {
+                return keyedResponse;
+            }
+        }
+        const orderResponses = this.safeList (params, 'orderResponses');
+        if (orderResponses !== undefined) {
+            const responsesLength = orderResponses.length;
+            for (let i = 0; i < responsesLength; i++) {
+                const current = this.safeDict (orderResponses, i, {});
+                const currentId = this.safeString2 (current, 'orderHash', 'hash');
+                if ((currentId !== undefined) && (currentId === id)) {
+                    return current;
+                }
+            }
+        }
+        return undefined;
     }
 
     /**
@@ -1434,15 +1504,26 @@ export default class myriad extends Exchange {
      * @param {string} id the order hash returned by createOrder
      * @param {string} [outcome] unified outcome the order belongs to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.orderResponse] a pre-fetched fetchOrder-style response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
+     * @param {object} [params.rawOrder] the raw order payload to sign as an alternative to params.orderResponse, call fetchOrder to retrieve this data
+     * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a privateKey to sign the cancellation');
         }
-        const fetched = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
+        let fetched = this.getOrderResponseFromParams (id, params);
+        const networkIdParam = this.safeString2 (params, 'networkId', 'network_id');
+        params = this.omit (params, [ 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ]);
+        if (fetched === undefined) {
+            fetched = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
+        }
         const rawOrder = this.safeDict (fetched, 'order', {});
-        const networkId = this.safeString2 (fetched, 'networkId', 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
+        let networkId = this.safeString2 (fetched, 'networkId', 'network_id', networkIdParam);
+        if (networkId === undefined) {
+            networkId = this.safeString (this.options, 'defaultNetworkId', '56');
+        }
         const message = this.clobOrderMessage (rawOrder);
         const signature = this.signClobOrder (message, networkId);
         const request: Dict = {
@@ -1451,7 +1532,7 @@ export default class myriad extends Exchange {
             'signature': signature,
             'network_id': this.parseToInt (networkId),
         };
-        const response = await this.myriadPublicDeleteOrdersHash (request);
+        const response = await this.myriadPublicDeleteOrdersHash (this.extend (request, params));
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1521,21 +1602,32 @@ export default class myriad extends Exchange {
      * @param {string[]} ids the order hashes to cancel
      * @param {string} [outcome] not used by myriad cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.orderResponses] pre-fetched fetchOrder-style responses keyed by order hash, or an array of such responses; avoids the internal per-order lookups when already available, call fetchOrder for each id to retrieve this data
+     * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a privateKey to sign the cancellations');
         }
+        const paramsForLookup = params;
+        const networkIdParam = this.safeString2 (params, 'networkId', 'network_id');
+        params = this.omit (params, [ 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ]);
         const idsLength = ids.length;
         const signedOrders = [];
         const wrappers = [];
         let networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         for (let i = 0; i < idsLength; i++) {
             const id = ids[i];
-            const fetched = await this.myriadPublicGetOrdersHash ({ 'hash': id });
+            let fetched = this.getOrderResponseFromParams (id, paramsForLookup);
+            if (fetched === undefined) {
+                fetched = await this.myriadPublicGetOrdersHash ({ 'hash': id });
+            }
             const rawOrder = this.safeDict (fetched, 'order', {});
-            networkId = this.safeString2 (fetched, 'networkId', 'network_id', networkId);
+            const fetchedNetworkId = this.safeString2 (fetched, 'networkId', 'network_id', networkIdParam);
+            if (fetchedNetworkId !== undefined) {
+                networkId = fetchedNetworkId;
+            }
             const message = this.clobOrderMessage (rawOrder);
             const signature = this.signClobOrder (message, networkId);
             signedOrders.push ({ 'order': message, 'signature': signature });

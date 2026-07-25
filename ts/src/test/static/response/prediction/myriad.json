@@ -58090,8 +58090,6 @@
 		"editOrder": [
 			{
 				"description": "edit order edit an ob order",
-				"disabled": true,
-				"disabledReason": "TypeError: invalid address, mock response lacks address fields required by current EIP-712 path",
 				"method": "editOrder",
 				"input": [
 					"0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
@@ -58099,7 +58097,33 @@
 					"limit",
 					"buy",
 					1,
-					0.02
+					0.02,
+					{
+						"orderResponse": {
+							"orderHash": "0xa767af5a6a0f9ce429973634d3ce7ce5f4059857aec925ea268ea75611f788ce",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "10000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803103067",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:38:23.462Z",
+							"filledAt": null,
+							"networkId": "56",
+							"updatedAt": "2026-07-23T10:38:23.462Z",
+							"cancelledAt": null
+						}
+					}
 				],
 				"httpResponse": {
 					"orderHash": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
@@ -58155,12 +58179,36 @@
 		"cancelOrder": [
 			{
 				"description": "cancel order ob order",
-				"disabled": true,
-				"disabledReason": "TypeError: invalid address, mock response lacks address fields required by current EIP-712 path",
 				"method": "cancelOrder",
 				"input": [
 					"0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
-					"HYPE_FLIP_SOL_2026:YES"
+					"HYPE_FLIP_SOL_2026:YES",
+					{
+						"orderResponse": {
+							"orderHash": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
+							"clientOrderId": null,
+							"order": {
+								"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+								"marketId": 827,
+								"outcomeId": 0,
+								"side": 0,
+								"amount": "1000000000000000000",
+								"price": "20000000000000000",
+								"minFillAmount": "0",
+								"nonce": "1784803147948",
+								"expiration": "0"
+							},
+							"status": "cancelled",
+							"signatureType": 0,
+							"filledAmount": "0",
+							"timeInForce": "GTC",
+							"createdAt": "2026-07-23T10:39:08.383Z",
+							"filledAt": null,
+							"networkId": "56",
+							"updatedAt": "2026-07-23T10:39:08.383Z",
+							"cancelledAt": null
+						}
+					}
 				],
 				"httpResponse": {
 					"orderHash": "0x88c29b4391c47ea6526333d31c0a85412b73a8208ff5fb664d7d4cb4e7e4d06a",
@@ -58693,15 +58741,65 @@
 		"cancelOrders": [
 			{
 				"description": "cancel orders multiple ob orders",
-				"disabled": true,
-				"disabledReason": "mock response lacks address fields required by current EIP-712 path",
 				"method": "cancelOrders",
 				"input": [
 					[
 						"0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
 						"0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
 					],
-					"HYPE_FLIP_SOL_2026:YES"
+					"HYPE_FLIP_SOL_2026:YES",
+					{
+						"orderResponses": {
+							"0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b": {
+								"orderHash": "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+								"clientOrderId": null,
+								"order": {
+									"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+									"marketId": 827,
+									"outcomeId": 0,
+									"side": 0,
+									"amount": "1000000000000000000",
+									"price": "10000000000000000",
+									"minFillAmount": "0",
+									"nonce": "1784796432981",
+									"expiration": "0"
+								},
+								"status": "canceled",
+								"signatureType": 0,
+								"filledAmount": "0",
+								"timeInForce": "GTC",
+								"createdAt": "2026-07-23T08:47:13.531Z",
+								"filledAt": null,
+								"networkId": "56",
+								"updatedAt": "2026-07-23T08:47:13.531Z",
+								"cancelledAt": null
+							},
+							"0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff": {
+								"orderHash": "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff",
+								"clientOrderId": null,
+								"order": {
+									"trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+									"marketId": 827,
+									"outcomeId": 0,
+									"side": 0,
+									"amount": "1000000000000000000",
+									"price": "20000000000000000",
+									"minFillAmount": "0",
+									"nonce": "1784796433607",
+									"expiration": "0"
+								},
+								"status": "canceled",
+								"signatureType": 0,
+								"filledAmount": "0",
+								"timeInForce": "GTC",
+								"createdAt": "2026-07-23T08:47:14.059Z",
+								"filledAt": null,
+								"networkId": "56",
+								"updatedAt": "2026-07-23T08:47:14.059Z",
+								"cancelledAt": null
+							}
+						}
+					}
 				],
 				"httpResponse": {
 					"cancelled": [
