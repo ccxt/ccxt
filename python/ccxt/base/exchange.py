@@ -732,8 +732,12 @@ class BaseExchange(object):
     def safe_string(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         return default_value
@@ -742,8 +746,12 @@ class BaseExchange(object):
     def safe_string_lower(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value).lower()
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:
+                    return str(value).lower()
         except Exception:
             pass
         return default_value
@@ -752,8 +760,12 @@ class BaseExchange(object):
     def safe_string_upper(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value).upper()
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:
+                    return str(value).upper()
         except Exception:
             pass
         return default_value
@@ -806,27 +818,73 @@ class BaseExchange(object):
     def safe_string_2(dictionary, key1, key2, default_value=None):
         try:
             value = dictionary[key1]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         try:
             value = dictionary[key2]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         return default_value
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.lower() if value is not None else default_value
+        try:
+            value = dictionary[key1]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+        except Exception:
+            pass
+        try:
+            value = dictionary[key2]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.upper() if value is not None else default_value
+        try:
+            value = dictionary[key1]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+        except Exception:
+            pass
+        try:
+            value = dictionary[key2]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
@@ -883,20 +941,34 @@ class BaseExchange(object):
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value) if value is not None else default_value
+        if value is not None:
+            t = type(value)
+            if t is str and value != '':
+                return value
+            if t is float or t is int:
+                return str(value)
+        return default_value
 
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
-            return str(value).lower()
+            t = type(value)
+            if t is str and value != '':
+                return value.lower()
+            if t is float or t is int:
+                return str(value).lower()
         return default_value
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
-            return str(value).upper()
+            t = type(value)
+            if t is str and value != '':
+                return value.upper()
+            if t is float or t is int:
+                return str(value).upper()
         return default_value
 
     @staticmethod
