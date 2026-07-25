@@ -9,6 +9,28 @@
     "walletAddress": "0xd282b1436bc99a86ec24a164f7beeed42cfe8511",
     "outputType": "json",
     "methods": {
+        "fetchEvent": [
+            {
+                "description": "fetchEvent direct market lookup",
+                "method": "fetchEvent",
+                "url": "https://api-v2.myriadprotocol.com/markets/170145?network_id=56",
+                "input": [
+                    "56:170145"
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents direct market lookup by composite eventId",
+                "method": "fetchEvents",
+                "url": "https://api-v2.myriadprotocol.com/markets/170145?network_id=56",
+                "input": [
+                    {
+                        "eventId": "56:170145"
+                    }
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker for an outcome",

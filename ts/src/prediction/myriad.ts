@@ -1209,7 +1209,7 @@ export default class myriad extends Exchange {
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    getOrderResponseFromParams (id: Str, params = {}): Dict {
+    getOrderResponseFromParams (id: Str, params = {}): any {
         const orderResponse = this.safeDict (params, 'orderResponse');
         if (orderResponse !== undefined) {
             return orderResponse;
@@ -3043,6 +3043,7 @@ export default class myriad extends Exchange {
             const m = this.parseMyriadMarket (raw);
             const marketHandle = this.safeString (m, 'market');
             if ((marketHandle !== undefined) && (marketHandle in seenMarketHandles)) {
+                this.markets[marketHandle] = m;
                 continue;
             }
             if (marketHandle !== undefined) {
