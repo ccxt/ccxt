@@ -54,20 +54,26 @@ const safeValue = (o, k, $default) => {
 };
 function safeString(o, k, $default) {
     const x = prop(o, k);
-    return isStringCoercible(x) ? String(x) : $default;
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
 }
 const safeStringLower = (o, k, $default) => {
     const x = prop(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpper = (o, k, $default) => {
     const x = prop(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
     return $default;
 };
 /*  .............................................   */
@@ -93,20 +99,26 @@ const safeValue2 = (o, k1, k2, $default) => {
 };
 function safeString2(o, k1, k2, $default) {
     const x = prop2(o, k1, k2);
-    return isStringCoercible(x) ? String(x) : $default;
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
 }
 const safeStringLower2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpper2 = (o, k1, k2, $default) => {
     const x = prop2(o, k1, k2);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
     return $default;
 };
 const safeFloatN = (o, k, $default) => {
@@ -136,24 +148,33 @@ const safeValueN = (o, k, $default) => {
     return hasProps(x) ? x : $default;
 };
 function safeStringN(o, k, $default) {
-    if (o === undefined) {
+    if (o === undefined)
         return $default;
-    }
     const x = getValueFromKeysInArray(o, k);
-    return isStringCoercible(x) ? String(x) : $default;
+    if (typeof x === 'string')
+        return x;
+    if (Number.isFinite(x))
+        return String(x);
+    return $default;
 }
 const safeStringLowerN = (o, k, $default) => {
+    if (o === undefined)
+        return $default;
     const x = getValueFromKeysInArray(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toLowerCase();
+    if (Number.isFinite(x))
         return String(x).toLowerCase();
-    }
     return $default;
 };
 const safeStringUpperN = (o, k, $default) => {
+    if (o === undefined)
+        return $default;
     const x = getValueFromKeysInArray(o, k);
-    if (isStringCoercible(x)) {
+    if (typeof x === 'string')
+        return x.toUpperCase();
+    if (Number.isFinite(x))
         return String(x).toUpperCase();
-    }
     return $default;
 };
 /*  ------------------------------------------------------------------------ */
