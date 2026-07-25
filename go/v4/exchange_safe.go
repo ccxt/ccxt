@@ -632,7 +632,7 @@ func (this *BaseExchange) SafeStringLower(obj any, key any, defaultValue ...any)
 func (this *BaseExchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2)
-	if res != "" && res != nil {
+	if res != nil {
 		return strings.ToLower(res.(string))
 	}
 	if len(defaultValue) > 0 {
@@ -644,7 +644,7 @@ func (this *BaseExchange) SafeStringLower2(obj any, key any, key2 any, defaultVa
 func (this *BaseExchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2)
-	if res != "" && res != nil {
+	if res != nil {
 		return strings.ToUpper(res.(string))
 	}
 	if len(defaultValue) > 0 {
