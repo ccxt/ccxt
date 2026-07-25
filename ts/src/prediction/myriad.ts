@@ -945,7 +945,7 @@ export default class myriad extends Exchange {
         const order: Dict = {
             'trader': trader,
             'marketId': marketId,
-            'outcomeId': this.parseToNumeric (outcomeId),
+            'outcomeId': this.parseToInt (outcomeId),
             'side': sideInt,
             'amount': amountWei,
             'price': priceWei,
