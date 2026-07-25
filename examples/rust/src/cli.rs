@@ -28,6 +28,12 @@ use ccxt::exchanges::{
     binance::BinanceCore, bybit::BybitCore, okx::OkxCore, kucoin::KucoinCore,
     bitget::BitgetCore, hyperliquid::HyperliquidCore, gate::GateCore,
 };
+// After the static-dispatch conversion (review #1) the base surface —
+// `call_dynamic`, `set_sandbox_mode`, `enable_demo_trading`, `fetch_markets`,
+// … — lives in the `ExchangeBase`/`ExchangeRuntime` traits, so a consumer must
+// bring them into scope to call them on a Core.
+use ccxt::exchange_generated::ExchangeBase;
+use ccxt::exchange::ExchangeRuntime;
 use ccxt::value::HashMap;
 use std::env;
 use std::panic;
@@ -181,9 +187,9 @@ fn set_credential(ex: &mut ccxt::exchange::Exchange, key: &str, val: &str) {
 
 // ── dynamic dispatch over exchanges ──────────────────────────────────────────
 
-/// Each transpiled Core auto-implements `init()` (bind + populate +
-/// build_implicit_api) and `call_dynamic(method, args) -> Value` in its
-/// generated impl block. We just box the right Core and invoke.
+/// Each transpiled Core auto-implements `init()` (populate +
+/// build_implicit_api) and `call_dynamic(method, args) -> Value` via its
+/// `ExchangeBase` impl. We just box the right Core and invoke.
 macro_rules! dispatch_exchange {
     ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $time:expr,
      $http_proxy:expr, $https_proxy:expr, $socks_proxy:expr, $legacy_proxy:expr, $creds:expr,
@@ -193,7 +199,6 @@ macro_rules! dispatch_exchange {
             $(
                 $name => {
                     let mut ex = Box::new(<$core>::new(None));
-                    ex.bind(); // re-bind after Box move
                     ex.exchange.verbose = Value::Bool($verbose);
                     for (k, v) in $creds.iter() {
                         set_credential(&mut ex.exchange, k, v);
@@ -206,9 +211,11 @@ macro_rules! dispatch_exchange {
                     if let Some(s) = $https_proxy.as_ref() { ex.exchange.httpsProxy = Value::Str(s.clone()); }
                     if let Some(s) = $socks_proxy.as_ref() { ex.exchange.socksProxy = Value::Str(s.clone()); }
                     if let Some(s) = $legacy_proxy.as_ref(){ ex.exchange.proxy      = Value::Str(s.clone()); }
-                    // --testnet → setSandboxMode(true), --demo → enableDemoTrading(true)
-                    if $testnet { ex.exchange.set_sandbox_mode(Value::Bool(true)); }
-                    if $demo    { ex.exchange.enable_demo_trading(Value::Bool(true)); }
+                    // --testnet → setSandboxMode(true), --demo → enableDemoTrading(true).
+                    // These are base trait methods on the Core now (review #1),
+                    // not inherent methods on the embedded `Exchange`.
+                    if $testnet { ex.set_sandbox_mode(Value::Bool(true)); }
+                    if $demo    { ex.enable_demo_trading(Value::Bool(true)); }
                     // Most unified methods need markets loaded first.
                     let m = $method;
                     let skip_load = ["fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str());
@@ -252,10 +259,11 @@ macro_rules! dispatch_exchange {
 /// Helper trait: lets every Core load+populate markets uniformly. The
 /// transpiled `load_markets` stub returns cached value but doesn't
 /// actually populate, so we call fetch_markets and write the symbol map.
-// `?Send`: an `Exchange` holds a raw `*mut ()` core pointer for virtual
-// dispatch, so its futures are not `Send`. The CLI never spawns onto
-// other threads (it just `block_on`s `main`), so a non-Send boxed future
-// is fine — the default `#[async_trait]` would wrongly demand `Send`.
+// `?Send`: base async trait methods (native `async fn` in a trait) don't
+// carry a `Send` bound, so a Core's futures aren't guaranteed `Send`. The
+// CLI never spawns onto other threads (it just `block_on`s `main`), so a
+// non-Send boxed future is fine — the default `#[async_trait]` would wrongly
+// demand `Send`.
 #[async_trait::async_trait(?Send)]
 trait LoadMarketsSafe {
     async fn load_markets_safe(&mut self) -> Value;

@@ -1571,12 +1571,11 @@ impl Exchange {
         url.replace("{hostname}", &host)
     }
 
-    /// Dispatches an implicit API call. Looks the method up in the dispatch
-    /// table (building it on first use) and routes through `request`.
-    /// Public-endpoint request: imploding params into the path/query and
-    /// hitting `fetch`. Private endpoints need per-exchange signing — for
-    /// now we treat anything outside `public` as a stub that returns Null.
-
+    // Dispatches an implicit API call. Looks the method up in the dispatch
+    // table (building it on first use) and routes through `request`.
+    // Public-endpoint request: imploding params into the path/query and
+    // hitting `fetch`. Private endpoints need per-exchange signing — for
+    // now we treat anything outside `public` as a stub that returns Null.
     fn extract_path_params(&self, path: &str) -> Vec<String> {
         let mut out: Vec<String> = vec![];
         let mut chars = path.chars().peekable();

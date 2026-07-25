@@ -9,6 +9,10 @@
 
 use ccxt::Value;
 use ccxt::exchanges::binance::BinanceCore;
+// Base methods (parse_markets, …) are trait methods after the static-dispatch
+// conversion (review #1); bring the trait into scope so `ex.parse_markets(…)`
+// resolves on the Core.
+use ccxt::exchange_generated::ExchangeBase;
 use std::env;
 use std::fs;
 use std::time::Instant;
@@ -35,12 +39,11 @@ fn main() {
     };
     eprintln!("json_parse: {json_ms:.2} ms — symbols: {sym_count}");
 
-    // Build a binance Core. `new(None)` runs `init()` which depends on
-    // `describe()` and a derived-ptr `bind`. `parse_market` doesn't need
-    // the network, just the precision-mode + commonCurrencies state the
-    // describe block seeds.
+    // Build a binance Core. `new(None)` runs `init()`, which seeds the
+    // describe()-derived state (precision mode + commonCurrencies) that
+    // `parse_market` needs. No network, and no binding step — dispatch is
+    // fully static now (review #1).
     let mut ex = Box::new(BinanceCore::new(None));
-    ex.bind();
 
     // Warmup
     for _ in 0..3 {

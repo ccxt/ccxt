@@ -10,6 +10,10 @@
 
 use ccxt::Value;
 use ccxt::exchanges::binance::BinanceCore;
+// Base methods (fetch_markets, …) are trait methods after the static-dispatch
+// conversion (review #1) — bring the traits into scope.
+use ccxt::exchange_generated::ExchangeBase;
+use ccxt::exchange::ExchangeRuntime;
 use std::panic;
 use futures::FutureExt;
 
@@ -20,16 +24,13 @@ async fn main() {
     println!("dispatch layers run under the hood:");
     println!("  1. implicit API: `Exchange::call_method` walks describe()'s");
     println!("     `api` block and routes to `fetch_typed` (real HTTPS).");
-    println!("  2. Go-style trait dispatch: `binance.bind()` installs a");
-    println!("     `&dyn DerivedExchange` on Exchange; Exchange.ts's");
-    println!("     `self.parse_X(...)` calls are rewritten to forward via");
-    println!("     `self.derived().parse_X(...)`, hitting Binance's override.\n");
+    println!("  2. Static trait dispatch: Exchange.ts's `self.parse_X(...)`");
+    println!("     calls are rewritten to `DerivedExchange::parse_X(self, ...)`,");
+    println!("     resolving to Binance's override on the concrete Core.\n");
 
-    // Box-allocate so the binance struct has a stable address, then call
-    // bind() once so the base Exchange knows how to route virtual calls
-    // (parse_ticker, parse_trade, …) back to the derived overrides.
+    // No binding step — virtual calls resolve statically through the Core's
+    // `DerivedExchange`/`ExchangeBase` trait impls (review #1).
     let mut binance = Box::new(BinanceCore::new(None));
-    binance.bind();
     // Populate the Exchange describe-data and build the implicit-API map.
     let described = binance.describe();
     binance.exchange.api  = ccxt::get_value(&described, &Value::Str("api".to_string()));

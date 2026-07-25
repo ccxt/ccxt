@@ -2497,18 +2497,9 @@ impl Exchange {
         }
     }
 
-    /// `call_method(name, args)` — dynamic dispatch fallback. Real Rust
-    /// can't look methods up by name, but for the *implicit API* (methods
-    /// like `public_get_exchange_info` that come from the `api` block in
-    /// describe()), we build a runtime dispatch table and route through
-    /// `Exchange::implicit_api_call` → `request_typed` → `fetch_typed`.
-    ///
-    /// Note: this takes `&self` so call sites that also pass `self.X(...)`
-    /// as args don't hit borrow conflicts. The actual HTTP fetch needs
-    /// `&mut self`, so we use UnsafeCell-style interior mutability via
-    /// `parking_lot::Mutex` on the http client — but for simplicity we use
-    /// `unsafe { &mut *(self as *const _ as *mut _) }` here. (TODO: wrap
-    /// the HTTP path in a RefCell or use `&mut self` end-to-end.)
+    // Dynamic dispatch for the implicit API (`public_get_exchange_info`, …)
+    // now lives in the `ExchangeRuntime::call_method` trait method (review #1),
+    // routing through `implicit_api_call` → `request_typed` → `fetch_typed`.
 
     // ── string / number formatting ──────────────────────────────────────────
 
@@ -2660,34 +2651,25 @@ impl Exchange {
 
     // ── async lifecycle stubs ───────────────────────────────────────────────
 
-    /// Minimal port of TS `loadMarketsHelper`:
-    ///   1. Return the cached `markets` if already populated and not
-    ///      forcing a reload.
-    ///   2. Otherwise dispatch `fetch_markets` to the derived exchange
-    ///      (binance/okx/... — each implements the actual API call).
-    ///   3. Feed the resulting list into `set_markets` so `markets`,
-    ///      `markets_by_id`, `symbols`, `ids`, and synthesized
-    ///      `currencies` are all populated. Live tests then read these
-    ///      off the snapshot via `live_dispatch::read_state`.
-    /// Minimal port of TS `loadMarketsHelper`:
-    ///   1. Return the cached `markets` if already populated and not
-    ///      forcing a reload.
-    ///   2. If `has.fetchCurrencies === true`, dispatch `fetch_currencies`
-    ///      first — passing the result into `set_markets` avoids the
-    ///      O(N²) "synthesize from markets" branch (cloning the
-    ///      grouped-by-code Map inside an outer loop).
-    ///   3. Dispatch `fetch_markets` to the derived exchange.
-    ///   4. `set_markets(markets, currencies)` populates `markets`,
-    ///      `markets_by_id`, `symbols`, `ids`, and merges currencies.
-    /// Minimal port of TS `loadMarketsHelper`. Returns cached markets
-    /// on hit; otherwise fetches markets (and currencies when supported)
-    /// and pushes everything through `set_markets`. Built-in synthesize
-    /// branch of `set_markets` is O(N) per code with full Map clones —
-    /// for binance (~4k markets, ~1k unique codes) that grew to minutes
-    /// and looked like a hang. `load_markets_fast_synthesize_currencies`
-    /// below short-circuits when currencies are empty by synthesizing
-    /// them here in idiomatic Rust (HashMap-direct, no Value cloning of
-    /// the whole grouped map per code).
+    // Minimal port of TS `loadMarketsHelper`:
+    //   1. Return the cached `markets` if already populated and not
+    //      forcing a reload.
+    //   2. If `has.fetchCurrencies === true`, dispatch `fetch_currencies`
+    //      first — passing the result into `set_markets` avoids the
+    //      O(N²) "synthesize from markets" branch (cloning the
+    //      grouped-by-code Map inside an outer loop).
+    //   3. Dispatch `fetch_markets` to the derived exchange.
+    //   4. `set_markets(markets, currencies)` populates `markets`,
+    //      `markets_by_id`, `symbols`, `ids`, and merges currencies.
+    // Returns cached markets on hit; otherwise fetches markets (and
+    // currencies when supported) and pushes everything through
+    // `set_markets`. The built-in synthesize branch of `set_markets` is
+    // O(N) per code with full Map clones —
+    // for binance (~4k markets, ~1k unique codes) that grew to minutes
+    // and looked like a hang. `load_markets_fast_synthesize_currencies`
+    // below short-circuits when currencies are empty by synthesizing
+    // them here in idiomatic Rust (HashMap-direct, no Value cloning of
+    // the whole grouped map per code).
 
     // Proxy callback "methods" — the post-processor rewrites
     // `self.proxy_url_callback(args)` → `self.proxy_url_callback_fn(args)`

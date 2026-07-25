@@ -11,6 +11,10 @@ use ccxt::exchanges::{
     hyperliquid::HyperliquidCore,
     gate::GateCore,
 };
+// Base methods (describe, fetch_markets, …) are trait methods after the
+// static-dispatch conversion (review #1) — bring the traits into scope.
+use ccxt::exchange_generated::ExchangeBase;
+use ccxt::exchange::ExchangeRuntime;
 use std::panic;
 use futures::FutureExt;
 
@@ -37,7 +41,6 @@ macro_rules! smoke {
     ($name:literal, $core:ty) => {{
         println!("\n=== {} ===", $name);
         let mut ex = Box::new(<$core>::new(None));
-        ex.bind();
         let d = ex.describe();
         populate(&mut ex.exchange, d);
         print!("   fetch_markets … ");

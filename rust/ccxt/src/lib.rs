@@ -22,6 +22,14 @@
 // files carry their own blanket `clippy::all` allow.
 #![allow(non_snake_case, dead_code, unused_variables, unused_imports)]
 #![allow(clippy::style, clippy::complexity, clippy::perf)]
+// The base surface (`ExchangeBase`/`ExchangeRuntime`/`PredictionBase`) uses
+// native `async fn` in public traits. This is deliberate (review #1): virtual
+// dispatch boxes these futures as `Pin<Box<dyn Future + 'a>>` WITHOUT a `Send`
+// bound, so callers get non-`Send` futures by design — the exchange objects are
+// driven on a single task, not shared across threads. `async fn` in a trait is
+// exactly the right desugaring for that contract, so silence the auto-trait
+// advisory lint rather than hand-rolling `-> impl Future` signatures.
+#![allow(async_fn_in_trait)]
 
 pub mod error;
 pub mod value;
@@ -33,13 +41,9 @@ pub mod runtime;
 pub mod exchange_errors;
 pub mod exchange_stubs;
 
-// The transpiled output for Exchange.ts methods below the marker. The
-// transpiler now produces clean Rust *syntax*, but the methods reference
-// `self.has`, `self.urls`, `self.extend()`, etc. which the typed hand-written
-// `Exchange` struct doesn't expose in a Value-shape. Making the transpiled
-// bodies actually compile against the typed base is a separate, larger
-// effort — until then this module is opt-in behind a feature flag. Enable
-// with `--features transpiled-base`.
+// The transpiled base method surface (now the `ExchangeBase` trait, review #1)
+// compiles and typechecks against the hand-written base; the per-exchange REST
+// Cores are the part gated behind `transpiled-base`.
 // The transpiled base `impl Exchange` methods (describe, safe_market,
 // set_markets, …). The hand-written base (exchange.rs / exchange_stubs.rs)
 // calls these unconditionally, so they are non-optional infrastructure — always

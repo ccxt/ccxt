@@ -17,16 +17,16 @@ path = "src/lib.rs"
 
 [features]
 default = []
-# Includes the transpiled-from-Exchange.ts methods. Currently a work in
-# progress — the transpiler produces syntactically-valid Rust but most
-# method bodies don't yet typecheck against the typed Exchange base.
+# Includes the transpiled-from-Exchange.ts REST + prediction Cores and the
+# base method surface. Compiles and passes the offline static request/response
+# and base suites (see the crate README for the supported matrix).
 transpiled-base = []
-# Includes the transpiled WS (pro) exchanges in `src/pro/<id>.rs`. Work
-# in progress — the structural transpile (struct shape, parent Deref)
-# works but several per-exchange method bodies still need transpiler
-# fixes. Enable to opt in; default builds skip the per-id files so the
-# hand-written `pro::{cache, order_book}` modules stay usable on their
-# own.
+# Includes the transpiled WS (pro) exchanges in `src/pro/<id>.rs`. The
+# structural transpile (struct shape, parent routing, static dispatch)
+# compiles; per-venue subscription transport/callbacks are still experimental
+# and not all venue methods are operational. Default builds skip the per-id
+# files so the hand-written `pro::{cache, order_book}` modules stay usable on
+# their own.
 transpiled-ws = ["transpiled-base"]
 
 [dependencies]
