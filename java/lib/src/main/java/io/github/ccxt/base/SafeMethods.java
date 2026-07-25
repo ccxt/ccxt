@@ -166,21 +166,41 @@ public final class SafeMethods {
     // ----------------------------
 
     public static String SafeStringTyped(Object obj, Object key, Object... defaultValue) {
-        Object res = SafeStringN(obj, Arrays.asList(key), defaultValue);
-        return (res == null) ? "" : (String) res;
+        Object defaultValue2 = opt(defaultValue);
+        Object result = SafeValue(obj, key);
+        if (result == null) return (defaultValue2 instanceof String s) ? s : null;
+
+        String ret;
+        if (result instanceof String s) {
+            ret = s;
+        } else if (result instanceof Float f) {
+            ret = String.valueOf(f);
+        } else if (result instanceof Integer i) {
+            ret = String.valueOf(i);
+        } else if (result instanceof Double d) {
+            ret = String.valueOf(d);
+        } else if (result instanceof java.math.BigDecimal bd) {
+            ret = bd.toPlainString();
+        } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
+            return (defaultValue2 instanceof String s) ? s : null;
+        } else {
+            ret = String.valueOf(result);
+        }
+        if (ret != null && !ret.isEmpty()) return ret;
+        return (defaultValue2 instanceof String s) ? s : null;
     }
 
     public static Object SafeString(Object obj, Object key, Object... defaultValue) {
-        Object res = SafeStringN(obj, Arrays.asList(key), defaultValue);
-        return (res == null) ? null : res;
+        return SafeStringTyped(obj, key, defaultValue);
     }
 
     public static Object safeString(Object obj, Object key, Object... defaultValue) {
-        return SafeStringN(obj, Arrays.asList(key), defaultValue);
+        return SafeStringTyped(obj, key, defaultValue);
     }
 
     public static Object safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
-        return SafeStringN(obj, Arrays.asList(key1, key2), defaultValue);
+        Object result = SafeStringTyped(obj, key1);
+        return (result != null) ? result :  SafeStringTyped(obj, key2, defaultValue);
     }
 
     public static Object safeStringN(Object obj, Object keys, Object... defaultValue) {
@@ -341,7 +361,7 @@ public final class SafeMethods {
 
     public static Object safeStringUpper(Object obj, Object key, Object... defaultValues) {
         Object defaultValue = opt(defaultValues);
-        Object result = toStringOrNull(safeString(obj, key));
+        Object result = safeString(obj, key);
         return (result == null)? defaultValue : ((String)result).toUpperCase();
     }
 
