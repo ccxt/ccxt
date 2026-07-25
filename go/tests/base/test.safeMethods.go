@@ -23,6 +23,7 @@ func HelperDefaultInputDict() any {
 		"zeroString":   "0",
 		"undefined":    nil,
 		"emptyString":  "",
+		"randomList":   []any{"Hi", 4},
 		"floatNumeric": 0.123,
 		"floatString":  "0.123",
 		"longInt":      123456789012345,
@@ -37,60 +38,100 @@ func TestSafeString() {
 	var inputDict any = HelperDefaultInputDict()
 	var inputList any = []any{"Hi", 2}
 	// safeString
-	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "i"), "1"))
-	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "f"), "0.123"))
-	// assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "str"), "heLlo"))
-	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "strNumber"), "3"))
-	Assert(ccxt.IsEqual(exchange.SafeString(inputList, 0), "Hi"))
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "i"), "1"), "safeString failed for integer")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "f"), "0.123"), "safeString failed for float")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "bool"), nil), "safeString failed for boolean")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "list"), nil), "safeString failed for list")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "dict"), nil), "safeString failed for dict")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "str"), "heLlo"), "safeString failed for string")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "strNumber"), "3"), "safeString failed for string number")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "zeroNumeric"), "0"), "safeString failed for zero numeric")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "zeroString"), "0"), "safeString failed for zero string")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "undefined"), nil), "safeString failed for undefined")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "emptyString"), nil), "safeString failed for empty string")
+	assert(ccxt.IsEqual(exchange.SafeString(inputList, 0), "Hi"), "safeString failed for list element")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "floatNumeric"), "0.123"), "safeString failed for float numeric")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "floatString"), "0.123"), "safeString failed for float string")
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "longInt"), "123456789012345"), "safeString failed for long integer")
+	// With defaults
+	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"), "safeString failed for nonexistent key with default")
+	// the below fails in other langs
+	// // @ts-expect-error
+	// assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
+	// // @ts-expect-error
+	// assert (exchange.safeString (inputDict, 'nonexistent', true) === true, 'safeString failed for nonexistent key with default bool');
+	// // @ts-expect-error
+	// assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
 	// safeString2
 	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "f"), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "str"), "heLlo"))
 	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "strNumber"), "3"))
 	Assert(ccxt.IsEqual(exchange.SafeString2(inputList, 2, 0), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputList, 2, "emptyString"), nil))
 	// safeStringN
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "i"}), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "f"}), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "str"}), "heLlo"))
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "strNumber"}), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "emptyString"}), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringN(inputList, []any{3, 2, 0}), "Hi"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []any{"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"))
 	// safeStringLower
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "f"), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "str"), "hello"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputList, 0), "hi"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
 	// safeStringLower2testSafeString
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "f"), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "str"), "hello"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputList, 2, 0), "hi"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "nonexistent", "MiXed_Case"), "MiXed_Case"))
 	// safeStringLowerN
 	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "i"}), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "f"}), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "str"}), "hello"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "emptyString"}), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "strNumber"}), "3"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputList, []any{3, 2, 0}), "hi"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []any{"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"))
 	// safeStringUpper
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "f"), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "str"), "HELLO"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputList, 0), "HI"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
 	// safeStringUpper2
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "f"), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "str"), "HELLO"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "strNumber"), "3"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputList, 2, 0), "HI"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "nonexistent", "MiXed_Case"), "MiXed_Case"))
 	// safeStringUpperN
 	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "i"}), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "f"}), "0.123"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "str"}), "HELLO"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "emptyString"}), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "strNumber"}), "3"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputList, []any{3, 2, 0}), "HI"))
+	// With defaults
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []any{"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"))
 }
 func TestSafeValue() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
