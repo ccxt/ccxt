@@ -943,7 +943,7 @@ class BaseExchange(object):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
             t = type(value)
-            if t is str and value != '':
+            if t is str:
                 return value
             if t is float or t is int:
                 return str(value)
@@ -954,7 +954,7 @@ class BaseExchange(object):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
             t = type(value)
-            if t is str and value != '':
+            if t is str:
                 return value.lower()
             if t is float or t is int:
                 return str(value).lower()
@@ -965,7 +965,7 @@ class BaseExchange(object):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
             t = type(value)
-            if t is str and value != '':
+            if t is str:
                 return value.upper()
             if t is float or t is int:
                 return str(value).upper()
