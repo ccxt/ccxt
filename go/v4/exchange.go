@@ -130,7 +130,8 @@ type BaseExchange struct {
 	WalletAddress interface{}
 	Twofa         interface{}
 
-	httpClient *http.Client
+	httpClient   *http.Client
+	lastProxyURL string
 
 	HttpProxy            interface{}
 	Http_proxy           interface{}
@@ -1591,23 +1592,24 @@ func (this *BaseExchange) UpdateProxySettings() {
 	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
 
 	if hasHttProxyDefined {
-		proxyTransport := &http.Transport{
-			// MaxIdleConns:       100,
-			// IdleConnTimeout:    90 * time.Second,
-			// DisableCompression: false,
-			// DisableKeepAlives:  false,
-		}
-
 		proxyUrlStr := ""
 		if httProxy != nil {
 			proxyUrlStr = httProxy.(string)
 		} else {
 			proxyUrlStr = httpsProxy.(string)
 		}
-		proxyURLParsed, _ := url.Parse(proxyUrlStr)
-		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
-
-		this.httpClient.Transport = proxyTransport
+		// rebuild the transport only when the proxy URL changes, otherwise a
+		// fresh transport (and connection pool) is created on every request
+		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
+			proxyURLParsed, _ := url.Parse(proxyUrlStr)
+			this.httpClient.Transport = &http.Transport{
+				Proxy:               http.ProxyURL(proxyURLParsed),
+				MaxConnsPerHost:     8, // hard ceiling per target host
+				MaxIdleConnsPerHost: 4, // reuse pool
+				IdleConnTimeout:     90 * time.Second,
+			}
+			this.lastProxyURL = proxyUrlStr
+		}
 	}
 }
 
