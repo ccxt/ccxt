@@ -170,19 +170,21 @@ public final class SafeMethods {
         if (result != null) {
             String ret;
             if (result instanceof String s) {
-                ret = s;
+                if (s != null && !s.isEmpty()) return s;
             } else if (result instanceof Float f) {
-                ret = String.valueOf(f);
+                return String.valueOf(f);
             } else if (result instanceof Integer i) {
-                ret = String.valueOf(i);
+                return String.valueOf(i);
             } else if (result instanceof Double d) {
-                ret = String.valueOf(d);
+                return String.valueOf(d);
             } else if (result instanceof java.math.BigDecimal bd) {
-                ret = bd.toPlainString();
-            } else if (!(result instanceof List<?> || result instanceof Map<?, ?>)) {
-                ret = String.valueOf(result);
+                return bd.toPlainString();
+            } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
+                return (opt(defaultValue) instanceof String s) ? s : null;
+            } else {
+                String s = String.valueOf(result);
+                if (s != null && !s.isEmpty()) return s;
             }
-            if (ret != null && !ret.isEmpty()) return ret;
         }
         return (opt(defaultValue) instanceof String s) ? s : null;
     }
