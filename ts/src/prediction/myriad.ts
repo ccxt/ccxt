@@ -1081,13 +1081,13 @@ export default class myriad extends Exchange {
         if ((sideStr === 'buy') && (tokenAddress !== undefined) && !skipAllowance) {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
+        const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
         let txHash = txHashParam;
         if (txHash === undefined) {
             txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
-            const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
-            if (!skipWaitForReceipt) {
-                await this.waitForTransactionReceipt (rpcUrl, txHash);
-            }
+        }
+        if (!skipWaitForReceipt) {
+            await this.waitForTransactionReceipt (rpcUrl, txHash);
         }
         return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
     }
@@ -1910,7 +1910,6 @@ export default class myriad extends Exchange {
         }
         const currency = this.safeString (params, 'currency', this.safeString (chainConfig, 'collateralCurrency', 'USD1'));
         const decimals = this.safeInteger (params, 'decimals', this.safeInteger (chainConfig, 'collateralDecimals', 18));
-        params = this.omit (params, [ 'currency', 'decimals', 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'network_id', 'network' ]);
         const owner = this.walletAddressFromKeys ();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         const callData = '0x70a08231' + this.padHexAddress (owner);
@@ -2997,7 +2996,6 @@ export default class myriad extends Exchange {
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                // might consider avoiding concurrent requests so static request tests see a deterministic request URL (the tests capture only the request that triggers InvalidProxySettings)
                 const responses = await Promise.all ([
                     this.fetchRawMarketsBySearch (tagQueries, rest),
                     this.fetchRawQuestionsBySearch (tagQueries, rest),
