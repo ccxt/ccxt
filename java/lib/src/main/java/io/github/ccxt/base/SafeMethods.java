@@ -166,28 +166,25 @@ public final class SafeMethods {
     // ----------------------------
 
     public static String SafeStringTyped(Object obj, Object key, Object... defaultValue) {
-        Object defaultValue2 = opt(defaultValue);
         Object result = SafeValue(obj, key);
-        if (result == null) return (defaultValue2 instanceof String s) ? s : null;
-
-        String ret;
-        if (result instanceof String s) {
-            ret = s;
-        } else if (result instanceof Float f) {
-            ret = String.valueOf(f);
-        } else if (result instanceof Integer i) {
-            ret = String.valueOf(i);
-        } else if (result instanceof Double d) {
-            ret = String.valueOf(d);
-        } else if (result instanceof java.math.BigDecimal bd) {
-            ret = bd.toPlainString();
-        } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
-            return (defaultValue2 instanceof String s) ? s : null;
-        } else {
-            ret = String.valueOf(result);
+        if (result != null) {
+            String ret;
+            if (result instanceof String s) {
+                ret = s;
+            } else if (result instanceof Float f) {
+                ret = String.valueOf(f);
+            } else if (result instanceof Integer i) {
+                ret = String.valueOf(i);
+            } else if (result instanceof Double d) {
+                ret = String.valueOf(d);
+            } else if (result instanceof java.math.BigDecimal bd) {
+                ret = bd.toPlainString();
+            } else if (!(result instanceof List<?> || result instanceof Map<?, ?>)) {
+                ret = String.valueOf(result);
+            }
+            if (ret != null && !ret.isEmpty()) return ret;
         }
-        if (ret != null && !ret.isEmpty()) return ret;
-        return (defaultValue2 instanceof String s) ? s : null;
+        return (opt(defaultValue) instanceof String s) ? s : null;
     }
 
     public static Object SafeString(Object obj, Object key, Object... defaultValue) {
