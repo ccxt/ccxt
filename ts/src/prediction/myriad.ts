@@ -910,9 +910,7 @@ export default class myriad extends Exchange {
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId', this.safeString (this.options, 'defaultNetworkId', '56'));
         const marketId = this.safeString (info, 'marketId');
-        // keep outcomeId as a generic numeric value so strict static-response checks in transpiled
-        // languages (notably Go) don't diverge on integer-vs-float runtime representation
-        const outcomeId = this.safeNumber (info, 'outcomeId', 0);
+        const outcomeId = this.safeInteger (info, 'outcomeId', 0);
         const trader = this.ethGetAddressFromPrivateKey (this.privateKey);
         const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
         const sideStr = (side as string).toLowerCase ();
@@ -947,7 +945,7 @@ export default class myriad extends Exchange {
         const order: Dict = {
             'trader': trader,
             'marketId': marketId,
-            'outcomeId': outcomeId,
+            'outcomeId': this.parseToNumeric (outcomeId),
             'side': sideInt,
             'amount': amountWei,
             'price': priceWei,
