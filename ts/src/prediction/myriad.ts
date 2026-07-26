@@ -1197,9 +1197,11 @@ export default class myriad extends Exchange {
      * @returns {object} the typed-data message
      */
     clobOrderMessage (rawOrder: Dict): Dict {
-        const signer = this.safeString2 (rawOrder, 'trader', 'user', this.walletAddressOrUndefined ());
-        if (signer === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires order.trader (or wallet/privateKey) to sign the cancellation');
+        let signer = this.safeString2 (rawOrder, 'trader', 'user');
+        if (this.privateKey !== undefined) {
+            signer = this.ethGetAddressFromPrivateKey (this.privateKey);
+        } else {
+            signer = this.walletAddressOrUndefined ();
         }
         return {
             'trader': signer,
@@ -1236,7 +1238,7 @@ export default class myriad extends Exchange {
         }
         const orderResponsesById = this.safeDict (params, 'orderResponses');
         if (orderResponsesById !== undefined) {
-            const keyedResponse = this.safeValue (orderResponsesById, id);
+            const keyedResponse = this.safeDict (orderResponsesById, id);
             if (keyedResponse !== undefined) {
                 return keyedResponse;
             }
