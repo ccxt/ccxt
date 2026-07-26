@@ -3036,7 +3036,7 @@ export default class myriad extends Exchange {
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     const tagSlug = requestedTags[i];
-                    tagQueries.push (tagSlug.split ('-').join (' '));
+                    tagQueries.push (tagSlug.replaceAll ('-', ' '));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
