@@ -220,20 +220,6 @@ export default class myriad extends Exchange {
         });
     }
 
-    setMarkets (markets, currencies = undefined) {
-        super.setMarkets (markets, currencies);
-        if (this.markets !== undefined) {
-            const marketKeys = Object.keys (this.markets);
-            for (let i = 0; i < marketKeys.length; i++) {
-                const key = marketKeys[i];
-                const market = this.safeDict (this.markets, key, {});
-                market['symbol'] = this.safeString2 (market, 'symbol', 'market');
-                this.markets[key] = market;
-            }
-        }
-        return this.markets;
-    }
-
     /**
      * @method
      * @name myriad#fetchMarkets
@@ -382,8 +368,7 @@ export default class myriad extends Exchange {
         }
         const response = await this.fetchRawMarketById (id, params);
         const market = this.parseMyriadMarket (response);
-        const marketWithoutSymbol = this.omit (market, 'symbol');
-        const event: any = this.parseMarketToEvent (response, marketWithoutSymbol as any);
+        const event: any = this.parseMarketToEvent (response, market);
         this.indexEventOutcomes (event);
         return event;
     }
