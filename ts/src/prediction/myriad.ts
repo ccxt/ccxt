@@ -220,6 +220,20 @@ export default class myriad extends Exchange {
         });
     }
 
+    setMarkets (markets, currencies = undefined) {
+        super.setMarkets (markets, currencies);
+        if (this.markets !== undefined) {
+            const marketKeys = Object.keys (this.markets);
+            for (let i = 0; i < marketKeys.length; i++) {
+                const key = marketKeys[i];
+                const market = this.safeDict (this.markets, key, {});
+                market['symbol'] = this.safeString2 (market, 'symbol', 'market');
+                this.markets[key] = market;
+            }
+        }
+        return this.markets;
+    }
+
     /**
      * @method
      * @name myriad#fetchMarkets
@@ -368,7 +382,8 @@ export default class myriad extends Exchange {
         }
         const response = await this.fetchRawMarketById (id, params);
         const market = this.parseMyriadMarket (response);
-        const event: any = this.parseMarketToEvent (response, market);
+        const marketWithoutSymbol = this.omit (market, 'symbol');
+        const event: any = this.parseMarketToEvent (response, marketWithoutSymbol as any);
         this.indexEventOutcomes (event);
         return event;
     }
@@ -862,7 +877,18 @@ export default class myriad extends Exchange {
         //         "timeInForce": "GTC"
         //     }
         //
-        const wrapper = this.extend (response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
+        const orderForResponse: Dict = {
+            'trader': this.safeString (order, 'trader'),
+            'marketId': this.safeString (order, 'marketId'),
+            'outcomeId': this.safeNumber (order, 'outcomeId'),
+            'side': this.safeNumber (order, 'side'),
+            'amount': this.safeString (order, 'amount'),
+            'price': this.safeString (order, 'price'),
+            'minFillAmount': this.safeString (order, 'minFillAmount'),
+            'nonce': this.safeString (order, 'nonce'),
+            'expiration': this.safeString (order, 'expiration'),
+        };
+        const wrapper = this.extend (response, { 'order': orderForResponse, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome (outcome);
         const parsed = this.parsePredictionOrder (wrapper, outcomeObj as any);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
@@ -945,8 +971,8 @@ export default class myriad extends Exchange {
         const order: Dict = {
             'trader': trader,
             'marketId': marketId,
-            'outcomeId': this.parseToInt (outcomeId),
-            'side': sideInt,
+            'outcomeId': this.parseToNumeric (outcomeId),
+            'side': this.parseToNumeric (sideInt),
             'amount': amountWei,
             'price': priceWei,
             'minFillAmount': minFillAmount,
@@ -1074,7 +1100,6 @@ export default class myriad extends Exchange {
         const fromAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
         const txHashParam = this.safeString2 (params, 'transactionHash', 'txHash');
         const hasPreBroadcastTxHash = (txHashParam !== undefined);
-        // a buy spends the collateral token, so the prediction-market contract must be approved first
         const skipAllowance = this.safeBool (params, 'skipAllowance', hasPreBroadcastTxHash);
         if ((sideStr === 'buy') && (tokenAddress !== undefined) && !skipAllowance) {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
@@ -1187,8 +1212,12 @@ export default class myriad extends Exchange {
      * @returns {object} the typed-data message
      */
     clobOrderMessage (rawOrder: Dict): Dict {
+        const signer = this.safeString2 (rawOrder, 'trader', 'user', this.walletAddressOrUndefined ());
+        if (signer === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires order.trader (or wallet/privateKey) to sign the cancellation');
+        }
         return {
-            'trader': this.safeString (rawOrder, 'trader'),
+            'trader': signer,
             'marketId': this.safeString (rawOrder, 'marketId'),
             'outcomeId': this.safeInteger (rawOrder, 'outcomeId', 0),
             'side': this.safeInteger (rawOrder, 'side', 0),
@@ -1232,7 +1261,7 @@ export default class myriad extends Exchange {
             const responsesLength = orderResponses.length;
             for (let i = 0; i < responsesLength; i++) {
                 const current = this.safeDict (orderResponses, i, {});
-                const currentId = this.safeString2 (current, 'orderHash', 'hash');
+                const currentId = this.safeStringN (current, [ 'orderHash', 'hash', 'id' ]);
                 if ((currentId !== undefined) && (currentId === id)) {
                     return current;
                 }
@@ -1378,12 +1407,14 @@ export default class myriad extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': timestamp,
+            'lastUpdateTimestamp': undefined,
+            'status': 'closed',
             'outcome': outcome,
             'outcomeId': composite,
             'label': label,
             'market': marketSymbol,
             'type': 'market',
-            'timeInForce': undefined,
+            'timeInForce': 'IOC',
             'postOnly': false,
             'side': this.safeStringLower (trade, 'action'),
             'price': this.parseNumber (priceStr),
@@ -1393,9 +1424,10 @@ export default class myriad extends Exchange {
             'remaining': 0,
             'cost': this.parseNumber (costStr),
             'average': this.parseNumber (priceStr),
-            'status': 'closed',
             'fee': undefined,
-            'trades': undefined,
+            'reduceOnly': undefined,
+            'trades': [],
+            'event': undefined,
         }, market);
     }
 
@@ -1517,8 +1549,20 @@ export default class myriad extends Exchange {
         if (fetched === undefined) {
             fetched = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
         }
-        const rawOrder = this.safeDict (fetched, 'order', {});
-        let networkId = this.safeString2 (fetched, 'networkId', 'network_id', networkIdParam);
+        const fetchedInfo = this.safeDict (fetched, 'info', {});
+        let rawOrder = this.safeDict (fetched, 'order', {});
+        const rawOrderKeys = Object.keys (rawOrder);
+        const rawOrderKeysLength = rawOrderKeys.length;
+        if (rawOrderKeysLength === 0) {
+            rawOrder = this.safeDict (fetchedInfo, 'order', {});
+        }
+        let networkId = this.safeStringN (fetched, [ 'networkId', 'network_id' ]);
+        if (networkId === undefined) {
+            networkId = this.safeStringN (fetchedInfo, [ 'networkId', 'network_id' ]);
+        }
+        if (networkId === undefined) {
+            networkId = networkIdParam;
+        }
         if (networkId === undefined) {
             networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         }
@@ -1621,8 +1665,20 @@ export default class myriad extends Exchange {
             if (fetched === undefined) {
                 fetched = await this.myriadPublicGetOrdersHash ({ 'hash': id });
             }
-            const rawOrder = this.safeDict (fetched, 'order', {});
-            const fetchedNetworkId = this.safeString2 (fetched, 'networkId', 'network_id', networkIdParam);
+            const fetchedInfo = this.safeDict (fetched, 'info', {});
+            let rawOrder = this.safeDict (fetched, 'order', {});
+            const rawOrderKeys = Object.keys (rawOrder);
+            const rawOrderKeysLength = rawOrderKeys.length;
+            if (rawOrderKeysLength === 0) {
+                rawOrder = this.safeDict (fetchedInfo, 'order', {});
+            }
+            let fetchedNetworkId = this.safeStringN (fetched, [ 'networkId', 'network_id' ]);
+            if (fetchedNetworkId === undefined) {
+                fetchedNetworkId = this.safeStringN (fetchedInfo, [ 'networkId', 'network_id' ]);
+            }
+            if (fetchedNetworkId === undefined) {
+                fetchedNetworkId = networkIdParam;
+            }
             if (fetchedNetworkId !== undefined) {
                 networkId = fetchedNetworkId;
             }
@@ -1725,7 +1781,7 @@ export default class myriad extends Exchange {
             outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
             if (requestedTradingModel === undefined) {
                 const info = this.safeDict (outcomeObj, 'info', {});
-                requestedTradingModel = this.safeString (info, 'tradingModel');
+                requestedTradingModel = this.safeStringLower (info, 'tradingModel');
             }
         }
         if (requestedTradingModel === 'amm') {
