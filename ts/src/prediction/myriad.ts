@@ -412,6 +412,9 @@ export default class myriad extends Exchange {
         try {
             return await this.myriadPublicGetQuestionsId (this.extend (request, params));
         } catch (e) {
+            if ((e instanceof RateLimitExceeded) || (e instanceof AuthenticationError)) {
+                throw e;
+            }
             const keywordRequest: Dict = {
                 'keyword': id,
                 'limit': 50,
@@ -2982,7 +2985,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.query] a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string[]} [params.tags] tag slugs to scope by (searched as keywords, e.g. ['bitcoin', 'world-cup'])
-     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId)
+     * @param {string} [params.eventId] direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
@@ -3033,7 +3036,7 @@ export default class myriad extends Exchange {
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     const tagSlug = requestedTags[i];
-                    tagQueries.push (tagSlug.replaceAll ('-', ' '));
+                    tagQueries.push (tagSlug.split ('-').join (' '));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
