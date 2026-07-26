@@ -2626,8 +2626,7 @@ export default class aster extends Exchange {
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingDelta = this.safeString (params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
