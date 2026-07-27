@@ -152,7 +152,21 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
             requestParams['type'] = marketType;
         }
         const positions = await exchange.fetchPositions (symbols, requestParams);
-        const open = positions.filter ((position: any) => position !== undefined && position !== null);
+        const open = positions.filter ((position: any) => {
+            if (position === undefined || position === null) {
+                return false;
+            }
+            const contracts = position.contracts;
+            if (contracts !== undefined && contracts !== null) {
+                return Number (contracts) !== 0;
+            }
+            const notional = position.notional;
+            if (notional !== undefined && notional !== null) {
+                return Number (notional) !== 0;
+            }
+            // some exchanges omit "contracts"/"notional" for open positions; keep them rather than guessing
+            return true;
+        });
         return ok (open.map ((position: any) => project (position, POSITION_FIELDS)), { ...environmentMeta (account), 'count': open.length });
     }));
 }

@@ -23,7 +23,9 @@ export async function ensureMarketsLoaded (exchange: any, refreshTimeout: number
     if (exchange.markets !== undefined && Object.keys (exchange.markets).length > 0 && !forceRefresh) {
         return;
     }
-    const key = exchange.id + '|' + (forceRefresh ? 'refresh' : 'load');
+    const marketType = exchange?.options?.['defaultType'] ?? 'default';
+    const namespace = exchange?.has?.['fetchEvents'] ? 'prediction' : 'crypto';
+    const key = exchange.id + '|' + namespace + '|' + marketType + '|' + (forceRefresh ? 'refresh' : 'load');
     const existing = inFlight.get (key);
     if (existing !== undefined) {
         return existing;
@@ -37,9 +39,11 @@ export async function ensureMarketsLoaded (exchange: any, refreshTimeout: number
 
 async function loadMarketsWithCache (exchange: any, refreshTimeout: number, forceRefresh: boolean): Promise<void> {
     const cachePath = cacheDirectory ();
-    const marketsPath = path.join (cachePath, 'markets', exchange.id + '.json');
-    const currenciesPath = path.join (cachePath, 'currencies', exchange.id + '.json');
-    if (!forceRefresh && fs.existsSync (marketsPath)) {
+    const marketType = exchange?.options?.['defaultType'] ?? 'default';
+    const namespace = exchange?.has?.['fetchEvents'] ? 'prediction' : 'crypto';
+    const cacheKey = exchange.id + '-' + namespace + '-' + marketType;
+    const marketsPath = path.join (cachePath, 'markets', cacheKey + '.json');
+    const currenciesPath = path.join (cachePath, 'currencies', cacheKey + '.json');
         try {
             const stats = fs.statSync (marketsPath);
             const age = Date.now () - stats.mtime.getTime ();
