@@ -1,0 +1,71 @@
+{
+    "exchange": "max",
+    "options": {},
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "Fetch all available trading markets",
+                "method": "fetchMarkets",
+                "url": "https://max-api.maicoin.com/api/v3/markets",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all available currencies information",
+                "method": "fetchCurrencies",
+                "url": "https://max-api.maicoin.com/api/v3/currencies",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for BTC/USDT market",
+                "method": "fetchOrderBook",
+                "url": "https://max-api.maicoin.com/api/v3/depth?market=btcusdt&sort_by_price=true&limit=5",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for SOL/USDT market",
+                "method": "fetchTicker",
+                "url": "https://max-api.maicoin.com/api/v3/ticker?market=solusdt",
+                "input": [
+                    "SOL/USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "Fetch current server time",
+                "method": "fetchTime",
+                "url": "https://max-api.maicoin.com/api/v3/timestamp",
+                "input": []
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for all markets",
+                "method": "fetchTickers",
+                "url": "https://max-api.maicoin.com/api/v3/tickers?markets%5B%5D=btcusdt&markets%5B%5D=ethusdt",
+                "input": [
+                    ["BTC/USDT", "ETH/USDT"]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV data for BTC/USDT market",
+                "method": "fetchOHLCV",
+                "url": "https://max-api.maicoin.com/api/v3/k?market=btcusdt&period=1",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ]
+            }
+        ]
+    }
+}
