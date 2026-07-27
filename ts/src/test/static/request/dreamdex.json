@@ -9,7 +9,7 @@
         "builder": "0x000000000000000000000000000000000000dEaD",
         "builderFeeBpsTimes1k": 1000,
         "approvedBuilderFee": {
-            "SOMI/USDso": true
+            "SOMI/USDso": 100000
         }
     },
     "methods": {
@@ -75,6 +75,20 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "Stop orders with status filter for SOMI/USDso",
+                "method": "fetchOrders",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/stop-orders?status=triggered",
+                "input": [
+                    "SOMI/USDso",
+                    null,
+                    null,
+                    {
+                        "stop": true,
+                        "status": "triggered"
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -338,6 +352,101 @@
                     "builderFee": false
                 },
                 "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\", \"builder\": \"0x000000000000000000000000000000000000dead\", \"builderFeeBpsTimes1k\": 0}"
+            },
+            {
+                "description": "Limit order without on-chain builder approval attaches no builder",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "options": {
+                    "approvedBuilderFee": {
+                        "SOMI/USDso": 0
+                    }
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\"}"
+            },
+            {
+                "description": "Approval exactly covering the default fee attaches the builder",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "options": {
+                    "approvedBuilderFee": {
+                        "SOMI/USDso": 1000
+                    }
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\", \"builder\": \"0x000000000000000000000000000000000000dead\", \"builderFeeBpsTimes1k\": 1000}"
+            },
+            {
+                "description": "Approval below the default fee skips the builder",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "options": {
+                    "approvedBuilderFee": {
+                        "SOMI/USDso": 500
+                    }
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\"}"
+            },
+            {
+                "description": "builderFee disabled with no on-chain approval attaches nothing",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "options": {
+                    "builderFee": false,
+                    "approvedBuilderFee": {
+                        "SOMI/USDso": 0
+                    }
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\"}"
+            },
+            {
+                "description": "Explicit zero-fee builder param is attached even without approval",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    {
+                        "builder": "0x1111111111111111111111111111111111111111",
+                        "builderFeeBpsTimes1k": 0
+                    }
+                ],
+                "options": {
+                    "approvedBuilderFee": {
+                        "SOMI/USDso": 0
+                    }
+                },
+                "output": "{\"walletAddress\": \"wallet\", \"type\": \"limit\", \"side\": \"buy\", \"amount\": \"10\", \"price\": \"1.5\", \"builder\": \"0x1111111111111111111111111111111111111111\", \"builderFeeBpsTimes1k\": 0}"
             }
         ],
         "cancelOrder": [
@@ -378,6 +487,19 @@
                     50
                 ],
                 "output": "{\"newQuantityRemaining\":\"50\"}"
+            },
+            {
+                "description": "Reduce order to a fractional remaining quantity",
+                "method": "editOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders/01KC1F8N2NBP5GEYKE66CRJ34A/reduce",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso",
+                    "limit",
+                    "sell",
+                    25.5
+                ],
+                "output": "{\"newQuantityRemaining\": \"25.5\"}"
             }
         ],
         "fetchOrder": [
@@ -546,6 +668,17 @@
                     50
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"currency\":\"USDso\",\"amount\":\"50\"}"
+            },
+            {
+                "description": "Withdraw a fractional USDso amount from the SOMI/USDso vault",
+                "method": "vaultWithdraw",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/vault/withdraw",
+                "input": [
+                    "SOMI/USDso",
+                    "USDso",
+                    12.75
+                ],
+                "output": "{\"walletAddress\": \"wallet\", \"currency\": \"USDso\", \"amount\": \"12.75\"}"
             }
         ],
         "vaultApprove": [
@@ -579,6 +712,17 @@
                 "input": [
                     "SOMI/USDso"
                 ]
+            },
+            {
+                "description": "Fetch builder approval for an explicit builder",
+                "method": "fetchBuilderApproval",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approval?walletAddress=wallet&builder=0x3333333333333333333333333333333333333333",
+                "input": [
+                    "SOMI/USDso",
+                    {
+                        "builder": "0x3333333333333333333333333333333333333333"
+                    }
+                ]
             }
         ],
         "approveBuilder": [
@@ -591,6 +735,32 @@
                     2500
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"maxFeeBpsTimes1k\":2500}"
+            },
+            {
+                "description": "Approve an explicit builder overriding the default",
+                "method": "approveBuilder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approve",
+                "input": [
+                    "SOMI/USDso",
+                    5000,
+                    {
+                        "builder": "0x2222222222222222222222222222222222222222"
+                    }
+                ],
+                "output": "{\"walletAddress\": \"wallet\", \"builder\": \"0x2222222222222222222222222222222222222222\", \"maxFeeBpsTimes1k\": 5000}"
+            },
+            {
+                "description": "Approve the default builder for an explicit wallet address",
+                "method": "approveBuilder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approve",
+                "input": [
+                    "SOMI/USDso",
+                    1000,
+                    {
+                        "walletAddress": "0x9999999999999999999999999999999999999999"
+                    }
+                ],
+                "output": "{\"walletAddress\": \"0x9999999999999999999999999999999999999999\", \"builder\": \"0x000000000000000000000000000000000000dead\", \"maxFeeBpsTimes1k\": 1000}"
             }
         ]
     }

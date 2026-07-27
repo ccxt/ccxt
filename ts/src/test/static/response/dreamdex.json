@@ -4,7 +4,7 @@
         "authToken": "staticTestToken",
         "authTokenExpires": 99999999999999,
         "approvedBuilderFee": {
-            "SOMI/USDso": true
+            "SOMI/USDso": 100000
         }
     },
     "skipKeys": [],

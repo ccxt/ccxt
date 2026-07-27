@@ -270,7 +270,7 @@ export default class dreamdex extends Exchange {
                 'builderFee': true,
                 'builder': '0x1F5877C19e3777Cfd15F9d57253eA4aA5254Ec39',
                 'builderFeeBpsTimes1k': 1000, // 1 bps (unit: 1000 = 1 bps)
-                'approvedBuilderFee': {}, // per-symbol cache of already-approved builder fees
+                'approvedBuilderFee': {}, // per-symbol cache of the verified on-chain builder approval (effective fee in BPS_TIMES_1K)
             },
             'exceptions': {
                 'exact': {
@@ -1006,37 +1006,36 @@ export default class dreamdex extends Exchange {
      * @ignore
      * @method
      * @name dreamdex#handleBuilderFeeApproval
-     * @description approves the default builder for a market before private calls, once per symbol per session.
-     * When the user disables the builder fee (options.builderFee = false) the builder is still approved,
-     * but with a zero fee, so orders remain attributed to the builder for statistics purposes only and the user is not charged
-     * @param {string} [symbol] unified market symbol, the approval is skipped when omitted
-     * @returns {boolean} true if the approval was handled or skipped from cache
+     * @description verifies the wallet's on-chain builder approval for a market before private calls, once per symbol per session.
+     * dreamdex builder approvals live on-chain: approveBuilder() only returns an unsigned EVM transaction that the user
+     * must sign and broadcast themselves, so this method can only VERIFY the approval (via fetchBuilderApproval), never create it.
+     * The verified fee is cached in options.approvedBuilderFee and createOrder only attaches the builder fee when covered by it
+     * @param {string} [symbol] unified market symbol, the check is skipped when omitted
+     * @returns {int} the effective approved builder fee in BPS_TIMES_1K units (0 when not approved or not verifiable)
      */
-    async handleBuilderFeeApproval (symbol: Str = undefined): Promise<any> {
+    async handleBuilderFeeApproval (symbol: Str = undefined): Promise<Int> {
         if (symbol === undefined) {
-            return false;
+            return 0;
         }
         const builder = this.safeStringLower (this.options, 'builder');
         if (builder === undefined) {
-            return false;
+            return 0;
         }
         const approvals = this.safeDict (this.options, 'approvedBuilderFee', {});
-        if (this.safeBool (approvals, symbol, false)) {
-            return true; // skip if the builder fee is already approved for this market
+        const cached = this.safeInteger (approvals, symbol);
+        if (cached !== undefined) {
+            return cached; // skip if the on-chain approval was already verified for this market
         }
+        let effective = 0;
         try {
-            const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
-            let maxFee = this.safeInteger (this.options, 'builderFeeBpsTimes1k', 0);
-            if (!builderFeeEnabled) {
-                maxFee = 0;
-            }
-            await this.approveBuilder (symbol, maxFee);
-            approvals[symbol] = true;
-            this.options['approvedBuilderFee'] = approvals;
+            const approval = await this.fetchBuilderApproval (symbol);
+            effective = this.safeInteger (approval, 'effective', 0);
         } catch (e) {
-            this.options['builderFee'] = false; // disable the builder fee if an error occurs
+            this.options['builderFee'] = false; // disable the builder fee if the approval cannot be verified
         }
-        return true;
+        approvals[symbol] = effective;
+        this.options['approvedBuilderFee'] = approvals;
+        return effective;
     }
 
     /**
@@ -1060,7 +1059,7 @@ export default class dreamdex extends Exchange {
      * @param {bool} [params.postOnly] true to create a post-only order (alternative to timeInForce 'PO')
      * @param {string} [params.fundingSource] 'wallet' or 'vault' - where to source tokens (default is 'wallet', 'vault' uses pre-deposited balance)
      * @param {string} [params.selfMatchingOption] 'cancelTaker' or 'cancelMaker' - self-trade prevention behavior
-     * @param {string} [params.builder] builder wallet address that receives the per-order builder fee (defaults to options.builder; when options.builderFee is false the builder is still attached but with a zero fee). Not supported for stop orders.
+     * @param {string} [params.builder] builder wallet address that receives the per-order builder fee (defaults to options.builder; when options.builderFee is false the builder is still attached but with a zero fee). The fee is only attached when covered by the wallet's on-chain builder approval - use approveBuilder() and sign and broadcast the returned transaction to approve. Not supported for stop orders.
      * @param {int} [params.builderFeeBpsTimes1k] builder fee rate in BPS_TIMES_1K units (1000 = 1 bps), must be greater than zero when builder is set (defaults to options.builderFeeBpsTimes1k)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the unsigned EVM transaction in the info field
      */
@@ -1162,18 +1161,33 @@ export default class dreamdex extends Exchange {
         } else if (timeInForce !== undefined) {
             throw new InvalidOrder (this.id + ' createOrder() supports timeInForce IOC, FOK, or PO');
         }
+        const approvals = this.safeDict (this.options, 'approvedBuilderFee', {});
+        const effectiveApproval = this.safeInteger (approvals, symbol, 0);
+        const requestedBuilder = this.safeStringLower (params, 'builder');
+        const requestedBuilderFee = this.safeInteger (params, 'builderFeeBpsTimes1k');
+        const isExplicit = (requestedBuilder !== undefined) || (requestedBuilderFee !== undefined);
         const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
-        const builder = this.safeStringLower (params, 'builder', this.safeStringLower (this.options, 'builder'));
+        const builder = (requestedBuilder !== undefined) ? requestedBuilder : this.safeStringLower (this.options, 'builder');
         let defaultBuilderFee = this.safeInteger (this.options, 'builderFeeBpsTimes1k');
         if (!builderFeeEnabled) {
             // when the user disables the builder fee we still attach the builder with a zero fee,
             // so orders remain attributed to the builder for statistics purposes only and the user is not charged
             defaultBuilderFee = 0;
         }
-        const builderFee = this.safeInteger (params, 'builderFeeBpsTimes1k', defaultBuilderFee);
+        const builderFee = (requestedBuilderFee !== undefined) ? requestedBuilderFee : defaultBuilderFee;
         if ((builder !== undefined) && (builderFee !== undefined)) {
-            request['builder'] = builder;
-            request['builderFeeBpsTimes1k'] = builderFee;
+            // builder approvals are on-chain: attaching a fee that exceeds the wallet's approval reverts the order
+            // transaction, so the default attachment is skipped when not covered by the verified approval
+            if (isExplicit) {
+                if ((builderFee > 0) && (effectiveApproval < builderFee)) {
+                    throw new InvalidOrder (this.id + ' createOrder() builderFeeBpsTimes1k ' + this.numberToString (builderFee) + ' exceeds the on-chain builder approval (' + this.numberToString (effectiveApproval) + ') - call approveBuilder() and sign and broadcast the returned transaction first');
+                }
+                request['builder'] = builder;
+                request['builderFeeBpsTimes1k'] = builderFee;
+            } else if ((effectiveApproval > 0) && (effectiveApproval >= builderFee)) {
+                request['builder'] = builder;
+                request['builderFeeBpsTimes1k'] = builderFee;
+            }
         }
         params = this.omit (params, [ 'builder', 'builderFeeBpsTimes1k' ]);
         const response = await this.privatePostV0MarketsSymbolOrders (this.extend (request, params));
