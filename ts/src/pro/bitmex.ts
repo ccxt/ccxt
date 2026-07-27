@@ -1525,7 +1525,7 @@ export default class bitmex extends bitmexRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
-            const result = [
+            const initialCandle = [
                 this.parseToInt (this.parse8601 (this.safeString (candle, 'timestamp'))) - duration * 1000,
                 undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat (candle, 'high'),
@@ -1533,6 +1533,7 @@ export default class bitmex extends bitmexRest {
                 this.safeFloat (candle, 'close'),
                 this.safeFloat (candle, 'volume'),
             ];
+            const result = this.changeCandlesOpenToHighLow ([ initialCandle ])[0];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
             if (stored === undefined) {
