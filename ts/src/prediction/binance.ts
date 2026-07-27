@@ -263,6 +263,7 @@ export default class binance extends Exchange {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
+            console.log(offset)
         }
         return collected;
     }
@@ -352,7 +353,7 @@ export default class binance extends Exchange {
         const allQueriesLength = allQueries.length;
         params = this.omit (params, [ 'query', 'queries' ]);
         const userLimit = this.safeInteger (params, 'limit');
-        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 25);
+        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
