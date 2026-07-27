@@ -409,8 +409,9 @@ export default class myriad extends Exchange {
         const request: Dict = {
             'id': id,
         };
+        let result = undefined;
         try {
-            return await this.myriadPublicGetQuestionsId (this.extend (request, params));
+            result = await this.myriadPublicGetQuestionsId (this.extend (request, params));
         } catch (e) {
             if ((e instanceof RateLimitExceeded) || (e instanceof AuthenticationError)) {
                 throw e;
@@ -435,6 +436,7 @@ export default class myriad extends Exchange {
             }
             throw e;
         }
+        return result;
     }
 
     /**
