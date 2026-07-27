@@ -49,6 +49,7 @@ export default class binance extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPosition': true,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -1250,11 +1251,37 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList (response, 'positions');
-        const positions = [];
-        for (let i = 0; i < data.length; i++) {
-            positions.push (this.parsePredictionPosition (data[i]));
-        }
+        const positions = this.parsePredictionPositions (data);
         return positions;
+    }
+
+    /**
+     * @method
+     * @name binance#fetchPosition
+     * @description fetch data on an open position
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/position#query-positions-by-filter
+     * @param {string} [outcome] filter by outcome
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        const request = {};
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+            const market = this.market (outcomeObj['market']);
+            request['marketTopicId'] = market['info']['marketTopicId'];
+        }
+        const wallet = await this.fetchWallet ('fetchOrders', params);
+        request['walletAddress'] = wallet['walletAddress'];
+        const response = await this.sapiPrivateGetPositionFilter (this.extend (request, params));
+        //
+        //
+        const positions = this.safeList (response, 'positions', []);
+        const parsedPositions = this.parsePredictionPositions (positions);
+        const filteredPositions = this.filterByOutcomeSinceLimit (parsedPositions, outcome, undefined, undefined);
+        return this.safeDict (filteredPositions, 0) as PredictionPosition;
     }
 
     /**
@@ -1293,9 +1320,9 @@ export default class binance extends Exchange {
             'contractSize': undefined,
             'entryPrice': this.parseNumber (this.safeString (position, 'avgPrice')),
             'markPrice': undefined,
-            'notional': undefined,
+            'notional': this.parseNumber (this.safeString (position, 'totalCost')),
             'leverage': undefined,
-            'collateral': undefined,
+            'collateral': this.parseNumber (this.safeString (position, 'value')),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
