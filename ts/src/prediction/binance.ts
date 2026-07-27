@@ -263,7 +263,6 @@ export default class binance extends Exchange {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
-            console.log(offset)
         }
         return collected;
     }
