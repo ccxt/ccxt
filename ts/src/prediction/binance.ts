@@ -1008,11 +1008,24 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tradeSide] Filter by trade side. Enum: BUY, SELL
      * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        // TODO: pagination
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+        }
+        const page = this.safeInteger (params, pageKey, 1) - 1;
         const request = {};
+        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        if (offSet > 0) {
+            request['offset'] = offSet;
+        }
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
