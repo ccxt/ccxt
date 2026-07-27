@@ -1,0 +1,1231 @@
+{
+    "BTC/USDT:USDT": {
+        "id": "BTC-USDT-PERP",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 75
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1750127400000,
+        "info": {
+            "businessType": "linear_perpetual",
+            "symbol": "BTC-USDT-PERP",
+            "symbolFamily": "BTC-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "BTC",
+            "settleCurrency": "USDT",
+            "ctVal": "0.0001",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.1",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "1",
+            "quantityPrecision": "4",
+            "onlineTime": "1750127400000",
+            "riskEngineRate": "0.02",
+            "maxLeverage": "75.000000000000000000",
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.0001",
+                "minOrderAmt": null,
+                "maxOrderNum": "200",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": "50",
+                "maxMktOrderQty": "1",
+                "basisLimitRatio": "0.1",
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": {
+                "positionRatioThreshold": "10000000",
+                "positionMaxRatio": "0.1",
+                "positionCidMaxRatio": "0.3",
+                "defaultLeverRatio": "10",
+                "maxShortQty": null
+            },
+            "group": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1750068000000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "BTC-USDT",
+            "symbolFamily": "BTC-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "BTC",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.1",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "1",
+            "quantityPrecision": "5",
+            "onlineTime": "1750068000000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.00001",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "1500000",
+                "maxMktOrderAmt": "10000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.03",
+                "minLmtPriceDown": "0.03",
+                "maxMktPriceUp": "0.03",
+                "minMktPriceDown": "0.03"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT-PERP",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 75
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1749805200000,
+        "info": {
+            "businessType": "linear_perpetual",
+            "symbol": "ETH-USDT-PERP",
+            "symbolFamily": "ETH-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ETH",
+            "settleCurrency": "USDT",
+            "ctVal": "0.001",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.01",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "2",
+            "quantityPrecision": "3",
+            "onlineTime": "1749805200000",
+            "riskEngineRate": "0.02",
+            "maxLeverage": "75.000000000000000000",
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.001",
+                "minOrderAmt": null,
+                "maxOrderNum": "200",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": "1000",
+                "maxMktOrderQty": "100",
+                "basisLimitRatio": "0.1",
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": {
+                "positionRatioThreshold": "20000000",
+                "positionMaxRatio": "0.1",
+                "positionCidMaxRatio": "0.3",
+                "defaultLeverRatio": "10",
+                "maxShortQty": null
+            },
+            "group": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1749709380000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "ETH-USDT",
+            "symbolFamily": "ETH-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ETH",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.01",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "2",
+            "quantityPrecision": "4",
+            "onlineTime": "1749709380000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.0001",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "1500000",
+                "maxMktOrderAmt": "100000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.03",
+                "minLmtPriceDown": "0.03",
+                "maxMktPriceUp": "0.03",
+                "minMktPriceDown": "0.03"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL-USDT-PERP",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 50
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1750127400000,
+        "info": {
+            "businessType": "linear_perpetual",
+            "symbol": "SOL-USDT-PERP",
+            "symbolFamily": "SOL-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "SOL",
+            "settleCurrency": "USDT",
+            "ctVal": "0.01",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.01",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "2",
+            "quantityPrecision": "2",
+            "onlineTime": "1750127400000",
+            "riskEngineRate": "0.02",
+            "maxLeverage": "50.000000000000000000",
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.01",
+                "minOrderAmt": null,
+                "maxOrderNum": "200",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": "10000",
+                "maxMktOrderQty": "100",
+                "basisLimitRatio": "0.1",
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": {
+                "positionRatioThreshold": "20000000",
+                "positionMaxRatio": "0.1",
+                "positionCidMaxRatio": "0.3",
+                "defaultLeverRatio": "5",
+                "maxShortQty": null
+            },
+            "group": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "SOL/USDT": {
+        "id": "SOL-USDT",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1750057080000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "SOL-USDT",
+            "symbolFamily": "SOL-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "SOL",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.01",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "2",
+            "quantityPrecision": "3",
+            "onlineTime": "1750057080000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.001",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "900000",
+                "maxMktOrderAmt": "6000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "TRUMP/USDT:USDT": {
+        "id": "TRUMP-USDT-PERP",
+        "lowercaseId": null,
+        "symbol": "TRUMP/USDT:USDT",
+        "base": "TRUMP",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "TRUMP",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 20
+            },
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1755851400000,
+        "info": {
+            "businessType": "linear_perpetual",
+            "symbol": "TRUMP-USDT-PERP",
+            "symbolFamily": "TRUMP-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "TRUMP",
+            "settleCurrency": "USDT",
+            "ctVal": "0.1",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.001",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "3",
+            "quantityPrecision": "1",
+            "onlineTime": "1755851400000",
+            "riskEngineRate": "0.02",
+            "maxLeverage": "20.000000000000000000",
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.1",
+                "minOrderAmt": null,
+                "maxOrderNum": "200",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": "100000",
+                "maxMktOrderQty": "2000",
+                "basisLimitRatio": "0.2",
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": {
+                "positionRatioThreshold": "10000000",
+                "positionMaxRatio": "0.1",
+                "positionCidMaxRatio": "0.3",
+                "defaultLeverRatio": "5",
+                "maxShortQty": null
+            },
+            "group": [
+                "0.001",
+                "0.01",
+                "0.1",
+                "1"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ENA/USDT": {
+        "id": "ENA-USDT",
+        "lowercaseId": null,
+        "symbol": "ENA/USDT",
+        "base": "ENA",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ENA",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1755849600000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "ENA-USDT",
+            "symbolFamily": "ENA-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ENA",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.0001",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "4",
+            "quantityPrecision": "2",
+            "onlineTime": "1755849600000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.01",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "300000",
+                "maxMktOrderAmt": "2000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA-USDT-PERP",
+        "lowercaseId": null,
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 50
+            },
+            "amount": {
+                "min": 10,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1754302800000,
+        "info": {
+            "businessType": "linear_perpetual",
+            "symbol": "ADA-USDT-PERP",
+            "symbolFamily": "ADA-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ADA",
+            "settleCurrency": "USDT",
+            "ctVal": "10",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.0001",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "4",
+            "quantityPrecision": "0",
+            "onlineTime": "1754302800000",
+            "riskEngineRate": "0.02",
+            "maxLeverage": "50.000000000000000000",
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "10",
+                "minOrderAmt": null,
+                "maxOrderNum": "200",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": "1250000",
+                "maxMktOrderQty": "25000",
+                "basisLimitRatio": "0.2",
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": {
+                "positionRatioThreshold": "1600000",
+                "positionMaxRatio": "0.1",
+                "positionCidMaxRatio": "0.3",
+                "defaultLeverRatio": "5",
+                "maxShortQty": null
+            },
+            "group": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ADA/USDT": {
+        "id": "ADA-USDT",
+        "lowercaseId": null,
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1754301600000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "ADA-USDT",
+            "symbolFamily": "ADA-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "ADA",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.0001",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "4",
+            "quantityPrecision": "1",
+            "onlineTime": "1754301600000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.1",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "300000",
+                "maxMktOrderAmt": "2000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "XLM/USDT": {
+        "id": "XLM-USDT",
+        "lowercaseId": null,
+        "symbol": "XLM/USDT",
+        "base": "XLM",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "XLM",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": null,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1754467200000,
+        "info": {
+            "businessType": "spot",
+            "symbol": "XLM-USDT",
+            "symbolFamily": "XLM-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "XLM",
+            "settleCurrency": "USDT",
+            "ctVal": "0",
+            "optType": null,
+            "strikePrice": "0",
+            "tickSize": "0.0001",
+            "status": "trading",
+            "deliveryTime": null,
+            "deliveryFeeRate": null,
+            "pricePrecision": "4",
+            "quantityPrecision": "0",
+            "onlineTime": "1754467200000",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "1",
+                "minOrderAmt": "5",
+                "maxOrderNum": "500",
+                "maxBaseNum": null,
+                "maxComboleg": "0",
+                "maxTriggerOrderNum": "30",
+                "maxTpslOrderNum": "30",
+                "maxLmtOrderAmt": "300000",
+                "maxMktOrderAmt": "2000",
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": null,
+                "minComboQty": null
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": "0.05",
+                "minLmtPriceDown": "0.05",
+                "maxMktPriceUp": "0.05",
+                "minMktPriceDown": "0.05"
+            },
+            "positionParameters": null,
+            "group": [
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1"
+            ]
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}
