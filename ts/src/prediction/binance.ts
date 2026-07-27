@@ -1396,15 +1396,15 @@ export default class binance extends Exchange {
             outcomeObj = this.outcome (outcome);
         }
         const wallet = await this.fetchWallet ('cancelOrders', params);
-        const cancelReq = [];
-        for (let i = 0; i < ids.length; i++) {
-            cancelReq.push ({ 'orderId': ids[i] });
-        }
         const request = {
             'walletAddress': wallet['walletAddress'],
             'walletId': wallet['walletId'],
-            'cancelInfoList': cancelReq,
         };
+        // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
+        for (let i = 0; i < ids.length; i++) {
+            const key = 'cancelInfoList[' + i + '].orderId';
+            request[key] = ids[i];
+        }
         const response = await this.sapiPrivatePostTradeBatchCancel (this.extend (request, params));
         //
         // {
@@ -1491,7 +1491,7 @@ export default class binance extends Exchange {
         if (defaultRecvWindow !== undefined) {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
-        let querystring = this.urlencode (extendedParams);
+        let querystring = this.urlencodeNested (extendedParams);
         let signQuerystring = querystring.replaceAll ('%5B', '[');
         signQuerystring = signQuerystring.replaceAll ('%5D', ']');
         const signature = this.hmac (this.encode (signQuerystring), this.encode (this.secret), sha256);
