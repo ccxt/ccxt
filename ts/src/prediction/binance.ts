@@ -46,7 +46,7 @@ export default class binance extends Exchange {
                 'fetchTickers': true,
                 'fetchBalance': true,
                 'fetchOpenOrders': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -943,8 +943,12 @@ export default class binance extends Exchange {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
-            const outcomeName = market['market'] + ':' + outcome;
-            outcomeObj = this.outcome (outcomeName);
+            let outcomeName = market['market'];
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
+            outcomeObj = this.safeOutcome (outcomeName);
         }
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'createTime');
@@ -1067,6 +1071,96 @@ export default class binance extends Exchange {
         //             "filledShareQty": "0.00",
         //             "fillPercentage": "0.00",
         //             "price": "0.50",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
+        //         }
+        //     ]
+        // }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        const parsedOrders = this.parsePredictionOrders (orders, outcomeObj, since);
+        return this.filterByOutcomeSinceLimit (parsedOrders, outcome, since, limit) as PredictionOrder[];
+    }
+
+    /**
+     * @method
+     * @name binance#fetchOrders
+     * @description fetches all historical orders for the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-order-history
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] Filter by order type. Enum: MARKET, LIMIT
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {string} [params.status] Filter by order status
+     * @param {string} [params.until] end timestamp in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+        }
+        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const request = {};
+        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        if (offSet > 0) {
+            request['offset'] = offSet;
+        }
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.yyyymmdd (limit);
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endDate'] = this.yyyymmdd (until);
+        }
+        const wallet = await this.fetchWallet ('fetchOrders', params);
+        request['walletAddress'] = wallet['walletAddress'];
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        //
+        // {
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
+        //         {
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
         //             "marketProviderFee": "0.02",
         //             "networkFee": "0.000001"
         //         }
