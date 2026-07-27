@@ -9,6 +9,7 @@ import type {
     fetchEventsParams,
     Balances,
     PredictionOutcome,
+    PredictionPosition,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -47,6 +48,7 @@ export default class binance extends Exchange {
                 'fetchBalance': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -1105,7 +1107,7 @@ export default class binance extends Exchange {
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
         const request = {};
@@ -1170,6 +1172,142 @@ export default class binance extends Exchange {
         const orders = this.safeList (response, 'orders', []);
         const parsedOrders = this.parsePredictionOrders (orders, outcomeObj, since);
         return this.filterByOutcomeSinceLimit (parsedOrders, outcome, since, limit) as PredictionOrder[];
+    }
+
+    /**
+     * @method
+     * @name binance#fetchPositions
+     * @description fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/position#query-positions
+     * @param {string[]} [outcomes] filter by outcome ids or outcomes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        await this.loadOutcomes ();
+        const requestedOutcomeSymbols = {};
+        if (outcomes !== undefined) {
+            for (let i = 0; i < outcomes.length; i++) {
+                const requested = outcomes[i];
+                const requestedOutcomeObj = this.safeOutcome (requested);
+                const requestedOutcome = this.safeString (requestedOutcomeObj, 'outcome', requested);
+                requestedOutcomeSymbols[requestedOutcome] = true;
+            }
+        }
+        const wallet = await this.fetchWallet ('fetchPositions', params);
+        const request = {
+            'walletAddress': wallet['walletAddress'],
+        };
+        const response = await this.sapiPrivateGetPositionList (this.extend (request, params));
+        //
+        // {
+        //     "summary": {
+        //         "totalValue": "1523.45",
+        //         "positionValue": "523.45",
+        //         "walletBalance": "1000.00",
+        //         "totalClaimableAmount": "50.00",
+        //         "todayRealizedPnl": "15.30",
+        //         "todayRealizedPnlPercent": "3.10",
+        //         "todayTotalCost": "493.55"
+        //     },
+        //     "counts": {
+        //         "ongoingCount": 3,
+        //         "endedCount": 12,
+        //         "pendingClaimCount": 1
+        //     },
+        //     "positions": [
+        //         {
+        //             "positionId": 1001,
+        //             "vendor": "PREDICT_FUN",
+        //             "chainId": "56",
+        //             "tokenId": "112233",
+        //             "collateralSymbol": "USDT",
+        //             "topicType": "FLAT",
+        //             "marketTopicId": 4229564,
+        //             "marketId": 5567895,
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketTitle": "UP",
+        //             "outcomeName": "YES",
+        //             "outcomeIndex": 0,
+        //             "shares": "1923.07",
+        //             "avgPrice": "0.52",
+        //             "totalCost": "1.00",
+        //             "value": "1.06",
+        //             "currentPrice": "0.55",
+        //             "toWin": "1923.07",
+        //             "positionStatus": "OPEN",
+        //             "canClaim": false,
+        //             "endDate": 1748134800000,
+        //             "unrealizedPnl": "0.06",
+        //             "unrealizedPnlPercent": "6.00",
+        //             "realizedPnl": "0.00",
+        //             "pnl": "0.06",
+        //             "createdTime": 1748131500000,
+        //             "updatedTime": 1748132000000
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'positions');
+        const positions = [];
+        for (let i = 0; i < data.length; i++) {
+            positions.push (this.parsePredictionPosition (data[i]));
+        }
+        return positions;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionPosition
+     * @description parses a spot balance entry for an outcome token into a unified position object
+     * @param {object} position the raw balance entry
+     * @param {object} [outcomeObj] the ourtome the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    parsePredictionPosition (position: Dict, outcomeObj: PredictionOutcome = undefined): PredictionPosition {
+        if (outcomeObj === undefined) {
+            const marketId = this.safeString (position, 'marketId');
+            const outcome = this.safeStringUpper (position, 'outcomeName');
+            const market = this.safeMarket (marketId);
+            let outcomeName = market['market'];
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
+            outcomeObj = this.safeOutcome (outcomeName);
+        }
+        const timestamp = this.safeInteger (position, 'createdTime');
+        return this.safePredictionPosition ({
+            'id': this.safeInteger (position, 'positionId'),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'isolated': false,
+            'hedged': undefined,
+            'side': 'long',
+            'contracts': undefined,
+            'contractSize': undefined,
+            'entryPrice': this.parseNumber (this.safeString (position, 'avgPrice')),
+            'markPrice': undefined,
+            'notional': undefined,
+            'leverage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.parseNumber (this.safeString (position, 'unrealizedPnl')),
+            'realizedPnl': this.parseNumber (this.safeString (position, 'realizedPnl')),
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': 'cross',
+            'percentage': this.parseNumber (this.safeString (position, 'unrealizedPnlPercent')),
+            'info': position,
+        });
     }
 
     /**
