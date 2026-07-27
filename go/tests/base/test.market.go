@@ -105,7 +105,10 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		AppendToArray(&emptyAllowedFor, "quote")
 	}
 	AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor)
-	AssertSymbol(exchange, skippedProperties, method, market, "symbol")
+	// prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+	if IsTrue(!IsEqual(GetValue(market, "type"), "prediction")) {
+		AssertSymbol(exchange, skippedProperties, method, market, "symbol")
+	}
 	var logText any = LogTemplate(exchange, method, market)
 	// check taker/maker
 	// todo: check not all to be within 0-1.0
