@@ -6,7 +6,7 @@ namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // aux method
@@ -96,7 +96,7 @@ public partial class Exchange
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
         var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? null : (string)res;
+        return res == null ? defaultValue as string : (string)res;
     }
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
@@ -110,37 +110,37 @@ public partial class Exchange
 
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = toStringOrNull(safeString(obj, key, defaultValue));
+        var result = toStringOrNull(safeString(obj, key));
         return result == null ? defaultValue as string : result.ToUpper();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
+        var result = safeString2(obj, key1, key2);
         return result == null ? defaultValue as string : ((string)result).ToUpper();
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
+        var result = safeStringN(obj, keys);
         return result == null ? defaultValue as string : ((string)result).ToUpper();
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
-        var result = safeString(obj, key, defaultValue);
+        var result = safeString(obj, key);
         return result == null ? defaultValue as string : ((string)result).ToLower();
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
+        var result = safeString2(obj, key1, key2);
         return result == null ? defaultValue as string : ((string)result).ToLower();
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
+        var result = safeStringN(obj, keys);
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
@@ -247,41 +247,27 @@ public partial class Exchange
 
     public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
-        var result = SafeValueN(obj, keys, defaultValue);
-        if (result == null)
-            return defaultValue as string;
-        string returnResult = null;
-        if (result is IList || result is IDictionary)
-        {
-            return defaultValue as string;
-        }
-        if (result.GetType() == typeof(float))
-        {
-            returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else if (result.GetType() == typeof(double))
-        {
-            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else if (result is double)
-        {
-            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
-
-        }
-        else if (result is decimal)
-        {
-            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
-        }
-        else
-        {
-            returnResult = result.ToString();
-        }
-        if (returnResult != null)
-        {
-            var stringRest = (string)returnResult;
-            if (stringRest.Length > 0)
+        var result = SafeValueN(obj, keys);
+        if (result != null) {
+            if (result is string && ((string)result).Length > 0)
             {
-                return stringRest;
+                return (string)result;
+            }
+            else if (result is float)
+            {
+                return ((float)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is double)
+            {
+                return ((double)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is decimal)
+            {
+                return ((decimal)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is sbyte || result is byte || result is short || result is ushort || result is int || result is uint || result is long || result is ulong)
+            {
+                return Convert.ToString(result, CultureInfo.InvariantCulture);
             }
         }
         return defaultValue as string;

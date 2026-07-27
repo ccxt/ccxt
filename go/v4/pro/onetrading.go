@@ -35,7 +35,7 @@ func (this *OnetradingCore) Describe() any {
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
-				"ws": "wss://streams.onetrading.com/",
+				"ws": "wss://streams.fast.onetrading.com",
 			},
 		},
 		"options": map[string]any{
@@ -390,7 +390,7 @@ func (this *OnetradingCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name onetrading#watchOrderBook
- * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
+ * @see https://docs.onetrading.com/websocket/orderbook/introduction
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return

@@ -2696,7 +2696,7 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 			var limitDec any = this.SafeString(limitParts, 1, "")
 			var limitDecLength any = Add(GetLength(limitDec), 0) // php tr
 			var limitDecLengthStr any = ToString(limitDecLength)
-			var powerNum any = Ternary(IsTrue(IsEqual(limitDecLengthStr, "0")), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
+			var powerNum any = Ternary(IsTrue((IsEqual(limitDecLengthStr, "0"))), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
 			var priceInteger any = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
 			AddElementToObject(legOrder, "limitPrice", this.ParseToInt(priceInteger))
 		} else {

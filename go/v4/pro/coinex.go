@@ -1287,7 +1287,9 @@ func (this *CoinexCore) HandleOrders(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var order any = this.SafeDict2(data, "order", "stop", map[string]any{})
+	var order any = this.Extend(map[string]any{
+		"status": this.SafeString(data, "event"),
+	}, this.SafeDict2(data, "order", "stop", map[string]any{}))
 	var parsedOrder any = this.ParseWsOrder(order)
 	var symbol any = ccxt.GetValue(parsedOrder, "symbol")
 	var market any = this.Market(symbol)
@@ -1439,6 +1441,10 @@ func (this *CoinexCore) ParseWsOrderStatus(status any) any {
 		"active_success": "open",
 		"active_fail":    "canceled",
 		"cancel":         "canceled",
+		"put":            "open",
+		"update":         "open",
+		"modify":         "open",
+		"finish":         "closed",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -1464,8 +1470,8 @@ func (this *CoinexCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes125912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes125912)
+			retRes126312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes126312)
 		}
 		var marketIds any = this.MarketIds(symbols)
 		var messageHashes any = []any{}
@@ -1660,9 +1666,9 @@ func (this *CoinexCore) Authenticate(typeVar any) <-chan any {
 		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if ccxt.IsTrue(!ccxt.IsEqual(authenticated, nil)) {
 
-			retRes144119 := <-future.(*ccxt.Future).Await()
-			ccxt.PanicOnError(retRes144119)
-			ch <- retRes144119
+			retRes144519 := <-future.(*ccxt.Future).Await()
+			ccxt.PanicOnError(retRes144519)
+			ch <- retRes144519
 			return nil
 		}
 		var requestId any = this.RequestId()
@@ -1683,9 +1689,9 @@ func (this *CoinexCore) Authenticate(typeVar any) <-chan any {
 		this.Watch(url, messageHash, request, requestId, subscribe)
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, true)
 
-		retRes146015 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes146015)
-		ch <- retRes146015
+		retRes146415 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes146415)
+		ch <- retRes146415
 		return nil
 
 	}()

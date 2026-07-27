@@ -2197,7 +2197,7 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $limitDecLengthStr = (string) $limitDecLength;
-                $powerNum = $limitDecLengthStr === '0' ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
+                $powerNum = ($limitDecLengthStr === '0') ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
                 $priceInteger = ($this->convert_to_big_int_custom(str_replace('.', '', $price)) * $this->convert_to_big_int_custom($priceMultiplier) / (pow($bigInt10, $powerNum)));
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {

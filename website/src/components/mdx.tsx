@@ -1,6 +1,8 @@
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import type { MDXComponents } from 'mdx/types';
+import { PredictionDataModel } from '@/components/prediction-data-model';
+import { ExchangesTable } from '@/components/exchanges-table';
 
 // CCXT docs reference remote images without width/height, and we don't fetch their
 // dimensions at build time. next/image (used by the default img + ImageZoom's fallback)
@@ -25,6 +27,8 @@ export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
     img: ZoomableImg as any,
+    PredictionDataModel: PredictionDataModel as any,
+    ExchangesTable: ExchangesTable as any,
     ...components,
   } satisfies MDXComponents;
 }

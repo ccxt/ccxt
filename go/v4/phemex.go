@@ -2892,10 +2892,10 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 					}
 				}
 				cost = Ternary(IsTrue((IsEqual(cost, nil))), amount, cost)
-				var costString any = this.NumberToString(cost)
+				var costString any = this.CostToPrecision(symbol, cost)
 				AddElementToObject(request, "quoteQtyEv", this.ToEv(costString, market))
 			} else {
-				var amountString any = this.NumberToString(amount)
+				var amountString any = this.AmountToPrecision(symbol, amount)
 				AddElementToObject(request, "baseQtyEv", this.ToEv(amountString, market))
 			}
 		} else if IsTrue(GetValue(market, "swap")) {
@@ -2930,7 +2930,7 @@ func (this *PhemexCore) CreateOrder(symbol any, typeVar any, side any, amount an
 				triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 				params = GetValue(triggerDirectionparamsVariable, 1)
 				if IsTrue(IsEqual(triggerDirection, nil)) {
-					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a \\'triggerDirection\\' parameter with either \\'ascending\\' or \\'descending\\' value")))
+					panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")))
 				}
 				// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 				if IsTrue(IsTrue(IsEqual(triggerDirection, "ascending")) || IsTrue(IsEqual(triggerDirection, "up"))) {

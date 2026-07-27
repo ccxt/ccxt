@@ -41,7 +41,14 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    let formatIsEmptyArray = false;
+    if (Array.isArray (formatKeyVal)) {
+        const formatLen = formatKeyVal.length;
+        formatIsEmptyArray = (formatLen === 0);
+    }
+    const same_object = exchange.isDictionary (entryKeyVal) && (exchange.isDictionary (formatKeyVal) || formatIsEmptyArray);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }

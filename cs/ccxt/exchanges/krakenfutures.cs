@@ -2174,7 +2174,7 @@ public partial class krakenfutures : Exchange
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
-                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "clientOrderId", this.safeString(orderDictFromFetchOrder, "cliOrdId") },
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
                 { "lastTradeTimestamp", null },

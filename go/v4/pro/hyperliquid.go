@@ -1787,7 +1787,7 @@ func (this *HyperliquidCore) HandleErrorMessage(client any, message any) any {
 	//              "data": {
 	//                "statuses": [
 	//                  {
-	//                    "error": "ccxt.Order price cannot be more than 80% away from the reference price"
+	//                    "error": "Order price cannot be more than 80% away from the reference price"
 	//                  }
 	//                ]
 	//              }
@@ -1799,7 +1799,7 @@ func (this *HyperliquidCore) HandleErrorMessage(client any, message any) any {
 	//
 	//    {
 	//         "channel": "error",
-	//         "data": "ccxt.Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
+	//         "data": "Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel", "")

@@ -2617,7 +2617,7 @@ public class GrvtCore extends GrvtApi
                 Object limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
-                Object powerNum = ((Helpers.isTrue(Helpers.isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 Helpers.addElementToObject(legOrder, "limitPrice", this.parseToInt(priceInteger));
             } else

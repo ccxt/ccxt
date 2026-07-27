@@ -8013,7 +8013,7 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    Object endTime = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
+                    Object endTime = this.safeInteger2(parameters, "endTime", "until");
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {

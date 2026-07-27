@@ -22,7 +22,7 @@ class pacifica(ccxt.async_support.pacifica):
                 'cancelOrdersWs': True,
                 'cancelAllOrdersWs': True,
                 'createOrderWs': True,
-                'createOrdersWs': True,
+                'createOrdersWs': False,
                 'editOrderWs': True,
                 'watchBalance': False,
                 'watchMyTrades': True,

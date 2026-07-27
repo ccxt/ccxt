@@ -901,7 +901,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.01,
             "price": 0.001
         },
         "limits": {
@@ -910,7 +910,7 @@
                 "max": null
             },
             "amount": {
-                "min": 1,
+                "min": 0.03,
                 "max": null
             },
             "price": {
@@ -931,25 +931,25 @@
             "contractId": "100028",
             "symbol": "SOL-USDT",
             "size": "1",
-            "quantityPrecision": "0",
-            "pricePrecision": "3",
-            "feeRate": "0.0005",
-            "makerFeeRate": "0.0002",
-            "takerFeeRate": "0.0005",
-            "tradeMinLimit": "0",
-            "tradeMinQuantity": "1",
-            "tradeMinUSDT": "2",
+            "quantityPrecision": 2,
+            "pricePrecision": 3,
+            "feeRate": 0.0005,
+            "makerFeeRate": 0.0002,
+            "takerFeeRate": 0.0005,
+            "tradeMinLimit": 0,
+            "tradeMinQuantity": 0.03,
+            "tradeMinUSDT": 2,
             "currency": "USDT",
             "asset": "SOL",
-            "status": "1",
+            "status": 1,
             "apiStateOpen": "true",
             "apiStateClose": "true",
             "ensureTrigger": true,
-            "triggerFeeRate": "0.00050000",
+            "triggerFeeRate": "0.00070000",
             "brokerState": false,
-            "launchTime": "1635955200000",
-            "maintainTime": "0",
-            "offTime": "0",
+            "launchTime": 1635955200000,
+            "maintainTime": 0,
+            "offTime": 0,
             "displayName": "SOL-USDT"
         },
         "tierBased": null,

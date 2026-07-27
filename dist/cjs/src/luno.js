@@ -130,7 +130,7 @@ class luno extends luno$1["default"] {
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
-                    'https://www.luno.com/en/api',
+                    'https://www.luno.com/en/developers/api',
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ],
@@ -144,6 +144,13 @@ class luno extends luno$1["default"] {
                 'exchangePrivate': {
                     'get': {
                         'candles': 1,
+                        'move': 1,
+                        'move/list_moves': 1,
+                        'transfers': 1,
+                    },
+                    'post': {
+                        'convert': 1,
+                        'move': 1,
                     },
                 },
                 'public': {
@@ -170,11 +177,8 @@ class luno extends luno$1["default"] {
                         'orders/{id}': 1,
                         'withdrawals': 1,
                         'withdrawals/{id}': 1,
-                        'transfers': 1,
-                        // GET /api/exchange/1/move
-                        // GET /api/exchange/1/move/list_moves
-                        // GET /api/exchange/1/candles
-                        // GET /api/exchange/1/transfers
+                        'transfers': 1, // not found in current docs, use GET /api/exchange/1/transfers
+                        'users/linked': 1,
                         // GET /api/exchange/2/listorders
                         // GET /api/exchange/2/orders/{id}
                         // GET /api/exchange/3/order
@@ -188,9 +192,8 @@ class luno extends luno$1["default"] {
                         'funding_address': 1,
                         'withdrawals': 1,
                         'send': 1,
-                        'oauth2/grant': 1,
+                        'oauth2/grant': 1, // deprecated for new applications
                         'beneficiaries': 1,
-                        // POST /api/exchange/1/move
                     },
                     'put': {
                         'accounts/{id}/name': 1,
@@ -219,6 +222,104 @@ class luno extends luno$1["default"] {
                     'percentage': true,
                     'taker': this.parseNumber('0.001'),
                     'maker': this.parseNumber('0'),
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'ErrAccountIsMigrating': errors.OperationRejected, // Account migration in progress
+                    'ErrAccountLimit': errors.OperationRejected, // You can't add another wallet with this currency
+                    'ErrAccountNotFound': errors.ExchangeError, // Cannot find that account
+                    'ErrAccountsNotDifferent': errors.BadRequest, // Debit and credit accounts must be different
+                    'ErrActiveCryptoRequestExists': errors.OperationRejected, // Send request pending. Please try again after it has completed.
+                    'ErrAddressCreateRateLimitReached': errors.RateLimitExceeded, // Receive address create rate limit reached. Please try again later.
+                    'ErrAddressLimitReached': errors.OperationRejected, // Receive address limit reached.
+                    'ErrAmountTooBig': errors.BadRequest, // The specified amount is higher than the maximum allowed.
+                    'ErrAmountTooSmall': errors.BadRequest, // The specified amount is lower than the minimum allowed.
+                    'ErrApiKeyRevoked': errors.AuthenticationError, // Your API key has been revoked.
+                    'ErrBeneficiaryNotFound': errors.ExchangeError, // Beneficiary not Found
+                    'ErrBlockedSendsCurrency': errors.OperationRejected, // Sends are currently disabled for this currency
+                    'ErrCannotStopUnknownOrNonPendingOrder': errors.InvalidOrder, // Cannot stop unknown or non-pending order.
+                    'ErrCannotTradeWhileQuoteActive': errors.OperationRejected, // Cannot trade while you have any active quotes.
+                    'ErrConvertPairNotSupported': errors.BadRequest, // The requested pair is not supported for conversion.
+                    'ErrConvertRateLimited': errors.RateLimitExceeded, // You have exceeded the conversion rate limit for this pair. Please try again later.
+                    'ErrCounterDenominationNotAllowed': errors.InvalidOrder, // Amount contains too many decimal places
+                    'ErrCreditAccountNotTransactional': errors.BadRequest, // The specified credit-account must be transactional
+                    'ErrCustomRefNotAllowed': errors.BadRequest, // Custom reference not allowed
+                    'ErrDeadlineExceeded': errors.RequestTimeout, // Could not complete before the deadline
+                    'ErrDebitAccountNotTransactional': errors.BadRequest, // Debit account not transactional
+                    'ErrDescriptionTooLong': errors.BadRequest, // Your transaction reference is too long. The maximum length is 256 characters.
+                    'ErrDifferentCurrencies': errors.BadRequest, // Debit and credit accounts have different currencies
+                    'ErrDisallowedTarget': errors.InvalidAddress, // Given address not allowed.
+                    'ErrDuplicateClientMoveID': errors.OperationRejected, // Duplicate client move id
+                    'ErrDuplicateClientOrderID': errors.DuplicateOrderId, // Duplicate client order id
+                    'ErrDuplicateExternalID': errors.OperationRejected, // A withdrawal with an identical external id already exists.
+                    'ErrERC20AddressAlreadyAssigned': errors.OperationRejected, // You can only create 1 ERC-20 receive address per token
+                    'ErrERC20AssignNonDefault': errors.BadRequest, // You can only assign ERC-20 receive addresses to your default account
+                    'ErrFundsMoveNotFound': errors.ExchangeError, // Funds move not found
+                    'ErrIdempotencyKeyConflict': errors.OperationRejected, // A request with this idempotency_key has already been processed.
+                    'ErrIdempotencyKeyRequestMismatch': errors.BadRequest, // A request with this idempotency_key has a mismatched request
+                    'ErrIncompatibleBeneficiary': errors.BadRequest, // Beneficiary is incompatible with the requested withdrawal.
+                    'ErrIncorrectPin': errors.AuthenticationError, // Invalid pin specified
+                    'ErrInsufficientBalance': errors.InsufficientFunds, // Insufficient balance.
+                    'ErrInsufficientFunds': errors.InsufficientFunds, // Account has insufficient funds
+                    'ErrInsufficientPerms': errors.PermissionDenied, // You do not have the required permissions to perform this action
+                    'ErrInternal': errors.ExchangeNotAvailable, // Something went wrong. We're looking into it.
+                    'ErrInvalidAccount': errors.BadRequest, // Account is invalid
+                    'ErrInvalidAccountID': errors.BadRequest, // Invalid account ID specified
+                    'ErrInvalidAccountNumber': errors.BadRequest, // Account number is invalid
+                    'ErrInvalidAmount': errors.BadRequest, // Invalid amount specified
+                    'ErrInvalidArguments': errors.BadRequest, // If any request parameters have invalid values this error will be returned. This error should also include a list of the offending fields to help identify and fix any issues.
+                    'ErrInvalidBaseVolume': errors.InvalidOrder, // Invalid base volume for sell order.
+                    'ErrInvalidBranchCode': errors.BadRequest, // Bank branch code is invalid.
+                    'ErrInvalidClientOrderId': errors.InvalidOrder, // Invalid client order id
+                    'ErrInvalidCounterVolume': errors.InvalidOrder, // Invalid counter volume for buy order.
+                    'ErrInvalidCurrency': errors.BadRequest, // Invalid currency specified
+                    'ErrInvalidDetails': errors.BadRequest, // Bank account details invalid
+                    'ErrInvalidMarketPair': errors.BadSymbol, // Market pair is invalid
+                    'ErrInvalidOrderRef': errors.InvalidOrder, // Order reference is invalid
+                    'ErrInvalidOrderSide': errors.InvalidOrder, // Order side is invalid
+                    'ErrInvalidParameters': errors.BadRequest, // Invalid parameters
+                    'ErrInvalidPrice': errors.InvalidOrder, // Invalid order price.
+                    'ErrInvalidRequestType': errors.BadRequest, // Invalid withdrawal request type specified.
+                    'ErrInvalidSourceAccount': errors.BadRequest, // Invalid source account
+                    'ErrInvalidStopDirection': errors.InvalidOrder, // Stop direction is invalid.
+                    'ErrInvalidStopPrice': errors.InvalidOrder, // Invalid order stop price.
+                    'ErrInvalidVolume': errors.InvalidOrder, // Invalid order volume.
+                    'ErrLimitOutOfRange': errors.BadRequest, // List limit is out of allowed range
+                    'ErrMarketNotAllowed': errors.PermissionDenied, // This market is not enabled for you.
+                    'ErrMarketUnavailable': errors.ExchangeError, // Market not available
+                    'ErrMaxActiveFiatRequestsExists': errors.OperationRejected, // Too many withdrawals in progress. Cancel one or try again later.
+                    'ErrMissingIdempotencyKey': errors.BadRequest, // idempotency_key is required.
+                    'ErrNoAddressesAssigned': errors.InvalidAddress, // No funding addresses linked to default account
+                    'ErrNoTradesToInferStopDirection': errors.InvalidOrder, // Could not place Stop Limit Order, no trades to determine direction
+                    'ErrNotEnoughLiquidity': errors.InvalidOrder, // Market order price would vary too much from the market rate - use a limit order instead
+                    'ErrNotFound': errors.ExchangeError, // No result found
+                    'ErrOrderCanceled': errors.InvalidOrder, // Your post-only order was cancelled before trading
+                    'ErrOrderNotFound': errors.OrderNotFound, // Cannot find that order
+                    'ErrPostOnlyMode': errors.InvalidOrder, // Market is in post-only mode
+                    'ErrPostOnlyNotAllowed': errors.InvalidOrder, // IOC and FOK time-in-force types are not supported as post-only orders
+                    'ErrPriceDenominationNotAllowed': errors.InvalidOrder, // Price contains too many decimal places
+                    'ErrPriceTooHigh': errors.InvalidOrder, // Price is above the maximum
+                    'ErrPriceTooLow': errors.InvalidOrder, // Price is below the minimum
+                    'ErrRejectedBeneficiary': errors.OperationRejected, // Cannot request withdrawal to rejected beneficiary.
+                    'ErrRequestTypeDoesNotSupportFastWithdrawals': errors.BadRequest, // The specified request type does not support fast withdrawals.
+                    'ErrStopPriceTooHigh': errors.InvalidOrder, // Stop price is too high.
+                    'ErrStopPriceTooLow': errors.InvalidOrder, // Stop price is too low.
+                    'ErrTooManyRequests': errors.RateLimitExceeded, // You are exceeding the allowed request rate limit
+                    'ErrTooManyRowsRequested': errors.BadRequest, // Too many rows requested
+                    'ErrTravelRule': errors.ManualInteractionNeeded, // Please ensure that you've initiated a once-off crypto send for this specific wallet address via the website or mobile app and included relevant Travel Rule information before trying again via the send API. [Click here](https://www.luno.com/help/articles/421340781836897) for more information on the Travel Rule.
+                    'ErrUnauthorised': errors.AuthenticationError, // You are not authorised to access this route
+                    'ErrUnderMaintenance': errors.OnMaintenance, // The market is currently undergoing maintenance
+                    'ErrUpdateRequired': errors.ExchangeError, // Luno app update required
+                    'ErrUserBlockedForCancelWithdrawal': errors.PermissionDenied, // User blocked from cancelling withdrawals
+                    'ErrUserNotVerifiedForCurrency': errors.AccountNotEnabled, // You are not verified for this currency
+                    'ErrValueTooHigh': errors.InvalidOrder, // Order value too high
+                    'ErrVerificationLevelTooLow': errors.AccountNotEnabled, // You must verify your identity using the Luno app before you can send crypto.
+                    'ErrVolumeDenominationNotAllowed': errors.InvalidOrder, // Volume contains too many decimal places
+                    'ErrVolumeTooHigh': errors.InvalidOrder, // Volume is above the maximum
+                    'ErrVolumeTooLow': errors.InvalidOrder, // Volume is below the minimum
+                    'ErrWithdrawalBlocked': errors.PermissionDenied, // To increase your withdraw limit add more information to your profile in settings.
+                    'ErrWithdrawalNotFound': errors.ExchangeError, // Cannot find that withdrawal
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -310,6 +411,7 @@ class luno extends luno$1["default"] {
      * @method
      * @name luno#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
@@ -1371,6 +1473,7 @@ class luno extends luno$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] an optional name for the new address
      * @param {int} [params.account_id] an optional account id for the new address
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
@@ -1412,6 +1515,7 @@ class luno extends luno$1["default"] {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
@@ -1497,7 +1601,10 @@ class luno extends luno$1["default"] {
         }
         const error = this.safeValue(response, 'error');
         if (error !== undefined) {
-            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
+            const feedback = this.id + ' ' + this.json(response);
+            const errorCode = this.safeString(response, 'error_code');
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

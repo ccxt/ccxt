@@ -1129,6 +1129,7 @@ class htx(ccxt.async_support.htx):
                     'id': orderId,
                     'trades': trades,
                     'status': status,
+                    'lastTradeTimestamp': self.safe_integer(data, 'tradeTime'),
                     'symbol': market['symbol'],
                     'filled': self.parse_number(filled),
                     'remaining': self.parse_number(remaining),

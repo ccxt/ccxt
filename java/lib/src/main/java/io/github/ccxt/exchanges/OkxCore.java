@@ -1224,9 +1224,11 @@ public class OkxCore extends OkxApi
                 }} );
                 put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersHistory" );
+                    put( "paginationDirection", "forward" );
                 }} );
                 put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersHistory" );
+                    put( "paginationDirection", "forward" );
                 }} );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
                     put( "password", null );
@@ -2255,18 +2257,11 @@ public class OkxCore extends OkxApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
-        //      {
-        //          "instType":"SWAP",
-        //          "instId":"BTC-USDT-SWAP",
-        //          "markPx":"200",
-        //          "ts":"1597026383085"
-        //      }
-        //
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "ETH-BTC",
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
         //         "last": "0.07319",
-        //         "lastSz": "0.044378",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
         //         "askPx": "0.07322",
         //         "askSz": "4.2",
         //         "bidPx": "0.0732",
@@ -2274,12 +2269,13 @@ public class OkxCore extends OkxApi
         //         "open24h": "0.07801",
         //         "high24h": "0.07975",
         //         "low24h": "0.06019",
-        //         "volCcy24h": "11788.887619",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
         //         "vol24h": "167493.829229",
         //         "ts": "1621440583784",
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //
         //     {
         //          instId: 'LTC-USDT',
         //          idxPx: '65.74',

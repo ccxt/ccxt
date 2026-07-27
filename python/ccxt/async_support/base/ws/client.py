@@ -334,6 +334,11 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
+            # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
+            # this matches the JS client (setInterval fires after one keepAlive, not immediately).
+            # some servers (e.g. Polymarket) close the connection if a ping arrives before the
+            # subscribe frame, which is why the first ping must not be sent on connect.
+            await sleep(self.keepAlive / 1000)
             now = milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
@@ -350,4 +355,3 @@ class Client(object):
                         self.on_error(e)
                 else:
                     await self.connection.ping()
-            await sleep(self.keepAlive / 1000)

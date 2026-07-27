@@ -3759,6 +3759,10 @@ class binance(Exchange, ImplicitAPI):
                 balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
+                # skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid(see https://github.com/ccxt/ccxt/issues/27997)
+                updateTime = self.safe_integer(balance, 'updateTime')
+                if updateTime == 0:
+                    continue
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -9895,7 +9899,7 @@ class binance(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(market, 'symbol')
-        leverageString = self.safe_string(position, 'leverage')
+        leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see  #29244
         leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
@@ -10213,7 +10217,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         initialMarginString = None
         initialMarginPercentageString = None
-        leverageString = self.safe_string(position, 'leverage')
+        leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see  #29244
         if leverageString is not None:
             leverage = int(leverageString)
             rational = self.is_round_number(1000 % leverage)

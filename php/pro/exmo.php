@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class exmo extends \ccxt\async\exmo {
     public function describe(): mixed {

@@ -62,7 +62,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 					}()
 					// try block:
 
-					response = (UnWrapType(<-exchange.WatchBidsAsks(argSymbols, argParams)))
+					response = (<-exchange.(ccxt.IWatchBidsAsks).WatchBidsAsks(argSymbols, argParams))
 					PanicOnError(response)
 					return nil
 				}()
@@ -74,7 +74,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 				return nil
 			}
 			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 				var values any = ObjectValues(response)
 				var checkedSymbol any = nil
 				if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {

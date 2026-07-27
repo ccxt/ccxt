@@ -15,6 +15,26 @@ func (this *LunoCore) ExchangePrivateGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("exchangePrivateGetCandles", args...)
 }
 
+func (this *LunoCore) ExchangePrivateGetMove(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetMove", args...)
+}
+
+func (this *LunoCore) ExchangePrivateGetMoveListMoves(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetMoveListMoves", args...)
+}
+
+func (this *LunoCore) ExchangePrivateGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetTransfers", args...)
+}
+
+func (this *LunoCore) ExchangePrivatePostConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivatePostConvert", args...)
+}
+
+func (this *LunoCore) ExchangePrivatePostMove(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivatePostMove", args...)
+}
+
 func (this *LunoCore) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
@@ -89,6 +109,10 @@ func (this *LunoCore) PrivateGetWithdrawalsId(args ...any) <-chan any {
 
 func (this *LunoCore) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
+}
+
+func (this *LunoCore) PrivateGetUsersLinked(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersLinked", args...)
 }
 
 func (this *LunoCore) PrivatePostAccounts(args ...any) <-chan any {

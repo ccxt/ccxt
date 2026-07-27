@@ -2713,12 +2713,12 @@ public class HyperliquidCore extends HyperliquidApi
             if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
             {
                 // grouping opposed orders for sl/tp
-                Object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
+                Object stopLossOrderTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 Object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-                Object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "stopLossPrice")), stopLossOrderTriggerPrice);
-                Object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
+                Object stopLossOrderLimitPrice = this.safeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+                Object takeProfitOrderTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                 Object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-                Object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "takeProfitPrice")), takeProfitOrderTriggerPrice);
+                Object takeProfitOrderLimitPrice = this.safeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
                 grouping = this.safeString(orderParams, "grouping", "normalTpsl");
                 if (Helpers.isTrue(Helpers.isEqual(grouping, "positionTpsl")))
                 {

@@ -3833,6 +3833,11 @@ class binance extends binance$1["default"] {
             }
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
+                // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                const updateTime = this.safeInteger(balance, 'updateTime');
+                if (updateTime === 0) {
+                    continue;
+                }
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
@@ -10595,7 +10600,7 @@ class binance extends binance$1["default"] {
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(market, 'symbol');
-        const leverageString = this.safeString(position, 'leverage');
+        const leverageString = this.omitZero(this.safeString(position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         const leverage = (leverageString !== undefined) ? parseInt(leverageString) : undefined;
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
@@ -10949,7 +10954,7 @@ class binance extends binance$1["default"] {
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         let initialMarginString = undefined;
         let initialMarginPercentageString = undefined;
-        const leverageString = this.safeString(position, 'leverage');
+        const leverageString = this.omitZero(this.safeString(position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString !== undefined) {
             const leverage = parseInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);

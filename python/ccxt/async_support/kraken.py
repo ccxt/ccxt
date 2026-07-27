@@ -1299,7 +1299,7 @@ class kraken(Exchange, ImplicitAPI):
             request['asset'] = currency['id']
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_2(params, 'until', 'till')
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2420,7 +2420,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_2(params, 'until', 'till')
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2908,7 +2908,7 @@ class kraken(Exchange, ImplicitAPI):
         if since is not None:
             sinceString = self.number_to_string(since)
             request['start'] = Precise.string_div(sinceString, '1000')
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_2(params, 'until', 'till')
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2981,7 +2981,7 @@ class kraken(Exchange, ImplicitAPI):
         if since is not None:
             sinceString = self.number_to_string(since)
             request['start'] = Precise.string_div(sinceString, '1000')
-        until = self.safe_string_n(params, ['until', 'till'])
+        until = self.safe_string_2(params, 'until', 'till')
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')

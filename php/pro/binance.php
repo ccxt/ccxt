@@ -13,6 +13,10 @@ use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class binance extends \ccxt\async\binance {
     public function describe(): mixed {
@@ -322,7 +326,10 @@ class binance extends \ccxt\async\binance {
                 }
                 $streamHash .= '::' . implode(',', $symbols);
             }
-            $firstMarket = $this->get_market_from_symbols($symbols);
+            $firstMarket = null;
+            if (!$this->is_empty($symbols)) {
+                $firstMarket = $this->get_market_from_symbols($symbols);
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);
             if ($type === 'spot') {

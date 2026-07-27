@@ -2826,7 +2826,7 @@ class aster extends aster$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId']);
+        const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }

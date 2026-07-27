@@ -47,6 +47,10 @@ const exchangeSpecificFlags = {
     '--privateOnly': false,
     '--request': false,
     '--response': false,
+    // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction
+    // (e.g. hyperliquid), and opt into the funded order-placement prediction test
+    '--prediction': false,
+    '--fundedTests': false,
 }
 
 let exchanges = []
@@ -108,7 +112,11 @@ if (!exchanges.length) {
     }
     let exchangesFile =  fs.readFileSync('./exchanges.json');
     exchangesFile = JSON.parse(exchangesFile)
-    exchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
+    // include the prediction-market exchanges (separate `prediction` / `predictionWs`
+    // arrays) in the default run so CI live-tests them alongside the crypto exchanges
+    const cryptoExchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
+    const predictionExchanges = (wsFlag ? exchangesFile.predictionWs : exchangesFile.prediction) || []
+    exchanges = cryptoExchanges.concat (predictionExchanges)
 }
 
 //  --------------------------------------------------------------------------- //

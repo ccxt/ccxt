@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtPrediction "github.com/ccxt/ccxt/go/v4/prediction"
 	ccxtPro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -437,7 +438,14 @@ func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 // setExchangeProp function to set a property on exchange
 func SetExchangeProp(exchange2 any, prop2 any, value any) {
 	exchange := exchange2.(ccxt.ICoreExchange)
-	exchange.SetProperty(exchange, value, value)
+	propName, ok := prop2.(string)
+	if !ok || propName == "" {
+		return
+	}
+	// Go struct fields are exported PascalCase (WalletAddress, ApiKey, PrivateKey, ...) while the
+	// harness passes camelCase keys from keys.local.json — capitalize so FieldByName matches
+	capitalized := strings.ToUpper(propName[:1]) + propName[1:]
+	exchange.SetProperty(exchange, capitalized, value)
 }
 
 // unCamelCase function (basic stub)
@@ -459,9 +467,30 @@ func InitExchange(exchangeId any, options ...any) ccxt.ICoreExchange {
 	var instance ccxt.ICoreExchange
 	var success bool = true
 	if ws {
-		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		// prediction exchanges carry their watch* methods on the prediction package (go/v4/prediction),
+		// there is no prediction-pro variant, so under --prediction route WS there too
+		if GetCliArgValue("--prediction") {
+			instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		} else {
+			instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		}
 	} else {
-		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		// the --prediction flag forces the prediction-markets package (go/v4/prediction) for
+		// ids present in both (e.g. hyperliquid); otherwise regular ccxt wins, prediction is fallback
+		forcePrediction := GetCliArgValue("--prediction")
+		if forcePrediction {
+			instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			if !success {
+				// ids not in the prediction package (e.g. the base "Exchange" used for utility calls)
+				// fall back to regular ccxt so the harness can still construct them under --prediction
+				instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			}
+		} else {
+			instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			if !success {
+				instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			}
+		}
 	}
 	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	if !success {

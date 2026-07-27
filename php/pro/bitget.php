@@ -14,6 +14,10 @@ use ccxt\UnsubscribeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitget extends \ccxt\async\bitget {
     public function describe(): mixed {

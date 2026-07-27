@@ -10,6 +10,7 @@ import { promisify } from 'util'
 import errors from "../ts/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
 import Exchange from '../ts/src/base/Exchange.js'
+import PredictionExchange from '../ts/src/base/PredictionExchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import errorHierarchy from '../ts/src/base/errorHierarchy.js'
@@ -38,6 +39,8 @@ const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
+const exchangesPredictionIds = exchanges.prediction || [];
+const exchangesPredictionWsIds = exchanges.predictionWs || [];
 
 let shouldTranspileTests = true
 
@@ -69,13 +72,23 @@ class Transpiler {
 
     buildPython = true;
     buildPHP = true;
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in their own namespace/subfolder in every language
+    isPrediction = false;
 
     baseMethodsList!: any[];
 
     defineImplicitMethodsList () {
-        const exchange: any = new Exchange();
-        let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
-        all = all.concat (Object.getOwnPropertyNames(exchange));
+        // use PredictionExchange (extends Exchange) so the prediction base methods
+        // (checkEvents, safeOutcome, safePredictionOrder, ...) are recognised and their calls
+        // get snake_cased in prediction exchange files, instead of being treated as implicit-api
+        const exchange: any = new PredictionExchange();
+        let all = Object.getOwnPropertyNames(exchange);
+        let proto = Object.getPrototypeOf(exchange);
+        while (proto && proto !== Object.prototype) {
+            all = all.concat (Object.getOwnPropertyNames(proto));
+            proto = Object.getPrototypeOf(proto);
+        }
         this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
     }
 
@@ -261,8 +274,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
             [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -275,6 +288,8 @@ class Transpiler {
             [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
             [ /throw ([\S]+)/g, 'raise $1'],
+            // python has no `new`; strip it from any remaining constructor call (e.g. client.reject (new ExchangeError (...)))
+            [ /(?<![.\w])new ([A-Z][A-Za-z0-9_]*) \(/g, '$1 (' ],
             [ /try {/g, 'try:'],
             [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
             [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
@@ -717,6 +732,10 @@ class Transpiler {
 
     createPythonClassDeclaration (className: string, baseClass: string) {
         const mixin = (className === 'testMainClass') ? '' : ', ImplicitAPI'
+        // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+        if (this.isPrediction && baseClass === 'Exchange') {
+            baseClass = 'PredictionExchange'
+        }
         return 'class ' + className + '(' + baseClass + mixin + '):'
     }
 
@@ -738,6 +757,11 @@ class Transpiler {
     createPythonClassImports (baseClass: string, className: string, async = false) {
         const baseClasses = {
             'Exchange': 'base.exchange',
+            'PredictionExchange': 'base.prediction_exchange',
+        }
+        // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+        if (this.isPrediction && baseClass === 'Exchange') {
+            baseClass = 'PredictionExchange'
         }
         const asyncString = (async ? '.async_support' : '')
 
@@ -747,7 +771,8 @@ class Transpiler {
                 ('from ccxt' + asyncString + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
         ]
         if (className !== 'testMainClass') {
-            imports.push ('from ccxt.abstract.' + className + ' import ImplicitAPI')
+            const abstractModule = this.isPrediction ? 'ccxt.abstract.prediction.' : 'ccxt.abstract.'
+            imports.push ('from ' + abstractModule + className + ' import ImplicitAPI')
         }
         return imports
     }
@@ -813,6 +838,21 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
+        // WS infrastructure imports (ArrayCache, order-book sides) needed when watch*
+        // methods live in the (async) exchange file — prediction exchanges merge REST+WS.
+        // regular pro files get these imports from transpileWS's createPythonClassHeader,
+        // so emitting them here too would duplicate the import line
+        const wsAsyncString = (async ? '.async_support' : '')
+        const wsCacheClasses = this.isPrediction ? bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g) : undefined
+        if (wsCacheClasses) {
+            const uniqueCacheClasses = unique (wsCacheClasses).sort ()
+            libraries.push ('from ccxt' + wsAsyncString + '.base.ws.cache import ' + uniqueCacheClasses.join (', '))
+        }
+        const wsOrderBookSides = this.isPrediction ? bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g) : undefined
+        if (wsOrderBookSides) {
+            const uniqueSides = unique (wsOrderBookSides.map (m => m.trim ().replace ('(', ''))).sort ()
+            libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
+        }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
             'Any': /(?:->|:) (?:List\[)?Any/,
@@ -830,7 +870,7 @@ class Transpiler {
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
-            'Int': /: (?:List\[)?Int =/,
+            'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -849,7 +889,7 @@ class Transpiler {
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
-            'Num': /: (?:List\[)?Num =/,
+            'Num': /(: (?:List\[)?Num\b)|(-> Num:)/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
@@ -859,7 +899,7 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'Str': /: (?:List\[)?Str =/,
+            'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
             'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
@@ -876,6 +916,19 @@ class Transpiler {
             'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
+            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
+            'fetchEventsParams': /: (?:List\[)?fetchEventsParams\b/,
+            'PredictionTicker': /-> (?:List\[)?PredictionTicker\b/,
+            'PredictionTickers': /-> (?:List\[)?PredictionTickers\b/,
+            'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
+            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
+            'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
+            'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
+            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
+            'PredictionSettlement': /-> (?:List\[)?PredictionSettlement\b/,
+            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -983,6 +1036,12 @@ class Transpiler {
     }
 
     createPHPClassHeader (className: string, baseClass: string, bodyAsString: string, namespace: string) {
+        // prediction exchanges live in ccxt\prediction / ccxt\prediction\async but their
+        // implicit-api abstract classes live in ccxt\abstract\prediction / ccxt\async\abstract\prediction
+        let abstractNamespace = namespace + "\\abstract";
+        if (this.isPrediction) {
+            abstractNamespace = (namespace.indexOf ('async') > -1) ? "ccxt\\async\\abstract\\prediction" : "ccxt\\abstract\\prediction";
+        }
         return [
             "<?php",
             "",
@@ -992,7 +1051,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            "use " + namespace + "\\abstract\\" + className + " as " + baseClass + ';',
+            "use " + abstractNamespace + "\\" + className + " as " + baseClass + ';',
         ]
     }
 
@@ -1000,11 +1059,21 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
-        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
+        let namespace = async ? 'ccxt\\async' : 'ccxt'
+        if (this.isPrediction) {
+            // prediction-market exchanges are async-only and flattened in PHP:
+            // the async (ReactPHP) class lives in namespace ccxt\prediction
+            namespace = 'ccxt\\prediction'
+        }
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, namespace)
 
         const errorImports: string[] = []
 
-        if (async) {
+        // classes outside of the root ccxt namespace (ccxt\async, ccxt\prediction, ...)
+        // cannot resolve the error classes or Precise without explicit imports
+        const needsRootImports = async || this.isPrediction
+
+        if (needsRootImports) {
             for (let error in errors) {
                 const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
                 if (bodyAsString.match (regex)) {
@@ -1014,12 +1083,26 @@ class Transpiler {
         }
 
         const precisionImports: string[] = []
+        const constImports: string[] = []
         const libraryImports: string[] = []
 
-        if (async) {
+        if (needsRootImports) {
             if (bodyAsString.match (/[\s(]Precise/)) {
                 precisionImports.push ('use ccxt\\Precise;')
             }
+            // decimal_to_precision constants live in the root ccxt namespace; classes outside
+            // it (ccxt\prediction, ...) need explicit `use const` imports to resolve them
+            const numberConstants = [ 'ROUND_UP', 'ROUND_DOWN', 'ROUND', 'TRUNCATE', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO' ]
+            for (let i = 0; i < numberConstants.length; i++) {
+                const numberConstant = numberConstants[i]
+                const regex = new RegExp ("[^'\"\\w]" + numberConstant + "[^'\"\\w]")
+                if (bodyAsString.match (regex)) {
+                    constImports.push ('use const ccxt\\' + numberConstant + ';')
+                }
+            }
+        }
+
+        if (async) {
             if (bodyAsString.match (/Async\\await/)) {
                 libraryImports.push ('use React\\Async;')
             }
@@ -1031,7 +1114,27 @@ class Transpiler {
             }
         }
 
+        // WS infrastructure classes live in the ccxt\pro namespace; exchanges that reference
+        // them from another namespace (e.g. prediction REST+WS) need explicit use imports
+        const proInfraClasses = [
+            'ArrayCache', 'ArrayCacheBySymbolById', 'ArrayCacheByOutcomeById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByTimestamp',
+            'OrderBook', 'IndexedOrderBook', 'CountedOrderBook',
+            'Asks', 'Bids', 'CountedAsks', 'CountedBids', 'IndexedAsks', 'IndexedBids',
+        ]
+        for (let i = 0; i < proInfraClasses.length; i++) {
+            const infraClass = proInfraClasses[i]
+            const regex = new RegExp ('\\b(?:new\\s+|instanceof\\s+)' + infraClass + '\\b')
+            if (bodyAsString.match (regex)) {
+                libraryImports.push ('use ccxt\\pro\\' + infraClass + ';')
+            }
+        }
+
         header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
+        if (constImports.length) {
+            // PSR-12 (enforced by the php-cs-fixer style gate): `use const` imports form their
+            // own group placed after the class imports, separated by a blank line
+            header = header.concat ([ '' ]).concat (constImports)
+        }
 
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPHPBaseMethods ()
@@ -1390,12 +1493,16 @@ class Transpiler {
                 let languagesFolders: any[] = [];
 
                 if (this.buildPython) {
-                    languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    if (python2Folder) {
+                        languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    }
                     languagesFolders = languagesFolders.concat([ [python3Folder, pythonFilename, python3] ])
                 }
 
                 if (this.buildPHP) {
-                    languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    if (phpFolder) {
+                        languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    }
                     languagesFolders = languagesFolders.concat([ [phpAsyncFolder, phpFilename, phpAsync] ])
                 }
 
@@ -1440,7 +1547,11 @@ class Transpiler {
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = [];
-        if (tsFolder.indexOf('pro/') > -1) {
+        if (tsFolder.indexOf('prediction/pro') > -1) {
+            ids = exchangesPredictionWsIds;
+        } else if (tsFolder.indexOf('prediction') > -1) {
+            ids = exchangesPredictionIds;
+        } else if (tsFolder.indexOf('pro/') > -1) {
             ids = exchangesWsIds;
         } else {
             ids = exchangeIds;
@@ -1472,6 +1583,11 @@ class Transpiler {
         if (!child && classNames.length > 1) {
 
             function deleteOldTranspiledFiles (folder: string, pattern: any) {
+                // generated output folders are not committed (git can't track them when empty),
+                // so on a fresh checkout they may not exist yet — nothing to clean up then
+                if (!fs.existsSync (folder)) {
+                    return
+                }
                 fs.readdirSync (folder)
                     .filter (file =>
                         !fs.lstatSync (path.join (folder, file)).isDirectory () &&
@@ -1590,6 +1706,17 @@ class Transpiler {
             while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
                 lines.shift ()
             }
+            // strip leading blank / line-comment lines so a standalone section-divider comment
+            // block (or a method preceded by // comments) isn't mistaken for the signature. the
+            // main Exchange base has neither, so this is a no-op there; the prediction base uses
+            // section dividers between method groups.
+            while (lines.length && (lines[0].trim () === '' || lines[0].trim ().startsWith ('//'))) {
+                lines.shift ()
+            }
+            if (lines.length === 0) {
+                // comment-only / blank chunk — not a method, skip it
+                continue
+            }
             part = lines.join ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
@@ -1600,7 +1727,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            if (className === 'Exchange') {
+            if (className === 'Exchange' || className === 'BaseExchange' || className === 'PredictionExchange') {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
@@ -1697,7 +1824,7 @@ class Transpiler {
                     'NullableDict': '?array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1846,24 +1973,56 @@ class Transpiler {
             log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
             const secondPart = parts[1]
             const methods = secondPart.trim ().split (/\n\s*\n/)
+            // fine split: the symbol-based trading methods live in a separate `Exchange extends
+            // BaseExchange` class in the TS source so the standalone-typed prediction tier does not
+            // inherit them. We keep the two tiers separate in every language (matching C#/Java): the
+            // base methods stay on BaseExchange, and the 62 symbol methods go into a thin
+            // `Exchange extends BaseExchange` subclass that regular venues extend. PredictionExchange
+            // extends BaseExchange (never Exchange), so it does not see the symbol methods.
+            let exMethods: string[] = []
+            const exClassMatch = contents.match (/export default class Exchange extends BaseExchange \{([\s\S]*?)\n\}/)
+            if (exClassMatch) {
+                exMethods = exClassMatch[1].trim ().split (/\n\s*\n/).filter ((m: string) => {
+                    if (m.trim ().length === 0) {
+                        return false
+                    }
+                    // loadOrderBook is hand-written above the transpile marker in the WS async bases
+                    // (it uses WS cache primitives), so it must not be re-transpiled from here.
+                    if (/(^|\n)\s*async loadOrderBook \(/.test (m)) {
+                        return false
+                    }
+                    return true
+                })
+            }
             const {
                 python2,
                 python3,
                 php,
                 phpAsync,
             } = this.transpileMethodsToAllLanguages (className, methods)
-            // trim away sync methods from python async
-            // since it already inherits those methods
-            const python3Async: string[] = []
-            if (this.buildPython) {
-                python3.forEach ((line, i, arr) => {
+            const {
+                python2: python2Ex,
+                python3: python3Ex,
+                php: phpEx,
+                phpAsync: phpAsyncEx,
+            } = this.transpileMethodsToAllLanguages (className, exMethods)
+            // trim away sync methods from python async since the async BaseExchange already inherits
+            // them from SyncExchange. (the 62 Exchange-tier methods are all async, so pickAsync keeps
+            // all of them — the async Exchange subclass cannot inherit sync copies from the sibling
+            // sync Exchange, so they must be emitted here.)
+            const pickAsync = (arr: string[]): string[] => {
+                const out: string[] = []
+                arr.forEach ((line, i) => {
                     if (line.match (/^\s+async def/)) {
-                        python3Async.push ('')
-                        python3Async.push (line)
-                        python3Async.push (arr[i+1])
+                        out.push ('')
+                        out.push (line)
+                        out.push (arr[i+1])
                     }
                 })
+                return out
             }
+            const python3Async: string[] = this.buildPython ? pickAsync (python3) : []
+            const python3AsyncEx: string[] = this.buildPython ? pickAsync (python3Ex) : []
 
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
@@ -1875,17 +2034,99 @@ class Transpiler {
 
             if (this.buildPython) {
                 log.magenta ('→', python2File.yellow)
-                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+                // sync BaseExchange holds the shared infra; the 62 symbol methods go into a thin
+                // `Exchange(BaseExchange)` subclass that regular sync venues extend (prediction is
+                // async-only and extends the async BaseExchange, so it never sees these).
+                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n' + python2Ex.join ('\n') + '\n')
                 log.magenta ('→', python3File.yellow)
-                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
+                // the async base class is BaseExchange (shared infra); Exchange is the concrete tier
+                // carrying the 62 symbol methods so the prediction base can extend BaseExchange as an
+                // independent sibling. the transpiler owns marker→EOF, so Exchange is appended here.
+                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n' + python3AsyncEx.join ('\n') + '\n')
             }
 
             if (this.buildPHP) {
                 log.magenta ('→', phpFile.yellow)
-                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+                // sync BaseExchange + thin `Exchange extends BaseExchange` (the 62 symbol methods)
+                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n' + phpEx.join ('\n') + '\n}\n')
                 log.magenta ('→', phpAsyncFile.yellow)
-                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+                // async BaseExchange (shared infra) + concrete `Exchange extends BaseExchange` with the
+                // 62 symbol methods; the prediction base extends BaseExchange as an independent sibling
+                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n' + phpAsyncEx.join ('\n') + '\n}\n')
             }
+        }
+    }
+
+    // ========================================================================
+
+    transpilePredictionBaseMethods () {
+        // PredictionExchange is a base class for prediction-market exchanges. Like
+        // the base Exchange it has hand-written skeleton files per language with a
+        // delimiter; the methods below the delimiter are transpiled from
+        // ts/src/base/PredictionExchange.ts and injected here. Unlike the async base
+        // Exchange (which inherits the sync one), each async file is a standalone
+        // class extending the async Exchange, so it carries the full method set.
+        const predictionBaseFile = './ts/src/base/PredictionExchange.ts'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const contents = fs.readFileSync (predictionBaseFile, 'utf8')
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
+        const jsDelimiter = '// ' + delimiter
+        const parts = classBody.split (jsDelimiter)
+        if (parts.length <= 1) {
+            return
+        }
+        log.magenta ('Transpiling from', predictionBaseFile.yellow)
+        const secondPart = parts[1]
+        const methods = secondPart.trim ().split (/\n\s*\n/)
+        const {
+            python2,
+            python3,
+            php,
+            phpAsync,
+            methodNames,
+        } = this.transpileMethodsToAllLanguages ('PredictionExchange', methods)
+
+        // The per-method transpile only snake-cases base-Exchange method calls (e.g. this.safeString),
+        // not the class's own methods (this.setOutcomesFromMarkets) or super calls (super.setMarkets).
+        // PredictionExchange is the first base-path class that uses both, so apply the same self/super
+        // (Python) and $this->/parent:: (PHP) conversion the derived-exchange path does.
+        const convertMethods = methodNames.concat (this.getBaseMethods ())
+        const fixPyCalls = (body: string) => {
+            let out = body
+            for (const method of convertMethods) {
+                const r = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string, p3: string) => p1 + '.' + unCamelCase (p2) + p3)
+            }
+            return out
+        }
+        const fixPhpCalls = (body: string) => {
+            let out = body
+            for (const method of convertMethods) {
+                let r = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string) => ((p2 === '(') ? ('$this->' + unCamelCase (p1) + p2) : ("array($this, '" + unCamelCase (p1) + "')" + p2)))
+                r = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string) => ((p2 === '(') ? ('parent::' + unCamelCase (p1) + p2) : ("array($this, '" + unCamelCase (p1) + "')" + p2)))
+            }
+            return out
+        }
+
+        const pythonDelimiter = '# ' + delimiter + '\n'
+        const phpDelimiter = '// ' + delimiter + '\n'
+        const restOfFile = '([^\n]*\n)+'
+        // prediction-market exchanges are async-only and flattened, so only the async
+        // PredictionExchange base is generated (Python: ccxt.async_support.base; PHP:
+        // \ccxt\prediction\PredictionExchange extending the ReactPHP \ccxt\async\Exchange)
+        const python3File = './python/ccxt/async_support/base/prediction_exchange.py'
+        const phpAsyncFile = './php/prediction/PredictionExchange.php'
+
+        if (this.buildPython) {
+            log.magenta ('→', python3File.yellow)
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + fixPyCalls (python3.join ('\n')) + '\n')
+        }
+
+        if (this.buildPHP) {
+            log.magenta ('→', phpAsyncFile.yellow)
+            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + fixPhpCalls (phpAsync.join ('\n')) + '\n}\n')
         }
     }
 
@@ -3033,7 +3274,7 @@ class Transpiler {
     }
 
     checkIfMethodLacksParser (className: string, methodName: string, methodContent: string) {
-        if (className === 'Exchange') {
+        if (className === 'Exchange' || className === 'BaseExchange') {
             return;
         }
         // before base class, the check is not needed
@@ -3059,16 +3300,20 @@ class Transpiler {
 
     // ============================================================================
 
-    async transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false, prediction = false) {
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , python2Folder  = './python/ccxt/'
-            , python3Folder  = './python/ccxt/async_support/'
-            , phpFolder      = './php/'
-            , phpAsyncFolder = './php/async/'
-            , tsFolder = './ts/src/'
-            , jsFolder = './js/src/'
+            // prediction-market exchanges are async-only in Python and flattened so
+            // that `ccxt.prediction.<id>` IS the async class (no sync, no async_support nesting)
+            , python2Folder  = prediction ? undefined : './python/ccxt/'
+            , python3Folder  = prediction ? './python/ccxt/prediction/' : './python/ccxt/async_support/'
+            // prediction-market exchanges are async-only in PHP and flattened so that
+            // \ccxt\prediction\<id> IS the async (ReactPHP) class (no sync, no async/ nesting)
+            , phpFolder      = prediction ? undefined : './php/'
+            , phpAsyncFolder = prediction ? './php/prediction/' : './php/async/'
+            , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
+            , jsFolder = prediction ? './js/src/prediction/' : './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
@@ -3076,31 +3321,50 @@ class Transpiler {
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        if (!transpilingSingleExchange && !child) {
+        if ((!transpilingSingleExchange && !child) || prediction) {
             if (this.buildPython) {
-                createFolderRecursively (python2Folder)
+                if (python2Folder) {
+                    createFolderRecursively (python2Folder)
+                }
                 createFolderRecursively (python3Folder)
             }
 
             if (this.buildPHP) {
-                createFolderRecursively (phpFolder)
+                if (phpFolder) {
+                    createFolderRecursively (phpFolder)
+                }
                 createFolderRecursively (phpAsyncFolder)
             }
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
+        this.isPrediction = prediction
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
+        this.isPrediction = false
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
             return;
         }
+        if (prediction) {
+            // the prediction pass only transpiles the derived exchange classes —
+            // base methods, errors, tests and examples are handled by the main pass
+            log.bright.green ('Transpiled prediction exchanges successfully.')
+            return
+        }
         if (child) {
             return
         }
 
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        if (!exchanges.length) {
+            await this.transpileEverything (force, child, true)
+        }
+
         if (!transpilingSingleExchange) {
             this.transpileBaseMethods ()
+
+            this.transpilePredictionBaseMethods ()
 
             //*/
 
@@ -3117,11 +3381,17 @@ class Transpiler {
     }
 }
 
-async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false) {
+async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false, allChildren = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
-    let isFirst = true
+    // by default the first fork runs without --child so it also transpiles the serial
+    // tail (base methods, tests, ...); pass allChildren=true when the caller runs that
+    // tail itself (e.g. the C# parent overlaps it with the exchange fan-out)
+    let isFirst = !allChildren
     const args: string[] = [];
+    if (allChildren) {
+        args.push ('--child')
+    }
     if (force) {
         args.push ('--force')
     }
@@ -3202,6 +3472,7 @@ if (isMainEntry(metaFileUrl)) {
 
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
+        transpiler.transpilePredictionBaseMethods ()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()
@@ -3211,12 +3482,20 @@ if (isMainEntry(metaFileUrl)) {
     } else if (multiprocess) {
         (async () => {
             await parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+            // the prediction exchanges are few — transpile them serially after the workers finish
+            await transpiler.transpileEverything (force, false, true)
         })()
     } else if (addJsHeaders) {
         transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
-            await transpiler.transpileEverything (force, child)
+            // --prediction transpiles the given exchange(s) from ts/src/prediction/; bare
+            // prediction-only ids (e.g. `transpile.ts kalshi`) auto-route there so scoped
+            // CI steps don't need to know the namespace
+            const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+            const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => exchangesPredictionIds.includes (x) && !exchangeIds.includes (x))
+            const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
+            await transpiler.transpileEverything (force, child, prediction)
         })()
     }
 

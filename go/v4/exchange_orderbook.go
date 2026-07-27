@@ -29,6 +29,10 @@ type WsOrderBook struct {
 	Datetime  any            `json:"datetime"`
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
+	// prediction-market identity (nil for crypto exchanges)
+	Outcome   any `json:"outcome"`
+	OutcomeId any `json:"outcomeId"`
+	Market    any `json:"market"`
 }
 
 func strOrNil(s string) any {
@@ -54,7 +58,7 @@ func createOb(Obtype string) OrderBookInterface {
 }
 
 func (this *WsOrderBook) ToMap() map[string]any {
-	return map[string]any{
+	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": this.Timestamp,
@@ -62,6 +66,13 @@ func (this *WsOrderBook) ToMap() map[string]any {
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
 	}
+	// prediction-market identity — only present on prediction books
+	if this.Outcome != nil {
+		result["outcome"] = this.Outcome
+		result["outcomeId"] = this.OutcomeId
+		result["market"] = this.Market
+	}
+	return result
 }
 
 func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
@@ -166,6 +177,9 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	this.Timestamp = SafeInt64(snapshotMap, "timestamp", 0).(int64)
 	this.Datetime = Iso8601(this.Timestamp)
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
+	this.Outcome = SafeString(snapshotMap, "outcome", nil)
+	this.OutcomeId = SafeString(snapshotMap, "outcomeId", nil)
+	this.Market = SafeString(snapshotMap, "market", nil)
 
 	return this
 }

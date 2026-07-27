@@ -10,6 +10,9 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class backpack extends \ccxt\async\backpack {
     public function describe(): mixed {

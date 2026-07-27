@@ -15,13 +15,13 @@ type Lang = readonly [id: string, label: string, file: string];
 
 const EXCH: readonly Exchange[] = [
   ['binance', 'Binance', '#F0B90B', 67214.5],
-  ['coinbase', 'Coinbase', '#0052FF', 67198.2],
-  ['kraken', 'Kraken', '#7132F5', 67225.8],
-  ['okx', 'OKX', '#7C8593', 67209.1],
   ['bybit', 'Bybit', '#F7A600', 67231.4],
+  ['gate', 'Gate', '#E6004C', 67242.0],
+  ['okx', 'OKX', '#7C8593', 67209.1],
   ['kucoin', 'KuCoin', '#22D3A6', 67188.9],
-  ['gate', 'Gate.io', '#E6004C', 67242.0],
+  ['hyperliquid', 'Hyperliquid', '#50D2C1', 67220.6],
   ['bitget', 'Bitget', '#00E0D5', 67203.3],
+  ['polymarket', 'Polymarket', '#1652F0', 0.62],
 ] as const;
 
 const LANGS: readonly Lang[] = [
@@ -45,15 +45,20 @@ function tokText(langId: string, exId: string) {
 function CodeSnippet({
   langId,
   tokenNode,
+  isPred,
 }: {
   langId: string;
   tokenNode: React.ReactNode;
+  isPred: boolean;
 }) {
   const K = (t: string) => <span className="csh-k">{t}</span>;
   const FN = (t: string) => <span className="csh-fn">{t}</span>;
   const STR = (t: string) => <span className="csh-str">{t}</span>;
   const COM = (t: string) => <span className="csh-com">{t}</span>;
   const PUN = (t: string) => <span className="csh-pun">{t}</span>;
+  // prediction venues live in the `prediction` namespace and are addressed by an
+  // outcome handle (priced 0..1) instead of a market symbol.
+  const arg = isPred ? 'TRUMP_WINS:YES' : 'BTC/USDT';
 
   switch (langId) {
     case 'py':
@@ -61,13 +66,15 @@ function CodeSnippet({
         <>
           {COM('# one unified API — pick any venue')}
           {'\n'}
-          {K('import')} ccxt{'\n\n'}
-          ex {PUN('=')} ccxt.{tokenNode}
+          {K('import')} {'ccxt' + (isPred ? '.prediction' : '')}
+          {'\n\n'}
+          ex {PUN('=')} ccxt.{isPred ? 'prediction.' : ''}
+          {tokenNode}
           {PUN('()')}
           {'\n'}t {' '}
           {PUN('=')} ex.{FN('fetch_ticker')}
           {PUN('(')}
-          {STR("'BTC/USDT'")}
+          {STR(`'${arg}'`)}
           {PUN(')')}
         </>
       );
@@ -79,7 +86,8 @@ function CodeSnippet({
           {K('use')} {FN('ccxt')}
           {PUN(';')}
           {'\n\n'}
-          {K('$ex')} {PUN('=')} {K('new')} \ccxt\{tokenNode}
+          {K('$ex')} {PUN('=')} {K('new')} \ccxt\{isPred ? 'prediction\\' : ''}
+          {tokenNode}
           {PUN('();')}
           {'\n'}
           {K('$t')} {' '}
@@ -87,7 +95,7 @@ function CodeSnippet({
           {PUN('->')}
           {FN('fetch_ticker')}
           {PUN('(')}
-          {STR("'BTC/USDT'")}
+          {STR(`'${arg}'`)}
           {PUN(');')}
         </>
       );
@@ -96,14 +104,15 @@ function CodeSnippet({
         <>
           {COM('// one unified API — pick any venue')}
           {'\n'}
-          {K('import')} ccxt {STR('"github.com/ccxt/ccxt/go/v4"')}
-          {'\n\n'}ex {PUN(':=')} ccxt.{tokenNode}
+          {K('import')} {isPred ? 'ccxtprediction' : 'ccxt'}{' '}
+          {STR(isPred ? '"github.com/ccxt/ccxt/go/v4/prediction"' : '"github.com/ccxt/ccxt/go/v4"')}
+          {'\n\n'}ex {PUN(':=')} {isPred ? 'ccxtprediction' : 'ccxt'}.{tokenNode}
           {PUN('(')}
-          {K('nil')}
+          {isPred ? null : K('nil')}
           {PUN(')')}
           {'\n'}t{PUN(',')} _ {PUN(':=')} ex.{FN('FetchTicker')}
           {PUN('(')}
-          {STR('"BTC/USDT"')}
+          {STR(`"${arg}"`)}
           {PUN(')')}
         </>
       );
@@ -114,13 +123,14 @@ function CodeSnippet({
           {'\n'}
           {K('using')} ccxt{PUN(';')}
           {'\n\n'}
-          {K('var')} ex {PUN('=')} {K('new')} ccxt.{tokenNode}
+          {K('var')} ex {PUN('=')} {K('new')} ccxt.{isPred ? 'prediction.' : ''}
+          {tokenNode}
           {PUN('();')}
           {'\n'}
           {K('var')} t {' '}
           {PUN('=')} {K('await')} ex.{FN('FetchTicker')}
           {PUN('(')}
-          {STR('"BTC/USDT"')}
+          {STR(`"${arg}"`)}
           {PUN(');')}
         </>
       );
@@ -129,13 +139,15 @@ function CodeSnippet({
         <>
           {COM('// one unified API — pick any venue')}
           {'\n'}
-          {K('import')} ccxt{PUN('.*;')}
+          {K('import')} {isPred ? 'io.github.ccxt.exchanges.prediction' : 'ccxt'}
+          {PUN('.*;')}
           {'\n\n'}
           {K('var')} ex {PUN('=')} {K('new')} {tokenNode}
           {PUN('();')}
-          {'\n'}Ticker t {PUN('=')} ex.{FN('fetchTicker')}
+          {'\n'}
+          {isPred ? 'PredictionTicker' : 'Ticker'} t {PUN('=')} ex.{FN('fetchTicker')}
           {PUN('(')}
-          {STR('"BTC/USDT"')}
+          {STR(`"${arg}"`)}
           {PUN(')')}
           {PUN(';')}
         </>
@@ -147,13 +159,14 @@ function CodeSnippet({
           {'\n'}
           {K('import')} ccxt {K('from')} {STR("'ccxt'")}
           {'\n\n'}
-          {K('const')} ex {PUN('=')} {K('new')} ccxt.{tokenNode}
+          {K('const')} ex {PUN('=')} {K('new')} ccxt.{isPred ? 'prediction.' : ''}
+          {tokenNode}
           {PUN('()')}
           {'\n'}
           {K('const')} t {' '}
           {PUN('=')} {K('await')} ex.{FN('fetchTicker')}
           {PUN('(')}
-          {STR("'BTC/USDT'")}
+          {STR(`'${arg}'`)}
           {PUN(')')}
         </>
       );
@@ -189,6 +202,7 @@ export function CodeSwapHero() {
 
   const ex = EXCH[cur];
   const lang = LANGS[curLang];
+  const isPred = ex[0] === 'polymarket';
 
   // animate the token text: delete old name, type new name
   const typeSwap = useCallback((from: string, to: string) => {
@@ -243,6 +257,12 @@ export function CodeSwapHero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [price]);
 
+  // snap without animating — used when the price unit changes (USD <-> 0..1 probability)
+  const snapPrice = useCallback((toVal: number) => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setPrice(toVal);
+  }, []);
+
   const selectIdx = useCallback(
     (idx: number, userInitiated: boolean) => {
       const prev = EXCH[curRef.current];
@@ -253,11 +273,17 @@ export function CodeSwapHero() {
         tokText(LANGS[curLangRef.current][0], next[0]),
       );
       setCur(idx);
-      countUp(next[3]);
+      // crypto USD prices and 0..1 prediction probabilities aren't the same unit —
+      // snap between them instead of interpolating through nonsense values.
+      if ((prev[0] === 'polymarket') !== (next[0] === 'polymarket')) {
+        snapPrice(next[3]);
+      } else {
+        countUp(next[3]);
+      }
       if (userInitiated) restartAuto();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [typeSwap, countUp],
+    [typeSwap, countUp, snapPrice],
   );
 
   const nextAuto = useCallback(() => {
@@ -384,8 +410,8 @@ export function CodeSwapHero() {
     </span>
   );
 
-  const baLow = (price - 1.5).toFixed(1);
-  const baHigh = (price + 0.5).toFixed(1);
+  const baLow = isPred ? (price - 0.01).toFixed(2) : (price - 1.5).toFixed(1);
+  const baHigh = isPred ? (price + 0.01).toFixed(2) : (price + 0.5).toFixed(1);
 
   return (
     <div className="csh-root">
@@ -438,7 +464,7 @@ export function CodeSwapHero() {
             </div>
             <pre className="csh-pre">
               <code>
-                <CodeSnippet langId={lang[0]} tokenNode={tokenNode} />
+                <CodeSnippet langId={lang[0]} tokenNode={tokenNode} isPred={isPred} />
               </code>
             </pre>
           </div>
@@ -446,12 +472,16 @@ export function CodeSwapHero() {
           {/* response card */}
           <div className="csh-card csh-resp">
             <div className="csh-ch">
-              <span className="csh-name">response · unified</span>
+              <span className="csh-name">
+                {isPred ? 'response · PredictionTicker' : 'response · unified'}
+              </span>
             </div>
             <div className="csh-resp-body">
               <div className="csh-row">
-                <span className="csh-key">symbol</span>
-                <span className="csh-v">&quot;BTC/USDT&quot;</span>
+                <span className="csh-key">{isPred ? 'outcome' : 'symbol'}</span>
+                <span className="csh-v">
+                  {isPred ? <>&quot;TRUMP_WINS:YES&quot;</> : <>&quot;BTC/USDT&quot;</>}
+                </span>
               </div>
               <div className="csh-row">
                 <span className="csh-key">last</span>
@@ -474,7 +504,10 @@ export function CodeSwapHero() {
                 </span>
               </div>
               <div className="csh-ok">
-                <span className="csh-live" /> identical shape, every exchange
+                <span className="csh-live" />{' '}
+                {isPred
+                  ? 'PredictionTicker · prices 0–1 per share'
+                  : 'identical shape, every exchange'}
               </div>
             </div>
           </div>

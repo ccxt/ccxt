@@ -1589,7 +1589,7 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $isTrigger = $this->safe_bool_n($params, array( 'trigger' ), false);
+        $isTrigger = $this->safe_bool($params, 'trigger', false);
         $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {

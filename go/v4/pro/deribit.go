@@ -1063,7 +1063,7 @@ func (this *DeribitCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optional
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\\'BTC/USDT\\', \\'1m\\'], [\\'LTC/USDT\\', \\'5m\\']]")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 		}
 		symboltimeframecandlesVariable := (<-this.WatchMultipleWrapper("chart.trades", nil, symbolsAndTimeframes, params))
 		symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)

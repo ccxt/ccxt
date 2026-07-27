@@ -1587,7 +1587,7 @@ export default class blofin extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN(params, ['trigger'], false);
+        const isTrigger = this.safeBool(params, 'trigger', false);
         const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {

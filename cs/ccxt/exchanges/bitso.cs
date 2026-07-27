@@ -561,7 +561,7 @@ public partial class bitso : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object catalogues = await ((Task<object>)callDynamically(this, "publicGetCatalogues", new object[] { parameters }));
+        object catalogues = await this.publicGetCatalogues(parameters);
         //
         //     {
         //         "payload": {

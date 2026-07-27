@@ -841,12 +841,12 @@ export default class lighter extends Exchange {
             else {
                 triggerOrderSide = 'buy';
             }
-            const stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, ['triggerPrice', 'stopPrice']);
+            const stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'stopPrice');
             const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
-            const stopLossOrderLimitPrice = this.safeNumberN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
-            const takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, ['triggerPrice', 'stopPrice']);
+            const stopLossOrderLimitPrice = this.safeNumber2(stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice);
+            const takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'stopPrice');
             const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
-            const takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
+            const takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
                 const orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(params, {

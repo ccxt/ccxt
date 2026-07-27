@@ -1223,8 +1223,7 @@ public class BitfinexCore extends BitfinexApi
                 Object signedAmount = this.safeString(order, 2);
                 Object amount = Precise.stringAbs(signedAmount);
                 Object side = ((Helpers.isTrue(Precise.stringGt(signedAmount, "0")))) ? "bids" : "asks";
-                Object resultSide = Helpers.GetValue(result, side);
-                ((java.util.List<Object>)resultSide).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.parseNumber(amount))));
+                ((java.util.List<Object>)Helpers.GetValue(result, side)).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.parseNumber(amount))));
             }
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
             Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));

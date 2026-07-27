@@ -766,6 +766,200 @@
                 }
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch perpetual and spot markets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "symbol": "BTC",
+                            "tick_size": "1",
+                            "min_tick": "0",
+                            "max_tick": "1000000",
+                            "lot_size": "0.00001",
+                            "max_leverage": 50,
+                            "isolated_only": false,
+                            "min_order_size": "10",
+                            "max_order_size": "5000000",
+                            "funding_rate": "0.0000125",
+                            "next_funding_rate": "0.0000125",
+                            "created_at": 1748881333944,
+                            "instrument_type": "perpetual",
+                            "base_asset": "BTC"
+                        },
+                        {
+                            "symbol": "SOL-USDC",
+                            "tick_size": "0.01",
+                            "min_tick": "0",
+                            "max_tick": "1000000",
+                            "lot_size": "0.001",
+                            "max_leverage": 1,
+                            "isolated_only": false,
+                            "min_order_size": "10",
+                            "max_order_size": "1000000",
+                            "funding_rate": "0",
+                            "next_funding_rate": "0",
+                            "created_at": 1776615970246,
+                            "instrument_type": "spot",
+                            "base_asset": "SOL"
+                        }
+                    ],
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0004,
+                        "maker": 0.00015,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.00001,
+                            "price": 1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 1000000
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": 5000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": true,
+                            "isolated": true
+                        },
+                        "created": 1748881333944,
+                        "info": {
+                            "symbol": "BTC",
+                            "tick_size": "1",
+                            "min_tick": "0",
+                            "max_tick": "1000000",
+                            "lot_size": "0.00001",
+                            "max_leverage": 50,
+                            "isolated_only": false,
+                            "min_order_size": "10",
+                            "max_order_size": "5000000",
+                            "funding_rate": "0.0000125",
+                            "next_funding_rate": "0.0000125",
+                            "created_at": 1748881333944,
+                            "instrument_type": "perpetual",
+                            "base_asset": "BTC"
+                        }
+                    },
+                    {
+                        "id": "SOL-USDC",
+                        "lowercaseId": null,
+                        "symbol": "SOL/USDC",
+                        "base": "SOL",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "SOL",
+                        "quoteId": "USDC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 1000000
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": 1000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1776615970246,
+                        "info": {
+                            "symbol": "SOL-USDC",
+                            "tick_size": "0.01",
+                            "min_tick": "0",
+                            "max_tick": "1000000",
+                            "lot_size": "0.001",
+                            "max_leverage": 1,
+                            "isolated_only": false,
+                            "min_order_size": "10",
+                            "max_order_size": "1000000",
+                            "funding_rate": "0",
+                            "next_funding_rate": "0",
+                            "created_at": 1776615970246,
+                            "instrument_type": "spot",
+                            "base_asset": "SOL"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Fetch orderbook",

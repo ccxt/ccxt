@@ -1314,7 +1314,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise.stringDiv(until, '1000');
@@ -2557,7 +2557,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise.stringDiv(until, '1000');
@@ -3076,7 +3076,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString(since);
             request['start'] = Precise.stringDiv(sinceString, '1000');
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise.stringDiv(until, '1000');
@@ -3154,7 +3154,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString(since);
             request['start'] = Precise.stringDiv(sinceString, '1000');
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise.stringDiv(until, '1000');

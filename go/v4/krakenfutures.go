@@ -2362,7 +2362,7 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 		return this.SafeOrder(map[string]any{
 			"info":                order,
 			"id":                  this.SafeString(orderDictFromFetchOrder, "orderId"),
-			"clientOrderId":       this.SafeStringN(orderDictFromFetchOrder, []any{"cliOrdId"}),
+			"clientOrderId":       this.SafeString(orderDictFromFetchOrder, "cliOrdId"),
 			"timestamp":           this.Parse8601(datetime),
 			"datetime":            datetime,
 			"lastTradeTimestamp":  nil,

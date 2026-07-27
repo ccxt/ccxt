@@ -2452,7 +2452,7 @@ public partial class grvt : Exchange
                 object limitDec = this.safeString(limitParts, 1, "");
                 object limitDecLength = add(((string)limitDec).Length, 0); // php tr
                 object limitDecLengthStr = ((object)limitDecLength).ToString();
-                object powerNum = ((bool) isTrue(isEqual(limitDecLengthStr, "0"))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                object powerNum = ((bool) isTrue((isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 ((IDictionary<string,object>)legOrder)["limitPrice"] = this.parseToInt(priceInteger);
             } else

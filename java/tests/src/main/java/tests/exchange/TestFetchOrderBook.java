@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchOrderBook extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchOrderBook(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchOrderBook(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchOrderBook";
-        Object orderbook = (exchange.fetchOrderBook(symbol)).join();
+        Object orderbook = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
         TestOrderBook.testOrderBook(exchange, skippedProperties, method, orderbook, symbol);
         return true;
         });

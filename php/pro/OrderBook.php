@@ -57,6 +57,14 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         @$this['nonce'] = $snapshot['nonce'];
         @$this['timestamp'] = $snapshot['timestamp'];
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
+        // prediction-market identity — only attach when present, so crypto books are unchanged
+        if (array_key_exists('outcome', $snapshot)) {
+            $this['outcome'] = $snapshot['outcome'];
+            $this['outcomeId'] = $snapshot['outcomeId'];
+            $this['market'] = $snapshot['market'];
+            // prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            unset($this['symbol']);
+        }
     }
 
     public function update($snapshot) {

@@ -1006,7 +1006,7 @@ public partial class alpaca : Exchange
             { "side", side },
             { "type", type },
         };
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price"});
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             object newType = null;
@@ -1325,7 +1325,7 @@ public partial class alpaca : Exchange
         {
             ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price"});
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);

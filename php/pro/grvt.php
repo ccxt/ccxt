@@ -11,6 +11,10 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class grvt extends \ccxt\async\grvt {
     public function describe(): mixed {

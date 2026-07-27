@@ -12,6 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinex extends \ccxt\async\coinex {
     public function describe(): mixed {
@@ -1110,7 +1112,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
-        $order = $this->safe_dict_2($data, 'order', 'stop', array());
+        $order = $this->extend(array( 'status' => $this->safe_string($data, 'event') ), $this->safe_dict_2($data, 'order', 'stop', array()));
         $parsedOrder = $this->parse_ws_order($order);
         $symbol = $parsedOrder['symbol'];
         $market = $this->market($symbol);
@@ -1262,6 +1264,10 @@ class coinex extends \ccxt\async\coinex {
             'active_success' => 'open',
             'active_fail' => 'canceled',
             'cancel' => 'canceled',
+            'put' => 'open',
+            'update' => 'open',
+            'modify' => 'open',
+            'finish' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }

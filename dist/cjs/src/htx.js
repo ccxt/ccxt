@@ -3188,7 +3188,7 @@ class htx extends htx$1["default"] {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        const priceType = this.safeStringN(params, ['priceType', 'price']);
+        const priceType = this.safeString2(params, 'priceType', 'price');
         params = this.omit(params, ['priceType', 'price']);
         let until = undefined;
         [until, params] = this.handleParamInteger(params, 'until');
@@ -5142,7 +5142,7 @@ class htx extends htx$1["default"] {
         if (isLinearOrder) {
             type = this.safeString(order, 'type');
             if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
-                type = this.safeStringN(order, ['tp_type', 'sl_type']);
+                type = this.safeString2(order, 'tp_type', 'sl_type');
             }
             if (type === '0') {
                 type = undefined;

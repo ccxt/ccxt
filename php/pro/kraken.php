@@ -13,6 +13,9 @@ use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class kraken extends \ccxt\async\kraken {
     public function describe(): mixed {
@@ -1152,7 +1155,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $result->getLimit($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
         })();
     }
 

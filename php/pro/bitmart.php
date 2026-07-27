@@ -12,6 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
+use ccxt\pro\Asks;
+use ccxt\pro\Bids;
 
 class bitmart extends \ccxt\async\bitmart {
     public function describe(): mixed {

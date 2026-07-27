@@ -7922,7 +7922,7 @@ func (this *BitgetCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan
 				if IsTrue(IsEqual(symbol, nil)) {
 					panic(ArgumentsRequired(Add(this.Id, " fetchCanceledAndClosedOrders() requires a symbol argument")))
 				}
-				var endTime any = this.SafeIntegerN(params, []any{"endTime", "until"})
+				var endTime any = this.SafeInteger2(params, "endTime", "until")
 				params = this.Omit(params, []any{"until"})
 				if IsTrue(IsEqual(since, nil)) {
 					since = Subtract(now, 7776000000)

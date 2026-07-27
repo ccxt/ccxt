@@ -943,7 +943,7 @@ public class ApexCore extends ApexApi
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeIntegerN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("start", "t"))), this.safeNumberN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "o"))), this.safeNumberN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("high", "h"))), this.safeNumberN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("low", "l"))), this.safeNumberN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("close", "c"))), this.safeNumberN(ohlcv, new java.util.ArrayList<Object>(java.util.Arrays.asList("volume", "v")))));
+        return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o"), this.safeNumber2(ohlcv, "high", "h"), this.safeNumber2(ohlcv, "low", "l"), this.safeNumber2(ohlcv, "close", "c"), this.safeNumber2(ohlcv, "volume", "v")));
     }
 
     /**
@@ -1088,15 +1088,15 @@ public class ApexCore extends ApexApi
         //  ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("s", "symbol")));
+        Object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
-        Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "id")));
+        Object id = this.safeString2(trade, "i", "id");
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
-        Object priceString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("p", "price")));
-        Object amountString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("v", "size")));
-        Object side = this.safeStringLowerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("S", "side")));
-        Object type = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("type")));
-        Object fee = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee")));
+        Object priceString = this.safeString2(trade, "p", "price");
+        Object amountString = this.safeString2(trade, "v", "size");
+        Object side = this.safeStringLower2(trade, "S", "side");
+        Object type = this.safeString(trade, "type");
+        Object fee = this.safeString(trade, "fee");
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -1797,7 +1797,7 @@ public class ApexCore extends ApexApi
         Object toAccount = this.safeString(transfer, "toAccount");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", ApexCore.this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("transferId", "id"))) );
+            put( "id", ApexCore.this.safeString2(transfer, "transferId", "id") );
             put( "timestamp", timestamp );
             put( "datetime", ApexCore.this.iso8601(timestamp) );
             put( "currency", ApexCore.this.safeCurrencyCode(currencyId, currency) );
@@ -2292,7 +2292,7 @@ public class ApexCore extends ApexApi
         Object quantity = this.safeString(position, "size");
         Object timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;
-        Object customInitialMarginRate = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("customInitialMarginRate", "customImr")), "0");
+        Object customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
         if (Helpers.isTrue(!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0)))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));

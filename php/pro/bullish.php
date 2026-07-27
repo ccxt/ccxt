@@ -9,6 +9,9 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class bullish extends \ccxt\async\bullish {
     public function describe(): mixed {

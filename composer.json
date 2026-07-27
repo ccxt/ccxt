@@ -247,7 +247,7 @@
         "clue/http-proxy-react": "1.9.0",
         "evenement/evenement": "3.0.2",
         "fig/http-message-util": "1.1.5",
-        "guzzlehttp/psr7": "2.12.1",
+        "guzzlehttp/psr7": "2.13.0",
         "kornrunner/keccak": "1.1.0",
         "pear/console_table": "1.3.1",
         "phpseclib/phpseclib": "2.0.55",

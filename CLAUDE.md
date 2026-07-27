@@ -355,7 +355,7 @@ npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
 
 ### 6.6 GitHub Actions CI
 
-Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
+Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 20. `build/utils/init_actions.sh` detects `important_modified` (base/build/test files → full transpile + all tests) vs scoped (only changed exchanges). On `master` pushes, generated output is auto-committed.
 
 | Lang | Workflow | Pre-transpile | Full transpile | Build | Live tests |
 |---|---|---|---|---|---|
@@ -432,6 +432,10 @@ Full list in `CONTRIBUTING.md`. Top recurring violations:
 - **Avoid `safeValue`** — typeless escape hatch, deprecated when type is known. Use typed variants; fall back only when value is truly any-of-several.
 - Arithmetic via `Precise.stringAdd/Sub/Mul/Div/Gt/...`. `+` is string concatenation only.
 - No `.includes()` — use `.indexOf(x) !== -1`. No `.map`/`.filter` arrow callbacks in derived classes. No `in` operator on arrays.
+- **Never name a variable/param after a target-language reserved word** — `from`, `type`, `id`, `in`, `is`, `with`, `class`, `def`, `lambda`, `global`, `pass`, `print`, `var`, `function`, `list`, `dict`, `string`, `object`, `end`, `fn` break Python/PHP/C#/Go/Java. Use `fromAddress`, `typeVar`, etc.
+- **Don't return `Promise<void>`** (leaves bare `void` in Python) and **don't write a bare `return;`** in a value-returning method (C# CS0126/CS0161). Use `Promise<any>` + `return undefined;`, and end such methods with `return undefined;`.
+- **Integer division**: `x.length / 2` is a float in Python — wrap any quotient fed to `intToBase16`/array indexing in `this.parseToInt(...)`.
+- **`.padStart`/`.padEnd` only on a bare identifier** — `expr().padStart(n,'0')` leaks a function call in PHP; assign to a local first.
 - Always bracket ternaries: `(cond) ? a : b`. Don't nest them.
 - Control chars: double quotes with inline disable: `"\n" // eslint-disable-line quotes`.
 - Array length hint: `const n = arr.length;` on its own line tells regex transpiler it's an array.
@@ -549,6 +553,8 @@ Caps inline comments at 12 with severity tags (🚨 Blocker / ⚠️ Concern / �
 ```
 ts/src/                 source TS — REST exchanges, base, REST tests
 ts/src/pro/             source TS — WS exchanges, WS tests
+ts/src/prediction/      source TS — prediction-market exchanges (extend PredictionExchange)
+ts/src/base/PredictionExchange.ts  prediction base (outcome loading/caching — see .claude/rules/prediction-outcomes.md)
 ts/src/abstract/        AUTO-GENERATED API method signatures
 ts/src/base/Exchange.ts master base (partly transpiled into all langs)
 ts/src/base/ws/         WS base (Client, Cache, OrderBook, Future)
@@ -566,4 +572,6 @@ wiki/                   docs (Manual.md = authoritative API spec)
 examples/               per-language end-user examples
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)
                         — public API reference for callers, NOT for editing CCXT
+.claude/rules/          topic-scoped contributor rules (auto-load via `paths:` frontmatter);
+                        prediction-outcomes.md = the outcome loading/caching pattern
 ```

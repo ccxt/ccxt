@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitopro extends \ccxt\async\bitopro {
     public function describe(): mixed {

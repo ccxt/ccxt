@@ -45,12 +45,21 @@ export function Future() {
             notify();
         }
     };
+    // a future observed through subscribe() delivers its settlement through
+    // the synchronous side-channel, not through the native promise - without
+    // a native rejection handler an out-of-band reject() (e.g. client.reject
+    // on exchange.close()) would crash the process as an unhandled rejection
+    let nativeRejectionHandled = false;
     // Registers synchronous settlement callbacks. Returns an unsubscribe
     // function that detaches the callbacks (mirrors the leak-safety that
     // Unpromise.race used to provide for repeatedly-raced futures).
     // If the future is already settled the matching callback fires
     // synchronously before subscribe() returns.
     p.subscribe = function _subscribe(onFulfil, onReject) {
+        if (!nativeRejectionHandled) {
+            nativeRejectionHandled = true;
+            p.catch(() => { });
+        }
         if (settledState === 1) {
             onFulfil(settledValue);
             return () => { };

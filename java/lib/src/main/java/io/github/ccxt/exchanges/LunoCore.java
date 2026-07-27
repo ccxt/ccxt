@@ -132,7 +132,7 @@ public class LunoCore extends LunoApi
                     put( "exchangePrivate", "https://api.luno.com/api/exchange" );
                 }} );
                 put( "www", "https://www.luno.com" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.luno.com/en/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.luno.com/en/developers/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx")) );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "exchange", new java.util.HashMap<String, Object>() {{
@@ -143,6 +143,13 @@ public class LunoCore extends LunoApi
                 put( "exchangePrivate", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "candles", 1 );
+                        put( "move", 1 );
+                        put( "move/list_moves", 1 );
+                        put( "transfers", 1 );
+                    }} );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "convert", 1 );
+                        put( "move", 1 );
                     }} );
                 }} );
                 put( "public", new java.util.HashMap<String, Object>() {{
@@ -170,6 +177,7 @@ public class LunoCore extends LunoApi
                         put( "withdrawals", 1 );
                         put( "withdrawals/{id}", 1 );
                         put( "transfers", 1 );
+                        put( "users/linked", 1 );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "accounts", 1 );
@@ -210,6 +218,104 @@ public class LunoCore extends LunoApi
                     put( "percentage", true );
                     put( "taker", LunoCore.this.parseNumber("0.001") );
                     put( "maker", LunoCore.this.parseNumber("0") );
+                }} );
+            }} );
+            put( "exceptions", new java.util.HashMap<String, Object>() {{
+                put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "ErrAccountIsMigrating", OperationRejected.class );
+                    put( "ErrAccountLimit", OperationRejected.class );
+                    put( "ErrAccountNotFound", ExchangeError.class );
+                    put( "ErrAccountsNotDifferent", BadRequest.class );
+                    put( "ErrActiveCryptoRequestExists", OperationRejected.class );
+                    put( "ErrAddressCreateRateLimitReached", RateLimitExceeded.class );
+                    put( "ErrAddressLimitReached", OperationRejected.class );
+                    put( "ErrAmountTooBig", BadRequest.class );
+                    put( "ErrAmountTooSmall", BadRequest.class );
+                    put( "ErrApiKeyRevoked", AuthenticationError.class );
+                    put( "ErrBeneficiaryNotFound", ExchangeError.class );
+                    put( "ErrBlockedSendsCurrency", OperationRejected.class );
+                    put( "ErrCannotStopUnknownOrNonPendingOrder", InvalidOrder.class );
+                    put( "ErrCannotTradeWhileQuoteActive", OperationRejected.class );
+                    put( "ErrConvertPairNotSupported", BadRequest.class );
+                    put( "ErrConvertRateLimited", RateLimitExceeded.class );
+                    put( "ErrCounterDenominationNotAllowed", InvalidOrder.class );
+                    put( "ErrCreditAccountNotTransactional", BadRequest.class );
+                    put( "ErrCustomRefNotAllowed", BadRequest.class );
+                    put( "ErrDeadlineExceeded", RequestTimeout.class );
+                    put( "ErrDebitAccountNotTransactional", BadRequest.class );
+                    put( "ErrDescriptionTooLong", BadRequest.class );
+                    put( "ErrDifferentCurrencies", BadRequest.class );
+                    put( "ErrDisallowedTarget", InvalidAddress.class );
+                    put( "ErrDuplicateClientMoveID", OperationRejected.class );
+                    put( "ErrDuplicateClientOrderID", DuplicateOrderId.class );
+                    put( "ErrDuplicateExternalID", OperationRejected.class );
+                    put( "ErrERC20AddressAlreadyAssigned", OperationRejected.class );
+                    put( "ErrERC20AssignNonDefault", BadRequest.class );
+                    put( "ErrFundsMoveNotFound", ExchangeError.class );
+                    put( "ErrIdempotencyKeyConflict", OperationRejected.class );
+                    put( "ErrIdempotencyKeyRequestMismatch", BadRequest.class );
+                    put( "ErrIncompatibleBeneficiary", BadRequest.class );
+                    put( "ErrIncorrectPin", AuthenticationError.class );
+                    put( "ErrInsufficientBalance", InsufficientFunds.class );
+                    put( "ErrInsufficientFunds", InsufficientFunds.class );
+                    put( "ErrInsufficientPerms", PermissionDenied.class );
+                    put( "ErrInternal", ExchangeNotAvailable.class );
+                    put( "ErrInvalidAccount", BadRequest.class );
+                    put( "ErrInvalidAccountID", BadRequest.class );
+                    put( "ErrInvalidAccountNumber", BadRequest.class );
+                    put( "ErrInvalidAmount", BadRequest.class );
+                    put( "ErrInvalidArguments", BadRequest.class );
+                    put( "ErrInvalidBaseVolume", InvalidOrder.class );
+                    put( "ErrInvalidBranchCode", BadRequest.class );
+                    put( "ErrInvalidClientOrderId", InvalidOrder.class );
+                    put( "ErrInvalidCounterVolume", InvalidOrder.class );
+                    put( "ErrInvalidCurrency", BadRequest.class );
+                    put( "ErrInvalidDetails", BadRequest.class );
+                    put( "ErrInvalidMarketPair", BadSymbol.class );
+                    put( "ErrInvalidOrderRef", InvalidOrder.class );
+                    put( "ErrInvalidOrderSide", InvalidOrder.class );
+                    put( "ErrInvalidParameters", BadRequest.class );
+                    put( "ErrInvalidPrice", InvalidOrder.class );
+                    put( "ErrInvalidRequestType", BadRequest.class );
+                    put( "ErrInvalidSourceAccount", BadRequest.class );
+                    put( "ErrInvalidStopDirection", InvalidOrder.class );
+                    put( "ErrInvalidStopPrice", InvalidOrder.class );
+                    put( "ErrInvalidVolume", InvalidOrder.class );
+                    put( "ErrLimitOutOfRange", BadRequest.class );
+                    put( "ErrMarketNotAllowed", PermissionDenied.class );
+                    put( "ErrMarketUnavailable", ExchangeError.class );
+                    put( "ErrMaxActiveFiatRequestsExists", OperationRejected.class );
+                    put( "ErrMissingIdempotencyKey", BadRequest.class );
+                    put( "ErrNoAddressesAssigned", InvalidAddress.class );
+                    put( "ErrNoTradesToInferStopDirection", InvalidOrder.class );
+                    put( "ErrNotEnoughLiquidity", InvalidOrder.class );
+                    put( "ErrNotFound", ExchangeError.class );
+                    put( "ErrOrderCanceled", InvalidOrder.class );
+                    put( "ErrOrderNotFound", OrderNotFound.class );
+                    put( "ErrPostOnlyMode", InvalidOrder.class );
+                    put( "ErrPostOnlyNotAllowed", InvalidOrder.class );
+                    put( "ErrPriceDenominationNotAllowed", InvalidOrder.class );
+                    put( "ErrPriceTooHigh", InvalidOrder.class );
+                    put( "ErrPriceTooLow", InvalidOrder.class );
+                    put( "ErrRejectedBeneficiary", OperationRejected.class );
+                    put( "ErrRequestTypeDoesNotSupportFastWithdrawals", BadRequest.class );
+                    put( "ErrStopPriceTooHigh", InvalidOrder.class );
+                    put( "ErrStopPriceTooLow", InvalidOrder.class );
+                    put( "ErrTooManyRequests", RateLimitExceeded.class );
+                    put( "ErrTooManyRowsRequested", BadRequest.class );
+                    put( "ErrTravelRule", ManualInteractionNeeded.class );
+                    put( "ErrUnauthorised", AuthenticationError.class );
+                    put( "ErrUnderMaintenance", OnMaintenance.class );
+                    put( "ErrUpdateRequired", ExchangeError.class );
+                    put( "ErrUserBlockedForCancelWithdrawal", PermissionDenied.class );
+                    put( "ErrUserNotVerifiedForCurrency", AccountNotEnabled.class );
+                    put( "ErrValueTooHigh", InvalidOrder.class );
+                    put( "ErrVerificationLevelTooLow", AccountNotEnabled.class );
+                    put( "ErrVolumeDenominationNotAllowed", InvalidOrder.class );
+                    put( "ErrVolumeTooHigh", InvalidOrder.class );
+                    put( "ErrVolumeTooLow", InvalidOrder.class );
+                    put( "ErrWithdrawalBlocked", PermissionDenied.class );
+                    put( "ErrWithdrawalNotFound", ExchangeError.class );
                 }} );
             }} );
             put( "precisionMode", TICK_SIZE );
@@ -302,6 +408,7 @@ public class LunoCore extends LunoApi
      * @method
      * @name luno#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
@@ -1648,6 +1755,7 @@ public class LunoCore extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] an optional name for the new address
      * @param {int} [params.account_id] an optional account id for the new address
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
@@ -1698,6 +1806,7 @@ public class LunoCore extends LunoApi
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDepositAddress(Object code, Object... optionalArgs)
@@ -1814,7 +1923,10 @@ public class LunoCore extends LunoApi
         Object error = this.safeValue(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
+            Object errorCode = this.safeString(response, "error_code");
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            throw new ExchangeError((String)feedback) ;
         }
         return null;
     }

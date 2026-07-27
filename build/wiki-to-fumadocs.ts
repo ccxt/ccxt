@@ -50,6 +50,10 @@ for (const [file, { route }] of Object.entries(GUIDES)) {
 }
 PAGE_TO_ROUTE['index'] = 'index';
 PAGE_TO_ROUTE[''] = 'manual';                                // docs.ccxt.com/?id=X  -> root == Manual
+// the prediction guide is the index of the top-level Prediction Markets tab (/docs/prediction),
+// not a standalone guide page — so links to Prediction-Markets.md resolve there
+PAGE_TO_ROUTE['Prediction-Markets'] = 'prediction';
+PAGE_TO_ROUTE['prediction-markets'] = 'prediction';
 PAGE_TO_ROUTE['Exchanges'] = 'exchange-markets';             // GitHub-wiki "Exchanges" page
 
 // Page names as they appear in bare relative links / GitHub-wiki URLs (longest first).
@@ -96,6 +100,8 @@ function headingSlugs (md: string): Set<string> {
 // Build anchor index from Manual + pro-manual (the two pages that own structure anchors).
 let MANUAL_ANCHORS = new Set<string>();
 let PRO_ANCHORS = new Set<string>();
+// prediction structure anchors (PredictionEvent, …) live in the prediction guide, not the Manual
+let PREDICTION_ANCHORS = new Set<string>();
 
 // The English exchanges table is generated from ts/src (by export-exchanges, between these
 // markers). Translations carry a frozen copy that drifts — stale referrals, removed
@@ -128,6 +134,8 @@ function resolveAnchorPage (anchor: string): string {
     const slug = anchor.toLowerCase();
     if (MANUAL_ANCHORS.has(slug)) return 'manual';
     if (PRO_ANCHORS.has(slug)) return 'pro-manual';
+    // prediction structures (prediction-event-structure, …) are documented in the prediction guide
+    if (PREDICTION_ANCHORS.has(slug) || slug.startsWith('prediction-')) return 'prediction';
     return 'manual';                                          // default: structure anchors live in Manual
 }
 
@@ -310,10 +318,11 @@ function firstParagraph (md: string): string {
 }
 
 const ROUTE_DESC: Record<string, string> = {
-    'index': 'CCXT — a unified API for 100+ cryptocurrency exchanges in JavaScript, Python, PHP, C#, Go and Java.',
+    'index': 'CCXT — a unified API for 100+ cryptocurrency and prediction-market exchanges in JavaScript, Python, PHP, C#, Go and Java.',
     'base-spec': 'CCXT unified API specification — every method and the exchanges that implement it.',
-    'exchange-markets': 'All cryptocurrency exchanges supported by CCXT.',
-    'exchange-markets-by-country': 'CCXT-supported cryptocurrency exchanges grouped by country.',
+    'prediction-markets': 'Trade prediction markets (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) with the CCXT unified API.',
+    'exchange-markets': 'All cryptocurrency and prediction-market exchanges supported by CCXT.',
+    'exchange-markets-by-country': 'CCXT-supported cryptocurrency and prediction-market exchanges grouped by country.',
 };
 
 // Code-fence languages Shiki recognises (lowercased). Anything else -> plain fence.
@@ -323,11 +332,65 @@ const LANG_OK = new Set([
     'text', 'plaintext', 'txt', 'diff', 'json', 'jsonc', 'yaml', 'yml', 'html',
     'xml', 'css', 'scss', 'sql', 'markdown', 'md', 'ini', 'toml', 'c', 'cpp',
     'rust', 'rs', 'ruby', 'rb', 'graphql', 'dockerfile', 'http',
+    // not a Shiki language: the prediction overview swaps its ```mermaid fence (GitHub
+    // renders that natively) for ```prediction-diagram, which source.config.ts turns into
+    // the <PredictionDataModel/> animated component — keep the tag through transform
+    'prediction-diagram',
 ]);
 const LANG_ALIAS: Record<string, string> = {
     javacript: 'javascript', node: 'javascript', nodejs: 'javascript',
     python3: 'python', shell: 'bash', console: 'bash',
 };
+
+// ---------------------------------------------------------------------------
+// Supported-Exchanges table -> structured rows for the <ExchangesTable/> component.
+// Parses the two markdown tables (crypto + prediction) emitted by export-exchanges.js.
+// ---------------------------------------------------------------------------
+type ExchangeRow = {
+    id: string; name: string; site: string; logo: string;
+    version: string; doclink: string; type: 'CEX' | 'DEX' | 'Prediction';
+    certified: boolean; pro: boolean; docs: string;
+};
+function parseExchangeMarkets (raw: string): ExchangeRow[] {
+    const region = (start: string, end: string): string => {
+        const a = raw.indexOf(start);
+        const b = raw.indexOf(end, a + 1);
+        return (a === -1) ? '' : raw.slice(a, b === -1 ? undefined : b);
+    };
+    const dataRows = (block: string): string[][] =>
+        block.split('\n')
+            .filter ((l) => l.trim().startsWith('|') && !/^\|[\s:|-]+\|?$/.test(l.trim()))   // drop separator rows
+            .map ((l) => l.split('|').slice(1, -1).map((c) => c.trim()))
+            .filter ((cells) => cells.length >= 4 && cells[0].toLowerCase() !== 'logo');       // drop header row
+    const firstImg = (cell: string): string => (cell.match(/!\[[^\]]*\]\(([^)\s]+)/) ?? [])[1] ?? '';
+    const wrapLink = (cell: string): string => (cell.match(/^\s*\[!\[[^\]]*\]\([^)]+\)\]\(([^)\s]+)\)/) ?? [])[1] ?? '';
+    const named = (cell: string): { name: string; url: string } => {
+        const m = cell.match(/\[([^\]]+)\]\(([^)\s]+)\)/);
+        return m ? { name: m[1], url: m[2] } : { name: cell.replace(/[[\]]/g, ''), url: '' };
+    };
+    const parseBlock = (block: string, kind: 'crypto' | 'prediction'): ExchangeRow[] =>
+        dataRows(block).map ((cells) => {
+            const logo = firstImg(cells[0]);
+            const site = wrapLink(cells[0]) || named(cells[2]).url;
+            const id = cells[1];
+            const name = named(cells[2]).name || id;
+            const verCell = cells[3] ?? '';
+            const version = (verCell.match(/API Version ([^\]]+)\]/) ?? [])[1] ?? '*';
+            const lastUrl = (verCell.match(/\]\(([^)\s]+)\)\s*$/) ?? [])[1] ?? '';
+            const doclink = lastUrl.indexOf('shields.io') === -1 ? lastUrl : '';
+            const typeCell = cells[4] ?? '';
+            const type: ExchangeRow['type'] = (kind === 'prediction')
+                ? 'Prediction'
+                : (/badge\/DEX|\bDEX\b/.test(typeCell) ? 'DEX' : 'CEX');
+            const certified = (kind !== 'prediction') && /Certified/.test(cells[5] ?? '');
+            const pro = (kind !== 'prediction') && /CCXT[ -]Pro/.test(cells[6] ?? '');
+            const docs = (kind === 'prediction') ? `/docs/prediction/${id}` : `/docs/exchanges/${id}`;
+            return { id, name, site, logo, version, doclink, type, certified, pro, docs };
+        });
+    const crypto = parseBlock(region('<!--- init list -->', '<!--- end list -->'), 'crypto');
+    const prediction = parseBlock(region('<!--- init prediction list -->', '<!--- end prediction list -->'), 'prediction');
+    return crypto.concat(prediction);
+}
 
 // ---------------------------------------------------------------------------
 // Filesystem helpers
@@ -396,6 +459,7 @@ function main () {
     // anchor index for ?id= resolution
     try { MANUAL_ANCHORS = headingSlugs(readWiki('Manual.md')); } catch {}
     try { PRO_ANCHORS = headingSlugs(readWiki('ccxt.pro.manual.md')); } catch {}
+    try { PREDICTION_ANCHORS = headingSlugs(readWiki('Prediction-Markets.md')); } catch {}
 
     let count = 0;
 
@@ -403,6 +467,27 @@ function main () {
     for (const [file, { route, title }] of Object.entries(GUIDES)) {
         const src = path.join(WIKI, file);
         if (!fs.existsSync(src)) { console.warn('  ⚠ missing guide', file); continue; }
+        // Supported Exchanges: parse the static markdown tables (crypto + prediction) into
+        // one dataset and render them via the sortable/filterable <ExchangesTable/> component
+        if (route === 'exchange-markets') {
+            const rows = parseExchangeMarkets(readWiki(file));
+            const cex = rows.filter((r) => r.type === 'CEX').length;
+            const dex = rows.filter((r) => r.type === 'DEX').length;
+            const pred = rows.filter((r) => r.type === 'Prediction').length;
+            // Fail loudly instead of shipping an empty/partial table: parseExchangeMarkets is
+            // coupled to export-exchanges.js's markdown (column order + the <!--- init list -->
+            // / <!--- init prediction list --> markers). If that format changes — or this runs
+            // before export-exchanges.js populated the file — the parse silently yields 0 rows.
+            if (cex + dex === 0 || pred === 0) {
+                throw new Error(`parseExchangeMarkets parsed ${cex + dex} crypto and ${pred} prediction rows from wiki/${file} — the <ExchangesTable/> would be empty. The table format or its <!--- init list -->/<!--- init prediction list --> markers likely changed; run export-exchanges.js, then update parseExchangeMarkets() in build/wiki-to-fumadocs.ts.`);
+            }
+            const intro = `CCXT supports **${cex + dex} cryptocurrency** exchanges and **${pred} prediction-market** exchanges. Search, filter by type, and sort any column.`;
+            const desc = ROUTE_DESC[route] || intro;
+            write(path.join(OUT, `${route}.md`),
+                frontmatter(title, desc) + `# ${title}\n\n${intro}\n\n\`\`\`exchanges-table\n${JSON.stringify(rows)}\n\`\`\`\n`);
+            count++;
+            continue;
+        }
         const body = transform(readWiki(file));
         if (route === 'manual') EN_MANUAL_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
         else if (route === 'pro-manual') EN_PRO_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
@@ -453,6 +538,55 @@ function main () {
     // root:true -> renders as a sidebar tab (keeps /docs/exchanges/* URLs unchanged)
     write(path.join(OUT, 'exchanges', 'meta.json'),
         JSON.stringify({ title: 'Exchanges', icon: 'ArrowLeftRight', description: 'Per-exchange API support', root: true, pages: exOrder }, null, 2));
+
+    // 2b) prediction-market exchanges (ts/src/prediction) — promoted to their OWN
+    // top-level "Prediction Markets" tab, separate from the crypto Exchanges tab
+    const predDir = path.join(WIKI, 'exchanges', 'prediction');
+    let predOrder: string[] = [];
+    if (fs.existsSync(predDir)) {
+        predOrder = fs.readdirSync(predDir)
+            .filter((f) => f.endsWith('.md') && fs.statSync(path.join(predDir, f)).size > 0)
+            .map((f) => f.replace(/\.md$/, ''))
+            .sort();
+    }
+    if (predOrder.length) {
+        ensure(path.join(OUT, 'prediction'));
+        // per-exchange title from each reference page's H1 (e.g. "polymarket" -> "Polymarket")
+        const predTitle: Record<string, string> = {};
+        const predMd: Record<string, string> = {};
+        for (const ex of predOrder) {
+            const md = readWiki(path.join('exchanges', 'prediction', `${ex}.md`));
+            predMd[ex] = md;
+            const h = md.match(/^#{1,6}\s+(.*)$/m);
+            predTitle[ex] = h ? stripInline(h[1]) || ex : ex;
+        }
+        // the Prediction Markets guide (moved out of Manual.md) is this tab's index page,
+        // so /docs/prediction is the overview (data model + diagram) rather than a 404.
+        // Append a clickable list of the per-exchange API pages so they're discoverable
+        // from the overview body, not only the sidebar.
+        let predPages = predOrder;
+        if (fs.existsSync(path.join(WIKI, 'Prediction-Markets.md'))) {
+            const desc = ROUTE_DESC['prediction-markets'] ?? 'Prediction-market exchanges with the CCXT unified API.';
+            const links = predOrder.map((ex) => `- [${predTitle[ex]}](/docs/prediction/${ex}) — unified API methods, parameters and endpoints`).join('\n');
+            const exchangesSection = `\n\n## Supported prediction exchanges\n\n${links}\n`;
+            // the wiki keeps a ```mermaid fence (GitHub renders it); on the website swap it
+            // for the bespoke animated <PredictionDataModel/> via the prediction-diagram fence
+            const guideMd = readWiki('Prediction-Markets.md').replace(/```mermaid[\s\S]*?```/, '```prediction-diagram\n```');
+            write(path.join(OUT, 'prediction', 'index.md'),
+                frontmatter('Prediction Markets', desc) + transform(guideMd) + exchangesSection);
+            count++;
+            predPages = ['index', ...predOrder];
+        }
+        for (const ex of predOrder) {
+            const title = predTitle[ex];
+            const desc = `${title} prediction-market exchange — CCXT unified API: methods, parameters and endpoints.`;
+            write(path.join(OUT, 'prediction', `${ex}.md`), frontmatter(title, desc) + transform(predMd[ex]));
+            count++;
+        }
+        // root:true -> its own sidebar tab; index.md (the guide) is the overview landing
+        write(path.join(OUT, 'prediction', 'meta.json'),
+            JSON.stringify({ title: 'Prediction Markets', icon: 'TrendingUp', description: 'Prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid)', root: true, pages: predPages }, null, 2));
+    }
 
     // 3) examples (js, py, ts, php)
     const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP', cs: 'C#', go: 'Go', java: 'Java' };
@@ -520,7 +654,7 @@ function main () {
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
-        'index', 'install', 'manual', 'pro-manual', 'pro', 'cli', 'examples-overview',
+        'index', 'install', 'manual', '[Prediction Markets](/docs/prediction)', 'pro-manual', 'pro', 'cli', 'examples-overview',
         'faq', 'requirements', 'contributing',
         '---Reference---', 'base-spec', 'exchange-markets', 'exchange-markets-by-country',
         'ai-skills', 'stats', 'certification', 'changelog',

@@ -2193,12 +2193,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             mainOrderObj = self.create_order_request(symbol, type, side, amount, price, orderParams)
             if hasStopLoss or hasTakeProfit:
                 # grouping opposed orders for sl/tp
-                stopLossOrderTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice'])
+                stopLossOrderTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                 stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
-                stopLossOrderLimitPrice = self.safe_string_n(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice)
-                takeProfitOrderTriggerPrice = self.safe_string_n(takeProfit, ['triggerPrice', 'stopPrice'])
+                stopLossOrderLimitPrice = self.safe_string_2(stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice)
+                takeProfitOrderTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice')
                 takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
-                takeProfitOrderLimitPrice = self.safe_string_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
+                takeProfitOrderLimitPrice = self.safe_string_2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice)
                 grouping = self.safe_string(orderParams, 'grouping', 'normalTpsl')
                 if grouping == 'positionTpsl':
                     amount = '0'

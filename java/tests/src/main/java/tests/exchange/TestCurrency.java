@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestCurrency extends BaseTest {
-    public static void testCurrency(Exchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testCurrency(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
         if (Helpers.isTrue(Helpers.isEqual(entry, null)))
         {

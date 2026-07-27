@@ -93,10 +93,13 @@ class ArrayCache(BaseCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if self._clear_updates_by_symbol.get(item['symbol']):
-            self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']] = 0
-        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
+        # item.get('symbol') (not item['symbol']): prediction trades carry 'outcome' not 'symbol',
+        # so a bare lookup raises KeyError in Python where JS just yields undefined
+        symbol = item.get('symbol')
+        if self._clear_updates_by_symbol.get(symbol):
+            self._clear_updates_by_symbol[symbol] = False
+            self._new_updates_by_symbol[symbol] = 0
+        self._new_updates_by_symbol[symbol] = self._new_updates_by_symbol.get(symbol, 0) + 1
         self._all_new_updates = (self._all_new_updates or 0) + 1
 
 
@@ -136,11 +139,13 @@ class ArrayCacheBySymbolById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
         self._nested_new_updates_by_symbol = True
+        self._key_field = 'symbol'  # first nesting level (overridden by ArrayCacheByOutcomeById)
         self.hashmap = {}
         self._index = collections.deque([], max_size)
 
     def append(self, item):
-        by_id = self.hashmap.setdefault(item['symbol'], {})
+        key = item[self._key_field]
+        by_id = self.hashmap.setdefault(key, {})
         if item['id'] in by_id:
             reference = by_id[item['id']]
             if reference != item:
@@ -155,7 +160,7 @@ class ArrayCacheBySymbolById(ArrayCache):
             delete_item = self._deque.popleft()
             self._index.popleft()
             try:
-                del self.hashmap[delete_item['symbol']][delete_item['id']]
+                del self.hashmap[delete_item[self._key_field]][delete_item['id']]
             except Exception as e:
                 logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
         self._deque.append(item)
@@ -165,16 +170,22 @@ class ArrayCacheBySymbolById(ArrayCache):
             self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
             self._new_updates_by_symbol.clear()
-        if item['symbol'] not in self._new_updates_by_symbol:
-            self._new_updates_by_symbol[item['symbol']] = set()
-        if self._clear_updates_by_symbol.get(item['symbol']):
-            self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']].clear()
-        id_set = self._new_updates_by_symbol[item['symbol']]
+        if key not in self._new_updates_by_symbol:
+            self._new_updates_by_symbol[key] = set()
+        if self._clear_updates_by_symbol.get(key):
+            self._clear_updates_by_symbol[key] = False
+            self._new_updates_by_symbol[key].clear()
+        id_set = self._new_updates_by_symbol[key]
         before_length = len(id_set)
         id_set.add(item['id'])
         after_length = len(id_set)
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
+
+
+class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
+    def __init__(self, max_size=None):
+        super(ArrayCacheByOutcomeById, self).__init__(max_size)
+        self._key_field = 'outcome'
 
 
 class ArrayCacheBySymbolBySide(ArrayCache):

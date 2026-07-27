@@ -3276,7 +3276,7 @@ func (this *AsterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var clientOrderId any = this.SafeStringN(params, []any{"origClientOrderId", "clientOrderId"})
+		var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "origClientOrderId", clientOrderId)
 		} else {

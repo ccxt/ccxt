@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class lighter extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -858,12 +860,12 @@ class lighter extends Exchange {
             } else {
                 $triggerOrderSide = 'buy';
             }
-            $stopLossOrderTriggerPrice = $this->safe_number_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
             $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
-            $stopLossOrderLimitPrice = $this->safe_number_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
-            $takeProfitOrderTriggerPrice = $this->safe_number_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderLimitPrice = $this->safe_number_2($stopLoss, 'price', 'stopLossPrice', $stopLossOrderTriggerPrice);
+            $takeProfitOrderTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
             $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
-            $takeProfitOrderLimitPrice = $this->safe_number_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+            $takeProfitOrderLimitPrice = $this->safe_number_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
             // $amount should be 0 for child $orders
             if ($stopLoss !== null) {
                 $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, 0, $stopLossOrderLimitPrice, $this->extend($params, array(

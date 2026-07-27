@@ -18,6 +18,11 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\ROUND;
+use const ccxt\DECIMAL_PLACES;
+use const ccxt\SIGNIFICANT_DIGITS;
+use const ccxt\TICK_SIZE;
+
 class hyperliquid extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -2366,12 +2371,12 @@ class hyperliquid extends Exchange {
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
-                $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
-                $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
-                $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderLimitPrice = $this->safe_string_2($stopLoss, 'price', 'stopLossPrice', $stopLossOrderTriggerPrice);
+                $takeProfitOrderTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
-                $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+                $takeProfitOrderLimitPrice = $this->safe_string_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
                 $grouping = $this->safe_string($orderParams, 'grouping', 'normalTpsl');
                 if ($grouping === 'positionTpsl') {
                     $amount = '0';

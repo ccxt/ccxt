@@ -20,6 +20,7 @@ import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOv
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const WS_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
+const PREDICTION_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
@@ -37,6 +38,9 @@ const KNOWN_TYPES = new Set([
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'FundingHistory', 'DepositWithdrawFee',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
+    // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
+    'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',
+    'PredictionEvent', 'PredictionMarket', 'PredictionOutcome', 'PredictionFees', 'PredictionOrderRequest',
 ]);
 
 // --- Type helpers ---
@@ -187,11 +191,11 @@ const WATCH_ZERO_ARG_WHITELIST = new Set([
     'watchPositions',
 ]);
 
-function parseMethodsFromTS(): MethodInfo[] {
+function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
-    const strippedBaseFile = writeOverloadStrippedFile (TS_BASE_FILE);
+    const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
-    removeOverloadStrippedFile (strippedBaseFile, TS_BASE_FILE);
+    removeOverloadStrippedFile (strippedBaseFile, sourceFile);
     const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];
@@ -257,6 +261,7 @@ function capitalize(s: string): string {
 
 function genReturnExpr(m: MethodInfo): string {
     if (m.isArray && m.elementType) return `toTypedList(res, ${m.elementType}::new)`;
+    if (m.javaReturnType === 'Object') return 'res';
     if (m.javaReturnType === 'Long') return '(res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return '(res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return '(String) res';
@@ -267,6 +272,7 @@ function genReturnExpr(m: MethodInfo): string {
 
 function genAsyncReturnExpr(m: MethodInfo): string {
     if (m.isArray && m.elementType) return `res -> toTypedList(res, ${m.elementType}::new)`;
+    if (m.javaReturnType === 'Object') return 'res -> res';
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return 'res -> (String) res';
@@ -424,14 +430,14 @@ function genMethod(m: MethodInfo, castToObject = false): string {
  *
  * e.g., Binance extends BinanceCore with typed overloads.
  */
-function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[]): string {
+function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], javaPackage = 'io.github.ccxt.exchanges'): string {
     const className = capitalize(exchangeId);
     const coreClassName = className + 'Core';
 
     const lines: string[] = [];
 
     // Header
-    lines.push(`package io.github.ccxt.exchanges;`);
+    lines.push(`package ${javaPackage};`);
     lines.push(``);
     lines.push(`import io.github.ccxt.Helpers;`);
     lines.push(`import io.github.ccxt.types.*;`);
@@ -576,6 +582,96 @@ let generated = 0;
 // Exchange.createOrderWs which throws NotSupported.
 const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
 const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
+
+// Prediction exchanges return the native dedicated Prediction* types. The shared
+// restMethods list is parsed from base Exchange.ts (base return types), so remap the
+// trading return types to their prediction equivalents for the prediction package.
+const PREDICTION_TYPE_MAP: Record<string, string> = {
+    'Ticker': 'PredictionTicker',
+    'Tickers': 'PredictionTickers',
+    'Order': 'PredictionOrder',
+    'Trade': 'PredictionTrade',
+    'Position': 'PredictionPosition',
+    'OrderBook': 'PredictionOrderBook',
+    'TradingFeeInterface': 'PredictionTradingFee',
+    'OpenInterest': 'PredictionOpenInterest',
+};
+function toPredictionMethods(rest: MethodInfo[]): MethodInfo[] {
+    return rest.map((m) => {
+        if (m.isArray && m.elementType && PREDICTION_TYPE_MAP[m.elementType]) {
+            const elem = PREDICTION_TYPE_MAP[m.elementType];
+            return { ...m, elementType: elem, javaReturnType: `List<${elem}>` };
+        }
+        if (!m.isArray && PREDICTION_TYPE_MAP[m.javaReturnType]) {
+            return { ...m, javaReturnType: PREDICTION_TYPE_MAP[m.javaReturnType] };
+        }
+        return m;
+    });
+}
+// Prediction-only base methods (fetchSettlements, ...) live on PredictionExchange.ts, not
+// Exchange.ts, so the shared restMethods list (parsed from Exchange.ts) misses them. Parse the
+// prediction base and add the methods NOT already present. Every prediction Core extends
+// PredictionExchange, so super.<method>() resolves on all — safe to share across the exchanges.
+const PREDICTION_BASE_TS = './ts/src/base/PredictionExchange.ts';
+const baseMethodNames = new Set(methods.map(m => m.name));
+let predictionBaseOnlyMethods: MethodInfo[] = [];
+if (fs.existsSync(PREDICTION_BASE_TS)) {
+    predictionBaseOnlyMethods = parseMethodsFromTS(PREDICTION_BASE_TS).filter(m => !m.isWatch && !isWsApi(m) && !baseMethodNames.has(m.name));
+    if (predictionBaseOnlyMethods.length) {
+        console.log(`Found ${predictionBaseOnlyMethods.length} prediction-base-only methods: ${predictionBaseOnlyMethods.map(m => m.name).join(', ')}`);
+    }
+}
+// Exchange-specific prediction methods that are NOT on any base (e.g. limitless.redeem returns a
+// plain dict / Object and only exists on limitless). Only their own exchange's wrapper gets them,
+// so super.<method>() resolves. Declared explicitly to avoid wrapping internal exchange helpers.
+const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
+    'limitless': [{
+        name: 'redeem',
+        javaReturnType: 'Object', isArray: false, elementType: null,
+        requiredParams: [],
+        optionalParams: [
+            { name: 'outcome', javaType: 'String', isOptional: true, defaultValue: null },
+            { name: 'params', javaType: 'Map<String, Object>', isOptional: true, defaultValue: 'null' },
+        ],
+        isWatch: false,
+    }],
+};
+// Exchange-tier method names no prediction venue (or PredictionExchange) implements. Prediction
+// venues extend PredictionExchange (not the Exchange tier), so wrapping these would emit a typed
+// method whose super.<method>() resolves nowhere — and would re-expose the symbol-based surface
+// (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the wrappers,
+// matching javaTranspiler's PredictionExchange injection.
+function predictionTierExcludeNames(): Set<string> {
+    const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
+    const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
+    const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
+    const tier = new Set<string>();
+    for (let i = es; i < src.length; i++) {
+        const m = src[i].match(re);
+        if (m) tier.add(m[1]);
+    }
+    const impl = new Set<string>();
+    const files = [ './ts/src/base/PredictionExchange.ts' ];
+    const dir = './ts/src/prediction';
+    if (fs.existsSync(dir)) {
+        for (const f of fs.readdirSync(dir)) {
+            if (f.endsWith('.ts')) files.push(dir + '/' + f);
+        }
+    }
+    for (const file of files) {
+        for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+            const m = line.match(re);
+            if (m) impl.add(m[1]);
+        }
+    }
+    const exclude = new Set<string>();
+    for (const t of tier) {
+        if (!impl.has(t)) exclude.add(t);
+    }
+    return exclude;
+}
+const predictionExclude = predictionTierExcludeNames();
+const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);
@@ -607,23 +703,48 @@ if (fs.existsSync(WS_EXCHANGES_FOLDER)) {
     console.log(`Generated ${wsGenerated} WS typed wrappers`);
 }
 
+// Generate prediction REST typed wrappers (io.github.ccxt.exchanges.prediction).
+// Prediction exchanges extend their own <Cap>Api (which extends Exchange), so
+// they are NOT aliases — emit full typed wrappers, same as regular exchanges.
+if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
+    const predCoreFiles = fs.readdirSync(PREDICTION_EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
+    let predGenerated = 0;
+    for (const coreFile of predCoreFiles) {
+        const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
+        const className = capitalize(exchangeId);
+        const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
+        const exchangeMethods = predictionRestMethods.concat(PREDICTION_EXCHANGE_METHODS[exchangeId] || []);
+        const content = generateTypedExchangeClass(exchangeId, exchangeMethods, 'io.github.ccxt.exchanges.prediction');
+        fs.writeFileSync(outputPath, content, 'utf-8');
+        predGenerated++;
+    }
+    console.log(`Generated ${predGenerated} prediction REST typed wrappers`);
+}
+
 console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOLDER}`);
 
-// Safety net: verify Exchange.java has an Object... varargs alias for every
-// whitelisted method. Missing aliases produced the silent CI break that
-// motivated this whitelist; loud-failing here prevents the same trap.
-const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
-if (fs.existsSync(EXCHANGE_BASE_FILE)) {
-    const baseSrc = fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
+// Safety net: verify an Object... varargs alias exists for every whitelisted
+// method. Missing aliases produced the silent CI break that motivated this
+// whitelist; loud-failing here prevents the same trap. The aliases are split
+// across two tiers after the base/Exchange split: base-infra methods (fetchBalance,
+// fetchTime, ...) keep their aliases on BaseExchange.java, while the trading methods
+// that moved to the Exchange tier (fetchOrders, fetchTickers, fetchPositions, ...)
+// carry their aliases on Exchange.java. Check both.
+const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
+const EXCHANGE_TIER_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+{
+    let src = '';
+    if (fs.existsSync(EXCHANGE_BASE_FILE)) src += fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
+    if (fs.existsSync(EXCHANGE_TIER_FILE)) src += '\n' + fs.readFileSync(EXCHANGE_TIER_FILE, 'utf-8');
     const missing: string[] = [];
     for (const m of ZERO_REQUIRED_TYPED_WHITELIST) {
         const aliasRe = new RegExp(`\\b${m}Async\\s*\\(\\s*Object\\.\\.\\.\\s*\\w+\\s*\\)`);
-        if (!aliasRe.test(baseSrc)) missing.push(`${m}Async(Object... args)`);
+        if (!aliasRe.test(src)) missing.push(`${m}Async(Object... args)`);
     }
     if (missing.length > 0) {
-        console.error(`\nERROR: Exchange.java is missing untyped async aliases for ${missing.length} whitelisted method(s):`);
+        console.error(`\nERROR: BaseExchange.java / Exchange.java are missing untyped async aliases for ${missing.length} whitelisted method(s):`);
         for (const m of missing) console.error(`  - public CompletableFuture<Object> ${m} { return ${m.replace('Async', '').replace(/\(.*/, '')}(args); }`);
-        console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in ${EXCHANGE_BASE_FILE}.`);
+        console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in the tier that declares the method.`);
         process.exit(1);
     }
 }

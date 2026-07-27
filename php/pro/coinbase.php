@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbase extends \ccxt\async\coinbase {
     public function describe(): mixed {

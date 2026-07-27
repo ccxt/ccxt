@@ -21,6 +21,9 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class binance extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -3826,6 +3829,11 @@ class binance extends Exchange {
             }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
+                // skip stale/uninitialized $assets, whose $updateTime is 0, their $balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
+                $updateTime = $this->safe_integer($balance, 'updateTime');
+                if ($updateTime === 0) {
+                    continue;
+                }
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -10526,7 +10534,7 @@ class binance extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
-        $leverageString = $this->safe_string($position, 'leverage');
+        $leverageString = $this->omit_zero($this->safe_string($position, 'leverage')); // portfolio-margin accounts may return $leverage "0", see #29244
         $leverage = ($leverageString !== null) ? intval($leverageString) : null;
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         $initialMargin = $this->parse_number($initialMarginString);
@@ -10871,7 +10879,7 @@ class binance extends Exchange {
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $initialMarginString = null;
         $initialMarginPercentageString = null;
-        $leverageString = $this->safe_string($position, 'leverage');
+        $leverageString = $this->omit_zero($this->safe_string($position, 'leverage')); // portfolio-margin accounts may return $leverage "0", see #29244
         if ($leverageString !== null) {
             $leverage = intval($leverageString);
             $rational = $this->is_round_number(fmod(1000, $leverage));

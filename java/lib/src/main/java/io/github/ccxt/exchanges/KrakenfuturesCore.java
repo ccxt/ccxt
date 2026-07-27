@@ -2330,7 +2330,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "orderId") );
-                put( "clientOrderId", KrakenfuturesCore.this.safeStringN(finalOrderDictFromFetchOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("cliOrdId"))) );
+                put( "clientOrderId", KrakenfuturesCore.this.safeString(finalOrderDictFromFetchOrder, "cliOrdId") );
                 put( "timestamp", KrakenfuturesCore.this.parse8601(datetime) );
                 put( "datetime", datetime );
                 put( "lastTradeTimestamp", null );

@@ -2002,7 +2002,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             return self.safe_order({
                 'info': order,
                 'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId': self.safe_string_n(orderDictFromFetchOrder, ['cliOrdId']),
+                'clientOrderId': self.safe_string(orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
                 'lastTradeTimestamp': None,

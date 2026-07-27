@@ -2104,7 +2104,7 @@ class grvt(Exchange, ImplicitAPI):
                 limitDec = self.safe_string(limitParts, 1, '')
                 limitDecLength = len(limitDec) + 0  # php tr
                 limitDecLengthStr = str(limitDecLength)
-                powerNum = limitDecLengthStr == 0 if '0' else self.convert_to_big_int_custom(limitDecLengthStr)
+                powerNum = 0 if (limitDecLengthStr == '0') else self.convert_to_big_int_custom(limitDecLengthStr)
                 priceInteger = (self.convert_to_big_int_custom(price.replace('.', '')) * self.convert_to_big_int_custom(priceMultiplier) / (math.pow(bigInt10, powerNum)))
                 legOrder['limitPrice'] = self.parse_to_int(priceInteger)
             else:
