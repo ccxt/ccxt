@@ -144,6 +144,19 @@
                 "output": "{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"50\"}"
             },
             {
+                "description": "Swap limit buy order with decimal contract size",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                    "RAVE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1.4,
+                    18
+                ],
+                "output": "{\"contract\":\"RAVE_USDT\",\"size\":\"1.4\",\"price\":\"18\"}"
+            },
+            {
                 "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
@@ -245,6 +258,22 @@
                   }
                 ],
                 "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"70\"},\"trigger\":{\"price_type\":0,\"price\":\"90\",\"rule\":1}}"
+            },
+            {
+                "description": "swap trigger order with decimal contract size",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                  "RAVE/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.4,
+                  18,
+                  {
+                    "stopLossPrice": 17
+                  }
+                ],
+                "output": "{\"initial\":{\"contract\":\"RAVE_USDT\",\"amount\":\"-0.4\",\"price\":\"18\"},\"trigger\":{\"price_type\":0,\"price\":\"17\",\"rule\":2}}"
             },
             {
                 "description": "swap market buy",
@@ -405,6 +434,20 @@
                   101
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":-2,\"price\":\"101\"}"
+            },
+            {
+                "description": "edit swap order with decimal contract size",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/436745134771",
+                "input": [
+                  "436745134771",
+                  "RAVE/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1.4,
+                  18.2
+                ],
+                "output": "{\"currency_pair\":\"RAVE_USDT\",\"account\":\"futures\",\"size\":\"-1.4\",\"price\":\"18.2\"}"
             },
             {
                 "description": "unified spot edit an order",

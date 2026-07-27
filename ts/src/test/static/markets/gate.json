@@ -4200,5 +4200,79 @@
                 ]
             ]
         }
+    },
+    "RAVE/USDT:USDT": {
+        "id": "RAVE_USDT",
+        "lowercaseId": null,
+        "symbol": "RAVE/USDT:USDT",
+        "base": "RAVE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "RAVE",
+        "quoteId": "USDT",
+        "settleId": "usdt",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00075,
+        "maker": -0.0001,
+        "contractSize": 10,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 0.1,
+                "max": 33000
+            },
+            "price": {
+                "min": 16.2,
+                "max": 19.8
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1773742980000,
+        "info": {
+            "name": "RAVE_USDT",
+            "type": "direct",
+            "quanto_multiplier": "10",
+            "order_price_deviate": "0.1",
+            "mark_price": "18",
+            "order_price_round": "0.0001",
+            "order_size_min": "0.1",
+            "order_size_max": "33000",
+            "leverage_min": "1",
+            "leverage_max": "50",
+            "enable_decimal": true,
+            "create_time": "1773742980"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }
