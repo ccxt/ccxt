@@ -1436,6 +1436,11 @@ export default class nado extends Exchange {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
+            const balance = this.safeDict (position, 'balance', {});
+            const amount = this.safeString (balance, 'amount');
+            if ((amount === undefined) || Precise.stringEquals (amount, '0')) {
+                continue; // the endpoint returns an entry for every listed product - only nonzero balances are open positions
+            }
             const productId = this.safeString (position, 'product_id');
             let product = {};
             for (let j = 0; j < products.length; j++) {
@@ -2425,6 +2430,8 @@ export default class nado extends Exchange {
             const amount = Precise.stringDiv (this.safeString (balance, 'amount'), '1000000000000000000');
             const account = this.account ();
             account['total'] = amount;
+            // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
+            account['free'] = amount;
             result[code] = account;
         }
         return this.safeBalance (result);
