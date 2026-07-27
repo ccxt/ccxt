@@ -1940,13 +1940,9 @@ export default class htx extends Exchange {
             const contractSize = this.safeNumber (market, 'contract_size');
             let minCost = this.safeNumber (market, 'min-order-value');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
-            let minAmount = this.safeNumber (market, 'min-order-amt');
-            if (contract) {
-                if (linear) {
-                    minAmount = contractSize;
-                } else if (inverse) {
-                    minCost = contractSize;
-                }
+            const minAmount = this.safeNumber (market, 'min-order-amt');
+            if (contract && inverse) {
+                minCost = contractSize;
             }
             let pricePrecision: Num = undefined;
             let amountPrecision: Num = undefined;
