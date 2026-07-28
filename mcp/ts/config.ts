@@ -278,9 +278,10 @@ export function loadConfig (): ResolvedConfig {
         'maxResults': validSettings.maxResults ?? 100,
         'strictPermissions': validSettings.strictPermissions ?? false,
         'exchangeOptions': validSettings.exchangeOptions ?? {},
-        // a backstop against a runaway/prompt-injected subscribe loop, not a resource
-        // ceiling (subs on one exchange share a socket); raise it in settings if needed
-        'maxSubscriptions': validSettings.maxSubscriptions ?? 100,
+        // 0 = no limit (the default). Streaming is read-only and single-user, and the
+        // idle TTL + shared sockets + exchange-side stream limits are the real backstops,
+        // so a count cap isn't needed — set a positive value only if you want one.
+        'maxSubscriptions': validSettings.maxSubscriptions ?? 0,
     };
 
     for (const problem of problems) {

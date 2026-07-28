@@ -82,8 +82,9 @@ export class SubscriptionRegistry {
     // in `subs` — closes the check-then-act gap across the acquire await
     private reserved = 0;
 
-    constructor (pools: any, maxSubscriptions = 100) {
+    constructor (pools: any, maxSubscriptions = 0) {
         this.pools = pools;
+        // 0 = no limit (the default); a positive value is an optional runaway backstop
         this.maxSubscriptions = maxSubscriptions;
     }
 
@@ -95,8 +96,8 @@ export class SubscriptionRegistry {
         if (opts.account === undefined && PRIVATE_STREAM_RE.test (method)) {
             throw new StreamArgError (method + ' is a private stream and needs an account', 'configure an account and pass its name as "account"');
         }
-        if (this.subs.size + this.reserved >= this.maxSubscriptions) {
-            throw new StreamArgError ('too many active subscriptions (max ' + this.maxSubscriptions + ', configurable via settings.maxSubscriptions)', 'watch_unsubscribe some first — watch_list shows them');
+        if (this.maxSubscriptions > 0 && this.subs.size + this.reserved >= this.maxSubscriptions) {
+            throw new StreamArgError ('reached the configured subscription limit (settings.maxSubscriptions = ' + this.maxSubscriptions + ')', 'watch_unsubscribe some first — watch_list shows them; or raise/remove the limit in settings');
         }
         this.reserved += 1;
         try {
