@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import type { Bool, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------

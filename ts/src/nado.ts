@@ -2993,7 +2993,7 @@ export default class nado extends Exchange {
     }
 
     signHash (hash: string, privateKey: Str) {
-                if (privateKey === undefined) {
+        if (privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' signHash() requires privateKey');
         }
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
