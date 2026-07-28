@@ -37,8 +37,7 @@ jobs:
         fi
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x'
-        dotnet-quality: 'preview'
+        dotnet-version: '10.0.x'
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -161,8 +160,7 @@ jobs:
           name: shared_env
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          dotnet-quality: 'preview'
+          dotnet-version: '10.0.x'
       - name: Download CS Files
         uses: actions/download-artifact@v4
         with:

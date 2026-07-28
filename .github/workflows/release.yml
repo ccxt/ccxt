@@ -52,8 +52,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          dotnet-quality: 'preview'
+          dotnet-version: '10.0.x'
           run: |
             sudo mkdir -p /usr/share/dotnet
       - name: Set up JDK
