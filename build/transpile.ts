@@ -2654,8 +2654,10 @@ class Transpiler {
         });
 
         // create worker
+        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js')
+            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            maxThreads,
         });
 
         const chunkSize = 10;
