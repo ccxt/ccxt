@@ -223,13 +223,13 @@ public final class SafeMethods {
             } else if (result instanceof java.math.BigDecimal bd) {
                 return bd.toPlainString();
             } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
-                return (opt(defaultValue) instanceof String s) ? s : null;
+                return (opt(defaultValue2) instanceof String s) ? s : null;
             } else {
                 String s = String.valueOf(result);
                 if (s != null && !s.isEmpty()) return s;
             }
         }
-        return (opt(defaultValue) instanceof String s) ? s : null;
+        return (opt(defaultValue2) instanceof String s) ? s : null;
     }
 
     // ----------------------------
