@@ -136,7 +136,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: go-files
-          path: go/
+          path: |
+            go/
+            !go/main
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
         with:
