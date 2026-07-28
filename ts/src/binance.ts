@@ -547,6 +547,17 @@ export default class binance extends Exchange {
                         'accumulator/product/list': 0.1,
                         'accumulator/product/position/list': 0.1,
                         'accumulator/product/sum-holding': 0.1,
+                        // tokenized equities public
+                        'equity/market/exchangeInfo': 0.1,
+                        'equity/market/tokenized-assets': 0.1,
+                        'equity/market/quote': 0.1,
+                        // tokenized equities private
+                        'equity/order/open-orders': 0.1,
+                        'equity/order/history': 0.1,
+                        'equity/order/detail': 0.1,
+                        'equity/trade/history': 0.1,
+                        'equity/tokenized/convert-status': 0.1,
+                        'equity/tokenized/history': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -687,6 +698,14 @@ export default class binance extends Exchange {
                         'dci/product/auto_compound/edit': 0.1,
                         // discount buy
                         'accumulator/product/subscribe': 0.1,
+                        // tokenized equities
+                        'equity/order/place': 0.1,
+                        'equity/order/cancel': 0.1,
+                        'equity/order/cancel-all': 0.1,
+                        'equity/tokenized/mint': 0.1,
+                        'equity/tokenized/redeem': 0.1,
+                        'equity/account/disclaimer': 0.1,
+                        'equity/listenKey': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
