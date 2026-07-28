@@ -1759,7 +1759,11 @@ export default class bitget extends bitgetRest {
             // the instType->marketType mapping above defaults UTA to 'contract', which
             // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
             // watcher never matches. Derive marketType from category for UTA.
-            marketType = ((category === 'spot') || (category === 'margin')) ? 'spot' : 'contract';
+            if ((category === 'spot') || (category === 'margin')) {
+                marketType = 'spot';
+            } else {
+                marketType = 'contract';
+            }
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -2258,7 +2262,10 @@ export default class bitget extends bitgetRest {
                 // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
                 // otherwise resolves to the swap market and the messageHash never matches).
                 const category = this.safeStringLower (trade, 'category');
-                const marketType = ((category === 'spot') || (category === 'margin')) ? 'spot' : 'contract';
+                let marketType = 'contract';
+                if ((category === 'spot') || (category === 'margin')) {
+                    marketType = 'spot';
+                }
                 const marketId = this.safeString2 (trade, 'instId', 'symbol');
                 market = this.safeMarket (marketId, undefined, undefined, marketType);
             }
