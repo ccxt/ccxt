@@ -35,7 +35,7 @@ RUN pip3 install psutil
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH="${DOTNET_ROOT}:${PATH}"
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
-    && bash /tmp/dotnet-install.sh --channel 9.0 --install-dir "${DOTNET_ROOT}" --no-path \
+    && bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "${DOTNET_ROOT}" --no-path \
     && rm /tmp/dotnet-install.sh \
     && dotnet --list-sdks
 # Installs as a local Node & Python module so that `require ('ccxt')` and `import ccxt` should work after that

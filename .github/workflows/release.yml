@@ -38,22 +38,21 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.6'
+          php-version: '8.5'
           # cache: true
           ini-values: |
             zend.assertions=1
             display_errors=On
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - name: create usr/share/dotnet folder
         run: |
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          dotnet-quality: 'preview'
+          dotnet-version: '10.0.x'
           run: |
             sudo mkdir -p /usr/share/dotnet
       - name: Set up JDK

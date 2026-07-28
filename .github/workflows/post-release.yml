@@ -17,6 +17,9 @@ jobs:
           ref: master
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
+          # Only CHANGELOG.md (root files are always in a cone checkout) and the
+          # announcement script are used. The changelog pushback stays in-cone.
+          sparse-checkout: build/utils
       - name: Generate and push changelog
         uses: rhysd/changelog-from-release/action@v3
         with:

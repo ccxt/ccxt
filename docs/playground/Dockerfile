@@ -25,7 +25,7 @@ ENV PATH="/usr/local/go/bin:${PATH}" GOTOOLCHAIN=local
 
 # --- .NET SDK (for the C# runner) ---
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
-    && bash /tmp/dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet \
+    && bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet \
     && rm /tmp/dotnet-install.sh
 # Pin the NuGet package cache to a stable path used at BOTH build and runtime, so
 # `dotnet run --no-restore` finds ccxt.dll regardless of the runtime user's HOME.

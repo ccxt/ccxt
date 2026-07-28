@@ -12,22 +12,22 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
+        clean: false
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
@@ -37,13 +37,13 @@ jobs:
         fi
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
         cache: 'pip'
     - name: Install python dependencies
       run: pip install -r build/ci-requirements.txt
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - name: Check Python version
       run: python --version
@@ -156,13 +156,13 @@ jobs:
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - name: Install python dependencies
         run: pip install -r build/ci-requirements.txt
@@ -192,13 +192,13 @@ jobs:
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - name: Install python dependencies
         run: pip install -r build/ci-requirements.txt
