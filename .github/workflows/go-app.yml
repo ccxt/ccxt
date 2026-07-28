@@ -24,10 +24,6 @@ jobs:
         with:
           fetch-depth: 2
           clean: false
-      - name: Setup Golang with cache
-        uses: magnetikonline/action-golang-cache@v6
-        with:
-          go-version: ~1.26
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
