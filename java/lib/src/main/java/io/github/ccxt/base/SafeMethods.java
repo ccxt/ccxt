@@ -168,7 +168,6 @@ public final class SafeMethods {
     public static String SafeStringTyped(Object obj, Object key, Object... defaultValue) {
         Object result = SafeValue(obj, key);
         if (result != null) {
-            String ret;
             if (result instanceof String s) {
                 if (s != null && !s.isEmpty()) return s;
             } else if (result instanceof Float f) {
