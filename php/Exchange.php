@@ -424,6 +424,7 @@ class BaseExchange {
         'modetrade',
         'mudrex',
         'myokx',
+        'nado',
         'ndax',
         'okx',
         'okxus',
