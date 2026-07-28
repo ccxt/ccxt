@@ -37,7 +37,7 @@ jobs:
         echo "SHA: $GITHUB_SHA"
         echo "Head Commit: $HEAD_COMMIT_MESSAGE"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
         clean: false
@@ -48,10 +48,9 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: '22'
-        cache: 'npm'
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies
@@ -169,7 +168,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -181,7 +180,7 @@ jobs:
           path: js/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'

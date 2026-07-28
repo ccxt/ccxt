@@ -30,7 +30,7 @@ jobs:
           echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
           echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
           echo "GITHUB_REF: {{ github.ref }}"
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
         clean: false
@@ -49,10 +49,9 @@ jobs:
         ini-values: |
           zend.assertions=1
           display_errors=On
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: '22'
-        cache: 'npm'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Composer install
@@ -151,7 +150,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -172,7 +171,7 @@ jobs:
           ini-values: |
             zend.assertions=1
             display_errors=On
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
