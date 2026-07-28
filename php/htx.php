@@ -7226,7 +7226,7 @@ class htx extends Exchange {
         );
         if ($market['linear']) {
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min($limit, 100); // max 100
             }
             if ($since !== null) {
                 $request['start_time'] = $since;
