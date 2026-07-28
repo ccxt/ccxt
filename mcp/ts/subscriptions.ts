@@ -20,10 +20,15 @@ const IDLE_TTL_MS = 10 * 60 * 1000; // stop a stream with no watch_read for 10 m
 const DEAD_TTL_MS = 30 * 1000;      // purge a dead (errored) subscription after 30s
 const MAX_CONSECUTIVE_ERRORS = 5;   // give up a stream after this many back-to-back errors
 
-const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|Balance|Positions)/;
-// methods whose value is the CURRENT STATE (full snapshot each update) rather than a
-// stream of discrete events; everything else watch* is treated as an event stream
-const STATE_STREAM_RE = /^watch(Ticker|Tickers|BidsAsks|MarkPrices?|OrderBook(ForSymbols)?|OHLCV(ForSymbols)?|Balance|Positions?|FundingRates?)$/;
+const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|MyLiquidations|Balance|Positions)/;
+// STATE = a watch* that returns the COMPLETE current object for a SINGLE entity each call
+// (one symbol's ticker or order book) — watch_read returns that snapshot in `latest`.
+// Everything else — multi-symbol/aggregating (watchTickers/watchPositions/watchBalance/…)
+// or discrete-event (watchTrades/watchOrders/watchOHLCV) — is an EVENT stream, so with
+// newUpdates=true only the CHANGED subset arrives each cycle and must NOT be treated as a
+// full snapshot; those deltas accumulate in the ring buffer, and the agent uses the fetch*
+// tools (get_tickers/get_positions/get_balance/get_ohlcv) when it wants a full snapshot.
+const STATE_STREAM_RE = /^watch(Ticker|OrderBook)$/;
 
 interface Update {
     seq: number;
@@ -194,13 +199,10 @@ export class SubscriptionRegistry {
         if (sub.active) {
             this.resetIdle (sub);
         }
-        const updatesSinceRead = sub.seq - sub.lastReadSeq;
-        sub.lastReadSeq = sub.seq;
         const common: Record<string, any> = {
             'found': true,
             'streamKind': sub.kind,
             'updatesSinceSubscribe': sub.totalUpdates,
-            'updatesSinceRead': updatesSinceRead,
             'lastUpdate': sub.lastUpdateAt,
             'active': sub.active,
             'error': sub.error,
@@ -211,6 +213,9 @@ export class SubscriptionRegistry {
         }
         if (sub.kind === 'state') {
             // the current snapshot ccxt has built up — no cursor, no history
+            const updatesSinceRead = sub.seq - sub.lastReadSeq;
+            sub.lastReadSeq = sub.seq;
+            common['updatesSinceRead'] = updatesSinceRead;
             common['latest'] = sub.latest?.data;
             common['latestSeq'] = sub.latest?.seq;
             return common;
@@ -224,8 +229,13 @@ export class SubscriptionRegistry {
         const oldestBuffered = sub.buffer.length > 0 ? sub.buffer[0].seq : sub.seq;
         common['events'] = returned.map ((u) => ({ 'seq': u.seq, 'timestamp': u.ts, 'datetime': new Date (u.ts).toISOString (), 'data': u.data }));
         common['nextCursor'] = nextCursor;
-        // updates evicted from the ring buffer before this cursor could reach them
-        common['missedBeforeBuffer'] = (from > 0 && from < oldestBuffered - 1) ? (oldestBuffered - 1 - from) : 0;
+        // still-unread events past this cursor (not reset by seq bookkeeping mid-pagination)
+        common['updatesSinceRead'] = fresh.length;
+        // updates evicted from the ring buffer before this cursor could reach them; on the
+        // first read (no cursor) the floor is the buffer size vs everything seen so far
+        common['missedBeforeBuffer'] = (cursor === undefined)
+            ? Math.max (0, sub.totalUpdates - sub.buffer.length)
+            : ((from < oldestBuffered - 1) ? (oldestBuffered - 1 - from) : 0);
         // true = more buffered updates remain beyond this window; call again with nextCursor
         common['moreBuffered'] = fresh.length > returned.length;
         return common;

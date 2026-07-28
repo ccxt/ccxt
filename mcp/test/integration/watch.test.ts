@@ -102,8 +102,9 @@ test ('a fatal stream error releases the socket and surfaces an actionable error
     const { client, ctx } = await connect ({});
     // pre-acquire the stream instance so we can observe the registry releasing its ref
     const held = await ctx.pools.acquirePublicStream ('fakex'); // refs = 1
-    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTickers', 'args': [ 'BTC/USDT' ] }); // refs = 2, then fatal
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTickers', 'args': [ [ 'BTC/USDT' ] ] }); // refs = 2, then fatal
     assert.equal (sub.ok, true);
+    assert.equal (sub.data.streamKind, 'events', 'multi-symbol watchTickers is an event stream, not a partial snapshot');
     await sleep (40);
     const read = await call (client, 'watch_read', { 'subscriptionId': sub.data.subscriptionId });
     assert.equal (read.data.active, false);
@@ -145,6 +146,7 @@ test ('rejects non-watch methods and unsupported watch methods', async () => {
 test ('the public stream instance is closed when its last subscription is released', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchOHLCV', 'args': [ 'BTC/USDT', '1m' ] });
+    assert.equal (sub.data.streamKind, 'events', 'watchOHLCV is an event stream so closed candles are never overwritten');
     const id = sub.data.subscriptionId;
     await sleep (20);
     // grab the stream instance the registry created, then unsubscribe and confirm it closed
@@ -155,6 +157,27 @@ test ('the public stream instance is closed when its last subscription is releas
     assert.equal (streamInstance.exchange.closed, true, 'stream socket should close on last release');
     await ctx.subscriptions.closeAll ();
     await client.close ();
+});
+
+test ('closing a stream mid-watch does not orphan a rejected promise (crash guard)', async () => {
+    const rejections: any[] = [];
+    const onRej = (reason: any) => rejections.push (reason);
+    process.on ('unhandledRejection', onRej);
+    try {
+        const { client, ctx } = await connect ({});
+        const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTicker', 'args': [ 'BTC/USDT' ] });
+        await sleep (20); // a watch tick is in-flight
+        // unsubscribe resolves stopPromise (winning the race) THEN closes the socket, which
+        // rejects the still-pending tick (ccxt.pro throws ExchangeClosedByUser on close). The
+        // registry's Promise.race keeps that promise handled, so no unhandled rejection escapes
+        await call (client, 'watch_unsubscribe', { 'subscriptionId': sub.data.subscriptionId });
+        await sleep (30); // give any orphaned rejection time to surface
+        await ctx.subscriptions.closeAll ();
+        await client.close ();
+        assert.deepEqual (rejections, [], 'a socket close must not leave an unhandled rejection');
+    } finally {
+        process.removeListener ('unhandledRejection', onRej);
+    }
 });
 
 test ('call_read_method points watch* methods at the watch tools', async () => {

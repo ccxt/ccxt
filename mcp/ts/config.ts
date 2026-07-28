@@ -46,7 +46,7 @@ const settingsSchema = z.object ({
     'refreshMarketsTimeout': z.number ().positive ().optional (),
     'maxResults': z.number ().positive ().optional (),
     'strictPermissions': z.boolean ().optional (),
-    'maxSubscriptions': z.number ().positive ().optional (),
+    'maxSubscriptions': z.number ().int ().nonnegative ().optional (), // 0 = unlimited (the default sentinel)
     'exchangeOptions': z.record (z.record (z.any ())).optional (),
 }).passthrough ();
 

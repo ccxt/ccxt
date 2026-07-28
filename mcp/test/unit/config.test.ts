@@ -107,6 +107,15 @@ test ('an unsubstituted/empty CCXT_MCP_CONFIG is ignored, not treated as a missi
     });
 });
 
+test ('settings maxSubscriptions:0 (the documented default sentinel) validates and preserves sibling settings', () => {
+    withConfig ({ 'settings': { 'maxSubscriptions': 0, 'maxResults': 42 }, 'accounts': {} }, {}, () => {
+        const config = loadConfig ();
+        assert.equal (config.settings.maxSubscriptions, 0);
+        assert.equal (config.settings.maxResults, 42, 'a valid sibling setting is not discarded by the 0 sentinel');
+        assert.ok (!config.problems.some ((p) => p.includes ('settings invalid')));
+    });
+});
+
 test ('CCXT_MCP_* env defines the implicit default account', () => {
     withConfig ({}, {
         'CCXT_MCP_EXCHANGE': 'binance',

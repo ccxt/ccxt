@@ -10,12 +10,12 @@ const marketTypeParam = z.string ().optional ().describe ('market type routing f
 export function registerWatchTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('watch_subscribe', {
         'title': 'Start a live WebSocket stream',
-        'description': 'Open a background WebSocket subscription to a ccxt.pro watch* method so the agent can pull fresh data on demand. Returns a subscriptionId and a "streamKind": STATE streams (watchTicker/watchOrderBook/watchOHLCV/watchBalance/watchPositions) keep only the current snapshot — watch_read returns it in "latest"; EVENT streams (watchTrades/watchMyTrades/watchOrders — the last three private, needing an account) accumulate every item — watch_read returns them in "events" with a cursor. Call watch_unsubscribe to stop; streams auto-stop after 10 minutes with no read. Not every exchange streams every method — check describe_exchange.',
+        'description': 'Open a background WebSocket subscription to a ccxt.pro watch* method so the agent can pull fresh data on demand. Returns a subscriptionId and a "streamKind": STATE streams (only single-symbol watchTicker and watchOrderBook) return the COMPLETE current object each read — watch_read gives it in "latest". EVERYTHING else is an EVENT stream (watchTrades/watchOHLCV, and the private watchOrders/watchMyTrades/watchBalance/watchPositions — private ones need an account): watch_read returns each new/changed item oldest-first in "events" with a cursor. Note EVENT streams deliver only what CHANGED since the last update, not a full set — for a full multi-symbol snapshot (all tickers/positions/balances) use the get_* tools; use the stream to track live changes. Call watch_unsubscribe to stop; streams auto-stop after 10 minutes with no read. Not every exchange streams every method — check describe_exchange.',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('a ccxt.pro watch* method, e.g. "watchOHLCV", "watchTicker", "watchOrderBook", "watchTrades"'),
-            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments — they differ per method (get the exact signature with describe_method): e.g. watchTicker ["BTC/USDT"], watchOHLCV ["BTC/USDT","1m"], watchOrderBook ["BTC/USDT", depthLimit], watchTrades ["BTC/USDT"]. Resolve symbols with search_markets.'),
-            'account': z.string ().optional ().describe ('configured account name — required for private streams (watchOrders, watchMyTrades, watchBalance, watchPositions)'),
+            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])) ])).optional ().describe ('positional arguments — they differ per method (get the exact signature with describe_method): e.g. watchTicker ["BTC/USDT"], watchOHLCV ["BTC/USDT","1m"], watchOrderBook ["BTC/USDT", depthLimit], watchTrades ["BTC/USDT"]. Methods that take a symbol LIST take a nested array, e.g. watchTickers [["BTC/USDT","ETH/USDT"]]. Resolve symbols with search_markets.'),
+            'account': z.string ().optional ().describe ('configured account name — required for private streams (watchOrders, watchMyTrades, watchBalance, watchPositions, watchMyLiquidations)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -35,7 +35,7 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
 
     server.registerTool ('watch_read', {
         'title': 'Read from a live stream',
-        'description': 'Get the latest data from a stream. For a STATE stream (streamKind "state": ticker, order book, ohlcv, balance, positions) it returns the CURRENT snapshot in "latest" — just call it whenever you need the current value; "updatesSinceRead" tells you how much changed since you last read. For an EVENT stream (streamKind "events": trades, my trades, orders) it returns new items oldest-first in "events" plus a "nextCursor" — thread that back as "cursor" on each poll so you do not re-receive (double-count) old items; "moreBuffered": true means call again with nextCursor for more.',
+        'description': 'Get the latest data from a stream. For a STATE stream (streamKind "state": single-symbol ticker or order book) it returns the COMPLETE current snapshot in "latest" — just call it whenever you need the current value; "updatesSinceRead" tells you how much changed since you last read. For an EVENT stream (streamKind "events": trades, ohlcv, orders, my trades, balance, positions) it returns new/changed items oldest-first in "events" plus a "nextCursor" — thread that back as "cursor" on each poll so you do not re-receive (double-count) old items; "moreBuffered": true means call again with nextCursor for more, and "missedBeforeBuffer" > 0 means older updates were evicted before you read them. Events carry only what changed — for a full current set (all balances/positions/tickers) call the matching get_* tool.',
         'inputSchema': {
             'subscriptionId': z.string ().describe ('id from watch_subscribe'),
             'cursor': z.number ().int ().optional ().describe ('EVENT streams only: the nextCursor from your previous watch_read (omit on the first read). Ignored for state streams.'),
@@ -64,7 +64,7 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
 
     server.registerTool ('watch_list', {
         'title': 'List active streams',
-        'description': 'List the currently active WebSocket subscriptions (id, exchange, method, age, last read, update count).',
+        'description': 'List the currently active WebSocket subscriptions (id, exchange, method, streamKind, account and environment for private streams, args, active flag, age, seconds since last read, update count, and last error).',
         'inputSchema': {},
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'watch_list' }, async () => {

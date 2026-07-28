@@ -6,6 +6,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ccxt, ccxtVersion, exchangeClass, isKnownExchange, allExchangeIds, closestMatches } from './ccxt-loader.js';
 import { loadConfig } from './config.js';
 import { redact } from './redact.js';
+import { isBenignStreamClose } from './errors.js';
 import { createServer } from './factory.js';
 import { createRequire } from 'module';
 
@@ -49,6 +50,12 @@ async function main (): Promise<void> {
         void shutdown ('uncaught exception', 1);
     });
     process.on ('unhandledRejection', (reason) => {
+        // a routine stream-socket close rejects ccxt.pro's in-flight watch futures; that is
+        // expected background noise, not a fault — log it quietly and keep serving
+        if (isBenignStreamClose (reason)) {
+            log ('debug', 'stream socket closed: ' + redact (String ((reason as any)?.message ?? reason)));
+            return;
+        }
         log ('error', 'unhandled rejection: ' + redact (String ((reason as any)?.stack ?? reason)));
     });
 

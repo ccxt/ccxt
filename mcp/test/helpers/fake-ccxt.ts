@@ -202,24 +202,27 @@ export class FakeExchange {
 
     private watchTick = 0;
     closed = false;
+    // rejecters for in-flight watch ticks, rejected on close() — mirrors ccxt.pro throwing
+    // ExchangeClosedByUser at every pending watch future when the socket is closed
+    private pendingTickRejecters: Array<(e: any) => void> = [];
 
     // ccxt.pro-style watch* methods: each awaited call resolves with the next incremental
     // update. A tiny UNREF'd delay keeps the registry's loop from hot-spinning and never
     // keeps the test process alive.
     async watchTicker (symbol: string): Promise<any> {
-        await streamTick ();
+        await this.nextTick ();
         this.watchTick += 1;
         return { symbol, 'last': 50000 + this.watchTick, 'bid': 49999, 'ask': 50001, 'timestamp': 1700000000000 + this.watchTick, 'datetime': '2023-11-14T22:13:20.000Z', 'info': { 'raw': true } };
     }
 
     async watchOHLCV (_symbol: string, _timeframe = '1m'): Promise<any> {
-        await streamTick ();
+        await this.nextTick ();
         this.watchTick += 1;
         return [ [ 1700000000000 + this.watchTick * 60000, 1, 2, 0.5, 1 + this.watchTick, 100 ] ];
     }
 
     async watchTrades (symbol: string): Promise<any> {
-        await streamTick ();
+        await this.nextTick ();
         this.watchTick += 1;
         return [ { 'id': 'wt' + this.watchTick, symbol, 'side': 'buy', 'price': 50000, 'amount': 0.01, 'cost': 500, 'info': { 'raw': true } } ];
     }
@@ -229,22 +232,30 @@ export class FakeExchange {
         throw new BadSymbol ('fakex has no ticker-stream for this symbol');
     }
 
+    private nextTick (): Promise<void> {
+        return new Promise ((resolve, reject) => {
+            this.pendingTickRejecters.push (reject);
+            const t = setTimeout (resolve, 3);
+            if (typeof (t as any).unref === 'function') {
+                (t as any).unref ();
+            }
+        });
+    }
+
     async close (): Promise<void> {
         this.closed = true;
+        const rejecters = this.pendingTickRejecters.splice (0);
+        for (const reject of rejecters) {
+            reject (new ExchangeClosedByUser ('fakex closedByUser'));
+        }
     }
 }
 
 // constructor.name === 'BadSymbol' matches the registry's fatal-error regex
 class BadSymbol extends Error {}
 
-function streamTick (): Promise<void> {
-    return new Promise ((resolve) => {
-        const t = setTimeout (resolve, 3);
-        if (typeof (t as any).unref === 'function') {
-            (t as any).unref ();
-        }
-    });
-}
+// ccxt.pro rejects pending watch futures with this when a socket is closed
+class ExchangeClosedByUser extends Error {}
 
 export const fakeCcxtModule = {
     'version': 'fake-1.0',

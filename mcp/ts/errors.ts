@@ -91,6 +91,18 @@ export function isCcxtError (error: any): boolean {
     }
 }
 
+// A rejection that is expected background noise rather than a fault: ccxt.pro rejects
+// in-flight watch futures with ExchangeClosedByUser (and low-level socket errors) whenever
+// a stream socket is closed — on unsubscribe, idle-expiry, or shutdown. Some of these are
+// internal ccxt futures the registry never holds a reference to, so they surface as
+// process-level unhandled rejections; the long-lived server must log them quietly and keep
+// serving rather than treat a routine stream close as an error.
+export function isBenignStreamClose (reason: any): boolean {
+    const name = String (reason?.constructor?.name ?? '');
+    const message = String (reason?.message ?? reason ?? '');
+    return /ClosedByUser|ConnectionClosed/.test (name) || /closed by user|WebSocket connection closed|socket hang up/i.test (message);
+}
+
 export interface ErrorContext {
     exchange?: string;
     account?: string;
