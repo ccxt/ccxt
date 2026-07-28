@@ -129,7 +129,13 @@ export class ExchangePools {
             this.streamPool.set (streamKey, entry);
         }
         entry.refs += 1;
-        await ensureMarketsLoaded (entry.exchange, this.config.settings.refreshMarketsTimeout);
+        try {
+            await ensureMarketsLoaded (entry.exchange, this.config.settings.refreshMarketsTimeout);
+        } catch (e) {
+            // don't leak the ref (and its socket) if the markets load fails
+            this.releasePublicStream (streamKey);
+            throw e;
+        }
         return { 'exchange': entry.exchange, streamKey };
     }
 

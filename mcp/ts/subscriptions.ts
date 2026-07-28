@@ -1,19 +1,23 @@
 import crypto from 'crypto';
 import { redact } from './redact.js';
 import { project, stripInfo, TICKER_FIELDS, TRADE_FIELDS, ORDER_FIELDS, POSITION_FIELDS } from './format.js';
+import { accountEnvironment } from './types.js';
 import { log } from './logging.js';
 
 // MCP over stdio is request/response, but the server process is long-lived — so streaming
 // is modelled as "subscribe + poll": watch_subscribe starts a background ccxt.pro watch*
 // loop that accumulates incremental updates into a bounded ring buffer; watch_read drains
-// the buffer since a cursor; watch_unsubscribe (or an idle timeout) stops the loop and
-// releases the socket. This gives an agent fresh data without a host-side push channel.
+// the buffer since a cursor (oldest-first, so nothing is skipped); watch_unsubscribe (or an
+// idle timeout) stops the loop and releases the socket.
 
 const MAX_SUBSCRIPTIONS = 25;       // hard cap on concurrent open streams
 const BUFFER_MAX = 200;             // updates retained per subscription (ring buffer)
 const READ_MAX = 50;                // updates returned per watch_read
 const IDLE_TTL_MS = 10 * 60 * 1000; // stop a stream with no watch_read for 10 minutes
+const DEAD_TTL_MS = 30 * 1000;      // purge a dead (errored) subscription after 30s
 const MAX_CONSECUTIVE_ERRORS = 5;   // give up a stream after this many back-to-back errors
+
+const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|Balance|Positions)/;
 
 interface Update {
     seq: number;
@@ -21,12 +25,21 @@ interface Update {
     data: any;
 }
 
+interface StreamError {
+    code: string;
+    message: string;
+    retryable: boolean;
+    hint: string;
+}
+
 interface Subscription {
     id: string;
     exchangeId: string;
     method: string;
     args: any[];
+    argsKey: string;
     account: string | undefined;
+    environment: string | undefined;
     streamKey: string | undefined;
     exchange: any;
     buffer: Update[];
@@ -37,7 +50,7 @@ interface Subscription {
     createdAt: number;
     lastReadAt: number;
     lastUpdateAt: number | undefined;
-    error: { code: string, message: string } | undefined;
+    error: StreamError | undefined;
     stopResolve: (value: symbol) => void;
     stopPromise: Promise<symbol>;
     stopSentinel: symbol;
@@ -55,67 +68,102 @@ export class StreamArgError extends Error {
 export class SubscriptionRegistry {
     private pools: any;
     private subs = new Map<string, Subscription> ();
+    // reserved counts in-flight subscribe() calls that have passed the cap check but not yet
+    // been added to `subs` — closes the check-then-act gap across the acquire await
+    private reserved = 0;
 
     constructor (pools: any) {
         this.pools = pools;
     }
 
-    async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<{ subscriptionId: string, exchange: string, method: string, args: any[] }> {
+    async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<any> {
         const method = opts.method;
         if (!/^watch[A-Z]/.test (method)) {
             throw new StreamArgError (JSON.stringify (method) + ' is not a streaming method', 'use a watch* method, e.g. watchTicker, watchOHLCV, watchOrderBook, watchTrades, watchOrders (with an account)');
         }
-        if (this.subs.size >= MAX_SUBSCRIPTIONS) {
+        if (opts.account === undefined && PRIVATE_STREAM_RE.test (method)) {
+            throw new StreamArgError (method + ' is a private stream and needs an account', 'configure an account and pass its name as "account"');
+        }
+        if (this.subs.size + this.reserved >= MAX_SUBSCRIPTIONS) {
             throw new StreamArgError ('too many active subscriptions (max ' + MAX_SUBSCRIPTIONS + ')', 'watch_unsubscribe some first — watch_list shows them');
         }
-        let exchange: any;
-        let streamKey: string | undefined;
-        if (opts.account !== undefined) {
-            const auth = await this.pools.getAuthenticated (opts.account);
-            exchange = auth.exchange;
-        } else {
-            const acquired = await this.pools.acquirePublicStream (opts.exchangeId, opts.marketType, opts.prediction ?? false);
-            exchange = acquired.exchange;
-            streamKey = acquired.streamKey;
-        }
-        if (!exchange.has?.[method]) {
-            if (streamKey !== undefined) {
-                this.pools.releasePublicStream (streamKey);
+        this.reserved += 1;
+        try {
+            let exchange: any;
+            let streamKey: string | undefined;
+            let environment: string | undefined;
+            const params = { ...(opts.params ?? {}) };
+            if (opts.account !== undefined) {
+                const auth = await this.pools.getAuthenticated (opts.account);
+                exchange = auth.exchange;
+                environment = accountEnvironment (auth.account);
+                // private streams route by the account's config; a per-call marketType goes
+                // through params (the shared instance's defaultType must not be mutated)
+                if (opts.marketType !== undefined) {
+                    params['type'] = opts.marketType;
+                }
+            } else {
+                const acquired = await this.pools.acquirePublicStream (opts.exchangeId, opts.marketType, opts.prediction ?? false);
+                exchange = acquired.exchange;
+                streamKey = acquired.streamKey;
             }
-            throw new StreamArgError (exchange.id + ' does not stream ' + method + ' (no WebSocket support for it)', 'check describe_exchange — not every exchange streams every method; the fetch* equivalent still works');
+            const release = () => {
+                if (streamKey !== undefined) {
+                    this.pools.releasePublicStream (streamKey);
+                }
+            };
+            if (!exchange.has?.[method]) {
+                release ();
+                throw new StreamArgError (exchange.id + ' does not stream ' + method + ' (no WebSocket support for it)', 'check describe_exchange — not every exchange streams every method; the fetch* equivalent still works');
+            }
+            let args: any[];
+            try {
+                args = this.buildWatchArgs (exchange, method, opts.args ?? [], params);
+            } catch (e) {
+                release ();
+                throw e;
+            }
+            const sentinel = Symbol ('stop');
+            let stopResolve!: (value: symbol) => void;
+            const stopPromise = new Promise<symbol> ((resolve) => {
+                stopResolve = resolve;
+            });
+            const sub: Subscription = {
+                'id': 'sub-' + crypto.randomUUID ().slice (0, 12),
+                'exchangeId': exchange.id,
+                method,
+                args,
+                'argsKey': JSON.stringify (args),
+                'account': opts.account,
+                environment,
+                streamKey,
+                exchange,
+                'buffer': [],
+                'seq': 0,
+                'totalUpdates': 0,
+                'active': true,
+                'consecutiveErrors': 0,
+                'createdAt': Date.now (),
+                'lastReadAt': Date.now (),
+                'lastUpdateAt': undefined,
+                'error': undefined,
+                stopResolve,
+                stopPromise,
+                'stopSentinel': sentinel,
+                'timer': undefined,
+            };
+            this.subs.set (sub.id, sub);
+            this.resetIdle (sub);
+            void this.runLoop (sub);
+            const result: Record<string, any> = { 'subscriptionId': sub.id, 'exchange': exchange.id, method, args };
+            if (opts.account !== undefined) {
+                result['account'] = opts.account;
+                result['environment'] = environment;
+            }
+            return result;
+        } finally {
+            this.reserved -= 1;
         }
-        const args = this.buildWatchArgs (exchange, method, opts.args ?? [], opts.params);
-        const sentinel = Symbol ('stop');
-        let stopResolve!: (value: symbol) => void;
-        const stopPromise = new Promise<symbol> ((resolve) => {
-            stopResolve = resolve;
-        });
-        const sub: Subscription = {
-            'id': 'sub-' + crypto.randomUUID ().slice (0, 12),
-            'exchangeId': exchange.id,
-            method,
-            args,
-            'account': opts.account,
-            streamKey,
-            exchange,
-            'buffer': [],
-            'seq': 0,
-            'totalUpdates': 0,
-            'active': true,
-            'consecutiveErrors': 0,
-            'createdAt': Date.now (),
-            'lastReadAt': Date.now (),
-            'lastUpdateAt': undefined,
-            'error': undefined,
-            stopResolve,
-            stopPromise,
-            'stopSentinel': sentinel,
-            'timer': undefined,
-        };
-        this.subs.set (sub.id, sub);
-        this.resetIdle (sub);
-        void this.runLoop (sub);
-        return { 'subscriptionId': sub.id, 'exchange': exchange.id, method, args };
     }
 
     read (id: string, cursor?: number): any {
@@ -124,23 +172,36 @@ export class SubscriptionRegistry {
             return { 'found': false };
         }
         sub.lastReadAt = Date.now ();
-        this.resetIdle (sub);
+        // only keep an ACTIVE stream alive on read — a dead (errored) sub should reach its
+        // reaper and free its slot even if the client keeps polling
+        if (sub.active) {
+            this.resetIdle (sub);
+        }
         const from = cursor ?? 0;
         const fresh = sub.buffer.filter ((u) => u.seq > from);
-        const returned = fresh.slice (-READ_MAX);
+        // drain OLDEST-first so repeated reads walk the buffer in order without skipping
+        const returned = fresh.slice (0, READ_MAX);
+        const nextCursor = returned.length > 0 ? returned[returned.length - 1].seq : (cursor ?? sub.seq);
         const oldestBuffered = sub.buffer.length > 0 ? sub.buffer[0].seq : sub.seq;
-        return {
+        const result: Record<string, any> = {
             'found': true,
             'updates': returned.map ((u) => ({ 'seq': u.seq, 'timestamp': u.ts, 'datetime': new Date (u.ts).toISOString (), 'data': u.data })),
-            'cursor': sub.seq,
+            'nextCursor': nextCursor,
             'returnedUpdates': returned.length,
             'updatesSinceSubscribe': sub.totalUpdates,
-            'missedBeforeBuffer': from > 0 && from < oldestBuffered - 1 ? (oldestBuffered - 1 - from) : 0,
-            'truncated': fresh.length > returned.length,
+            // updates evicted from the ring buffer before this cursor could reach them
+            'missedBeforeBuffer': (from > 0 && from < oldestBuffered - 1) ? (oldestBuffered - 1 - from) : 0,
+            // true = more buffered updates remain beyond this window; call watch_read again with nextCursor
+            'moreBuffered': fresh.length > returned.length,
             'lastUpdate': sub.lastUpdateAt,
             'active': sub.active,
             'error': sub.error,
         };
+        if (sub.account !== undefined) {
+            result['account'] = sub.account;
+            result['environment'] = sub.environment;
+        }
+        return result;
     }
 
     unsubscribe (id: string): boolean {
@@ -160,6 +221,7 @@ export class SubscriptionRegistry {
             'method': sub.method,
             'args': sub.args,
             'account': sub.account,
+            'environment': sub.environment,
             'active': sub.active,
             'updates': sub.totalUpdates,
             'ageSeconds': Math.round ((now - sub.createdAt) / 1000),
@@ -178,32 +240,31 @@ export class SubscriptionRegistry {
         if (sub.timer !== undefined) {
             clearTimeout (sub.timer);
         }
-        sub.timer = setTimeout (() => {
+        sub.timer = this.armTimer (() => {
             log ('info', 'stream ' + sub.id + ' idle-expired after ' + (IDLE_TTL_MS / 60000) + ' min with no read');
             this.stopSub (sub);
         }, IDLE_TTL_MS);
-        // never let the idle timer keep the process alive
-        if (typeof (sub.timer as any).unref === 'function') {
-            (sub.timer as any).unref ();
-        }
     }
 
-    private stopSub (sub: Subscription): void {
-        if (!this.subs.has (sub.id) && !sub.active) {
+    private armTimer (fn: () => void, ms: number): ReturnType<typeof setTimeout> {
+        const t = setTimeout (fn, ms);
+        // never let a stream timer keep the process alive
+        if (typeof (t as any).unref === 'function') {
+            (t as any).unref ();
+        }
+        return t;
+    }
+
+    // release the transport (socket) for a subscription, idempotently
+    private releaseTransport (sub: Subscription): void {
+        if (sub.streamKey !== undefined) {
+            this.pools.releasePublicStream (sub.streamKey);
+            sub.streamKey = undefined;
             return;
         }
-        sub.active = false;
-        if (sub.timer !== undefined) {
-            clearTimeout (sub.timer);
-            sub.timer = undefined;
-        }
-        sub.stopResolve (sub.stopSentinel); // unblock the loop's race so it exits promptly
-        this.subs.delete (sub.id);
-        if (sub.streamKey !== undefined) {
-            // closes the public stream instance once the last subscriber releases it
-            this.pools.releasePublicStream (sub.streamKey);
-        } else if (sub.account !== undefined) {
-            // shared per-account instance stays open for REST; best-effort unsubscribe
+        // shared per-account instance: best-effort unWatch, but only if no other active
+        // subscription still depends on the same account+method+args stream
+        if (sub.account !== undefined && !this.otherActiveSharesStream (sub)) {
             const unMethod = 'unWatch' + sub.method.slice ('watch'.length);
             try {
                 if (typeof sub.exchange[unMethod] === 'function') {
@@ -212,6 +273,29 @@ export class SubscriptionRegistry {
             } catch (e) {
                 // best-effort only
             }
+        }
+    }
+
+    private otherActiveSharesStream (sub: Subscription): boolean {
+        for (const other of this.subs.values ()) {
+            if (other.id !== sub.id && other.active && other.account === sub.account && other.method === sub.method && other.argsKey === sub.argsKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private stopSub (sub: Subscription): void {
+        const wasActive = sub.active;
+        sub.active = false;
+        if (sub.timer !== undefined) {
+            clearTimeout (sub.timer);
+            sub.timer = undefined;
+        }
+        sub.stopResolve (sub.stopSentinel); // unblock the loop's race so it exits promptly
+        this.subs.delete (sub.id);
+        if (wasActive) {
+            this.releaseTransport (sub);
         }
     }
 
@@ -228,11 +312,23 @@ export class SubscriptionRegistry {
                 const name = String (e?.constructor?.name ?? '');
                 const fatal = /NotSupported|AuthenticationError|PermissionDenied|BadSymbol|ArgumentsRequired/.test (name);
                 if (fatal || sub.consecutiveErrors > MAX_CONSECUTIVE_ERRORS) {
-                    sub.error = { 'code': fatal ? 'STREAM_UNSUPPORTED' : 'STREAM_FAILED', 'message': redact (String (e?.message ?? e)) };
+                    sub.error = {
+                        'code': fatal ? 'STREAM_UNSUPPORTED' : 'STREAM_FAILED',
+                        'message': redact (String (e?.message ?? e)),
+                        'retryable': false,
+                        'hint': 'the stream stopped and will not resume — fix the cause (e.g. credentials/permissions for a private stream, or the symbol) and call watch_subscribe again; do not keep polling watch_read',
+                    };
                     sub.active = false;
+                    // free the socket now; keep the record (with its error) readable, then
+                    // reap it shortly so it stops occupying a subscription slot
+                    this.releaseTransport (sub);
+                    if (sub.timer !== undefined) {
+                        clearTimeout (sub.timer);
+                    }
+                    sub.timer = this.armTimer (() => this.stopSub (sub), DEAD_TTL_MS);
                     break;
                 }
-                await sleep (Math.min (30000, 500 * Math.pow (2, sub.consecutiveErrors)));
+                await Promise.race ([ sleep (Math.min (30000, 500 * Math.pow (2, sub.consecutiveErrors))), sub.stopPromise ]);
                 continue;
             }
             if (result === sub.stopSentinel || !sub.active) {

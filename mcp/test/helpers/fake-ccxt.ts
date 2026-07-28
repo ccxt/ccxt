@@ -49,6 +49,8 @@ export class FakeExchange {
         'watchOHLCV': true,
         'watchTrades': true,
         'watchOrderBook': false,
+        'watchTickers': true, // used to exercise the fatal-error path (always throws)
+        'watchOrders': true,  // private — used to test the account-required guard
         'createOrder': true,
         'cancelOrder': true,
         'cancelAllOrders': true,
@@ -222,10 +224,18 @@ export class FakeExchange {
         return [ { 'id': 'wt' + this.watchTick, symbol, 'side': 'buy', 'price': 50000, 'amount': 0.01, 'cost': 500, 'info': { 'raw': true } } ];
     }
 
+    // always throws a fatal-class error, to exercise the terminal-error socket release
+    async watchTickers (): Promise<any> {
+        throw new BadSymbol ('fakex has no ticker-stream for this symbol');
+    }
+
     async close (): Promise<void> {
         this.closed = true;
     }
 }
+
+// constructor.name === 'BadSymbol' matches the registry's fatal-error regex
+class BadSymbol extends Error {}
 
 function streamTick (): Promise<void> {
     return new Promise ((resolve) => {

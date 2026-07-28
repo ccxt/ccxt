@@ -14,7 +14,7 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('a ccxt.pro watch* method, e.g. "watchOHLCV", "watchTicker", "watchOrderBook", "watchTrades"'),
-            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments for the method, e.g. ["BTC/USDT", "1m"] for watchOHLCV — resolve symbols with search_markets'),
+            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments — they differ per method (get the exact signature with describe_method): e.g. watchTicker ["BTC/USDT"], watchOHLCV ["BTC/USDT","1m"], watchOrderBook ["BTC/USDT", depthLimit], watchTrades ["BTC/USDT"]. Resolve symbols with search_markets.'),
             'account': z.string ().optional ().describe ('configured account name — required for private streams (watchOrders, watchMyTrades, watchBalance, watchPositions)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
@@ -35,10 +35,10 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
 
     server.registerTool ('watch_read', {
         'title': 'Read updates from a live stream',
-        'description': 'Drain the updates a stream has accumulated since your last read. Pass the "cursor" returned by the previous watch_read to get only newer updates; omit it (or 0) to get everything buffered. The freshest data is the last update in the list.',
+        'description': 'Drain the updates a stream has accumulated. Updates come oldest-first; the response returns a "nextCursor" — pass it as "cursor" on your next call to get only newer updates. IMPORTANT: omitting cursor REPLAYS all buffered updates from the start, so when polling always thread nextCursor back in or you will re-receive (and double-count) old data. "moreBuffered": true means there are further updates beyond this window — call again with nextCursor. "updatesSinceSubscribe" is the running total.',
         'inputSchema': {
             'subscriptionId': z.string ().describe ('id from watch_subscribe'),
-            'cursor': z.number ().int ().optional ().describe ('the cursor from your previous watch_read — returns only updates newer than it'),
+            'cursor': z.number ().int ().optional ().describe ('the nextCursor from your previous watch_read — returns only updates newer than it; omit only on the first read'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false },
     }, async ({ subscriptionId, cursor }) => run ({ 'tool': 'watch_read' }, async () => {

@@ -52,11 +52,11 @@ test ('subscribe -> accumulate -> read -> cursor -> unsubscribe lifecycle', asyn
     assert.equal (first.ok, true);
     assert.ok (first.data.updates.length > 0, 'should have accumulated updates');
     assert.equal (first.data.active, true);
-    // freshest data is the last update; last price increments each tick
+    // updates are oldest-first; the last price increments each tick
     const lastPrice = first.data.updates[first.data.updates.length - 1].data.last;
     assert.ok (lastPrice > 50000);
     assert.equal (first.data.updates[0].data.info, undefined, 'info is stripped');
-    const cursor = first.data.cursor;
+    const cursor = first.data.nextCursor;
 
     await sleep (30);
     const second = await call (client, 'watch_read', { 'subscriptionId': id, cursor });
@@ -76,6 +76,54 @@ test ('subscribe -> accumulate -> read -> cursor -> unsubscribe lifecycle', asyn
     assert.equal (after.ok, false);
     assert.equal (after.error.code, 'SUBSCRIPTION_NOT_FOUND');
 
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('oldest-first draining never skips updates across a truncated read (blocker fix)', async () => {
+    const { client, ctx } = await connect ({});
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
+    const id = sub.data.subscriptionId;
+    await sleep (220); // > 50 updates at ~3ms each, exercising the truncation window
+    const first = await call (client, 'watch_read', { 'subscriptionId': id });
+    assert.ok (first.data.returnedUpdates <= 50);
+    assert.equal (first.data.moreBuffered, true, 'more than one window should be buffered');
+    // seqs are contiguous from the start — nothing skipped
+    assert.equal (first.data.updates[0].seq, 1);
+    const firstLast = first.data.updates[first.data.updates.length - 1].seq;
+    const second = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': first.data.nextCursor });
+    // the next window begins exactly one after the previous — no gap, no overlap
+    assert.equal (second.data.updates[0].seq, firstLast + 1, 'no updates skipped or replayed');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('a fatal stream error releases the socket and surfaces an actionable error', async () => {
+    const { client, ctx } = await connect ({});
+    // pre-acquire the stream instance so we can observe the registry releasing its ref
+    const held = await ctx.pools.acquirePublicStream ('fakex'); // refs = 1
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTickers', 'args': [ 'BTC/USDT' ] }); // refs = 2, then fatal
+    assert.equal (sub.ok, true);
+    await sleep (40);
+    const read = await call (client, 'watch_read', { 'subscriptionId': sub.data.subscriptionId });
+    assert.equal (read.data.active, false);
+    assert.equal (read.data.error.code, 'STREAM_UNSUPPORTED');
+    assert.equal (read.data.error.retryable, false);
+    assert.ok (read.data.error.hint.length > 0);
+    // the registry released its ref (2 -> 1); our held ref keeps the instance open
+    assert.equal (held.exchange.closed, false);
+    ctx.pools.releasePublicStream (held.streamKey); // 1 -> 0 -> closed
+    assert.equal (held.exchange.closed, true, 'socket closes once the last ref is released');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('private watch methods require an account (rejected up front, no socket allocated)', async () => {
+    const { client, ctx } = await connect ({});
+    const rejected = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchOrders' });
+    assert.equal (rejected.ok, false);
+    assert.equal (rejected.error.code, 'BAD_STREAM_REQUEST');
+    assert.ok (rejected.error.message.includes ('private stream'));
     await ctx.subscriptions.closeAll ();
     await client.close ();
 });
