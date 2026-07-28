@@ -741,6 +741,42 @@ function main() {
         lines.push('');
         fs.writeFileSync(aggregator, lines.join('\n'), 'utf-8');
         console.log(`Wrote aggregator ${aggregator} with ${allTyped.length} re-exports`);
+
+        // Keep `exchanges/mod.rs` in sync with the wrappers we just wrote. The
+        // transpiler's `writeModFile` only emits `pub mod <id>_typed;` for a
+        // `<id>_typed.rs` that already existed when IT ran — so a BRAND-NEW
+        // exchange (e.g. `nado` from an upstream merge) gets its wrapper +
+        // `typed.rs` re-export here but no module declaration, and the crate
+        // fails with `unresolved import crate::exchanges::<id>_typed`. Insert
+        // any missing `pub mod <id>_typed;` next to the exchange's own module
+        // line (idempotent — the transpiler re-emits the same line on its next
+        // run once the file exists on disk).
+        syncTypedModDecls(allTyped);
+    }
+}
+
+// Ensure `rust/ccxt/src/exchanges/mod.rs` declares `pub mod <id>_typed;` for
+// every generated typed wrapper. Only adds missing lines; never reorders or
+// removes (the transpiler's `writeModFile` remains the primary author).
+function syncTypedModDecls(ids: string[]) {
+    const modPath = path.join(EXCHANGES_FOLDER, 'mod.rs');
+    if (!fs.existsSync(modPath)) return;
+    const src = fs.readFileSync(modPath, 'utf-8');
+    const lines = src.split('\n');
+    const has = (mod: string) => lines.some(l => l.trim() === `pub mod ${mod};`);
+    let added = 0;
+    for (const id of ids) {
+        if (has(`${id}_typed`)) continue;
+        // Anchor after `pub mod <id>_api;`, else `pub mod <id>;`.
+        let anchor = lines.findIndex(l => l.trim() === `pub mod ${id}_api;`);
+        if (anchor < 0) anchor = lines.findIndex(l => l.trim() === `pub mod ${id};`);
+        if (anchor < 0) continue; // exchange module not listed — leave to the transpiler
+        lines.splice(anchor + 1, 0, `pub mod ${id}_typed;`);
+        added++;
+    }
+    if (added > 0) {
+        fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
+        console.log(`Synced ${added} missing 'pub mod <id>_typed;' decl(s) into exchanges/mod.rs`);
     }
 }
 
