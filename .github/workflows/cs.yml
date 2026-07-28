@@ -37,7 +37,7 @@ jobs:
         fi
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: '10.0.302'
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
