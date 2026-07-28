@@ -37,7 +37,7 @@ jobs:
         echo "SHA: $GITHUB_SHA"
         echo "Head Commit: $HEAD_COMMIT_MESSAGE"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
         clean: false
@@ -169,7 +169,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
