@@ -1,3 +1,39 @@
+<a id="v4.5.69"></a>
+# [v4.5.69](https://github.com/ccxt/ccxt/releases/tag/v4.5.69) - 2026-07-28
+
+## What's Changed
+* fix(website): resolve sharp/libvips GHSA-f88m-g3jw-g9cj by pinning sharp to 0.35.0 by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29287](https://github.com/ccxt/ccxt/pull/29287)
+* fix(playground): pin sharp to 0.35.0 for libvips CVE remediation by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29288](https://github.com/ccxt/ccxt/pull/29288)
+* fix: broken urls by [@ttodua](https://github.com/ttodua) in [#29291](https://github.com/ccxt/ccxt/pull/29291)
+* chore(deps): bump next from 16.2.6 to 16.2.11 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29293](https://github.com/ccxt/ccxt/pull/29293)
+* fix: rootDir paths by [@ttodua](https://github.com/ttodua) in [#29292](https://github.com/ccxt/ccxt/pull/29292)
+* chore(deps): bump next from 16.2.6 to 16.2.11 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#29295](https://github.com/ccxt/ccxt/pull/29295)
+* fix(phemex): round spot order quantities to market precision before Ev scaling by [@g0rdonL](https://github.com/g0rdonL) in [#29294](https://github.com/ccxt/ccxt/pull/29294)
+* fix(weex): scale ticker percentage by [@Shiven0504](https://github.com/Shiven0504) in [#29299](https://github.com/ccxt/ccxt/pull/29299)
+* golang http.Transport is not reused for proxies, huge leak by [@thebocher](https://github.com/thebocher) in [#29300](https://github.com/ccxt/ccxt/pull/29300)
+* fix(lbank): parse swap ticker timestamp by [@mavlevich](https://github.com/mavlevich) in [#29303](https://github.com/ccxt/ccxt/pull/29303)
+* fix(build): reclaim playground box disk before deploy, not only after success by [@pcriadoperez](https://github.com/pcriadoperez) in [#29301](https://github.com/ccxt/ccxt/pull/29301)
+* chore(deps): bump postcss from 8.5.15 to 8.5.18 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29306](https://github.com/ccxt/ccxt/pull/29306)
+* Align Docker image `idna` pin with project metadata by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29307](https://github.com/ccxt/ccxt/pull/29307)
+* fix(build): restore arm64 development image by [@mavlevich](https://github.com/mavlevich) in [#29305](https://github.com/ccxt/ccxt/pull/29305)
+* refactor(js): safestring optimization by [@ttodua](https://github.com/ttodua) in [#29296](https://github.com/ccxt/ccxt/pull/29296)
+* fix(future): nativeRejectionHandled by [@carlosmiei](https://github.com/carlosmiei) in [#29322](https://github.com/ccxt/ccxt/pull/29322)
+* feat(myriad): update fetchEvent(s) for ob events, add static tests by [@Dan-krm](https://github.com/Dan-krm) in [#29297](https://github.com/ccxt/ccxt/pull/29297)
+* feat(playground): add Polymarket prediction example by [@pcriadoperez](https://github.com/pcriadoperez) in [#29224](https://github.com/ccxt/ccxt/pull/29224)
+* perf(js): safe function consistency by [@ttodua](https://github.com/ttodua) in [#29313](https://github.com/ccxt/ccxt/pull/29313)
+* fix(htx): cap fetchFundingRateHistory limit at 100 for linear swaps by [@rayBastard](https://github.com/rayBastard) in [#29325](https://github.com/ccxt/ccxt/pull/29325)
+* feat(nado): new exchange by [@sc0Vu](https://github.com/sc0Vu) in [#28800](https://github.com/ccxt/ccxt/pull/28800)
+
+## New Contributors
+* [@g0rdonL](https://github.com/g0rdonL) made their first contribution in [#29294](https://github.com/ccxt/ccxt/pull/29294)
+* [@thebocher](https://github.com/thebocher) made their first contribution in [#29300](https://github.com/ccxt/ccxt/pull/29300)
+* [@mavlevich](https://github.com/mavlevich) made their first contribution in [#29303](https://github.com/ccxt/ccxt/pull/29303)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.68...v4.5.69
+
+[Changes][v4.5.69]
+
+
 <a id="v4.5.68"></a>
 # [v4.5.68](https://github.com/ccxt/ccxt/releases/tag/v4.5.68) - 2026-07-22
 
@@ -13806,6 +13842,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.69]: https://github.com/ccxt/ccxt/compare/v4.5.68...v4.5.69
 [v4.5.68]: https://github.com/ccxt/ccxt/compare/v4.5.67...v4.5.68
 [v4.5.67]: https://github.com/ccxt/ccxt/compare/v4.5.66...v4.5.67
 [v4.5.66]: https://github.com/ccxt/ccxt/compare/v4.5.65...v4.5.66
