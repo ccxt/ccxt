@@ -1,8 +1,8 @@
 /* eslint-disable */
-// Convert the Docsify `wiki/` markdown into Fumadocs `website/content/docs/`.
+// Convert the Docsify `wiki/` markdown into Fumadocs `docs/website/content/docs/`.
 //
 // READS  wiki/*.md (guides, 106 exchanges/, 557 examples/) — never mutates wiki/.
-// WRITES website/content/docs/**.md + meta.json (wiped & regenerated each run).
+// WRITES docs/website/content/docs/**.md + meta.json (wiped & regenerated each run).
 //
 // The wiki/ tree is itself generated (jsdoc2md.js / examples2md.js) and is the single
 // source of truth shared with the still-live Docsify site + the ccxt.wiki mirror.
@@ -15,7 +15,7 @@ import path from 'path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const WIKI = path.join(ROOT, 'wiki');
-const OUT = path.join(ROOT, 'website', 'content', 'docs');
+const OUT = path.join(ROOT, 'docs', 'website', 'content', 'docs');
 
 // ---------------------------------------------------------------------------
 // Route + title maps for the hand-written guides. Source file -> [route, title].
@@ -665,14 +665,14 @@ function main () {
     // expose the CCXT version (from the root package.json) to the app, so the homepage
     // Java/gradle install line shows the current version instead of a hardcoded one.
     const ccxtVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
-    fs.writeFileSync(path.join(ROOT, 'website', 'src', 'lib', 'ccxt-version.json'),
+    fs.writeFileSync(path.join(ROOT, 'docs', 'website', 'src', 'lib', 'ccxt-version.json'),
         JSON.stringify({ version: ccxtVersion }, null, 2) + '\n');
 
     // 5) translated guides: drop the committed per-locale markdown in as
     // content/docs/<name>.<locale>.md so Fumadocs i18n serves it (others fall back to
     // English). Copied verbatim, except the exchanges table — that's re-injected from the
     // current English build (see EXCHANGE_TABLE_RE) so it never goes stale per locale.
-    const I18N_DIR = path.join(ROOT, 'website', 'content-i18n');
+    const I18N_DIR = path.join(ROOT, 'docs', 'website', 'content-i18n');
     let i18nCount = 0;
     if (fs.existsSync(I18N_DIR)) {
         for (const locale of fs.readdirSync(I18N_DIR)) {

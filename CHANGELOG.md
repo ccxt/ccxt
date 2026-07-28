@@ -1,3 +1,84 @@
+<a id="v4.5.69"></a>
+# [v4.5.69](https://github.com/ccxt/ccxt/releases/tag/v4.5.69) - 2026-07-28
+
+## What's Changed
+* fix(website): resolve sharp/libvips GHSA-f88m-g3jw-g9cj by pinning sharp to 0.35.0 by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29287](https://github.com/ccxt/ccxt/pull/29287)
+* fix(playground): pin sharp to 0.35.0 for libvips CVE remediation by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29288](https://github.com/ccxt/ccxt/pull/29288)
+* fix: broken urls by [@ttodua](https://github.com/ttodua) in [#29291](https://github.com/ccxt/ccxt/pull/29291)
+* chore(deps): bump next from 16.2.6 to 16.2.11 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29293](https://github.com/ccxt/ccxt/pull/29293)
+* fix: rootDir paths by [@ttodua](https://github.com/ttodua) in [#29292](https://github.com/ccxt/ccxt/pull/29292)
+* chore(deps): bump next from 16.2.6 to 16.2.11 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#29295](https://github.com/ccxt/ccxt/pull/29295)
+* fix(phemex): round spot order quantities to market precision before Ev scaling by [@g0rdonL](https://github.com/g0rdonL) in [#29294](https://github.com/ccxt/ccxt/pull/29294)
+* fix(weex): scale ticker percentage by [@Shiven0504](https://github.com/Shiven0504) in [#29299](https://github.com/ccxt/ccxt/pull/29299)
+* golang http.Transport is not reused for proxies, huge leak by [@thebocher](https://github.com/thebocher) in [#29300](https://github.com/ccxt/ccxt/pull/29300)
+* fix(lbank): parse swap ticker timestamp by [@mavlevich](https://github.com/mavlevich) in [#29303](https://github.com/ccxt/ccxt/pull/29303)
+* fix(build): reclaim playground box disk before deploy, not only after success by [@pcriadoperez](https://github.com/pcriadoperez) in [#29301](https://github.com/ccxt/ccxt/pull/29301)
+* chore(deps): bump postcss from 8.5.15 to 8.5.18 in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29306](https://github.com/ccxt/ccxt/pull/29306)
+* Align Docker image `idna` pin with project metadata by [@kroitor](https://github.com/kroitor) with [@Copilot](https://github.com/Copilot) in [#29307](https://github.com/ccxt/ccxt/pull/29307)
+* fix(build): restore arm64 development image by [@mavlevich](https://github.com/mavlevich) in [#29305](https://github.com/ccxt/ccxt/pull/29305)
+* refactor(js): safestring optimization by [@ttodua](https://github.com/ttodua) in [#29296](https://github.com/ccxt/ccxt/pull/29296)
+* fix(future): nativeRejectionHandled by [@carlosmiei](https://github.com/carlosmiei) in [#29322](https://github.com/ccxt/ccxt/pull/29322)
+* feat(myriad): update fetchEvent(s) for ob events, add static tests by [@Dan-krm](https://github.com/Dan-krm) in [#29297](https://github.com/ccxt/ccxt/pull/29297)
+* feat(playground): add Polymarket prediction example by [@pcriadoperez](https://github.com/pcriadoperez) in [#29224](https://github.com/ccxt/ccxt/pull/29224)
+* perf(js): safe function consistency by [@ttodua](https://github.com/ttodua) in [#29313](https://github.com/ccxt/ccxt/pull/29313)
+* fix(htx): cap fetchFundingRateHistory limit at 100 for linear swaps by [@rayBastard](https://github.com/rayBastard) in [#29325](https://github.com/ccxt/ccxt/pull/29325)
+* feat(nado): new exchange by [@sc0Vu](https://github.com/sc0Vu) in [#28800](https://github.com/ccxt/ccxt/pull/28800)
+
+## New Contributors
+* [@g0rdonL](https://github.com/g0rdonL) made their first contribution in [#29294](https://github.com/ccxt/ccxt/pull/29294)
+* [@thebocher](https://github.com/thebocher) made their first contribution in [#29300](https://github.com/ccxt/ccxt/pull/29300)
+* [@mavlevich](https://github.com/mavlevich) made their first contribution in [#29303](https://github.com/ccxt/ccxt/pull/29303)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.68...v4.5.69
+
+[Changes][v4.5.69]
+
+
+<a id="v4.5.68"></a>
+# [v4.5.68](https://github.com/ccxt/ccxt/releases/tag/v4.5.68) - 2026-07-22
+
+## What's Changed
+* refactor(utils): move to build by [@ttodua](https://github.com/ttodua) in [#29243](https://github.com/ccxt/ccxt/pull/29243)
+* fix(coinex): do not use 'value' as quoteVolume on inverse contracts by [@mkzung](https://github.com/mkzung) in [#29247](https://github.com/ccxt/ccxt/pull/29247)
+* fix(bitfinex): populate order book sides correctly in PHP by [@carlotestor](https://github.com/carlotestor) in [#29249](https://github.com/ccxt/ccxt/pull/29249)
+* fix(okx): forward pagination for fetchCanceledOrders & fetchClosedOrders by [@carlotestor](https://github.com/carlotestor) in [#29254](https://github.com/ccxt/ccxt/pull/29254)
+* kraken: fix leaking order cancel updates in watchOrders (tail=true in watchPrivate) by [@carlotestor](https://github.com/carlotestor) in [#29255](https://github.com/ccxt/ccxt/pull/29255)
+* bitmex: fix fetchOrderBook empty results in PHP transpile by [@carlotestor](https://github.com/carlotestor) in [#29256](https://github.com/ccxt/ccxt/pull/29256)
+* coinbase: fetchClosedOrders - increase pagination maxEntriesPerRequest to 1000 by [@carlotestor](https://github.com/carlotestor) in [#29257](https://github.com/ccxt/ccxt/pull/29257)
+* chore: fix granular GO build to support prediction exchanges by [@carlosmiei](https://github.com/carlosmiei) in [#29251](https://github.com/ccxt/ccxt/pull/29251)
+* ndax: fix empty orderbook arrays in PHP by [@carlotestor](https://github.com/carlotestor) in [#29259](https://github.com/ccxt/ccxt/pull/29259)
+* fix(xt): read spot baseVolume from 'q' by [@mkzung](https://github.com/mkzung) in [#29250](https://github.com/ccxt/ccxt/pull/29250)
+* fix(bybit): set linear/inverse/subType for expired option markets by [@carlotestor](https://github.com/carlotestor) in [#29258](https://github.com/ccxt/ccxt/pull/29258)
+* fix(binance): allow empty symbols in watchLiquidationsForSymbols by [@carlotestor](https://github.com/carlotestor) in [#29260](https://github.com/ccxt/ccxt/pull/29260)
+* fix(27997): binance skip futures balance assets with updateTime 0 in parseBalance by [@carlotestor](https://github.com/carlotestor) in [#29108](https://github.com/ccxt/ccxt/pull/29108)
+* fix(whitebit): parse side and role in watchMyTrades deals_update by [@carlotestor](https://github.com/carlotestor) in [#29264](https://github.com/ccxt/ccxt/pull/29264)
+* fix(coinex): map WS order event to unified status in watchOrders by [@carlotestor](https://github.com/carlotestor) in [#29266](https://github.com/ccxt/ccxt/pull/29266)
+* fix(htx): set lastTradeTimestamp on spot watchOrders trade events by [@carlotestor](https://github.com/carlotestor) in [#29263](https://github.com/ccxt/ccxt/pull/29263)
+* fix(binance): parse stringified JSON response in fetchWithdrawals by [@carlotestor](https://github.com/carlotestor) in [#29262](https://github.com/ccxt/ccxt/pull/29262)
+* refactor(test): safe methods by [@ttodua](https://github.com/ttodua) in [#29261](https://github.com/ccxt/ccxt/pull/29261)
+* chore(deps): bump js-yaml, fumadocs-mdx and fumadocs-ui in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29270](https://github.com/ccxt/ccxt/pull/29270)
+* chore(deps): bump js-yaml and fumadocs-core in /website by [@dependabot](https://github.com/dependabot)[bot] in [#29272](https://github.com/ccxt/ccxt/pull/29272)
+* chore(deps-dev): bump linkify-it from 5.0.1 to 5.0.2 by [@dependabot](https://github.com/dependabot)[bot] in [#29273](https://github.com/ccxt/ccxt/pull/29273)
+* chore(deps): bump setuptools from 82.0.1 to 83.0.0 by [@dependabot](https://github.com/dependabot)[bot] in [#29274](https://github.com/ccxt/ccxt/pull/29274)
+* chore(deps): bump guzzlehttp/psr7 to 2.13.0 by [@moridsadat](https://github.com/moridsadat) in [#29269](https://github.com/ccxt/ccxt/pull/29269)
+* chore(deps): bump dompurify from 3.4.11 to 3.4.12 in /playground by [@dependabot](https://github.com/dependabot)[bot] in [#29275](https://github.com/ccxt/ccxt/pull/29275)
+* fix(whitebit): use actual fee currency from watchMyTrades WS payload by [@rayBastard](https://github.com/rayBastard) in [#29276](https://github.com/ccxt/ccxt/pull/29276)
+* Revert "fix(binance): parse stringified JSON response in fetchWithdrawals" by [@frosty00](https://github.com/frosty00) in [#29279](https://github.com/ccxt/ccxt/pull/29279)
+* feat(polymarket): add builderFee 0 just for tracking purposes by [@carlosmiei](https://github.com/carlosmiei) in [#29278](https://github.com/ccxt/ccxt/pull/29278)
+* feat(hyperliquid): add tracking (fee=0) builder id by [@carlosmiei](https://github.com/carlosmiei) in [#29281](https://github.com/ccxt/ccxt/pull/29281)
+* chore: trim changelong entries by [@carlosmiei](https://github.com/carlosmiei) in [#29283](https://github.com/ccxt/ccxt/pull/29283)
+* chore: bump ast-transpiler by [@carlosmiei](https://github.com/carlosmiei) in [#29284](https://github.com/ccxt/ccxt/pull/29284)
+* chore: fix test-commonjs.cjs by [@carlosmiei](https://github.com/carlosmiei) in [#29285](https://github.com/ccxt/ccxt/pull/29285)
+* chore: bump ast-transpiler to 95 by [@carlosmiei](https://github.com/carlosmiei) in [#29286](https://github.com/ccxt/ccxt/pull/29286)
+
+## New Contributors
+* [@moridsadat](https://github.com/moridsadat) made their first contribution in [#29269](https://github.com/ccxt/ccxt/pull/29269)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.67...v4.5.68
+
+[Changes][v4.5.68]
+
+
 <a id="v4.5.67"></a>
 # [v4.5.67](https://github.com/ccxt/ccxt/releases/tag/v4.5.67) - 2026-07-19
 
@@ -13761,6 +13842,8 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.69]: https://github.com/ccxt/ccxt/compare/v4.5.68...v4.5.69
+[v4.5.68]: https://github.com/ccxt/ccxt/compare/v4.5.67...v4.5.68
 [v4.5.67]: https://github.com/ccxt/ccxt/compare/v4.5.66...v4.5.67
 [v4.5.66]: https://github.com/ccxt/ccxt/compare/v4.5.65...v4.5.66
 [v4.5.65]: https://github.com/ccxt/ccxt/compare/v4.5.64...v4.5.65

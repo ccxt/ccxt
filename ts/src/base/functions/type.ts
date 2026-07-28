@@ -38,14 +38,15 @@ const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
 };
 const getValueFromKeysInArray = (object: Dictionary<any>, array: any[]) => isObject (object) ? object[array.find ((k: NullableIndexType) => prop (object, k) !== undefined)] : undefined;
 /*  .............................................   */
+
 const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
 const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
 
-const safeFloat = (o: implicitReturnType, k: NullableIndexType, $default?: number): Num => {
+function safeFloat (o: implicitReturnType, k: NullableIndexType, $default?: number): Num {
     const n = asFloat (prop (o, k));
     return isNumber (n) ? n : $default;
-};
+}
 
 function safeInteger (o: implicitReturnType, k: NullableIndexType, $default: number): number;
 function safeInteger (o: implicitReturnType, k: NullableIndexType, $default?: number): Int;
@@ -54,17 +55,17 @@ function safeInteger (o: implicitReturnType, k: NullableIndexType, $default?: nu
     return isNumber (n) ? n : $default;
 }
 
-const safeIntegerProduct = (o: implicitReturnType, k: NullableIndexType, $factor: number, $default?: number): Int => {
+function safeIntegerProduct (o: implicitReturnType, k: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop (o, k));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
-};
+}
 
-const safeTimestamp = (o: implicitReturnType, k: NullableIndexType, $default?: number): Int => {
+function safeTimestamp (o: implicitReturnType, k: NullableIndexType, $default?: number): Int {
     const n = asFloat (prop (o, k));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
-};
+}
 
-const safeValue = (o: implicitReturnType, k: NullableIndexType, $default?: any) => {
+function safeValue (o: implicitReturnType, k: NullableIndexType, $default?: any) {
     const x = prop (o, k);
     return hasProps (x) ? x : $default;
 }
@@ -72,35 +73,31 @@ const safeValue = (o: implicitReturnType, k: NullableIndexType, $default?: any) 
 function safeString (o: implicitReturnType, k: NullableIndexType, $default: string): string;
 function safeString (o: implicitReturnType, k: NullableIndexType, $default?: string): Str;
 function safeString (o: implicitReturnType, k: NullableIndexType, $default?: string): Str {
-    const x = prop (o, k);
-    return isStringCoercible (x) ? String (x) : $default;
-}
-
-function safeStringLower (o: implicitReturnType, k: NullableIndexType, $default: string): string;
-function safeStringLower (o: implicitReturnType, k: NullableIndexType, $default?: string): Str;
-function safeStringLower (o: implicitReturnType, k: NullableIndexType, $default?: string): Str {
-    const x = prop (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    const x = prop(o, k);
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
     return $default;
 }
 
-function safeStringUpper (o: implicitReturnType, k: NullableIndexType, $default: string): string;
-function safeStringUpper (o: implicitReturnType, k: NullableIndexType, $default?: string): Str;
+function safeStringLower (o: implicitReturnType, k: NullableIndexType, $default?: string): Str {
+    const x = prop (o, k);
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
+    return $default;
+}
+
 function safeStringUpper (o: implicitReturnType, k: NullableIndexType, $default?: string): Str {
-    const x = prop (o, k)
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    const x = prop (o, k);
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 }
 /*  .............................................   */
 
-const safeFloat2 = (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Num => {
+function safeFloat2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Num {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? n : $default;
-};
+}
 
 function safeInteger2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default: number): number;
 function safeInteger2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Int;
@@ -109,52 +106,48 @@ function safeInteger2 (o: implicitReturnType, k1: NullableIndexType, k2: Nullabl
     return isNumber (n) ? n : $default;
 }
 
-const safeIntegerProduct2 = (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int => {
+function safeIntegerProduct2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
-};
+}
 
-const safeTimestamp2 = (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: Int): Int => {
+function safeTimestamp2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: Int): Int {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
-};
+}
 
-const safeValue2 = (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) => {
+function safeValue2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) {
     const x = prop2 (o, k1, k2);
     return hasProps (x) ? x : $default;
-};
+}
 
 function safeString2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default: string): string;
 function safeString2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str;
 function safeString2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
-    return isStringCoercible (x) ? String (x) : $default;
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
+    return $default;
 }
 
-function safeStringLower2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default: string): string;
-function safeStringLower2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str;
 function safeStringLower2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
     return $default;
 }
 
-function safeStringUpper2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default: string): string;
-function safeStringUpper2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str;
 function safeStringUpper2 (o: implicitReturnType, k1: NullableIndexType, k2: NullableIndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 }
 
-const safeFloatN = (o: implicitReturnType, k: (NullableIndexType)[], $default?: number): Num => {
+function safeFloatN (o: implicitReturnType, k: (NullableIndexType)[], $default?: number): Num {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
-};
+}
 
 function safeIntegerN (o: implicitReturnType, k: (NullableIndexType)[], $default: number): number;
 function safeIntegerN (o: implicitReturnType, k: (NullableIndexType)[], $default?: number): Int;
@@ -166,51 +159,47 @@ function safeIntegerN (o: implicitReturnType, k: (NullableIndexType)[], $default
     return isNumber (n) ? n : $default;
 }
 
-const safeIntegerProductN = (o: implicitReturnType, k: (NullableIndexType)[], $factor: number, $default?: number): Int => {
+function safeIntegerProductN (o: implicitReturnType, k: (NullableIndexType)[], $factor: number, $default?: number): Int {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
-};
+}
 
-const safeTimestampN = (o: implicitReturnType, k: (NullableIndexType)[], $default?: number): Int => {
+function safeTimestampN (o: implicitReturnType, k: (NullableIndexType)[], $default?: number): Int {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
-};
+}
 
-const safeValueN = (o: implicitReturnType, k: (NullableIndexType)[], $default?: any) => {
+function safeValueN (o: implicitReturnType, k: (NullableIndexType)[], $default?: any) {
     if (o === undefined) {
         return $default;
     }
     const x = getValueFromKeysInArray (o, k);
     return hasProps (x) ? x : $default;
-};
+}
 
 function safeStringN (o: implicitReturnType, k: (NullableIndexType)[], $default: string): string;
 function safeStringN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str;
 function safeStringN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str {
-    if (o === undefined) {
-        return $default;
-    }
-    const x = getValueFromKeysInArray (o, k);
-    return isStringCoercible (x) ? String (x) : $default;
-}
-
-function safeStringLowerN (o: implicitReturnType, k: (NullableIndexType)[], $default: string): string;
-function safeStringLowerN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str;
-function safeStringLowerN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str {
-    const x = getValueFromKeysInArray (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toLowerCase ();
-    }
+    if (o === undefined) return $default; 
+    const x = getValueFromKeysInArray (o, k); 
+    if (typeof x === 'string') return x;
+    if (Number.isFinite (x)) return String (x);
     return $default;
 }
 
-function safeStringUpperN (o: implicitReturnType, k: (NullableIndexType)[], $default: string): string;
-function safeStringUpperN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str;
-function safeStringUpperN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str {
+function safeStringLowerN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str {
+    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
-    if (isStringCoercible (x)) {
-        return String (x).toUpperCase ();
-    }
+    if (typeof x === 'string') return x.toLowerCase ();
+    if (Number.isFinite (x)) return String (x).toLowerCase ();
+    return $default;
+}
+
+function safeStringUpperN (o: implicitReturnType, k: (NullableIndexType)[], $default?: string): Str {
+    if (o === undefined) return $default; 
+    const x = getValueFromKeysInArray (o, k);
+    if (typeof x === 'string') return x.toUpperCase ();
+    if (Number.isFinite (x)) return String (x).toUpperCase ();
     return $default;
 }
 

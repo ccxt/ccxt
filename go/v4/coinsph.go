@@ -2260,7 +2260,7 @@ func (this *CoinsphCore) Withdraw(code any, amount any, address any, optionalArg
 		var options any = this.SafeValue(this.Options, "withdraw")
 		var warning any = this.SafeBool(options, "warning", true)
 		if IsTrue(warning) {
-			panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options[\\'withdraw\\'][\\'warning\\'] = false to make a withdrawal to your coins_ph account")))
+			panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")))
 		}
 		var networkCode any = this.SafeString(params, "network")
 		var networkId any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.NetworkCodeToId(networkCode, code))

@@ -201,6 +201,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
 	case "myokx":
 		itf := NewMyokx(options)
 		return itf
+	case "nado":
+		itf := NewNado(options)
+		return itf
 	case "ndax":
 		itf := NewNdax(options)
 		return itf

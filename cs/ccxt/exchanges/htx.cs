@@ -7694,7 +7694,7 @@ public partial class htx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // max 100
             }
             if (isTrue(!isEqual(since, null)))
             {

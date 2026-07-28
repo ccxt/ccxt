@@ -11,7 +11,7 @@ import { platform } from 'process'
 // import the TS source ccxt (resolved by tsx) so the ccxt.prediction namespace is available —
 // the built js/ccxt.js may be stale and miss prediction exchanges (kalshi/limitless/... and the
 // hyperliquid prediction variant)
-import ccxt from '../ts/ccxt.js';
+import ccxt from '../../ts/ccxt.js';
 
 const [,, ...args] = process.argv;
 
@@ -19,7 +19,7 @@ let __dirname = new URL('.', import.meta.url).pathname;
 if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring (1);
 }
-const rootDir = __dirname + '/../';
+const rootDir = __dirname + '/../../';
 const useJsonParsing = false; 
 
 function getExchangeSettings (exchangeId) {

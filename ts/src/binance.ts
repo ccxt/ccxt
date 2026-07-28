@@ -4605,7 +4605,7 @@ export default class binance extends Exchange {
         //     {
         //         "symbol": "BTCUSDT",
         //         "price": "6000.01",
-        //         "time": 1589437530011   // Transaction time
+        //         "time": 1589437530011
         //     }
         //
         //

@@ -110,7 +110,10 @@ function testMarket(exchange, skippedProperties, method, market) {
         emptyAllowedFor.push('quote');
     }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
-    testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
+    // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if (market['type'] !== 'prediction') {
+        testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
+    }
     const logText = testSharedMethods.logTemplate(exchange, method, market);
     // check taker/maker
     // todo: check not all to be within 0-1.0
