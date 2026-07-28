@@ -7,7 +7,7 @@ import type {
     Int, int, Str, Num, Dict, Strings,
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, PredictionOutcome,
     fetchEventsParams,
 } from '../base/types.js';
 
@@ -808,13 +808,14 @@ export default class kalshi extends Exchange {
         return this.parsePredictionOpenInterest (raw, outcomeObj as any);
     }
 
-    parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    parsePredictionOpenInterest (interest, outcomeObj: PredictionOutcome = undefined): PredictionOpenInterest {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
         const timestamp = this.milliseconds ();
+        const mkt = this.safeOutcome (undefined, outcomeObj as any);
         const openInterest = this.safeOpenInterest ({
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (undefined, mkt),
             'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
             'openInterestValue': undefined,
             'baseVolume': undefined,
@@ -822,9 +823,9 @@ export default class kalshi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market);
-        openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
-        openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
+        }, mkt);
+        openInterest['outcome'] = this.safeOutcomeSymbol (undefined, mkt);
+        openInterest['outcomeId'] = this.safeString (mkt, 'outcomeId');
         delete openInterest['symbol'];
         return openInterest as unknown as PredictionOpenInterest;
     }
@@ -835,10 +836,10 @@ export default class kalshi extends Exchange {
      * @name kalshi#parsePredictionTicker
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
-     * @param {object} [market] the outcome object the ticker belongs to
+     * @param {object} [outcomeObj] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (raw: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTicker {
         //
         //     {
         //         "market": {
@@ -894,9 +895,9 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const marketAny = outcomeObj as any;
+        outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeLabel = outcomeObj ? this.safeString (outcomeObj, 'label', this.safeString (outcomeObj['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -958,7 +959,7 @@ export default class kalshi extends Exchange {
             'baseVolume': this.safeNumberN (raw, [ 'volume_24h_fp', 'volume_24h', 'volume' ]), // 24h volume in contracts
             'quoteVolume': undefined,
             'info': raw,
-        }, market);
+        }, outcomeObj);
     }
 
     /**
@@ -1327,10 +1328,10 @@ export default class kalshi extends Exchange {
      * @name kalshi#parsePredictionTrade
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
-     * @param {object} [market] the outcome object the trade belongs to
+     * @param {object} [outcomeObj] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
         const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
@@ -1344,8 +1345,8 @@ export default class kalshi extends Exchange {
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
-        const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const marketAny = outcomeObj as any;
+        outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const marketInfo = this.safeDict (outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
@@ -1379,7 +1380,7 @@ export default class kalshi extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        }, market);
+        }, outcomeObj);
     }
 
     /**
@@ -1435,10 +1436,10 @@ export default class kalshi extends Exchange {
      * @name kalshi#parseMyTrade
      * @description parses one raw kalshi fill into the unified trade shape
      * @param {object} fill the raw kalshi fill
-     * @param {object} [market] a resolved outcome/market hint
+     * @param {object} [outcomeObj] a resolved outcome/market hint
      * @returns {object} a unified trade structure
      */
-    parseMyTrade (fill: Dict, market: Market = undefined): PredictionTrade {
+    parseMyTrade (fill: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
         const id = this.safeString2 (fill, 'fill_id', 'trade_id');
         const orderId = this.safeString (fill, 'order_id');
         const ticker = this.safeString2 (fill, 'ticker', 'market_ticker');
@@ -1448,7 +1449,7 @@ export default class kalshi extends Exchange {
         if ((sideLeg === 'no') && (ticker !== undefined)) {
             outcomeKey = ticker + '-NO';
         }
-        const mkt = this.safeOutcome (outcomeKey, market as any);
+        const mkt = this.safeOutcome (outcomeKey, outcomeObj as any);
         const ts = this.parse8601 (this.safeString (fill, 'created_time'));
         // action is the order side (buy/sell) of the held leg
         const action = this.safeStringLower (fill, 'action');
@@ -1504,7 +1505,7 @@ export default class kalshi extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }, market);
+        }, outcomeObj);
     }
 
     /**
@@ -1698,12 +1699,12 @@ export default class kalshi extends Exchange {
      * @name kalshi#parsePredictionPosition
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
-     * @param {object} [market] the outcome object the position belongs to
+     * @param {object} [outcomeObj] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, outcomeObj: PredictionOutcome = undefined): PredictionPosition {
         const ticker = this.safeString (position, 'ticker');
-        const outcomeObj = this.safeOutcome (ticker, market as any);
+        outcomeObj = this.safeOutcome (ticker, outcomeObj as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
         let positionSide: Str = undefined;
         let contractsValue = undefined;
@@ -1848,10 +1849,10 @@ export default class kalshi extends Exchange {
      * @name kalshi#parsePredictionOrder
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
-     * @param {object} [market] the outcome object the order belongs to
+     * @param {object} [outcomeObj] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, outcomeObj: PredictionOutcome = undefined): PredictionOrder {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
@@ -1861,7 +1862,7 @@ export default class kalshi extends Exchange {
         if ((sideLeg === 'no') && (ticker !== undefined)) {
             outcomeKey = ticker + '-NO';
         }
-        const mkt = this.safeOutcome (outcomeKey, market as any);
+        const mkt = this.safeOutcome (outcomeKey, outcomeObj as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
