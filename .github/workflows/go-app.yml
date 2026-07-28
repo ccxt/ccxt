@@ -6,8 +6,14 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
 permissions:
   contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref t}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          clean: false
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v5
         with:

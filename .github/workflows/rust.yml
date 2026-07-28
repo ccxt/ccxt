@@ -20,6 +20,7 @@ jobs:
         if: github.ref == 'refs/heads/master'
         with:
           fetch-depth: 2
+          clean: false
       - uses: actions/checkout@v4
         if: github.ref != 'refs/heads/master'
         with:

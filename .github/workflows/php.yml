@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref t}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,6 +32,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+        clean: false
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
