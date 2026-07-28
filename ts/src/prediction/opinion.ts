@@ -118,7 +118,7 @@ export default class opinion extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    signOpinionApiKeyAuth (walletAddress: string, action: string, timestamp: string): string {
+    signApiKeyAuth (walletAddress: string, action: string, timestamp: string): string {
         const domain: Dict = {
             'name': 'Opinion OpenAPI',
             'version': '1',
@@ -216,7 +216,7 @@ export default class opinion extends Exchange {
             const action = this.safeString (actionByMethod, method, 'get');
             const timestamp = this.numberToString (this.seconds ());
             headers['OPINION_ADDRESS'] = this.walletAddress;
-            headers['OPINION_SIGNATURE'] = this.signOpinionApiKeyAuth (this.walletAddress, action, timestamp);
+            headers['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
             headers['OPINION_TIMESTAMP'] = timestamp;
         } else {
             headers['apikey'] = this.apiKey;
