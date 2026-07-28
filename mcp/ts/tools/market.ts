@@ -454,7 +454,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
         if (method.startsWith ('watch') || method.endsWith ('Ws') || method.startsWith ('un')) {
-            return { 'ok': false, 'error': { 'code': 'STREAMING_NOT_SUPPORTED', 'message': method + ' is a WebSocket/streaming method — this server is request/response only', 'retryable': false, 'hint': 'use the fetch* equivalent to get a snapshot (e.g. fetchTicker instead of watchTicker, fetchOrderBook instead of watchOrderBook)' } };
+            return { 'ok': false, 'error': { 'code': 'USE_WATCH_TOOLS', 'message': method + ' is a WebSocket/streaming method — call_read_method is for one-shot reads', 'retryable': false, 'hint': 'for live streaming use watch_subscribe (' + method + ') then watch_read; for a single snapshot use the fetch* equivalent (e.g. fetchTicker)' } };
         }
         if (!READ_METHOD_PATTERN.test (method)) {
             return { 'ok': false, 'error': { 'code': 'NOT_A_READ_METHOD', 'message': method + ' is not callable here — only fetch*/load* unified methods are', 'retryable': false, 'hint': 'this tool is read-only; order placement uses create_order, other writes use their dedicated tools (create/edit/cancel order, set_leverage, call_write_method)' } };

@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ExchangePools, type PoolsDeps } from './pools.js';
 import { Safety } from './safety.js';
 import { Journal } from './journal.js';
+import { SubscriptionRegistry } from './subscriptions.js';
 import { registerAllTools, SERVER_INSTRUCTIONS } from './tools/index.js';
 import type { ResolvedConfig, ServerContext } from './types.js';
 
@@ -19,6 +20,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
     const journal = new Journal (options.journalDir);
     const safety = new Safety (journal);
     const pools = new ExchangePools (options.config, options.poolsDeps);
+    const subscriptions = new SubscriptionRegistry (pools);
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': options.version,
@@ -31,6 +33,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
         pools,
         safety,
         journal,
+        subscriptions,
         'version': options.version,
         'elicitationSupported': () => {
             const capabilities = server.server.getClientCapabilities ();

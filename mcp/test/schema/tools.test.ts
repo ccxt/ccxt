@@ -12,6 +12,7 @@ const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
+    'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
 const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method' ];
@@ -52,10 +53,14 @@ test ('full activation registers every tier', async () => {
 test ('annotations: reads are readOnly, writes are destructive, cancel is the exception', async () => {
     const { tools } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } });
     const byName = new Map (tools.map ((tool: any) => [ tool.name, tool ]));
-    for (const name of [ ...MARKET_TOOLS, ...READ_TOOLS ]) {
+    // watch_unsubscribe is a non-destructive control op (stops a stream), not a read
+    const readTools = [ ...MARKET_TOOLS, ...READ_TOOLS ].filter ((name) => name !== 'watch_unsubscribe');
+    for (const name of readTools) {
         assert.equal (byName.get (name)?.annotations?.readOnlyHint, true, name + ' must be readOnly');
         assert.ok (!byName.get (name)?.annotations?.destructiveHint, name + ' must not be destructive');
     }
+    assert.equal (byName.get ('watch_unsubscribe')?.annotations?.destructiveHint, false);
+    assert.equal (byName.get ('watch_unsubscribe')?.annotations?.idempotentHint, true);
     for (const name of [ 'create_order', 'edit_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'withdraw', 'transfer', 'call_implicit_write' ]) {
         assert.equal (byName.get (name)?.annotations?.destructiveHint, true, name + ' must be destructive');
     }

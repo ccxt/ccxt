@@ -31,6 +31,7 @@ async function main (): Promise<void> {
         shuttingDown = true;
         log ('info', 'shutting down (' + reason + ')');
         try {
+            await ctx.subscriptions.closeAll ();
             await pools.closeAll ();
         } catch (e) {
             // nothing useful left to do on the way out

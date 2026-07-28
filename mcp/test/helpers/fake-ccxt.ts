@@ -45,6 +45,10 @@ export class FakeExchange {
         'fetchMyTrades': true,
         'fetchPositions': false,
         'fetchFundingRate': true,
+        'watchTicker': true,
+        'watchOHLCV': true,
+        'watchTrades': true,
+        'watchOrderBook': false,
         'createOrder': true,
         'cancelOrder': true,
         'cancelAllOrders': true,
@@ -194,7 +198,42 @@ export class FakeExchange {
         return { leverage, symbol };
     }
 
-    async close (): Promise<void> {}
+    private watchTick = 0;
+    closed = false;
+
+    // ccxt.pro-style watch* methods: each awaited call resolves with the next incremental
+    // update. A tiny UNREF'd delay keeps the registry's loop from hot-spinning and never
+    // keeps the test process alive.
+    async watchTicker (symbol: string): Promise<any> {
+        await streamTick ();
+        this.watchTick += 1;
+        return { symbol, 'last': 50000 + this.watchTick, 'bid': 49999, 'ask': 50001, 'timestamp': 1700000000000 + this.watchTick, 'datetime': '2023-11-14T22:13:20.000Z', 'info': { 'raw': true } };
+    }
+
+    async watchOHLCV (_symbol: string, _timeframe = '1m'): Promise<any> {
+        await streamTick ();
+        this.watchTick += 1;
+        return [ [ 1700000000000 + this.watchTick * 60000, 1, 2, 0.5, 1 + this.watchTick, 100 ] ];
+    }
+
+    async watchTrades (symbol: string): Promise<any> {
+        await streamTick ();
+        this.watchTick += 1;
+        return [ { 'id': 'wt' + this.watchTick, symbol, 'side': 'buy', 'price': 50000, 'amount': 0.01, 'cost': 500, 'info': { 'raw': true } } ];
+    }
+
+    async close (): Promise<void> {
+        this.closed = true;
+    }
+}
+
+function streamTick (): Promise<void> {
+    return new Promise ((resolve) => {
+        const t = setTimeout (resolve, 3);
+        if (typeof (t as any).unref === 'function') {
+            (t as any).unref ();
+        }
+    });
 }
 
 export const fakeCcxtModule = {

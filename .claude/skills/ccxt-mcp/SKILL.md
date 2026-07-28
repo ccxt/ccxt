@@ -94,6 +94,7 @@ Set `"sandbox": true` on an account to trade fake money on the exchange testnet 
 
 - **Discovery**: `list_exchanges`, `describe_exchange`, `describe_method` (search method names / signatures / per-exchange params + doc links), `get_safety_status` (which accounts/tiers are active).
 - **Market data**: `search_markets` (resolve a symbol — there is no list-all-markets tool), `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`. Long-tail reads (funding rates, open interest, ledger, …) via `call_read_method`; raw exchange GET endpoints via `call_implicit_get`.
+- **Live data (WebSocket)**: for continuously-updating data, `watch_subscribe` (e.g. `watchOHLCV`/`watchTicker`/`watchOrderBook`/`watchTrades`, or `watchOrders`/`watchMyTrades` with an account) opens a background stream and returns a `subscriptionId`; poll `watch_read` (passing the previous `cursor`) for new updates; `watch_unsubscribe` when done; `watch_list` shows active streams. Prefer the one-shot `get_*` tools when you just need a current snapshot; use `watch_*` when the user wants live/continuous data.
 - **Private (read tier)**: `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 - **Trading (trading tier)**: `create_order`, `edit_order`, `cancel_order`, `cancel_all_orders`, `set_leverage`, `set_margin_mode`, `call_write_method`.
 - **Funds (funds tier)**: `withdraw`, `transfer`, `get_deposit_address`.

@@ -55,11 +55,11 @@ test ('call_read_method: reads pass, writes and watch are structurally rejected'
         assert.equal (rejected.ok, false, method + ' must be rejected');
         assert.equal (rejected.error.code, 'NOT_A_READ_METHOD', method);
     }
-    // streaming methods get a distinct, actionable code pointing at the fetch* equivalent
+    // streaming methods are pointed at the dedicated watch_* tools, not callable here
     for (const method of [ 'watchTicker', 'fetchTickerWs', 'unWatchTicker' ]) {
         const rejected = await call (client, 'call_read_method', { 'exchange': 'fakex', method });
         assert.equal (rejected.ok, false, method + ' must be rejected');
-        assert.equal (rejected.error.code, 'STREAMING_NOT_SUPPORTED', method);
+        assert.equal (rejected.error.code, 'USE_WATCH_TOOLS', method);
     }
     await client.close ();
 });

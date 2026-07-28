@@ -70,6 +70,7 @@ export interface ServerContext {
     pools: any;    // ExchangePools — typed loosely to keep the fake-ccxt test injection trivial
     safety: any;   // Safety
     journal: any;  // Journal
+    subscriptions: any; // SubscriptionRegistry (WebSocket streaming)
     version: string;
     elicitationSupported: () => boolean;
     elicit: (message: string, schema: any) => Promise<any>;

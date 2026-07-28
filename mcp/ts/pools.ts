@@ -40,6 +40,7 @@ export class UnknownAccountError extends Error {
 export class ExchangePools {
     private publicPool = new Map<string, any> ();
     private authPool = new Map<string, any> ();
+    private streamPool = new Map<string, { exchange: any, refs: number }> ();
     private config: ResolvedConfig;
     private deps: PoolsDeps;
 
@@ -52,6 +53,11 @@ export class ExchangePools {
         // verbose mode prints full signed request headers, and Exchange.log defaults to
         // console.log (stdout) — both are unconditionally overridden, never configurable
         exchange.verbose = false;
+        // newUpdates makes ccxt.pro watch* return only incremental updates instead of the
+        // full cache each time — affects streaming only, REST fetch* ignore it
+        if (exchange.options) {
+            exchange.options['newUpdates'] = true;
+        }
         exchange.log = (...args: any[]) => {
             log ('debug', 'exchange:' + exchange.id + ' ' + redact (args.map ((arg) => String (arg)).join (' ')));
         };
@@ -98,6 +104,44 @@ export class ExchangePools {
             const oldest = this.publicPool.get (oldestKey);
             this.publicPool.delete (oldestKey);
             closeQuietly (oldest);
+        }
+    }
+
+    // Public streaming instances live in their own ref-counted pool, NOT the LRU REST pool,
+    // so a watched WebSocket is never evicted mid-stream. Closed when the last subscription
+    // on that (exchange, marketType) releases it. Private streaming reuses the per-account
+    // instance from getAuthenticated (shared with REST, never closed here).
+    async acquirePublicStream (exchangeId: string, marketType?: string, prediction = false): Promise<{ exchange: any, streamKey: string }> {
+        if (!this.deps.isKnownExchange (exchangeId)) {
+            throw new UnknownExchangeError (exchangeId, this.deps.closestMatches (exchangeId, this.deps.allExchangeIds ()));
+        }
+        const streamKey = 'stream|' + exchangeId + '|' + (marketType ?? 'default') + '|' + (prediction ? 'p' : 'c');
+        let entry = this.streamPool.get (streamKey);
+        if (entry === undefined) {
+            const cls = this.deps.exchangeClass (exchangeId, prediction);
+            const exchangeOptions = this.config.settings.exchangeOptions[exchangeId];
+            const exchange = new cls (this.constructorConfig (exchangeOptions ? { 'options': { ...exchangeOptions } } : {}));
+            this.hardenInstance (exchange);
+            if (marketType !== undefined) {
+                exchange.options['defaultType'] = marketType;
+            }
+            entry = { exchange, 'refs': 0 };
+            this.streamPool.set (streamKey, entry);
+        }
+        entry.refs += 1;
+        await ensureMarketsLoaded (entry.exchange, this.config.settings.refreshMarketsTimeout);
+        return { 'exchange': entry.exchange, streamKey };
+    }
+
+    releasePublicStream (streamKey: string): void {
+        const entry = this.streamPool.get (streamKey);
+        if (entry === undefined) {
+            return;
+        }
+        entry.refs -= 1;
+        if (entry.refs <= 0) {
+            this.streamPool.delete (streamKey);
+            closeQuietly (entry.exchange);
         }
     }
 
@@ -197,9 +241,10 @@ export class ExchangePools {
     }
 
     async closeAll (): Promise<void> {
-        const instances = [ ...this.publicPool.values (), ...this.authPool.values () ];
+        const instances = [ ...this.publicPool.values (), ...this.authPool.values (), ...[ ...this.streamPool.values () ].map ((entry) => entry.exchange) ];
         this.publicPool.clear ();
         this.authPool.clear ();
+        this.streamPool.clear ();
         await Promise.race ([
             Promise.allSettled (instances.map ((exchange) => closeQuietly (exchange))),
             new Promise ((resolve) => setTimeout (resolve, 5000)),

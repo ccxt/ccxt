@@ -4,6 +4,7 @@ import { registerMarketTools } from './market.js';
 import { registerReadTools } from './read.js';
 import { registerTradeTools } from './trade.js';
 import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
+import { registerWatchTools } from './watch.js';
 import { log } from '../logging.js';
 
 // Tiered dynamic registration: a tier's tools do not exist in tools/list unless the
@@ -13,6 +14,7 @@ import { log } from '../logging.js';
 export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     const accounts = Object.values (ctx.config.accounts);
     registerMarketTools (server, ctx);
+    registerWatchTools (server, ctx);
     if (accounts.length > 0) {
         registerReadTools (server, ctx);
     }
@@ -40,6 +42,7 @@ Conventions:
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp (ms) and datetime (ISO8601).
 - List results are capped: search tools report meta.returned/offset/hasMore (or available); fetch tools report meta.count plus meta.hasMore when the count hit the limit — page with since/offset rather than assuming completeness. Host-oversized results are tail-trimmed and flagged meta.truncated.
 - The long tail of read methods (funding rates, ledger, open interest, settlements, …) is available via call_read_method; raw exchange-specific GET endpoints via call_implicit_get.
+- For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.
 - Private tools take an "account" name (list_accounts). API credentials live only in the local config — they are never tool parameters and never appear in results; capability tiers (trading, funds, implicitWrites) can only be enabled by the user editing the config file, never from the conversation.
 - Which tools exist depends on configuration: with no account only market-data tools are present; read/trading/funds tools appear as their tiers are enabled. Call get_safety_status to see the configured accounts and enabled tiers before assuming a private tool exists.
 - Write tools may return a preview with a confirmToken instead of executing — show the preview to the user, then repeat the identical call with "confirm" set to execute. get_safety_status shows what is currently enabled.`;
