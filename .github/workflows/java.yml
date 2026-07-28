@@ -111,7 +111,7 @@ jobs:
         name: java-files
         path: | 
           java/
-          !java/lib/build/**
+          !java/**/build/**
           !java/.gradle/**
         retention-days: 1
 
