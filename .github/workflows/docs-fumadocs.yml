@@ -26,7 +26,7 @@ on:
       # every master push. Adding 'wiki/**' here to tighten that would re-arm the redeploy churn
       # above, since path filters are workflow-level and would fire `deploy` too. Use the manual
       # dispatch to force an out-of-band wiki refresh.
-      - 'website/**'
+      - 'docs/website/**'
       - 'build/wiki-to-fumadocs.ts'
       - '.github/workflows/docs-fumadocs.yml'
   workflow_dispatch:
@@ -79,20 +79,20 @@ jobs:
       CONTAINER: ccxt-docs
       PORT: '3005'
     steps:
-      # wiki-to-fumadocs.ts reads wiki/ and writes website/content/docs; the docker build
-      # context is website/. Nothing else in the repo is touched.
+      # wiki-to-fumadocs.ts reads wiki/ and writes docs/website/content/docs; the docker
+      # build context is docs/website/. Nothing else in the repo is touched.
       - uses: actions/checkout@v6
         with:
           sparse-checkout: |
             wiki
-            website
+            docs/website
             build
 
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
 
-      # committed wiki/*.md -> website/content/docs (baked into the image at build)
+      # committed wiki/*.md -> docs/website/content/docs (baked into the image at build)
       - name: Convert wiki to Fumadocs content
         run: npx -y tsx build/wiki-to-fumadocs.ts
 
@@ -106,7 +106,7 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: website
+          context: docs/website
           platforms: linux/arm64
           push: true
           # Consistent Server Actions encryption key across builds, so a client served by an
