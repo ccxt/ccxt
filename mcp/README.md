@@ -138,7 +138,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`.
 
-**live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream (`watchOHLCV`, `watchTicker`, `watchOrderBook`, `watchTrades`, or private `watchOrders`/`watchMyTrades`/`watchBalance`/`watchPositions` with an account); `watch_read` drains new updates since a cursor; `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket and buffers incremental updates so the agent always has fresh data; idle streams auto-stop after 10 minutes.
+**live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data (for **state** streams — `watchTicker`/`watchOrderBook`/`watchOHLCV`/`watchBalance`/`watchPositions` — the current snapshot in `latest`; for **event** streams — `watchTrades`/`watchMyTrades`/`watchOrders`, the last three needing an account — new items in `events` with a cursor); `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket so the agent always has fresh data; idle streams auto-stop after 10 minutes.
 
 **read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 

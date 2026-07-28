@@ -36,6 +36,7 @@ export interface ServerSettings {
     maxResults: number;
     strictPermissions: boolean;
     exchangeOptions: Record<string, Record<string, any>>;
+    maxSubscriptions: number;
 }
 
 export interface ResolvedConfig {

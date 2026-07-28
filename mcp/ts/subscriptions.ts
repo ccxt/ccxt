@@ -5,19 +5,25 @@ import { accountEnvironment } from './types.js';
 import { log } from './logging.js';
 
 // MCP over stdio is request/response, but the server process is long-lived — so streaming
-// is modelled as "subscribe + poll": watch_subscribe starts a background ccxt.pro watch*
-// loop that accumulates incremental updates into a bounded ring buffer; watch_read drains
-// the buffer since a cursor (oldest-first, so nothing is skipped); watch_unsubscribe (or an
-// idle timeout) stops the loop and releases the socket.
+// is modelled as "subscribe + poll". ccxt.pro maintains a live cache per channel, and two
+// access patterns fall out of that:
+//   - STATE streams (ticker, order book, ohlcv, balance, positions): each watch* returns
+//     the FULL current snapshot ccxt has built up; the agent wants "what is it right now",
+//     so watch_read returns the latest snapshot (no history buffer).
+//   - EVENT streams (trades, my trades, orders): each watch* returns NEW items; the agent
+//     wants every one, so they accumulate in a bounded ring buffer that watch_read drains
+//     oldest-first via a cursor (no skipping, no replay).
 
-const MAX_SUBSCRIPTIONS = 25;       // hard cap on concurrent open streams
-const BUFFER_MAX = 200;             // updates retained per subscription (ring buffer)
-const READ_MAX = 50;                // updates returned per watch_read
+const BUFFER_MAX = 200;             // updates retained per EVENT subscription (ring buffer)
+const READ_MAX = 50;                // event updates returned per watch_read
 const IDLE_TTL_MS = 10 * 60 * 1000; // stop a stream with no watch_read for 10 minutes
 const DEAD_TTL_MS = 30 * 1000;      // purge a dead (errored) subscription after 30s
 const MAX_CONSECUTIVE_ERRORS = 5;   // give up a stream after this many back-to-back errors
 
 const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|Balance|Positions)/;
+// methods whose value is the CURRENT STATE (full snapshot each update) rather than a
+// stream of discrete events; everything else watch* is treated as an event stream
+const STATE_STREAM_RE = /^watch(Ticker|Tickers|BidsAsks|MarkPrices?|OrderBook(ForSymbols)?|OHLCV(ForSymbols)?|Balance|Positions?|FundingRates?)$/;
 
 interface Update {
     seq: number;
@@ -36,15 +42,18 @@ interface Subscription {
     id: string;
     exchangeId: string;
     method: string;
+    kind: 'state' | 'events';
     args: any[];
     argsKey: string;
     account: string | undefined;
     environment: string | undefined;
     streamKey: string | undefined;
     exchange: any;
-    buffer: Update[];
+    latest: Update | undefined;   // state streams: the current snapshot
+    buffer: Update[];             // event streams: the ring buffer
     seq: number;
     totalUpdates: number;
+    lastReadSeq: number;
     active: boolean;
     consecutiveErrors: number;
     createdAt: number;
@@ -67,13 +76,15 @@ export class StreamArgError extends Error {
 
 export class SubscriptionRegistry {
     private pools: any;
+    private maxSubscriptions: number;
     private subs = new Map<string, Subscription> ();
-    // reserved counts in-flight subscribe() calls that have passed the cap check but not yet
-    // been added to `subs` — closes the check-then-act gap across the acquire await
+    // reserved counts in-flight subscribe() calls that passed the cap check but aren't yet
+    // in `subs` — closes the check-then-act gap across the acquire await
     private reserved = 0;
 
-    constructor (pools: any) {
+    constructor (pools: any, maxSubscriptions = 100) {
         this.pools = pools;
+        this.maxSubscriptions = maxSubscriptions;
     }
 
     async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<any> {
@@ -84,8 +95,8 @@ export class SubscriptionRegistry {
         if (opts.account === undefined && PRIVATE_STREAM_RE.test (method)) {
             throw new StreamArgError (method + ' is a private stream and needs an account', 'configure an account and pass its name as "account"');
         }
-        if (this.subs.size + this.reserved >= MAX_SUBSCRIPTIONS) {
-            throw new StreamArgError ('too many active subscriptions (max ' + MAX_SUBSCRIPTIONS + ')', 'watch_unsubscribe some first — watch_list shows them');
+        if (this.subs.size + this.reserved >= this.maxSubscriptions) {
+            throw new StreamArgError ('too many active subscriptions (max ' + this.maxSubscriptions + ', configurable via settings.maxSubscriptions)', 'watch_unsubscribe some first — watch_list shows them');
         }
         this.reserved += 1;
         try {
@@ -97,8 +108,6 @@ export class SubscriptionRegistry {
                 const auth = await this.pools.getAuthenticated (opts.account);
                 exchange = auth.exchange;
                 environment = accountEnvironment (auth.account);
-                // private streams route by the account's config; a per-call marketType goes
-                // through params (the shared instance's defaultType must not be mutated)
                 if (opts.marketType !== undefined) {
                     params['type'] = opts.marketType;
                 }
@@ -128,19 +137,23 @@ export class SubscriptionRegistry {
             const stopPromise = new Promise<symbol> ((resolve) => {
                 stopResolve = resolve;
             });
+            const kind: 'state' | 'events' = STATE_STREAM_RE.test (method) ? 'state' : 'events';
             const sub: Subscription = {
                 'id': 'sub-' + crypto.randomUUID ().slice (0, 12),
                 'exchangeId': exchange.id,
                 method,
+                kind,
                 args,
                 'argsKey': JSON.stringify (args),
                 'account': opts.account,
                 environment,
                 streamKey,
                 exchange,
+                'latest': undefined,
                 'buffer': [],
                 'seq': 0,
                 'totalUpdates': 0,
+                'lastReadSeq': 0,
                 'active': true,
                 'consecutiveErrors': 0,
                 'createdAt': Date.now (),
@@ -155,7 +168,12 @@ export class SubscriptionRegistry {
             this.subs.set (sub.id, sub);
             this.resetIdle (sub);
             void this.runLoop (sub);
-            const result: Record<string, any> = { 'subscriptionId': sub.id, 'exchange': exchange.id, method, args };
+            const result: Record<string, any> = { 'subscriptionId': sub.id, 'exchange': exchange.id, method, 'streamKind': kind, args };
+            if (kind === 'state') {
+                result['note'] = 'state stream — watch_read returns the current snapshot in "latest"';
+            } else {
+                result['note'] = 'event stream — watch_read returns new items in "events"; thread "nextCursor" back on each poll';
+            }
             if (opts.account !== undefined) {
                 result['account'] = opts.account;
                 result['environment'] = environment;
@@ -172,36 +190,44 @@ export class SubscriptionRegistry {
             return { 'found': false };
         }
         sub.lastReadAt = Date.now ();
-        // only keep an ACTIVE stream alive on read — a dead (errored) sub should reach its
-        // reaper and free its slot even if the client keeps polling
         if (sub.active) {
             this.resetIdle (sub);
         }
-        const from = cursor ?? 0;
-        const fresh = sub.buffer.filter ((u) => u.seq > from);
-        // drain OLDEST-first so repeated reads walk the buffer in order without skipping
-        const returned = fresh.slice (0, READ_MAX);
-        const nextCursor = returned.length > 0 ? returned[returned.length - 1].seq : (cursor ?? sub.seq);
-        const oldestBuffered = sub.buffer.length > 0 ? sub.buffer[0].seq : sub.seq;
-        const result: Record<string, any> = {
+        const updatesSinceRead = sub.seq - sub.lastReadSeq;
+        sub.lastReadSeq = sub.seq;
+        const common: Record<string, any> = {
             'found': true,
-            'updates': returned.map ((u) => ({ 'seq': u.seq, 'timestamp': u.ts, 'datetime': new Date (u.ts).toISOString (), 'data': u.data })),
-            'nextCursor': nextCursor,
-            'returnedUpdates': returned.length,
+            'streamKind': sub.kind,
             'updatesSinceSubscribe': sub.totalUpdates,
-            // updates evicted from the ring buffer before this cursor could reach them
-            'missedBeforeBuffer': (from > 0 && from < oldestBuffered - 1) ? (oldestBuffered - 1 - from) : 0,
-            // true = more buffered updates remain beyond this window; call watch_read again with nextCursor
-            'moreBuffered': fresh.length > returned.length,
+            'updatesSinceRead': updatesSinceRead,
             'lastUpdate': sub.lastUpdateAt,
             'active': sub.active,
             'error': sub.error,
         };
         if (sub.account !== undefined) {
-            result['account'] = sub.account;
-            result['environment'] = sub.environment;
+            common['account'] = sub.account;
+            common['environment'] = sub.environment;
         }
-        return result;
+        if (sub.kind === 'state') {
+            // the current snapshot ccxt has built up — no cursor, no history
+            common['latest'] = sub.latest?.data;
+            common['latestSeq'] = sub.latest?.seq;
+            return common;
+        }
+        // event stream: drain OLDEST-first since the cursor, so repeated reads walk the
+        // buffer without skipping or replaying
+        const from = cursor ?? 0;
+        const fresh = sub.buffer.filter ((u) => u.seq > from);
+        const returned = fresh.slice (0, READ_MAX);
+        const nextCursor = returned.length > 0 ? returned[returned.length - 1].seq : (cursor ?? sub.seq);
+        const oldestBuffered = sub.buffer.length > 0 ? sub.buffer[0].seq : sub.seq;
+        common['events'] = returned.map ((u) => ({ 'seq': u.seq, 'timestamp': u.ts, 'datetime': new Date (u.ts).toISOString (), 'data': u.data }));
+        common['nextCursor'] = nextCursor;
+        // updates evicted from the ring buffer before this cursor could reach them
+        common['missedBeforeBuffer'] = (from > 0 && from < oldestBuffered - 1) ? (oldestBuffered - 1 - from) : 0;
+        // true = more buffered updates remain beyond this window; call again with nextCursor
+        common['moreBuffered'] = fresh.length > returned.length;
+        return common;
     }
 
     unsubscribe (id: string): boolean {
@@ -219,6 +245,7 @@ export class SubscriptionRegistry {
             'subscriptionId': sub.id,
             'exchange': sub.exchangeId,
             'method': sub.method,
+            'streamKind': sub.kind,
             'args': sub.args,
             'account': sub.account,
             'environment': sub.environment,
@@ -248,7 +275,6 @@ export class SubscriptionRegistry {
 
     private armTimer (fn: () => void, ms: number): ReturnType<typeof setTimeout> {
         const t = setTimeout (fn, ms);
-        // never let a stream timer keep the process alive
         if (typeof (t as any).unref === 'function') {
             (t as any).unref ();
         }
@@ -292,7 +318,7 @@ export class SubscriptionRegistry {
             clearTimeout (sub.timer);
             sub.timer = undefined;
         }
-        sub.stopResolve (sub.stopSentinel); // unblock the loop's race so it exits promptly
+        sub.stopResolve (sub.stopSentinel);
         this.subs.delete (sub.id);
         if (wasActive) {
             this.releaseTransport (sub);
@@ -319,8 +345,8 @@ export class SubscriptionRegistry {
                         'hint': 'the stream stopped and will not resume — fix the cause (e.g. credentials/permissions for a private stream, or the symbol) and call watch_subscribe again; do not keep polling watch_read',
                     };
                     sub.active = false;
-                    // free the socket now; keep the record (with its error) readable, then
-                    // reap it shortly so it stops occupying a subscription slot
+                    // free the socket now, keep the record readable, then reap it so it
+                    // stops occupying a subscription slot
                     this.releaseTransport (sub);
                     if (sub.timer !== undefined) {
                         clearTimeout (sub.timer);
@@ -338,9 +364,14 @@ export class SubscriptionRegistry {
             sub.seq += 1;
             sub.totalUpdates += 1;
             sub.lastUpdateAt = Date.now ();
-            sub.buffer.push ({ 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': trimWatchUpdate (sub.method, result) });
-            if (sub.buffer.length > BUFFER_MAX) {
-                sub.buffer.splice (0, sub.buffer.length - BUFFER_MAX);
+            const update: Update = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': trimWatchUpdate (sub.method, result) };
+            if (sub.kind === 'state') {
+                sub.latest = update;
+            } else {
+                sub.buffer.push (update);
+                if (sub.buffer.length > BUFFER_MAX) {
+                    sub.buffer.splice (0, sub.buffer.length - BUFFER_MAX);
+                }
             }
         }
     }
@@ -367,7 +398,7 @@ export class SubscriptionRegistry {
     }
 }
 
-// keep buffered updates small: project to the same fields the fetch* tools return, and cap
+// keep updates small: project to the same fields the fetch* tools return, and cap
 // array-valued streams (order book depth, trade/order batches, ohlcv candles)
 function trimWatchUpdate (method: string, data: any): any {
     if (data === null || data === undefined) {

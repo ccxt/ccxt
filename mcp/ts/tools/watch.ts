@@ -10,7 +10,7 @@ const marketTypeParam = z.string ().optional ().describe ('market type routing f
 export function registerWatchTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('watch_subscribe', {
         'title': 'Start a live WebSocket stream',
-        'description': 'Open a background WebSocket subscription to a ccxt.pro watch* method (watchTicker, watchOHLCV, watchOrderBook, watchTrades — or private streams like watchOrders/watchMyTrades/watchBalance/watchPositions with an account) so the agent can pull fresh data on demand. Returns a subscriptionId; call watch_read to get accumulated updates, and watch_unsubscribe to stop. Streams auto-stop after 10 minutes with no read. Not every exchange streams every method — check describe_exchange.',
+        'description': 'Open a background WebSocket subscription to a ccxt.pro watch* method so the agent can pull fresh data on demand. Returns a subscriptionId and a "streamKind": STATE streams (watchTicker/watchOrderBook/watchOHLCV/watchBalance/watchPositions) keep only the current snapshot — watch_read returns it in "latest"; EVENT streams (watchTrades/watchMyTrades/watchOrders — the last three private, needing an account) accumulate every item — watch_read returns them in "events" with a cursor. Call watch_unsubscribe to stop; streams auto-stop after 10 minutes with no read. Not every exchange streams every method — check describe_exchange.',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('a ccxt.pro watch* method, e.g. "watchOHLCV", "watchTicker", "watchOrderBook", "watchTrades"'),
@@ -34,11 +34,11 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
     }));
 
     server.registerTool ('watch_read', {
-        'title': 'Read updates from a live stream',
-        'description': 'Drain the updates a stream has accumulated. Updates come oldest-first; the response returns a "nextCursor" — pass it as "cursor" on your next call to get only newer updates. IMPORTANT: omitting cursor REPLAYS all buffered updates from the start, so when polling always thread nextCursor back in or you will re-receive (and double-count) old data. "moreBuffered": true means there are further updates beyond this window — call again with nextCursor. "updatesSinceSubscribe" is the running total.',
+        'title': 'Read from a live stream',
+        'description': 'Get the latest data from a stream. For a STATE stream (streamKind "state": ticker, order book, ohlcv, balance, positions) it returns the CURRENT snapshot in "latest" — just call it whenever you need the current value; "updatesSinceRead" tells you how much changed since you last read. For an EVENT stream (streamKind "events": trades, my trades, orders) it returns new items oldest-first in "events" plus a "nextCursor" — thread that back as "cursor" on each poll so you do not re-receive (double-count) old items; "moreBuffered": true means call again with nextCursor for more.',
         'inputSchema': {
             'subscriptionId': z.string ().describe ('id from watch_subscribe'),
-            'cursor': z.number ().int ().optional ().describe ('the nextCursor from your previous watch_read — returns only updates newer than it; omit only on the first read'),
+            'cursor': z.number ().int ().optional ().describe ('EVENT streams only: the nextCursor from your previous watch_read (omit on the first read). Ignored for state streams.'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false },
     }, async ({ subscriptionId, cursor }) => run ({ 'tool': 'watch_read' }, async () => {

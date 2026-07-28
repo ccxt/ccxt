@@ -40,38 +40,37 @@ test ('watch tools are present in the market tier (no account needed)', async ()
     await client.close ();
 });
 
-test ('subscribe -> accumulate -> read -> cursor -> unsubscribe lifecycle', async () => {
+test ('state stream: watch_read returns the current snapshot, not a replay', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTicker', 'args': [ 'BTC/USDT' ] });
     assert.equal (sub.ok, true);
+    assert.equal (sub.data.streamKind, 'state');
     const id = sub.data.subscriptionId;
     assert.ok (id.startsWith ('sub-'));
 
     await sleep (60); // fake emits every ~3ms
     const first = await call (client, 'watch_read', { 'subscriptionId': id });
     assert.equal (first.ok, true);
-    assert.ok (first.data.updates.length > 0, 'should have accumulated updates');
-    assert.equal (first.data.active, true);
-    // updates are oldest-first; the last price increments each tick
-    const lastPrice = first.data.updates[first.data.updates.length - 1].data.last;
-    assert.ok (lastPrice > 50000);
-    assert.equal (first.data.updates[0].data.info, undefined, 'info is stripped');
-    const cursor = first.data.nextCursor;
+    assert.equal (first.data.streamKind, 'state');
+    assert.ok (first.data.latest !== undefined, 'state stream returns the current snapshot');
+    assert.ok (first.data.latest.last > 50000, 'latest is the current ticker');
+    assert.equal (first.data.latest.info, undefined, 'info is stripped');
+    assert.ok (first.data.updatesSinceRead > 0);
+    assert.equal (first.data.events, undefined, 'state streams have no event log');
+    const price1 = first.data.latest.last;
 
     await sleep (30);
-    const second = await call (client, 'watch_read', { 'subscriptionId': id, cursor });
-    assert.equal (second.ok, true);
-    // only newer updates returned (all seq > cursor)
-    assert.ok (second.data.updates.every ((u: any) => u.seq > cursor));
+    const second = await call (client, 'watch_read', { 'subscriptionId': id });
+    // a later read shows a fresher snapshot (the fake price increments each tick)
+    assert.ok (second.data.latest.last >= price1);
 
-    // appears in watch_list
     const list = await call (client, 'watch_list', {});
     assert.equal (list.data.length, 1);
     assert.equal (list.data[0].method, 'watchTicker');
+    assert.equal (list.data[0].streamKind, 'state');
 
     const stopped = await call (client, 'watch_unsubscribe', { 'subscriptionId': id });
     assert.equal (stopped.data.stopped, true);
-    // reading a stopped subscription reports not found
     const after = await call (client, 'watch_read', { 'subscriptionId': id });
     assert.equal (after.ok, false);
     assert.equal (after.error.code, 'SUBSCRIPTION_NOT_FOUND');
@@ -83,17 +82,18 @@ test ('subscribe -> accumulate -> read -> cursor -> unsubscribe lifecycle', asyn
 test ('oldest-first draining never skips updates across a truncated read (blocker fix)', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
+    assert.equal (sub.data.streamKind, 'events');
     const id = sub.data.subscriptionId;
     await sleep (220); // > 50 updates at ~3ms each, exercising the truncation window
     const first = await call (client, 'watch_read', { 'subscriptionId': id });
-    assert.ok (first.data.returnedUpdates <= 50);
+    assert.ok (first.data.events.length <= 50);
     assert.equal (first.data.moreBuffered, true, 'more than one window should be buffered');
     // seqs are contiguous from the start — nothing skipped
-    assert.equal (first.data.updates[0].seq, 1);
-    const firstLast = first.data.updates[first.data.updates.length - 1].seq;
+    assert.equal (first.data.events[0].seq, 1);
+    const firstLast = first.data.events[first.data.events.length - 1].seq;
     const second = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': first.data.nextCursor });
     // the next window begins exactly one after the previous — no gap, no overlap
-    assert.equal (second.data.updates[0].seq, firstLast + 1, 'no updates skipped or replayed');
+    assert.equal (second.data.events[0].seq, firstLast + 1, 'no updates skipped or replayed');
     await ctx.subscriptions.closeAll ();
     await client.close ();
 });

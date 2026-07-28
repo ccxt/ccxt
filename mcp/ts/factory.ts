@@ -20,7 +20,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
     const journal = new Journal (options.journalDir);
     const safety = new Safety (journal);
     const pools = new ExchangePools (options.config, options.poolsDeps);
-    const subscriptions = new SubscriptionRegistry (pools);
+    const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions);
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': options.version,

@@ -46,6 +46,7 @@ const settingsSchema = z.object ({
     'refreshMarketsTimeout': z.number ().positive ().optional (),
     'maxResults': z.number ().positive ().optional (),
     'strictPermissions': z.boolean ().optional (),
+    'maxSubscriptions': z.number ().positive ().optional (),
     'exchangeOptions': z.record (z.record (z.any ())).optional (),
 }).passthrough ();
 
@@ -277,6 +278,9 @@ export function loadConfig (): ResolvedConfig {
         'maxResults': validSettings.maxResults ?? 100,
         'strictPermissions': validSettings.strictPermissions ?? false,
         'exchangeOptions': validSettings.exchangeOptions ?? {},
+        // a backstop against a runaway/prompt-injected subscribe loop, not a resource
+        // ceiling (subs on one exchange share a socket); raise it in settings if needed
+        'maxSubscriptions': validSettings.maxSubscriptions ?? 100,
     };
 
     for (const problem of problems) {
