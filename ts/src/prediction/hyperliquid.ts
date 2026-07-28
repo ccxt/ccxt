@@ -1757,10 +1757,10 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
-     * @param {object} [market] the market the trade belongs to
+     * @param {object} [outcomeObj] the market the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
         //
         // {
         //   "closedPnl": "0.19343",
@@ -1784,9 +1784,9 @@ export default class hyperliquid extends Exchange {
         const price = this.safeString (trade, 'px');
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
-        const outcomeObj = this.safeOutcome (coin, market as any);
+        outcomeObj = this.safeOutcome (coin, outcomeObj as any);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, outcomeObj as any) : outcomeObj;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';
         const fee = this.safeNumber (trade, 'fee');
