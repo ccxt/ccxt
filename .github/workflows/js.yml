@@ -48,7 +48,7 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: '22'
     - name: Debug binary FILES [REMOVE]
@@ -180,7 +180,7 @@ jobs:
           path: js/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'

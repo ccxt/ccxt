@@ -35,13 +35,13 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.12'
         cache: 'pip'
     - name: Install python dependencies
       run: pip install -r build/ci-requirements.txt
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: '22'
     - name: Check Python version
@@ -153,13 +153,13 @@ jobs:
           path: python/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -189,13 +189,13 @@ jobs:
           path: python/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'

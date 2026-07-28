@@ -28,7 +28,7 @@ jobs:
         run: go mod download
         working-directory: ./go
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files

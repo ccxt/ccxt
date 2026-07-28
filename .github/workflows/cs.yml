@@ -35,10 +35,10 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10.0.x'
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: '22'
     - name: Install npm dependencies
@@ -147,7 +147,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
       - name: Download CS Files
@@ -157,7 +157,7 @@ jobs:
           path: cs/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'

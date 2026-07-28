@@ -26,7 +26,7 @@ jobs:
           file: CHANGELOG.md
           github_token: ${{ secrets.GH_TOKEN }}
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Post release announcement to Telegram and Discord
