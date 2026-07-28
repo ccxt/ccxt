@@ -139,6 +139,7 @@ jobs:
           path: |
             go/
             !go/main
+          retention-days: 1
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
         with:
