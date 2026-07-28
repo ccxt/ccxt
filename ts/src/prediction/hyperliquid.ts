@@ -776,7 +776,7 @@ export default class hyperliquid extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': dayVolume,
             'info': raw,
-        }, market);
+        }, outcomeObj);
     }
 
     /**
