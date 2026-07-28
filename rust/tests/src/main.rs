@@ -27,8 +27,9 @@ pub mod pro_test_helpers;    // hand-written ws_deep_equal used by transpiled WS
 #[cfg(feature = "transpiled-tests")]
 #[path = "../base/mod.rs"]
 mod base_transpiled;
-// Transpiled WS base tests (test.cache.rs, test.orderBook.rs, test.close.rs),
-// generated from ts/src/pro/test/base/. Same feature flag as REST.
+// Transpiled WS base tests (test.cache.rs, test.orderBook.rs), generated from
+// ts/src/pro/test/base/. `test.close` is skipped (needs live WS close
+// plumbing). Same feature flag as REST.
 #[cfg(feature = "transpiled-tests")]
 #[path = "../base_ws/mod.rs"]
 mod base_ws_transpiled;
