@@ -1397,7 +1397,7 @@ func (this *KrakenCore) WatchPrivate(name any, optionalArgs ...any) <-chan any {
 			limit = ccxt.ToGetsLimit(result).GetLimit(symbol, limit)
 		}
 
-		ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit)
+		ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit, true)
 		return nil
 
 	}()

@@ -1155,7 +1155,7 @@ class kraken extends \ccxt\async\kraken {
             if ($this->newUpdates) {
                 $limit = $result->getLimit($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
         })();
     }
 

@@ -326,7 +326,10 @@ class binance extends \ccxt\async\binance {
                 }
                 $streamHash .= '::' . implode(',', $symbols);
             }
-            $firstMarket = $this->get_market_from_symbols($symbols);
+            $firstMarket = null;
+            if (!$this->is_empty($symbols)) {
+                $firstMarket = $this->get_market_from_symbols($symbols);
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);
             if ($type === 'spot') {

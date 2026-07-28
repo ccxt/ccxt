@@ -37,6 +37,7 @@ func NewPolymarketFromCore(core *PolymarketCore) *Polymarket {
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single search term used to filter the fetched events
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
  * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
  * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
@@ -674,6 +675,7 @@ func (this *Polymarket) FetchOrder(id string, options ...FetchOrderOptions) (ccx
  * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+ * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
@@ -868,6 +870,7 @@ func (this *Polymarket) CancelAllOrders(options ...CancelAllOrdersOptions) ([]cc
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.query] a single keyword search term
  * @param {string[]} [params.queries] multiple search terms (alternative to query)
+ * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
  * @param {int} [params.limit] max number of events to return
  * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
  * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)

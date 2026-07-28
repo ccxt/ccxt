@@ -3615,7 +3615,7 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(IsEqual(symbol, nil)) {
 
-				retRes341616 := (<-this.CallDynamically("spotPrivateDeleteOrderAll", params))
+				retRes341616 := (<-this.SpotPrivateDeleteOrderAll(params))
 				PanicOnError(retRes341616)
 
 				//

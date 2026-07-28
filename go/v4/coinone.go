@@ -1286,13 +1286,13 @@ func (this *CoinoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument of cancelOrder.")))
+			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")))
 		}
 		var price any = this.SafeNumber(params, "price")
 		var qty any = this.SafeNumber(params, "qty")
 		var isAsk any = this.SafeInteger(params, "is_ask")
 		if IsTrue(IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(qty, nil)))) || IsTrue((IsEqual(isAsk, nil)))) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument.")))
+			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")))
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 

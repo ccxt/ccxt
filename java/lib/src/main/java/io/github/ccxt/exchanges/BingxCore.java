@@ -6272,6 +6272,7 @@ public class BingxCore extends BingxApi
     public Object parseParams(Object parameters)
     {
         // const sortedParams = this.keysort (params);
+        Object copied = this.clone(parameters);
         Object rawKeys = Helpers.objectKeys(parameters);
         Object keys = this.sort(rawKeys);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -6291,10 +6292,10 @@ public class BingxCore extends BingxApi
                     arrStr = Helpers.add(arrStr, String.valueOf(arrayElement));
                 }
                 arrStr = Helpers.add(arrStr, "]");
-                Helpers.addElementToObject(parameters, key, arrStr);
+                Helpers.addElementToObject(copied, key, arrStr);
             }
         }
-        return parameters;
+        return copied;
     }
 
     /**
@@ -6703,10 +6704,10 @@ public class BingxCore extends BingxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
-                response = (this.swapV1PrivatePostTradeCancelReplace(this.extend(request, parameters))).join();
+                response = (this.swapV1PrivatePostTradeCancelReplace(request)).join();
             } else
             {
-                response = (this.spotV1PrivatePostTradeOrderCancelReplace(this.extend(request, parameters))).join();
+                response = (this.spotV1PrivatePostTradeOrderCancelReplace(request)).join();
             }
             Object data = this.safeDict(response, "data");
             return this.parseOrder(data, market);

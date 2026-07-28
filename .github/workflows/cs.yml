@@ -1,4 +1,5 @@
 name: C#
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
 env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -45,7 +46,7 @@ jobs:
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-cs
     - name: Transpile to C#
@@ -65,7 +66,11 @@ jobs:
     - name: Transpile prediction to C#
       if: env.prediction_modified == 'true'
       run: npm run transpile-prediction-cs
+    - name: Build Project (fast, PR)
+      if: github.event_name == 'pull_request'
+      run: npm run buildCSFast
     - name: Build Project
+      if: github.event_name != 'pull_request'
       run: npm run buildCS
     # - name: Run request lighter tests multiple times
     #   run: for i in {1..10}; do npm run request-cs -- lighter; done
@@ -164,7 +169,7 @@ jobs:
           name: cs-files
           path: cs/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

@@ -1565,8 +1565,9 @@ public class BybitCore extends BybitApi
             put( "settleId", finalSettle );
             put( "active", false );
             put( "type", "option" );
-            put( "linear", null );
-            put( "inverse", null );
+            put( "subType", ((Helpers.isTrue((Helpers.isEqual(finalBase, finalSettle))))) ? "inverse" : "linear" );
+            put( "linear", (!Helpers.isEqual(finalBase, finalSettle)) );
+            put( "inverse", (Helpers.isEqual(finalBase, finalSettle)) );
             put( "spot", false );
             put( "swap", false );
             put( "future", false );

@@ -8,9 +8,12 @@ namespace ccxt\prediction;
 use Exception; // a common import
 use ccxt\abstract\prediction\myriad as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\RateLimitExceeded;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -176,6 +179,9 @@ class myriad extends Exchange {
             'options' => array(
                 'defaultFetchMarketsLimit' => 50,
                 'defaultFetchEventsLimit' => 50,
+                // allow unscoped fetchEvents() for this venue; we fetch bounded open lists
+                // from both markets and questions and merge them with overlap filtering
+                'allowUnscopedFetchEvents' => true,
                 'defaultMarketStatus' => 'open',   // 'open' | 'closed' | 'resolved'
                 'defaultTradingModel' => 'all',    // 'amm' | 'ob' | 'all' — markets listing includes both models
                 // network used for order-book trading when a market does not pin one (OB lives on BNB Chain)
@@ -339,14 +345,20 @@ class myriad extends Exchange {
     public function fetch_event(string $id, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $params) {
             /**
-             * fetches a single prediction-$market $event by its $market $id
+             * fetches a single prediction-$market $event by its $market $id, or orderbook slug
              *
              * @see https://docs.myriad.markets/builders/myriad-api-reference
              *
-             * @param {string} $id the $market $id
+             * @param {string} $id the $market $id, or orderbook slug
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
              */
+            if (mb_strpos($id, ':') === false) {
+                $rawQuestion = Async\await($this->fetch_raw_question_by_id($id, $params));
+                $orderBookEvent = $this->parse_event($rawQuestion);
+                $this->index_event_outcomes($orderBookEvent);
+                return $orderBookEvent;
+            }
             $response = Async\await($this->fetch_raw_market_by_id($id, $params));
             $market = $this->parse_myriad_market($response);
             $event = $this->parse_market_to_event($response, $market);
@@ -378,6 +390,138 @@ class myriad extends Exchange {
         })();
     }
 
+    public function fetch_raw_question_by_id(string $id, $params = array()): PromiseInterface {
+        return Async\async(function () use ($id, $params) {
+            /**
+             * @ignore
+             * fetches a single raw myriad question object by question $id; falls back to keyword search by id/slug/title when direct lookup is unavailable
+             * @param {string} $id the question $id or slug
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} the raw question object
+             */
+            $request = array(
+                'id' => $id,
+            );
+            $result = null;
+            try {
+                $result = Async\await($this->myriadPublicGetQuestionsId($this->extend($request, $params)));
+            } catch (Exception $e) {
+                if (($e instanceof RateLimitExceeded) || ($e instanceof AuthenticationError)) {
+                    throw $e;
+                }
+                $keywordRequest = array(
+                    'keyword' => $id,
+                    'limit' => 50,
+                );
+                $response = Async\await($this->myriadPublicGetQuestions($this->extend($keywordRequest, $params)));
+                $questions = $this->safe_list($response, 'data', array());
+                $questionsLength = count($questions);
+                $idLower = strtolower($id);
+                for ($i = 0; $i < $questionsLength; $i++) {
+                    $q = $this->safe_dict($questions, $i, array());
+                    $qId = $this->safe_string($q, 'id', '');
+                    $qSlug = $this->safe_string($q, 'slug', '');
+                    $qTitle = $this->safe_string($q, 'title', '');
+                    $qHandle = $this->shorten_slug($qSlug);
+                    if ((strtolower($qId) === $idLower) || (strtolower($qSlug) === $idLower) || (strtolower($qTitle) === $idLower) || (($qHandle !== null) && (strtolower($qHandle) === $idLower))) {
+                        return $q;
+                    }
+                }
+                throw $e;
+            }
+            return $result;
+        })();
+    }
+
+    public function fetch_raw_questions_by_search(array $queries, $params = array()): PromiseInterface {
+        return Async\async(function () use ($queries, $params) {
+            /**
+             * @ignore
+             * fetches $raw myriad question objects matching the given search terms via the questions keyword filter
+             * @param {string[]} $queries search terms
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of $raw myriad question objects
+             */
+            $limit = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'defaultFetchEventsLimit', 50));
+            $rest = $this->omit($params, array( 'limit' ));
+            $seen = array();
+            $rawQuestions = array();
+            for ($i = 0; $i < count($queries); $i++) {
+                $q = $queries[$i];
+                $response = Async\await($this->myriadPublicGetQuestions($this->extend(array(
+                    'keyword' => $q,
+                    'limit' => $limit,
+                ), $rest)));
+                $foundList = $this->safe_list($response, 'data', $response);
+                $found = ($foundList !== null) ? $foundList : array();
+                for ($j = 0; $j < count($found); $j++) {
+                    $raw = $found[$j];
+                    $questionId = $this->safe_string($raw, 'id');
+                    if (($questionId !== null) && !(is_array($seen) && array_key_exists($questionId, $seen))) {
+                        $seen[$questionId] = true;
+                        $rawQuestions[] = $raw;
+                    }
+                }
+            }
+            return $rawQuestions;
+        })();
+    }
+
+    public function fetch_raw_questions_list($params = array()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * fetches raw myriad question objects from the paginated questions listing
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->state] optional question $state filter when supported by the backend
+             * @return {array[]} an array of raw myriad question objects
+             */
+            $limit = $this->safe_integer($this->options, 'defaultFetchEventsLimit', 50);
+            $maxQuestions = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchEventsLimit', 1000));
+            $state = $this->safe_string_2($params, 'state', 'status', $this->safe_string($this->options, 'defaultMarketStatus', 'open'));
+            $rest = $this->omit($params, array( 'state', 'status', 'limit', 'tradingModel', 'trading_model' ));
+            $allRawQuestions = array();
+            $seen = array();
+            $collected = 0;
+            $page = 1;
+            while (true) {
+                $request = array(
+                    'limit' => $limit,
+                    'page' => $page,
+                );
+                if ($state !== null) {
+                    $request['state'] = $state;
+                }
+                $response = Async\await($this->myriadPublicGetQuestions($this->extend($request, $rest)));
+                $rawQuestionsList = $this->safe_list($response, 'data', $response);
+                $rawQuestions = ($rawQuestionsList !== null) ? $rawQuestionsList : array();
+                $rawQuestionsLength = count($rawQuestions);
+                if ($rawQuestionsLength === 0) {
+                    break;
+                }
+                for ($i = 0; $i < $rawQuestionsLength; $i++) {
+                    $rawQuestion = $rawQuestions[$i];
+                    $questionId = $this->safe_string($rawQuestion, 'id');
+                    if (($questionId !== null) && (is_array($seen) && array_key_exists($questionId, $seen))) {
+                        continue;
+                    }
+                    if ($questionId !== null) {
+                        $seen[$questionId] = true;
+                    }
+                    if ($collected < $maxQuestions) {
+                        $allRawQuestions[] = $rawQuestion;
+                        $collected = $this->sum($collected, 1);
+                    }
+                }
+                $page = $this->sum($page, 1);
+                if (($rawQuestionsLength < $limit) || ($collected >= $maxQuestions)) {
+                    break;
+                }
+            }
+            return $allRawQuestions;
+        })();
+    }
+
     public function fetch_positions(?array $outcomes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcomes, $params) {
             /**
@@ -398,6 +542,49 @@ class myriad extends Exchange {
             }
             $rest = $this->omit($params, array( 'address', 'user' ));
             $response = Async\await($this->myriadPublicGetUsersAddressPortfolio($this->extend(array( 'address' => $address ), $rest)));
+            //
+            //     {
+            //         "data" => array(
+            //             {
+            //                 "marketId" => 170145,
+            //                 "marketTitle" => "Will Base TGE in 2026?",
+            //                 "marketSlug" => "will-base-tge-in-2026",
+            //                 "imageUrl" => "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+            //                 "outcomeId" => 0,
+            //                 "outcomeTitle" => "Yes",
+            //                 "networkId" => 56,
+            //                 "token" => "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+            //                 "tokenId" => null,
+            //                 "shares" => 8.23666644,
+            //                 "price" => 0.1214083400468503,
+            //                 "value" => 0.9823048396344001,
+            //                 "profit" => -0.017695160365599896,
+            //                 "roi" => -0.017695160365599896,
+            //                 "totalProfit" => -0.017695160365599927,
+            //                 "totalRoi" => -0.017695160365599927,
+            //                 "positionFees" => 0.02,
+            //                 "totalFees" => 0.02,
+            //                 "winningsToClaim" => false,
+            //                 "winningsClaimed" => false,
+            //                 "voidedWinningsToClaim" => false,
+            //                 "voidedWinningsClaimed" => false,
+            //                 "status" => "ongoing",
+            //                 "claimed" => false,
+            //                 "executionMode" => 0,
+            //                 "expiresAt" => "2026-12-31 23:59:00",
+            //                 "eventId" => null
+            //             }
+            //         ),
+            //         "pagination" => {
+            //             "page" => 1,
+            //             "limit" => 20,
+            //             "total" => 1,
+            //             "totalPages" => 1,
+            //             "hasNext" => false,
+            //             "hasPrev" => false
+            //         }
+            //     }
+            //
             $data = $this->safe_list($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -426,10 +613,10 @@ class myriad extends Exchange {
         $shares = $this->safe_number($position, 'shares');
         $value = $this->safe_number($position, 'value');
         $profit = $this->safe_number($position, 'profit');
-        $roi = $this->safe_number($position, 'roi');
+        $roi = $this->safe_string($position, 'roi');
         $percentage = null;
         if ($roi !== null) {
-            $percentage = $roi * 100;
+            $percentage = Precise::string_mul($roi, '100');
         }
         return $this->safe_prediction_position(array(
             'info' => $position,
@@ -443,7 +630,7 @@ class myriad extends Exchange {
             'notional' => $value,
             'markPrice' => $this->safe_number($position, 'price'),
             'unrealizedPnl' => $profit,
-            'percentage' => $percentage,
+            'percentage' => $this->parse_number($percentage),
             'marginMode' => 'cash',
             'hedged' => false,
         ));
@@ -484,7 +671,24 @@ class myriad extends Exchange {
             }
             $rest = $this->omit($params, array( 'slippage' ));
             $response = Async\await($this->myriadPublicPostMarketsQuote($this->extend($request, $rest)));
-            return $this->parse_trade_quote($response, $outcomeObj);
+            //
+            //     {
+            //         "value" => 10,
+            //         "shares" => 21.566766528674936,
+            //         "shares_threshold" => 21.45893269603156,
+            //         "price_average" => 0.4636763692278168,
+            //         "price_before" => 0.46100295,
+            //         "price_after" => 0.46635187379825593,
+            //         "calldata" => "0x1...680",
+            //         "net_amount" => 10,
+            //         "fees" => {
+            //             "treasury" => 0,
+            //             "distributor" => 0,
+            //             "fee" => 0
+            //         }
+            //     }
+            //
+            return $this->parse_trade_quote($this->extend($response, array( 'action' => $sideStr )), $outcomeObj);
         })();
     }
 
@@ -496,6 +700,23 @@ class myriad extends Exchange {
          * @param {array} [$market] the outcome the $quote belongs to
          * @return {array} a $quote object
          */
+        //
+        //     {
+        //         "value" => 10,
+        //         "shares" => 21.566766528674936,
+        //         "shares_threshold" => 21.45893269603156,
+        //         "price_average" => 0.4636763692278168,
+        //         "price_before" => 0.46100295,
+        //         "price_after" => 0.46635187379825593,
+        //         "calldata" => "0x1...680",
+        //         "net_amount" => 10,
+        //         "fees" => {
+        //             "treasury" => 0,
+        //             "distributor" => 0,
+        //             "fee" => 0
+        //         }
+        //     }
+        //
         return array(
             'outcome' => $this->safe_string($market, 'outcome'),
             'side' => $this->safe_string_lower($quote, 'action'),
@@ -638,7 +859,25 @@ class myriad extends Exchange {
                 'time_in_force' => $timeInForce,
             );
             $response = Async\await($this->myriadPublicPostOrders($request));
-            $wrapper = $this->extend($response, array( 'order' => $order, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
+            //
+            //     {
+            //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+            //         "status" => "open",
+            //         "timeInForce" => "GTC"
+            //     }
+            //
+            $orderForResponse = array(
+                'trader' => $this->safe_string($order, 'trader'),
+                'marketId' => $this->safe_string($order, 'marketId'),
+                'outcomeId' => $this->safe_number($order, 'outcomeId'),
+                'side' => $this->safe_number($order, 'side'),
+                'amount' => $this->safe_string($order, 'amount'),
+                'price' => $this->safe_string($order, 'price'),
+                'minFillAmount' => $this->safe_string($order, 'minFillAmount'),
+                'nonce' => $this->safe_string($order, 'nonce'),
+                'expiration' => $this->safe_string($order, 'expiration'),
+            );
+            $wrapper = $this->extend($response, array( 'order' => $orderForResponse, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
             $outcomeObj = $this->outcome($outcome);
             $parsed = $this->parse_prediction_order($wrapper, $outcomeObj);
             // the POST /orders $response is minimal (hash . status), so backfill the known $request values
@@ -720,8 +959,8 @@ class myriad extends Exchange {
         $order = array(
             'trader' => $trader,
             'marketId' => $marketId,
-            'outcomeId' => $outcomeId,
-            'side' => $sideInt,
+            'outcomeId' => $this->parse_to_numeric($outcomeId),
+            'side' => $this->parse_to_numeric($sideInt),
             'amount' => $amountWei,
             'price' => $priceWei,
             'minFillAmount' => $minFillAmount,
@@ -786,10 +1025,13 @@ class myriad extends Exchange {
              * @param {float} $amount number of $outcome shares for the new order
              * @param {float} [$price] $price per share fraction in [0, 1]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->orderResponse] a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
+             * @param {array} [$params->rawOrder] the raw order payload to cancel alternative to $params->orderResponse, call fetchOrder to retrieve this data
+             * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
              * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             Async\await($this->load_outcome($outcome));
-            Async\await($this->cancel_order($id, $outcome));
+            Async\await($this->cancel_order($id, $outcome, $params));
             return Async\await($this->create_orderbook_order($outcome, $type, $side, $amount, $price, $params));
         })();
     }
@@ -799,6 +1041,16 @@ class myriad extends Exchange {
             /**
              * @ignore
              * buys or sells $outcome shares by submitting the quote's $calldata on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
+             * @param {string} $outcome unified $outcome or $outcome id
+             * @param {string} [$type] not used by the AMM path
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount for buys this is collateral value to spend (when costDenominated=true); for sells this is shares to sell
+             * @param {float} [$price] not used by the AMM path
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->quote] a pre-fetched fetchTradeQuote result to reuse instead of requesting a new $quote, call fetchTradeQuote to retrieve this data
+             * @param {string} [$params->transactionHash] a pre-broadcast transaction hash; when provided the method skips transaction submission and only parses the order result, capture this value from sendEvmTransaction
+             * @param {boolean} [$params->skipAllowance] optional override to skip the ERC20 allowance check/approval before a buy; implied true when $params->transactionHash is provided
+             * @param {boolean} [$params->skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when $params->transactionHash is provided
              * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
@@ -827,15 +1079,30 @@ class myriad extends Exchange {
             $tokenAddress = $this->safe_string_2($params, 'token', 'tokenAddress', $this->safe_string($info, 'tokenAddress'));
             $gasLimit = $this->safe_string($params, 'gasLimit', '0xaae60');
             $sideStr = $sideLower;
-            $quoteParams = $this->omit($params, array( 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated' ));
-            $quote = Async\await($this->fetch_trade_quote($outcome, $sideStr, $amount, $quoteParams));
+            $quoteParams = $this->omit($params, array( 'rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated', 'quote', 'transactionHash', 'txHash', 'skipAllowance', 'skipWaitForReceipt' ));
+            $quote = $this->safe_dict($params, 'quote');
+            if ($quote === null) {
+                $quote = Async\await($this->fetch_trade_quote($outcome, $sideStr, $amount, $quoteParams));
+            }
             $calldata = $this->safe_string($this->safe_dict($quote, 'info', array()), 'calldata');
+            if ($calldata === null) {
+                throw new BadRequest($this->id . ' createAmmOrder is missing $calldata from fetchTradeQuote');
+            }
             $fromAddress = $this->eth_get_address_from_private_key($this->privateKey);
-            // a buy spends the collateral token, so the prediction-market contract must be approved first
-            if (($sideStr === 'buy') && ($tokenAddress !== null)) {
+            $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
+            $hasPreBroadcastTxHash = ($txHashParam !== null);
+            $skipAllowance = $this->safe_bool($params, 'skipAllowance', $hasPreBroadcastTxHash);
+            if (($sideStr === 'buy') && ($tokenAddress !== null) && !$skipAllowance) {
                 Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
             }
-            $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
+            $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
+            $txHash = $txHashParam;
+            if ($txHash === null) {
+                $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
+            }
+            if (!$skipWaitForReceipt) {
+                Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
+            }
             return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
         })();
     }
@@ -844,9 +1111,12 @@ class myriad extends Exchange {
         return Async\async(function () use ($outcome, $cost, $params) {
             /**
              * buys an $outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+             *
+             * @see createAmmOrder supports $params->quote from fetchTradeQuote($outcome, 'buy', amount)
+             *
              * @param {string} $outcome unified $outcome handle
-             * @param {float} $cost the collateral (USDC) amount to spend
-             * @param {array} [$params] extra exchange-specific parameters
+             * @param {number} $cost collateral amount to spend
+             * @param {array} [$params] extra parameters passed through to createAmmOrder
              * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             // myriad's AMM prices buys in COLLATERAL, so `$cost` maps directly onto the AMM value input.
@@ -928,8 +1198,14 @@ class myriad extends Exchange {
          * normalises a fetched order-book order into a typed-data message (uint256 fields, uint8 fields)
          * @return {array} the typed-data message
          */
+        $signer = $this->safe_string_2($rawOrder, 'trader', 'user');
+        if ($this->privateKey !== null) {
+            $signer = $this->eth_get_address_from_private_key($this->privateKey);
+        } else {
+            $signer = $this->wallet_address_or_undefined();
+        }
         return array(
-            'trader' => $this->safe_string($rawOrder, 'trader'),
+            'trader' => $signer,
             'marketId' => $this->safe_string($rawOrder, 'marketId'),
             'outcomeId' => $this->safe_integer($rawOrder, 'outcomeId', 0),
             'side' => $this->safe_integer($rawOrder, 'side', 0),
@@ -939,6 +1215,45 @@ class myriad extends Exchange {
             'nonce' => $this->safe_string($rawOrder, 'nonce'),
             'expiration' => $this->safe_string($rawOrder, 'expiration', '0'),
         );
+    }
+
+    public function get_order_response_from_params(?string $id, $params = array()): mixed {
+        /**
+         * @ignore
+         * extracts an optional pre-fetched order response from $params for static tests and higher-level callers that already resolved the original order
+         * @return {array} the fetchOrder-style response wrapper or a raw-order wrapper
+         */
+        $orderResponse = $this->safe_dict($params, 'orderResponse');
+        if ($orderResponse !== null) {
+            return $orderResponse;
+        }
+        $rawOrder = $this->safe_dict($params, 'rawOrder');
+        if ($rawOrder !== null) {
+            return array(
+                'orderHash' => $id,
+                'order' => $rawOrder,
+                'networkId' => $this->safe_string_2($params, 'networkId', 'network_id'),
+            );
+        }
+        $orderResponsesById = $this->safe_dict($params, 'orderResponses');
+        if ($orderResponsesById !== null) {
+            $keyedResponse = $this->safe_dict($orderResponsesById, $id);
+            if ($keyedResponse !== null) {
+                return $keyedResponse;
+            }
+        }
+        $orderResponses = $this->safe_list($params, 'orderResponses');
+        if ($orderResponses !== null) {
+            $responsesLength = count($orderResponses);
+            for ($i = 0; $i < $responsesLength; $i++) {
+                $current = $this->safe_dict($orderResponses, $i, array());
+                $currentId = $this->safe_string_n($current, array( 'orderHash', 'hash', 'id' ));
+                if (($currentId !== null) && ($currentId === $id)) {
+                    return $current;
+                }
+            }
+        }
+        return null;
     }
 
     public function to_orderbook_wei(?float $value): string {
@@ -1030,6 +1345,169 @@ class myriad extends Exchange {
         ), $market);
     }
 
+    public function parse_amm_event_to_order(array $trade, ?array $market = null): array {
+        /**
+         * @ignore
+         * parses a user event row from the AMM activity feed into a closed prediction order structure
+         * @param {array} $trade the raw user event row
+         * @param {array} [$market] the $outcome object the $trade belongs to
+         * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+         */
+        $networkId = $this->safe_string($trade, 'networkId');
+        $marketId = $this->safe_string($trade, 'marketId');
+        $rawOutcomeId = $this->safe_string($trade, 'outcomeId');
+        $composite = null;
+        if (($networkId !== null) && ($marketId !== null) && ($rawOutcomeId !== null)) {
+            $composite = $networkId . ':' . $marketId . '/' . $rawOutcomeId;
+        }
+        $outcomeObj = $this->safe_outcome($composite, $market);
+        $marketSlug = $this->safe_string($trade, 'marketSlug', $marketId);
+        $outcomeTitle = $this->safe_string($trade, 'outcomeTitle', $rawOutcomeId);
+        $outcome = $this->safe_string($outcomeObj, 'outcome');
+        if ($outcome === null) {
+            $outcome = $this->slug_to_outcome_symbol($marketSlug, $marketSlug, $outcomeTitle);
+        }
+        $marketSymbol = $this->safe_string($outcomeObj, 'market');
+        if ($marketSymbol === null) {
+            $marketSymbol = $this->slug_to_market_symbol($marketSlug, $marketSlug);
+        }
+        $label = $this->safe_string($outcomeObj, 'label');
+        if ($label === null) {
+            $label = $outcomeTitle;
+        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
+        $amountStr = $this->safe_string($trade, 'shares');
+        $costStr = $this->safe_string($trade, 'value');
+        $priceStr = null;
+        if (($amountStr !== null) && ($costStr !== null) && !Precise::string_eq($amountStr, '0')) {
+            $priceStr = Precise::string_div($costStr, $amountStr);
+        }
+        return $this->safe_prediction_order(array(
+            'id' => $this->safe_string_2($trade, 'txId', 'id'),
+            'clientOrderId' => null,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => $timestamp,
+            'lastUpdateTimestamp' => null,
+            'status' => 'closed',
+            'outcome' => $outcome,
+            'outcomeId' => $composite,
+            'label' => $label,
+            'market' => $marketSymbol,
+            'type' => 'market',
+            'timeInForce' => 'IOC',
+            'postOnly' => false,
+            'side' => $this->safe_string_lower($trade, 'action'),
+            'price' => $this->parse_number($priceStr),
+            'triggerPrice' => null,
+            'amount' => $this->parse_number($amountStr),
+            'filled' => $this->parse_number($amountStr),
+            'remaining' => 0,
+            'cost' => $this->parse_number($costStr),
+            'average' => $this->parse_number($priceStr),
+            'fee' => null,
+            'reduceOnly' => null,
+            'trades' => array(),
+            'event' => null,
+        ), $market);
+    }
+
+    public function fetch_amm_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($outcome, $since, $limit, $params) {
+            /**
+             * @ignore
+             * fetches executed AMM trades for a wallet from the user events feed and exposes them prediction orders
+             * @param {string} [$outcome] unified $outcome to filter by
+             * @param {int} [$since] timestamp in ms of the earliest order
+             * @param {int} [$limit] the maximum number of orders to return
+             * @param {array} [$params] extra exchange-specific parameters
+             * @return {array[]} a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+             */
+            $requestedStatus = $this->safe_string_lower($params, 'status');
+            if (($requestedStatus === 'open') || ($requestedStatus === 'cancelled') || ($requestedStatus === 'canceled') || ($requestedStatus === 'expired')) {
+                return array();
+            }
+            $trader = $this->safe_string_2($params, 'trader', 'address');
+            if ($trader === null) {
+                $trader = $this->wallet_address_or_undefined();
+            }
+            if ($trader === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a $trader address or wallet/privateKey');
+            }
+            $request = array(
+                'address' => $trader,
+            );
+            $outcomeObj = null;
+            $outcomeSymbol = null;
+            $rowOutcomeId = null;
+            if ($outcome !== null) {
+                $outcomeObj = Async\await($this->load_outcome($outcome));
+                $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome', $outcome);
+                $info = $this->safe_dict($outcomeObj, 'info', array());
+                $request['market_id'] = $this->safe_string($info, 'marketId');
+                $request['network_id'] = $this->safe_string($info, 'networkId');
+                $rowOutcomeId = $this->safe_string($info, 'outcomeId');
+            }
+            if ($since !== null) {
+                $request['since'] = $this->parse_to_int($since / 1000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $params = $this->omit($params, array( 'trader', 'address', 'status' ));
+            $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $params)));
+            //
+            //     {
+            //         "data" => array(
+            //             array(
+            //                 "user" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+            //                 "action" => "sell",
+            //                 "marketTitle" => "Will Base TGE in 2026?",
+            //                 "marketSlug" => "will-base-tge-in-2026",
+            //                 "marketId" => 170145,
+            //                 "networkId" => 56,
+            //                 "outcomeTitle" => "Yes",
+            //                 "outcomeId" => 0,
+            //                 "imageUrl" => "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+            //                 "shares" => 8.22739948,
+            //                 "value" => 0.9789,
+            //                 "timestamp" => 1784708801,
+            //                 "blockNumber" => 111442601,
+            //                 "token" => "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+            //                 "txId" => "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+            //             ),
+            //         ),
+            //         "pagination" => {
+            //             "page" => 1,
+            //             "limit" => 20,
+            //             "total" => 2,
+            //             "totalPages" => 1,
+            //             "hasNext" => false,
+            //             "hasPrev" => false
+            //         }
+            //     }
+            //
+            $rows = $this->safe_list($response, 'data', array());
+            $result = array();
+            $rowsLength = count($rows);
+            for ($i = 0; $i < $rowsLength; $i++) {
+                $row = $rows[$i];
+                $action = $this->safe_string_lower($row, 'action');
+                if (($action !== 'buy') && ($action !== 'sell')) {
+                    continue;
+                }
+                $currentOutcomeId = $this->safe_string($row, 'outcomeId');
+                if (($rowOutcomeId !== null) && ($currentOutcomeId !== $rowOutcomeId)) {
+                    continue;
+                }
+                $result[] = $this->parse_amm_event_to_order($row, $outcomeObj);
+            }
+            $sorted = $this->sort_by($result, 'timestamp', true);
+            return $this->filter_by_outcome_since_limit($sorted, $outcomeSymbol, $since, $limit);
+        })();
+    }
+
     public function cancel_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $outcome, $params) {
             /**
@@ -1040,14 +1518,37 @@ class myriad extends Exchange {
              * @param {string} $id the order hash returned by createOrder
              * @param {string} [$outcome] unified $outcome the order belongs to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->orderResponse] a pre-$fetched fetchOrder-style $response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
+             * @param {array} [$params->rawOrder] the raw order payload to sign alternative to $params->orderResponse, call fetchOrder to retrieve this data
+             * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
              * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             if ($this->privateKey === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a privateKey to sign the cancellation');
             }
-            $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
+            $fetched = $this->get_order_response_from_params($id, $params);
+            $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
+            $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
+            if ($fetched === null) {
+                $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
+            }
+            $fetchedInfo = $this->safe_dict($fetched, 'info', array());
             $rawOrder = $this->safe_dict($fetched, 'order', array());
-            $networkId = $this->safe_string_2($fetched, 'networkId', 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
+            $rawOrderKeys = is_array($rawOrder) ? array_keys($rawOrder) : array();
+            $rawOrderKeysLength = count($rawOrderKeys);
+            if ($rawOrderKeysLength === 0) {
+                $rawOrder = $this->safe_dict($fetchedInfo, 'order', array());
+            }
+            $networkId = $this->safe_string_n($fetched, array( 'networkId', 'network_id' ));
+            if ($networkId === null) {
+                $networkId = $this->safe_string_n($fetchedInfo, array( 'networkId', 'network_id' ));
+            }
+            if ($networkId === null) {
+                $networkId = $networkIdParam;
+            }
+            if ($networkId === null) {
+                $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
+            }
             $message = $this->clob_order_message($rawOrder);
             $signature = $this->sign_clob_order($message, $networkId);
             $request = array(
@@ -1056,7 +1557,13 @@ class myriad extends Exchange {
                 'signature' => $signature,
                 'network_id' => $this->parse_to_int($networkId),
             );
-            $response = Async\await($this->myriadPublicDeleteOrdersHash($request));
+            $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $params)));
+            //
+            //     {
+            //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+            //         "status" => "cancelled"
+            //     }
+            //
             $status = $this->safe_string($response, 'status', 'canceled');
             $wrapper = $this->extend($fetched, array( 'status' => $status, 'networkId' => $networkId ));
             $market = null;
@@ -1106,6 +1613,12 @@ class myriad extends Exchange {
                 'network_id' => $this->parse_to_int($networkId),
             );
             return Async\await($this->myriadPublicPostOrdersCancelAll($request));
+            //
+            //     {
+            //         "cancelled_count" => 2,
+            //         "market_ids_affected" => array( "2cfe87e8-12df-4671-b9a9-0758898fd54b" )
+            //     }
+            //
         })();
     }
 
@@ -1119,20 +1632,43 @@ class myriad extends Exchange {
              * @param {string[]} $ids the order hashes to cancel
              * @param {string} [$outcome] not used by myriad cancelOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->orderResponses] pre-$fetched fetchOrder-style responses keyed by order hash, or an array of such responses; avoids the internal per-order lookups when already available, call fetchOrder for each $id to retrieve this data
+             * @param {string} [$params->networkId] the order-book network $id fallback for any supplied raw order data
              * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             if ($this->privateKey === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a privateKey to sign the cancellations');
             }
+            $paramsForLookup = $params;
+            $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
+            $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
             $idsLength = count($ids);
             $signedOrders = array();
             $wrappers = array();
             $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
             for ($i = 0; $i < $idsLength; $i++) {
                 $id = $ids[$i];
-                $fetched = Async\await($this->myriadPublicGetOrdersHash(array( 'hash' => $id )));
+                $fetched = $this->get_order_response_from_params($id, $paramsForLookup);
+                if ($fetched === null) {
+                    $fetched = Async\await($this->myriadPublicGetOrdersHash(array( 'hash' => $id )));
+                }
+                $fetchedInfo = $this->safe_dict($fetched, 'info', array());
                 $rawOrder = $this->safe_dict($fetched, 'order', array());
-                $networkId = $this->safe_string_2($fetched, 'networkId', 'network_id', $networkId);
+                $rawOrderKeys = is_array($rawOrder) ? array_keys($rawOrder) : array();
+                $rawOrderKeysLength = count($rawOrderKeys);
+                if ($rawOrderKeysLength === 0) {
+                    $rawOrder = $this->safe_dict($fetchedInfo, 'order', array());
+                }
+                $fetchedNetworkId = $this->safe_string_n($fetched, array( 'networkId', 'network_id' ));
+                if ($fetchedNetworkId === null) {
+                    $fetchedNetworkId = $this->safe_string_n($fetchedInfo, array( 'networkId', 'network_id' ));
+                }
+                if ($fetchedNetworkId === null) {
+                    $fetchedNetworkId = $networkIdParam;
+                }
+                if ($fetchedNetworkId !== null) {
+                    $networkId = $fetchedNetworkId;
+                }
                 $message = $this->clob_order_message($rawOrder);
                 $signature = $this->sign_clob_order($message, $networkId);
                 $signedOrders[] = array( 'order' => $message, 'signature' => $signature );
@@ -1143,6 +1679,15 @@ class myriad extends Exchange {
                 'network_id' => $this->parse_to_int($networkId),
             );
             Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $params)));
+            //
+            //     {
+            //         "cancelled" => array(
+            //             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+            //             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
+            //         ),
+            //         "errors" => array()
+            //     }
+            //
             return $this->parse_prediction_orders($wrappers);
         })();
     }
@@ -1160,6 +1705,32 @@ class myriad extends Exchange {
              * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             $response = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
+            //
+            //     {
+            //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+            //         "clientOrderId" => null,
+            //         "order" => array(
+            //             "trader" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+            //             "marketId" => 827,
+            //             "outcomeId" => 0,
+            //             "side" => 0,
+            //             "amount" => "1000000000000000000",
+            //             "price" => "10000000000000000",
+            //             "minFillAmount" => "0",
+            //             "nonce" => "1784793980668",
+            //             "expiration" => "0"
+            //         ),
+            //         "status" => "cancelled",
+            //         "signatureType" => 0,
+            //         "filledAmount" => "0",
+            //         "timeInForce" => "GTC",
+            //         "createdAt" => "2026-07-23T08:06:21.279Z",
+            //         "filledAt" => null,
+            //         "networkId" => 56,
+            //         "updatedAt" => "2026-07-23T08:22:23.987Z",
+            //         "cancelledAt" => "2026-07-23T08:22:23.987Z"
+            //     }
+            //
             $market = null;
             if ($outcome !== null) {
                 $market = Async\await($this->load_outcome($outcome));
@@ -1171,7 +1742,7 @@ class myriad extends Exchange {
     public function fetch_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcome, $since, $limit, $params) {
             /**
-             * fetches order book $orders for the wallet (or any $trader passed via $params->trader)
+             * fetches order book $orders for the wallet (or any $trader passed via $params->trader), or amm closed $orders
              *
              * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
              *
@@ -1192,12 +1763,57 @@ class myriad extends Exchange {
                     $request['trader'] = $this->walletAddress;
                 }
             }
+            $requestedTradingModel = $this->safe_string_lower_2($params, 'tradingModel', 'trading_model');
+            $params = $this->omit($params, array( 'tradingModel', 'trading_model' ));
+            $outcomeObj = null;
             $outcomeSymbol = null;
             if ($outcome !== null) {
                 $outcomeObj = Async\await($this->load_outcome($outcome));
                 $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome', $outcome);
+                if ($requestedTradingModel === null) {
+                    $info = $this->safe_dict($outcomeObj, 'info', array());
+                    $requestedTradingModel = $this->safe_string_lower($info, 'tradingModel');
+                }
+            }
+            if ($requestedTradingModel === 'amm') {
+                return Async\await($this->fetch_amm_orders($outcome, $since, $limit, $params));
             }
             $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $params)));
+            //
+            //     {
+            //         "data" => array(
+            //             {
+            //                 "orderHash" => "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+            //                 "clientOrderId" => null,
+            //                 "order" => array(
+            //                     "trader" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+            //                     "marketId" => 827,
+            //                     "outcomeId" => 0,
+            //                     "side" => 0,
+            //                     "amount" => "1000000000000000000",
+            //                     "price" => "10000000000000000",
+            //                     "minFillAmount" => "0",
+            //                     "nonce" => "1784713298605",
+            //                     "expiration" => "0"
+            //                 ),
+            //                 "status" => "open",
+            //                 "signatureType" => 0,
+            //                 "filledAmount" => "0",
+            //                 "timeInForce" => "GTC",
+            //                 "createdAt" => "2026-07-22T09:41:39.035Z",
+            //                 "filledAt" => null
+            //             }
+            //         ),
+            //         "pagination" => {
+            //             "page" => 1,
+            //             "limit" => 5000,
+            //             "total" => 1,
+            //             "totalPages" => 1,
+            //             "hasNext" => false,
+            //             "hasPrev" => false
+            //         }
+            //     }
+            //
             $data = $this->safe_list($response, 'data', array());
             // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
             // valid market), so parse every order — each self-resolves its $outcome from the network/market/
@@ -1334,9 +1950,12 @@ class myriad extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network_id] the network id (defaults to options.defaultNetworkId, '56')
+             * @param {string} [$params->network] alias for $params->network_id
+             * @param {string} [$params->currency] output balance $currency code override, e.g. 'USDC' or 'USDT'
+             * @param {int} [$params->decimals] for USDC and USDT it's 6, default is 18 for USD1
              * @return {array} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
              */
-            $networkId = $this->safe_string($params, 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
+            $networkId = $this->safe_string_2($params, 'network_id', 'network', $this->safe_string($this->options, 'defaultNetworkId', '56'));
             $chains = $this->safe_dict($this->options, 'chains', array());
             $chainConfig = $this->safe_dict($chains, $networkId, array());
             $rpcUrl = $this->safe_string_2($params, 'rpcUrl', 'rpc', $this->safe_string($chainConfig, 'rpcUrl'));
@@ -1344,8 +1963,8 @@ class myriad extends Exchange {
             if ($token === null) {
                 throw new NotSupported($this->id . ' fetchBalance() has no collateral $token configured for network ' . $networkId);
             }
-            $currency = $this->safe_string($chainConfig, 'collateralCurrency', 'USD1');
-            $decimals = $this->safe_integer($chainConfig, 'collateralDecimals', 18);
+            $currency = $this->safe_string($params, 'currency', $this->safe_string($chainConfig, 'collateralCurrency', 'USD1'));
+            $decimals = $this->safe_integer($params, 'decimals', $this->safe_integer($chainConfig, 'collateralDecimals', 18));
             $owner = $this->wallet_address_from_keys();
             // ERC20 balanceOf($owner) = selector 0x70a08231 . the 32-byte left-padded $owner address
             $callData = '0x70a08231' . $this->pad_hex_address($owner);
@@ -2372,7 +2991,7 @@ class myriad extends Exchange {
     public function fetch_events(array $params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+             * fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance
              *
              * @see https://docs.myriad.markets/builders/myriad-api-reference
              *
@@ -2380,12 +2999,15 @@ class myriad extends Exchange {
              * @param {string} [$params->query] a single search term; an $eventId does a direct lookup and tags map to server-side keyword searches
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
              * @param {string[]} [$params->tags] tag slugs to scope by (searched, e.g. ['bitcoin', 'world-cup'])
-             * @param {string} [$params->eventId] direct lookup by unified event id (composite networkId:marketId)
+             * @param {string} [$params->eventId] direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
              * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
              * @param {string} [$params->state] 'open', 'closed' or 'resolved', defaults to 'open'
              * @return {array[]} an array of event structures
              */
-            $this->require_event_query($params);
+            $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
+            if (!$allowUnscopedFetchEvents) {
+                $this->require_event_query($params);
+            }
             $queries = $this->parse_search_queries($params);
             $rest = $this->omit($params, array( 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ));
             $queriesLength = count($queries);
@@ -2394,31 +3016,95 @@ class myriad extends Exchange {
             // an $eventId does a direct lookup, and tags map to server-side keyword searches (the
             // markets listing ignores tag filter $params, but tag slugs match through keyword=)
             $rawMarkets = array();
+            $rawQuestions = array();
             if ($queriesLength > 0) {
-                $rawMarkets = Async\await($this->fetch_raw_markets_by_search($queries, $rest));
+                // some markets are only discoverable through the questions search endpoint
+                $responses = Async\await(Promise\all(array(
+                    $this->fetch_raw_markets_by_search($queries, $rest),
+                    $this->fetch_raw_questions_by_search($queries, $rest),
+                )));
+                $rawMarkets = $this->safe_list($responses, 0, array());
+                $rawQuestions = $this->safe_list($responses, 1, array());
             } elseif ($eventId !== null) {
-                $rawMarket = Async\await($this->fetch_raw_market_by_id($eventId, $rest));
-                $rawMarkets = array( $rawMarket );
+                if (mb_strpos($eventId, ':') > -1) {
+                    $rawMarket = Async\await($this->fetch_raw_market_by_id($eventId, $rest));
+                    $rawMarkets = array( $rawMarket );
+                } else {
+                    $rawQuestion = Async\await($this->fetch_raw_question_by_id($eventId, $rest));
+                    $rawQuestions = array( $rawQuestion );
+                }
             } else {
                 $requestedTags = $this->safe_list($params, 'tags', array());
-                $tagQueries = array();
                 $requestedTagsLength = count($requestedTags);
-                for ($i = 0; $i < $requestedTagsLength; $i++) {
-                    // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    $tagSlug = $requestedTags[$i];
-                    $tagQueries[] = str_replace('-', ' ', $tagSlug);
+                if ($requestedTagsLength === 0) {
+                    // unscoped mode => fetch bounded open lists from both sources and merge
+                    $listResponses = Async\await(Promise\all(array(
+                        $this->fetch_raw_markets_list($rest),
+                        $this->fetch_raw_questions_list($rest),
+                    )));
+                    $rawMarkets = $this->safe_list($listResponses, 0, array());
+                    $rawQuestions = $this->safe_list($listResponses, 1, array());
+                } else {
+                    $tagQueries = array();
+                    for ($i = 0; $i < $requestedTagsLength; $i++) {
+                        // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
+                        $tagSlug = $requestedTags[$i];
+                        $tagQueries[] = str_replace('-', ' ', $tagSlug);
+                    }
+                    // run both searches in parallel; some events are only discoverable from questions,
+                    // while market search is still the primary source for market-level data
+                    $responses = Async\await(Promise\all(array(
+                        $this->fetch_raw_markets_by_search($tagQueries, $rest),
+                        $this->fetch_raw_questions_by_search($tagQueries, $rest),
+                    )));
+                    $rawMarkets = $this->safe_list($responses, 0, array());
+                    $rawQuestions = $this->safe_list($responses, 1, array());
                 }
-                $rawMarkets = Async\await($this->fetch_raw_markets_by_search($tagQueries, $rest));
             }
             if (!$this->markets) {
                 $this->markets = $this->create_safe_dictionary();
             }
+            $seenMarketHandles = array();
             $result = array();
+            $rawQuestionsLength = count($rawQuestions);
+            for ($i = 0; $i < $rawQuestionsLength; $i++) {
+                $rawQuestion = $rawQuestions[$i];
+                $ev = $this->parse_event($rawQuestion);
+                $evMarkets = $this->safe_list($ev, 'markets', array());
+                $evMarketsLength = count($evMarkets);
+                $filteredMarkets = array();
+                for ($j = 0; $j < $evMarketsLength; $j++) {
+                    $m = $this->safe_dict($evMarkets, $j, array());
+                    $marketHandle = $this->safe_string($m, 'market');
+                    if ($marketHandle !== null) {
+                        if (is_array($seenMarketHandles) && array_key_exists($marketHandle, $seenMarketHandles)) {
+                            continue;
+                        }
+                        $seenMarketHandles[$marketHandle] = true;
+                        $this->markets[$marketHandle] = $m;
+                    }
+                    $filteredMarkets[] = $m;
+                }
+                // skip question events that contribute no new markets after de-duplicating by market handle
+                if (($evMarketsLength > 0) && (strlen($filteredMarkets) === 0)) {
+                    continue;
+                }
+                $ev['markets'] = $filteredMarkets;
+                $result[] = $ev;
+            }
             $rawMarketsLength = count($rawMarkets);
             for ($i = 0; $i < $rawMarketsLength; $i++) {
                 $raw = $rawMarkets[$i];
                 $m = $this->parse_myriad_market($raw);
-                $this->markets[$m['market']] = $m;
+                $marketHandle = $this->safe_string($m, 'market');
+                if (($marketHandle !== null) && (is_array($seenMarketHandles) && array_key_exists($marketHandle, $seenMarketHandles))) {
+                    $this->markets[$marketHandle] = $m;
+                    continue;
+                }
+                if ($marketHandle !== null) {
+                    $seenMarketHandles[$marketHandle] = true;
+                    $this->markets[$marketHandle] = $m;
+                }
                 $ev = $this->parse_market_to_event($raw, $m);
                 $result[] = $ev;
             }

@@ -1267,6 +1267,7 @@ class weex extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
+        $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -1283,7 +1284,7 @@ class weex extends Exchange {
             'last' => $this->safe_string($ticker, 'lastPrice'),
             'previousClose' => null,
             'change' => $this->safe_string($ticker, 'priceChange'),
-            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),

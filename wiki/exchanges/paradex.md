@@ -333,7 +333,7 @@ edit an open limit order or TPSL order
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.paradex.trade/api-reference/prod/orders/modify  
+**See**: https://docs.paradex.trade/api/prod/orders/modify  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

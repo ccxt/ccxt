@@ -761,8 +761,7 @@ public class NdaxCore extends NdaxApi
             Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Object levelSide = this.safeInteger(level, 9);
             Object side = ((Helpers.isTrue(levelSide))) ? asksKey : bidsKey;
-            Object resultSide = Helpers.GetValue(result, side);
-            ((java.util.List<Object>)resultSide).add(bidask);
+            ((java.util.List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
         Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));

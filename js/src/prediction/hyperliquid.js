@@ -126,7 +126,10 @@ export default class hyperliquid extends Exchange {
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'builderFee': false,
+                'builderFee': true,
+                'builder': '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6',
+                'feeRate': '0%', // max builder fee rate to approve
+                'feeInt': 0, // builder fee attached per order, in tenths of a basis point
             },
             'exceptions': {
                 'exact': {
@@ -1244,6 +1247,16 @@ export default class hyperliquid extends Exchange {
             'orders': [orderObj],
             'grouping': 'na',
         };
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+            let feeInt = this.safeInteger(this.options, 'feeInt', 0);
+            if (!this.safeBool(this.options, 'builderFee', true)) {
+                feeInt = 0;
+            }
+            orderAction['builder'] = { 'b': wallet, 'f': feeInt };
+        }
         const signature = this.signL1Action(orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
@@ -2012,6 +2025,65 @@ export default class hyperliquid extends Exchange {
         const msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
         return this.signMessage(msg, this.privateKey);
     }
+    signUserSignedAction(messageTypes, message) {
+        const zeroAddress = this.safeString(this.options, 'zeroAddress');
+        const chainId = 421614;
+        const domain = {
+            'chainId': chainId,
+            'name': 'HyperliquidSignTransaction',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        const signature = this.signMessage(msg, this.privateKey);
+        return signature;
+    }
+    buildApproveBuilderFeeSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:ApproveBuilderFee': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'maxFeeRate', 'type': 'string' },
+                { 'name': 'builder', 'type': 'address' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    async approveBuilderFee(builder, maxFeeRate) {
+        const nonce = this.milliseconds();
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'maxFeeRate': maxFeeRate,
+            'builder': builder,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveBuilderFeeSig(payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'maxFeeRate': payload['maxFeeRate'],
+            'builder': payload['builder'],
+            'nonce': nonce,
+            'type': 'approveBuilderFee',
+        };
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        return await this.privatePostExchange(request);
+    }
     async initializeClient() {
         // createOrder/createOrders call this before trading; load markets so the order builder can
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
@@ -2021,7 +2093,20 @@ export default class hyperliquid extends Exchange {
         if (!buildFee) {
             return undefined;
         }
-        // builder fee approval would go here if needed
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            return undefined; // already approved
+        }
+        try {
+            const builder = this.safeString(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // the default feeRate is '0%': the builder is approved and attached for statistics
+            // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            const maxFeeRate = this.safeString(this.options, 'feeRate', '0%');
+            await this.approveBuilderFee(builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        }
+        catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
         return undefined;
     }
     handlePublicAddress(methodName, params) {

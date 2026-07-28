@@ -184,5 +184,13 @@
         "woo",
         "woofipro",
         "xt"
-    ]
+    ],
+    "prediction": [
+        "hyperliquid",
+        "kalshi",
+        "limitless",
+        "myriad",
+        "polymarket"
+    ],
+    "predictionWs": []
 }

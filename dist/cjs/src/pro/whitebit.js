@@ -456,7 +456,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -483,7 +486,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         const orderId = this.safeString(trade, 3);
@@ -496,10 +502,28 @@ class whitebit extends whitebit$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 10);
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode(feeCurrencyId) : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
+        }
+        const rawSide = this.safeInteger(trade, 8);
+        let side = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        }
+        else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger(trade, 9);
+        let takerOrMaker = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        }
+        else if (role === 2) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'id': id,
@@ -509,8 +533,8 @@ class whitebit extends whitebit$1["default"] {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,

@@ -1,5 +1,5 @@
 #!/bin/bash
-OUTPUT=$(./utils/check_modified_files.sh | tr -d '\n')
+OUTPUT=$(./build/utils/check_modified_files.sh | tr -d '\n')
 # echo "1"
 IMPORTANT_MODIFIED=$(echo "$OUTPUT" | jq -r '.important_modified')
 PREDICTION_MODIFIED=$(echo "$OUTPUT" | jq -r '.prediction_modified')

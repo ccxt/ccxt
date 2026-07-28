@@ -13,6 +13,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -181,6 +182,9 @@ class myriad(PredictionExchange, ImplicitAPI):
             'options': {
                 'defaultFetchMarketsLimit': 50,
                 'defaultFetchEventsLimit': 50,
+                # allow unscoped fetchEvents() for self venue; we fetch bounded open lists
+                # from both markets and questions and merge them with overlap filtering
+                'allowUnscopedFetchEvents': True,
                 'defaultMarketStatus': 'open',   # 'open' | 'closed' | 'resolved'
                 'defaultTradingModel': 'all',    # 'amm' | 'ob' | 'all' — markets listing includes both models
                 # network used for order-book trading when a market does not pin one(OB lives on BNB Chain)
@@ -322,14 +326,19 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_event(self, id: str, params={}) -> PredictionEvent:
         """
-        fetches a single prediction-market event by its market id
+        fetches a single prediction-market event by its market id, or orderbook slug
 
         https://docs.myriad.markets/builders/myriad-api-reference
 
-        :param str id: the market id
+        :param str id: the market id, or orderbook slug
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
+        if id.find(':') < 0:
+            rawQuestion = await self.fetch_raw_question_by_id(id, params)
+            orderBookEvent = self.parse_event(rawQuestion)
+            self.index_event_outcomes(orderBookEvent)
+            return orderBookEvent
         response = await self.fetch_raw_market_by_id(id, params)
         market = self.parse_myriad_market(response)
         event = self.parse_market_to_event(response, market)
@@ -355,6 +364,114 @@ class myriad(PredictionExchange, ImplicitAPI):
             request['id'] = id
         return await self.myriadPublicGetMarketsId(self.extend(request, params))
 
+    async def fetch_raw_question_by_id(self, id: str, params={}) -> Any:
+        """
+ @ignore
+        fetches a single raw myriad question object by question id; falls back to keyword search by id/slug/title when direct lookup is unavailable
+        :param str id: the question id or slug
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the raw question object
+        """
+        request = {
+            'id': id,
+        }
+        result = None
+        try:
+            result = await self.myriadPublicGetQuestionsId(self.extend(request, params))
+        except Exception as e:
+            if (isinstance(e, RateLimitExceeded)) or (isinstance(e, AuthenticationError)):
+                raise e
+            keywordRequest = {
+                'keyword': id,
+                'limit': 50,
+            }
+            response = await self.myriadPublicGetQuestions(self.extend(keywordRequest, params))
+            questions = self.safe_list(response, 'data', [])
+            questionsLength = len(questions)
+            idLower = id.lower()
+            for i in range(0, questionsLength):
+                q = self.safe_dict(questions, i, {})
+                qId = self.safe_string(q, 'id', '')
+                qSlug = self.safe_string(q, 'slug', '')
+                qTitle = self.safe_string(q, 'title', '')
+                qHandle = self.shorten_slug(qSlug)
+                if (qId.lower() == idLower) or (qSlug.lower() == idLower) or (qTitle.lower() == idLower) or ((qHandle is not None) and (qHandle.lower() == idLower)):
+                    return q
+            raise e
+        return result
+
+    async def fetch_raw_questions_by_search(self, queries: List[str], params={}) -> List[Any]:
+        """
+ @ignore
+        fetches raw myriad question objects matching the given search terms via the questions keyword filter
+        :param str[] queries: search terms
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of raw myriad question objects
+        """
+        limit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'defaultFetchEventsLimit', 50))
+        rest = self.omit(params, ['limit'])
+        seen = {}
+        rawQuestions = []
+        for i in range(0, len(queries)):
+            q = queries[i]
+            response = await self.myriadPublicGetQuestions(self.extend({
+                'keyword': q,
+                'limit': limit,
+            }, rest))
+            foundList = self.safe_list(response, 'data', response)
+            found = foundList if (foundList is not None) else []
+            for j in range(0, len(found)):
+                raw = found[j]
+                questionId = self.safe_string(raw, 'id')
+                if (questionId is not None) and not (questionId in seen):
+                    seen[questionId] = True
+                    rawQuestions.append(raw)
+        return rawQuestions
+
+    async def fetch_raw_questions_list(self, params={}) -> List[Any]:
+        """
+ @ignore
+        fetches raw myriad question objects from the paginated questions listing
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.state]: optional question state filter when supported by the backend
+        :returns dict[]: an array of raw myriad question objects
+        """
+        limit = self.safe_integer(self.options, 'defaultFetchEventsLimit', 50)
+        maxQuestions = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchEventsLimit', 1000))
+        state = self.safe_string_2(params, 'state', 'status', self.safe_string(self.options, 'defaultMarketStatus', 'open'))
+        rest = self.omit(params, ['state', 'status', 'limit', 'tradingModel', 'trading_model'])
+        allRawQuestions = []
+        seen = {}
+        collected = 0
+        page = 1
+        while(True):
+            request = {
+                'limit': limit,
+                'page': page,
+            }
+            if state is not None:
+                request['state'] = state
+            response = await self.myriadPublicGetQuestions(self.extend(request, rest))
+            rawQuestionsList = self.safe_list(response, 'data', response)
+            rawQuestions = rawQuestionsList if (rawQuestionsList is not None) else []
+            rawQuestionsLength = len(rawQuestions)
+            if rawQuestionsLength == 0:
+                break
+            for i in range(0, rawQuestionsLength):
+                rawQuestion = rawQuestions[i]
+                questionId = self.safe_string(rawQuestion, 'id')
+                if (questionId is not None) and (questionId in seen):
+                    continue
+                if questionId is not None:
+                    seen[questionId] = True
+                if collected < maxQuestions:
+                    allRawQuestions.append(rawQuestion)
+                    collected = self.sum(collected, 1)
+            page = self.sum(page, 1)
+            if (rawQuestionsLength < limit) or (collected >= maxQuestions):
+                break
+        return allRawQuestions
+
     async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
         """
         fetch the open outcome-token positions held by a wallet(myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
@@ -373,6 +490,49 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchPositions() requires a walletAddress or an address parameter')
         rest = self.omit(params, ['address', 'user'])
         response = await self.myriadPublicGetUsersAddressPortfolio(self.extend({'address': address}, rest))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "marketId": 170145,
+        #                 "marketTitle": "Will Base TGE in 2026?",
+        #                 "marketSlug": "will-base-tge-in-2026",
+        #                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        #                 "outcomeId": 0,
+        #                 "outcomeTitle": "Yes",
+        #                 "networkId": 56,
+        #                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        #                 "tokenId": null,
+        #                 "shares": 8.23666644,
+        #                 "price": 0.1214083400468503,
+        #                 "value": 0.9823048396344001,
+        #                 "profit": -0.017695160365599896,
+        #                 "roi": -0.017695160365599896,
+        #                 "totalProfit": -0.017695160365599927,
+        #                 "totalRoi": -0.017695160365599927,
+        #                 "positionFees": 0.02,
+        #                 "totalFees": 0.02,
+        #                 "winningsToClaim": False,
+        #                 "winningsClaimed": False,
+        #                 "voidedWinningsToClaim": False,
+        #                 "voidedWinningsClaimed": False,
+        #                 "status": "ongoing",
+        #                 "claimed": False,
+        #                 "executionMode": 0,
+        #                 "expiresAt": "2026-12-31 23:59:00",
+        #                 "eventId": null
+        #             }
+        #         ],
+        #         "pagination": {
+        #             "page": 1,
+        #             "limit": 20,
+        #             "total": 1,
+        #             "totalPages": 1,
+        #             "hasNext": False,
+        #             "hasPrev": False
+        #         }
+        #     }
+        #
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
@@ -398,10 +558,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         shares = self.safe_number(position, 'shares')
         value = self.safe_number(position, 'value')
         profit = self.safe_number(position, 'profit')
-        roi = self.safe_number(position, 'roi')
+        roi = self.safe_string(position, 'roi')
         percentage = None
         if roi is not None:
-            percentage = roi * 100
+            percentage = Precise.string_mul(roi, '100')
         return self.safe_prediction_position({
             'info': position,
             'id': id,
@@ -414,7 +574,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'notional': value,
             'markPrice': self.safe_number(position, 'price'),
             'unrealizedPnl': profit,
-            'percentage': percentage,
+            'percentage': self.parse_number(percentage),
             'marginMode': 'cash',
             'hedged': False,
         })
@@ -452,7 +612,24 @@ class myriad(PredictionExchange, ImplicitAPI):
             request['shares'] = amount
         rest = self.omit(params, ['slippage'])
         response = await self.myriadPublicPostMarketsQuote(self.extend(request, rest))
-        return self.parse_trade_quote(response, outcomeObj)
+        #
+        #     {
+        #         "value": 10,
+        #         "shares": 21.566766528674936,
+        #         "shares_threshold": 21.45893269603156,
+        #         "price_average": 0.4636763692278168,
+        #         "price_before": 0.46100295,
+        #         "price_after": 0.46635187379825593,
+        #         "calldata": "0x1...680",
+        #         "net_amount": 10,
+        #         "fees": {
+        #             "treasury": 0,
+        #             "distributor": 0,
+        #             "fee": 0
+        #         }
+        #     }
+        #
+        return self.parse_trade_quote(self.extend(response, {'action': sideStr}), outcomeObj)
 
     def parse_trade_quote(self, quote: dict, market: Any = None) -> dict:
         """
@@ -462,6 +639,23 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [market]: the outcome the quote belongs to
         :returns dict: a quote object
         """
+        #
+        #     {
+        #         "value": 10,
+        #         "shares": 21.566766528674936,
+        #         "shares_threshold": 21.45893269603156,
+        #         "price_average": 0.4636763692278168,
+        #         "price_before": 0.46100295,
+        #         "price_after": 0.46635187379825593,
+        #         "calldata": "0x1...680",
+        #         "net_amount": 10,
+        #         "fees": {
+        #             "treasury": 0,
+        #             "distributor": 0,
+        #             "fee": 0
+        #         }
+        #     }
+        #
         return {
             'outcome': self.safe_string(market, 'outcome'),
             'side': self.safe_string_lower(quote, 'action'),
@@ -585,7 +779,25 @@ class myriad(PredictionExchange, ImplicitAPI):
             'time_in_force': timeInForce,
         }
         response = await self.myriadPublicPostOrders(request)
-        wrapper = self.extend(response, {'order': order, 'networkId': networkId, 'timeInForce': timeInForce})
+        #
+        #     {
+        #         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        #         "status": "open",
+        #         "timeInForce": "GTC"
+        #     }
+        #
+        orderForResponse = {
+            'trader': self.safe_string(order, 'trader'),
+            'marketId': self.safe_string(order, 'marketId'),
+            'outcomeId': self.safe_number(order, 'outcomeId'),
+            'side': self.safe_number(order, 'side'),
+            'amount': self.safe_string(order, 'amount'),
+            'price': self.safe_string(order, 'price'),
+            'minFillAmount': self.safe_string(order, 'minFillAmount'),
+            'nonce': self.safe_string(order, 'nonce'),
+            'expiration': self.safe_string(order, 'expiration'),
+        }
+        wrapper = self.extend(response, {'order': orderForResponse, 'networkId': networkId, 'timeInForce': timeInForce})
         outcomeObj = self.outcome(outcome)
         parsed = self.parse_prediction_order(wrapper, outcomeObj)
         # the POST /orders response is minimal(hash + status), so backfill the known request values
@@ -652,8 +864,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         order = {
             'trader': trader,
             'marketId': marketId,
-            'outcomeId': outcomeId,
-            'side': sideInt,
+            'outcomeId': self.parse_to_numeric(outcomeId),
+            'side': self.parse_to_numeric(sideInt),
             'amount': amountWei,
             'price': priceWei,
             'minFillAmount': minFillAmount,
@@ -711,16 +923,29 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param float amount: number of outcome shares for the new order
         :param float [price]: price per share fraction in [0, 1]
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.orderResponse]: a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve self data
+        :param dict [params.rawOrder]: the raw order payload to cancel alternative to params.orderResponse, call fetchOrder to retrieve self data
+        :param str [params.networkId]: the order-book network id, required when using params.rawOrder without an embedded network id
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_outcome(outcome)
-        await self.cancel_order(id, outcome)
+        await self.cancel_order(id, outcome, params)
         return await self.create_orderbook_order(outcome, type, side, amount, price, params)
 
     async def create_amm_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
         """
  @ignore
         buys or sells outcome shares by submitting the quote's calldata on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
+        :param str outcome: unified outcome or outcome id
+        :param str [type]: not used by the AMM path
+        :param str side: 'buy' or 'sell'
+        :param float amount: for buys self is collateral value to spend(when costDenominated=true); for sells self is shares to sell
+        :param float [price]: not used by the AMM path
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.quote]: a pre-fetched fetchTradeQuote result to reuse instead of requesting a new quote, call fetchTradeQuote to retrieve self data
+        :param str [params.transactionHash]: a pre-broadcast transaction hash; when provided the method skips transaction submission and only parses the order result, capture self value from sendEvmTransaction
+        :param boolean [params.skipAllowance]: optional override to skip the ERC20 allowance check/approval before a buy; implied True when params.transactionHash is provided
+        :param boolean [params.skipWaitForReceipt]: optional override to skip the post-send receipt wait; implied True when params.transactionHash is provided
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
@@ -746,22 +971,36 @@ class myriad(PredictionExchange, ImplicitAPI):
         tokenAddress = self.safe_string_2(params, 'token', 'tokenAddress', self.safe_string(info, 'tokenAddress'))
         gasLimit = self.safe_string(params, 'gasLimit', '0xaae60')
         sideStr = sideLower
-        quoteParams = self.omit(params, ['rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated'])
-        quote = await self.fetch_trade_quote(outcome, sideStr, amount, quoteParams)
+        quoteParams = self.omit(params, ['rpcUrl', 'rpc', 'token', 'tokenAddress', 'gasLimit', 'costDenominated', 'quote', 'transactionHash', 'txHash', 'skipAllowance', 'skipWaitForReceipt'])
+        quote = self.safe_dict(params, 'quote')
+        if quote is None:
+            quote = await self.fetch_trade_quote(outcome, sideStr, amount, quoteParams)
         calldata = self.safe_string(self.safe_dict(quote, 'info', {}), 'calldata')
+        if calldata is None:
+            raise BadRequest(self.id + ' createAmmOrder is missing calldata from fetchTradeQuote')
         fromAddress = self.eth_get_address_from_private_key(self.privateKey)
-        # a buy spends the collateral token, so the prediction-market contract must be approved first
-        if (sideStr == 'buy') and (tokenAddress is not None):
+        txHashParam = self.safe_string_2(params, 'transactionHash', 'txHash')
+        hasPreBroadcastTxHash = (txHashParam is not None)
+        skipAllowance = self.safe_bool(params, 'skipAllowance', hasPreBroadcastTxHash)
+        if (sideStr == 'buy') and (tokenAddress is not None) and not skipAllowance:
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
-        txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
+        skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
+        txHash = txHashParam
+        if txHash is None:
+            txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
+        if not skipWaitForReceipt:
+            await self.wait_for_transaction_receipt(rpcUrl, txHash)
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr)
 
     async def create_market_buy_order_with_cost(self, outcome: str, cost: float, params={}) -> PredictionOrder:
         """
         buys an outcome by spending a fixed collateral amount on the AMM(dollar-sizing)
+
+        createAmmOrder supports params.quote from fetchTradeQuote(outcome, 'buy', amount)
+
         :param str outcome: unified outcome handle
-        :param float cost: the collateral(USDC) amount to spend
-        :param dict [params]: extra exchange-specific parameters
+        :param number cost: collateral amount to spend
+        :param dict [params]: extra parameters passed through to createAmmOrder
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
@@ -837,8 +1076,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         normalises a fetched order-book order into a typed-data message(uint256 fields, uint8 fields)
         :returns dict: the typed-data message
         """
+        signer = self.safe_string_2(rawOrder, 'trader', 'user')
+        if self.privateKey is not None:
+            signer = self.eth_get_address_from_private_key(self.privateKey)
+        else:
+            signer = self.wallet_address_or_undefined()
         return {
-            'trader': self.safe_string(rawOrder, 'trader'),
+            'trader': signer,
             'marketId': self.safe_string(rawOrder, 'marketId'),
             'outcomeId': self.safe_integer(rawOrder, 'outcomeId', 0),
             'side': self.safe_integer(rawOrder, 'side', 0),
@@ -848,6 +1092,37 @@ class myriad(PredictionExchange, ImplicitAPI):
             'nonce': self.safe_string(rawOrder, 'nonce'),
             'expiration': self.safe_string(rawOrder, 'expiration', '0'),
         }
+
+    def get_order_response_from_params(self, id: Str, params={}) -> Any:
+        """
+ @ignore
+        extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
+        :returns dict: the fetchOrder-style response wrapper or a raw-order wrapper
+        """
+        orderResponse = self.safe_dict(params, 'orderResponse')
+        if orderResponse is not None:
+            return orderResponse
+        rawOrder = self.safe_dict(params, 'rawOrder')
+        if rawOrder is not None:
+            return {
+                'orderHash': id,
+                'order': rawOrder,
+                'networkId': self.safe_string_2(params, 'networkId', 'network_id'),
+            }
+        orderResponsesById = self.safe_dict(params, 'orderResponses')
+        if orderResponsesById is not None:
+            keyedResponse = self.safe_dict(orderResponsesById, id)
+            if keyedResponse is not None:
+                return keyedResponse
+        orderResponses = self.safe_list(params, 'orderResponses')
+        if orderResponses is not None:
+            responsesLength = len(orderResponses)
+            for i in range(0, responsesLength):
+                current = self.safe_dict(orderResponses, i, {})
+                currentId = self.safe_string_n(current, ['orderHash', 'hash', 'id'])
+                if (currentId is not None) and (currentId == id):
+                    return current
+        return None
 
     def to_orderbook_wei(self, value: Num) -> str:
         """
@@ -932,6 +1207,151 @@ class myriad(PredictionExchange, ImplicitAPI):
             'trades': None,
         }, market)
 
+    def parse_amm_event_to_order(self, trade: dict, market: Market = None) -> PredictionOrder:
+        """
+ @ignore
+        parses a user event row from the AMM activity feed into a closed prediction order structure
+        :param dict trade: the raw user event row
+        :param dict [market]: the outcome object the trade belongs to
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+        """
+        networkId = self.safe_string(trade, 'networkId')
+        marketId = self.safe_string(trade, 'marketId')
+        rawOutcomeId = self.safe_string(trade, 'outcomeId')
+        composite = None
+        if (networkId is not None) and (marketId is not None) and (rawOutcomeId is not None):
+            composite = networkId + ':' + marketId + '/' + rawOutcomeId
+        outcomeObj = self.safe_outcome(composite, market)
+        marketSlug = self.safe_string(trade, 'marketSlug', marketId)
+        outcomeTitle = self.safe_string(trade, 'outcomeTitle', rawOutcomeId)
+        outcome = self.safe_string(outcomeObj, 'outcome')
+        if outcome is None:
+            outcome = self.slug_to_outcome_symbol(marketSlug, marketSlug, outcomeTitle)
+        marketSymbol = self.safe_string(outcomeObj, 'market')
+        if marketSymbol is None:
+            marketSymbol = self.slug_to_market_symbol(marketSlug, marketSlug)
+        label = self.safe_string(outcomeObj, 'label')
+        if label is None:
+            label = outcomeTitle
+        timestamp = self.safe_timestamp(trade, 'timestamp')
+        amountStr = self.safe_string(trade, 'shares')
+        costStr = self.safe_string(trade, 'value')
+        priceStr = None
+        if (amountStr is not None) and (costStr is not None) and not Precise.string_eq(amountStr, '0'):
+            priceStr = Precise.string_div(costStr, amountStr)
+        return self.safe_prediction_order({
+            'id': self.safe_string_2(trade, 'txId', 'id'),
+            'clientOrderId': None,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': timestamp,
+            'lastUpdateTimestamp': None,
+            'status': 'closed',
+            'outcome': outcome,
+            'outcomeId': composite,
+            'label': label,
+            'market': marketSymbol,
+            'type': 'market',
+            'timeInForce': 'IOC',
+            'postOnly': False,
+            'side': self.safe_string_lower(trade, 'action'),
+            'price': self.parse_number(priceStr),
+            'triggerPrice': None,
+            'amount': self.parse_number(amountStr),
+            'filled': self.parse_number(amountStr),
+            'remaining': 0,
+            'cost': self.parse_number(costStr),
+            'average': self.parse_number(priceStr),
+            'fee': None,
+            'reduceOnly': None,
+            'trades': [],
+            'event': None,
+        }, market)
+
+    async def fetch_amm_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+        """
+ @ignore
+        fetches executed AMM trades for a wallet from the user events feed and exposes them prediction orders
+        :param str [outcome]: unified outcome to filter by
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the maximum number of orders to return
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+        """
+        requestedStatus = self.safe_string_lower(params, 'status')
+        if (requestedStatus == 'open') or (requestedStatus == 'cancelled') or (requestedStatus == 'canceled') or (requestedStatus == 'expired'):
+            return []
+        trader = self.safe_string_2(params, 'trader', 'address')
+        if trader is None:
+            trader = self.wallet_address_or_undefined()
+        if trader is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey')
+        request = {
+            'address': trader,
+        }
+        outcomeObj = None
+        outcomeSymbol = None
+        rowOutcomeId = None
+        if outcome is not None:
+            outcomeObj = await self.load_outcome(outcome)
+            outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
+            info = self.safe_dict(outcomeObj, 'info', {})
+            request['market_id'] = self.safe_string(info, 'marketId')
+            request['network_id'] = self.safe_string(info, 'networkId')
+            rowOutcomeId = self.safe_string(info, 'outcomeId')
+        if since is not None:
+            request['since'] = self.parse_to_int(since / 1000)
+        if limit is not None:
+            request['limit'] = limit
+        params = self.omit(params, ['trader', 'address', 'status'])
+        response = await self.myriadPublicGetUsersAddressEvents(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        #                 "action": "sell",
+        #                 "marketTitle": "Will Base TGE in 2026?",
+        #                 "marketSlug": "will-base-tge-in-2026",
+        #                 "marketId": 170145,
+        #                 "networkId": 56,
+        #                 "outcomeTitle": "Yes",
+        #                 "outcomeId": 0,
+        #                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        #                 "shares": 8.22739948,
+        #                 "value": 0.9789,
+        #                 "timestamp": 1784708801,
+        #                 "blockNumber": 111442601,
+        #                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        #                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+        #             },
+        #         ],
+        #         "pagination": {
+        #             "page": 1,
+        #             "limit": 20,
+        #             "total": 2,
+        #             "totalPages": 1,
+        #             "hasNext": False,
+        #             "hasPrev": False
+        #         }
+        #     }
+        #
+        rows = self.safe_list(response, 'data', [])
+        result = []
+        rowsLength = len(rows)
+        for i in range(0, rowsLength):
+            row = rows[i]
+            action = self.safe_string_lower(row, 'action')
+            if (action != 'buy') and (action != 'sell'):
+                continue
+            currentOutcomeId = self.safe_string(row, 'outcomeId')
+            if (rowOutcomeId is not None) and (currentOutcomeId != rowOutcomeId):
+                continue
+            result.append(self.parse_amm_event_to_order(row, outcomeObj))
+        sorted = self.sort_by(result, 'timestamp', True)
+        return self.filter_by_outcome_since_limit(sorted, outcomeSymbol, since, limit)
+
     async def cancel_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
         """
         cancels an open order book order by its hash(re-signs the original order to prove ownership; gasless)
@@ -941,13 +1361,31 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str id: the order hash returned by createOrder
         :param str [outcome]: unified outcome the order belongs to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.orderResponse]: a pre-fetched fetchOrder-style response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve self data
+        :param dict [params.rawOrder]: the raw order payload to sign alternative to params.orderResponse, call fetchOrder to retrieve self data
+        :param str [params.networkId]: the order-book network id, required when using params.rawOrder without an embedded network id
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a privateKey to sign the cancellation')
-        fetched = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
+        fetched = self.get_order_response_from_params(id, params)
+        networkIdParam = self.safe_string_2(params, 'networkId', 'network_id')
+        params = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
+        if fetched is None:
+            fetched = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
+        fetchedInfo = self.safe_dict(fetched, 'info', {})
         rawOrder = self.safe_dict(fetched, 'order', {})
-        networkId = self.safe_string_2(fetched, 'networkId', 'network_id', self.safe_string(self.options, 'defaultNetworkId', '56'))
+        rawOrderKeys = list(rawOrder.keys())
+        rawOrderKeysLength = len(rawOrderKeys)
+        if rawOrderKeysLength == 0:
+            rawOrder = self.safe_dict(fetchedInfo, 'order', {})
+        networkId = self.safe_string_n(fetched, ['networkId', 'network_id'])
+        if networkId is None:
+            networkId = self.safe_string_n(fetchedInfo, ['networkId', 'network_id'])
+        if networkId is None:
+            networkId = networkIdParam
+        if networkId is None:
+            networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
         message = self.clob_order_message(rawOrder)
         signature = self.sign_clob_order(message, networkId)
         request = {
@@ -956,7 +1394,13 @@ class myriad(PredictionExchange, ImplicitAPI):
             'signature': signature,
             'network_id': self.parse_to_int(networkId),
         }
-        response = await self.myriadPublicDeleteOrdersHash(request)
+        response = await self.myriadPublicDeleteOrdersHash(self.extend(request, params))
+        #
+        #     {
+        #         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        #         "status": "cancelled"
+        #     }
+        #
         status = self.safe_string(response, 'status', 'canceled')
         wrapper = self.extend(fetched, {'status': status, 'networkId': networkId})
         market = None
@@ -1000,6 +1444,12 @@ class myriad(PredictionExchange, ImplicitAPI):
             'network_id': self.parse_to_int(networkId),
         }
         return await self.myriadPublicPostOrdersCancelAll(request)
+        #
+        #     {
+        #         "cancelled_count": 2,
+        #         "market_ids_affected": ["2cfe87e8-12df-4671-b9a9-0758898fd54b"]
+        #     }
+        #
 
     async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
         """
@@ -1010,19 +1460,37 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str[] ids: the order hashes to cancel
         :param str [outcome]: not used by myriad cancelOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.orderResponses]: pre-fetched fetchOrder-style responses keyed by order hash, or an array of such responses; avoids the internal per-order lookups when already available, call fetchOrder for each id to retrieve self data
+        :param str [params.networkId]: the order-book network id fallback for any supplied raw order data
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a privateKey to sign the cancellations')
+        paramsForLookup = params
+        networkIdParam = self.safe_string_2(params, 'networkId', 'network_id')
+        params = self.omit(params, ['orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id'])
         idsLength = len(ids)
         signedOrders = []
         wrappers = []
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
         for i in range(0, idsLength):
             id = ids[i]
-            fetched = await self.myriadPublicGetOrdersHash({'hash': id})
+            fetched = self.get_order_response_from_params(id, paramsForLookup)
+            if fetched is None:
+                fetched = await self.myriadPublicGetOrdersHash({'hash': id})
+            fetchedInfo = self.safe_dict(fetched, 'info', {})
             rawOrder = self.safe_dict(fetched, 'order', {})
-            networkId = self.safe_string_2(fetched, 'networkId', 'network_id', networkId)
+            rawOrderKeys = list(rawOrder.keys())
+            rawOrderKeysLength = len(rawOrderKeys)
+            if rawOrderKeysLength == 0:
+                rawOrder = self.safe_dict(fetchedInfo, 'order', {})
+            fetchedNetworkId = self.safe_string_n(fetched, ['networkId', 'network_id'])
+            if fetchedNetworkId is None:
+                fetchedNetworkId = self.safe_string_n(fetchedInfo, ['networkId', 'network_id'])
+            if fetchedNetworkId is None:
+                fetchedNetworkId = networkIdParam
+            if fetchedNetworkId is not None:
+                networkId = fetchedNetworkId
             message = self.clob_order_message(rawOrder)
             signature = self.sign_clob_order(message, networkId)
             signedOrders.append({'order': message, 'signature': signature})
@@ -1032,6 +1500,15 @@ class myriad(PredictionExchange, ImplicitAPI):
             'network_id': self.parse_to_int(networkId),
         }
         await self.myriadPublicPostOrdersCancelBatch(self.extend(request, params))
+        #
+        #     {
+        #         "cancelled": [
+        #             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+        #             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
+        #         ],
+        #         "errors": []
+        #     }
+        #
         return self.parse_prediction_orders(wrappers)
 
     async def fetch_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
@@ -1046,6 +1523,32 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         response = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
+        #
+        #     {
+        #         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        #         "clientOrderId": null,
+        #         "order": {
+        #             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        #             "marketId": 827,
+        #             "outcomeId": 0,
+        #             "side": 0,
+        #             "amount": "1000000000000000000",
+        #             "price": "10000000000000000",
+        #             "minFillAmount": "0",
+        #             "nonce": "1784793980668",
+        #             "expiration": "0"
+        #         },
+        #         "status": "cancelled",
+        #         "signatureType": 0,
+        #         "filledAmount": "0",
+        #         "timeInForce": "GTC",
+        #         "createdAt": "2026-07-23T08:06:21.279Z",
+        #         "filledAt": null,
+        #         "networkId": 56,
+        #         "updatedAt": "2026-07-23T08:22:23.987Z",
+        #         "cancelledAt": "2026-07-23T08:22:23.987Z"
+        #     }
+        #
         market = None
         if outcome is not None:
             market = await self.load_outcome(outcome)
@@ -1053,7 +1556,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
-        fetches order book orders for the wallet(or any trader passed via params.trader)
+        fetches order book orders for the wallet(or any trader passed via params.trader), or amm closed orders
 
         https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
 
@@ -1072,11 +1575,54 @@ class myriad(PredictionExchange, ImplicitAPI):
                 request['trader'] = self.eth_get_address_from_private_key(self.privateKey)
             elif self.walletAddress is not None:
                 request['trader'] = self.walletAddress
+        requestedTradingModel = self.safe_string_lower_2(params, 'tradingModel', 'trading_model')
+        params = self.omit(params, ['tradingModel', 'trading_model'])
+        outcomeObj = None
         outcomeSymbol = None
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
             outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
+            if requestedTradingModel is None:
+                info = self.safe_dict(outcomeObj, 'info', {})
+                requestedTradingModel = self.safe_string_lower(info, 'tradingModel')
+        if requestedTradingModel == 'amm':
+            return await self.fetch_amm_orders(outcome, since, limit, params)
         response = await self.myriadPublicGetOrders(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+        #                 "clientOrderId": null,
+        #                 "order": {
+        #                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        #                     "marketId": 827,
+        #                     "outcomeId": 0,
+        #                     "side": 0,
+        #                     "amount": "1000000000000000000",
+        #                     "price": "10000000000000000",
+        #                     "minFillAmount": "0",
+        #                     "nonce": "1784713298605",
+        #                     "expiration": "0"
+        #                 },
+        #                 "status": "open",
+        #                 "signatureType": 0,
+        #                 "filledAmount": "0",
+        #                 "timeInForce": "GTC",
+        #                 "createdAt": "2026-07-22T09:41:39.035Z",
+        #                 "filledAt": null
+        #             }
+        #         ],
+        #         "pagination": {
+        #             "page": 1,
+        #             "limit": 5000,
+        #             "total": 1,
+        #             "totalPages": 1,
+        #             "hasNext": False,
+        #             "hasPrev": False
+        #         }
+        #     }
+        #
         data = self.safe_list(response, 'data', [])
         # the /orders endpoint ignores a market_id filter server-side(it returns nothing even for a
         # valid market), so parse every order — each self-resolves its outcome from the network/market/
@@ -1195,17 +1741,20 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network_id]: the network id(defaults to options.defaultNetworkId, '56')
+        :param str [params.network]: alias for params.network_id
+        :param str [params.currency]: output balance currency code override, e.g. 'USDC' or 'USDT'
+        :param int [params.decimals]: for USDC and USDT it's 6, default is 18 for USD1
         :returns dict: a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
         """
-        networkId = self.safe_string(params, 'network_id', self.safe_string(self.options, 'defaultNetworkId', '56'))
+        networkId = self.safe_string_2(params, 'network_id', 'network', self.safe_string(self.options, 'defaultNetworkId', '56'))
         chains = self.safe_dict(self.options, 'chains', {})
         chainConfig = self.safe_dict(chains, networkId, {})
         rpcUrl = self.safe_string_2(params, 'rpcUrl', 'rpc', self.safe_string(chainConfig, 'rpcUrl'))
         token = self.safe_string_2(params, 'token', 'tokenAddress', self.safe_string(chainConfig, 'collateralToken'))
         if token is None:
             raise NotSupported(self.id + ' fetchBalance() has no collateral token configured for network ' + networkId)
-        currency = self.safe_string(chainConfig, 'collateralCurrency', 'USD1')
-        decimals = self.safe_integer(chainConfig, 'collateralDecimals', 18)
+        currency = self.safe_string(params, 'currency', self.safe_string(chainConfig, 'collateralCurrency', 'USD1'))
+        decimals = self.safe_integer(params, 'decimals', self.safe_integer(chainConfig, 'collateralDecimals', 18))
         owner = self.wallet_address_from_keys()
         # ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         callData = '0x70a08231' + self.pad_hex_address(owner)
@@ -2159,7 +2708,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """
-        fetches prediction-market events matching the given scope(query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
+        fetches prediction-market events matching the given scope(query/queries/tags/eventId) and caches their markets and outcomes on the instance
 
         https://docs.myriad.markets/builders/myriad-api-reference
 
@@ -2167,12 +2716,14 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str [params.query]: a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
         :param str[] [params.queries]: multiple search terms(alternative to query)
         :param str[] [params.tags]: tag slugs to scope by(searched, e.g. ['bitcoin', 'world-cup'])
-        :param str [params.eventId]: direct lookup by unified event id(composite networkId:marketId)
+        :param str [params.eventId]: direct lookup by unified event id(composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
         :param int [params.limit]: maximum number of markets per query, defaults to 50
         :param str [params.state]: 'open', 'closed' or 'resolved', defaults to 'open'
         :returns dict[]: an array of event structures
         """
-        self.require_event_query(params)
+        allowUnscopedFetchEvents = self.safe_bool(self.options, 'allowUnscopedFetchEvents', False)
+        if not allowUnscopedFetchEvents:
+            self.require_event_query(params)
         queries = self.parse_search_queries(params)
         rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
         queriesLength = len(queries)
@@ -2181,28 +2732,83 @@ class myriad(PredictionExchange, ImplicitAPI):
         # an eventId does a direct lookup, and tags map to server-side keyword searches(the
         # markets listing ignores tag filter params, but tag slugs match through keyword=)
         rawMarkets = []
+        rawQuestions = []
         if queriesLength > 0:
-            rawMarkets = await self.fetch_raw_markets_by_search(queries, rest)
+            # some markets are only discoverable through the questions search endpoint
+            responses = await asyncio.gather(*[
+                self.fetch_raw_markets_by_search(queries, rest),
+                self.fetch_raw_questions_by_search(queries, rest),
+            ])
+            rawMarkets = self.safe_list(responses, 0, [])
+            rawQuestions = self.safe_list(responses, 1, [])
         elif eventId is not None:
-            rawMarket = await self.fetch_raw_market_by_id(eventId, rest)
-            rawMarkets = [rawMarket]
+            if eventId.find(':') > -1:
+                rawMarket = await self.fetch_raw_market_by_id(eventId, rest)
+                rawMarkets = [rawMarket]
+            else:
+                rawQuestion = await self.fetch_raw_question_by_id(eventId, rest)
+                rawQuestions = [rawQuestion]
         else:
             requestedTags = self.safe_list(params, 'tags', [])
-            tagQueries = []
             requestedTagsLength = len(requestedTags)
-            for i in range(0, requestedTagsLength):
-                # tag slugs are hyphenated('world-cup'); search with spaces so titles match
-                tagSlug = requestedTags[i]
-                tagQueries.append(tagSlug.replace('-', ' '))
-            rawMarkets = await self.fetch_raw_markets_by_search(tagQueries, rest)
+            if requestedTagsLength == 0:
+                # unscoped mode: fetch bounded open lists from both sources and merge
+                listResponses = await asyncio.gather(*[
+                    self.fetch_raw_markets_list(rest),
+                    self.fetch_raw_questions_list(rest),
+                ])
+                rawMarkets = self.safe_list(listResponses, 0, [])
+                rawQuestions = self.safe_list(listResponses, 1, [])
+            else:
+                tagQueries = []
+                for i in range(0, requestedTagsLength):
+                    # tag slugs are hyphenated('world-cup'); search with spaces so titles match
+                    tagSlug = requestedTags[i]
+                    tagQueries.append(tagSlug.replace('-', ' '))
+                # run both searches in parallel; some events are only discoverable from questions,
+                # while market search is still the primary source for market-level data
+                responses = await asyncio.gather(*[
+                    self.fetch_raw_markets_by_search(tagQueries, rest),
+                    self.fetch_raw_questions_by_search(tagQueries, rest),
+                ])
+                rawMarkets = self.safe_list(responses, 0, [])
+                rawQuestions = self.safe_list(responses, 1, [])
         if not self.markets:
             self.markets = self.create_safe_dictionary()
+        seenMarketHandles = {}
         result = []
+        rawQuestionsLength = len(rawQuestions)
+        for i in range(0, rawQuestionsLength):
+            rawQuestion = rawQuestions[i]
+            ev = self.parse_event(rawQuestion)
+            evMarkets = self.safe_list(ev, 'markets', [])
+            evMarketsLength = len(evMarkets)
+            filteredMarkets = []
+            for j in range(0, evMarketsLength):
+                m = self.safe_dict(evMarkets, j, {})
+                marketHandle = self.safe_string(m, 'market')
+                if marketHandle is not None:
+                    if marketHandle in seenMarketHandles:
+                        continue
+                    seenMarketHandles[marketHandle] = True
+                    self.markets[marketHandle] = m
+                filteredMarkets.append(m)
+            # skip question events that contribute no new markets after de-duplicating by market handle
+            if (evMarketsLength > 0) and (len(filteredMarkets) == 0):
+                continue
+            ev['markets'] = filteredMarkets
+            result.append(ev)
         rawMarketsLength = len(rawMarkets)
         for i in range(0, rawMarketsLength):
             raw = rawMarkets[i]
             m = self.parse_myriad_market(raw)
-            self.markets[m['market']] = m
+            marketHandle = self.safe_string(m, 'market')
+            if (marketHandle is not None) and (marketHandle in seenMarketHandles):
+                self.markets[marketHandle] = m
+                continue
+            if marketHandle is not None:
+                seenMarketHandles[marketHandle] = True
+                self.markets[marketHandle] = m
             ev = self.parse_market_to_event(raw, m)
             result.append(ev)
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache

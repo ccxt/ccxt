@@ -7,6 +7,7 @@ import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
+import os from 'os'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
@@ -78,6 +79,7 @@ class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
+    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
@@ -1188,7 +1190,7 @@ class NewTranspiler {
         }
 
 
-        this.transpileTests()
+        await this.transpileTests()
 
         this.transpileErrorHierarchy ()
 
@@ -1197,12 +1199,20 @@ class NewTranspiler {
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
-        });
+        // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
+        // same threads instead of each spawning their own full-size pool
+        const maxThreads = Math.max (1, os.cpus ().length - 1);
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'csharp-worker.js'),
+                maxThreads,
+            });
+        }
+        const piscina = this.piscina;
 
-        const chunkSize = 20;
+        // one chunk per thread — a fixed chunkSize of 20 left most cores idle
+        // (e.g. 90 test files → 5 chunks → 5 busy threads on an 18-core machine)
+        const chunkSize = Math.max (1, Math.ceil (allFiles.length / maxThreads));
         const promises: any = [];
         const now = Date.now();
         for (let i = 0; i < allFiles.length; i += chunkSize) {
@@ -1511,15 +1521,15 @@ class NewTranspiler {
         await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
-    transpileBaseTestsToCSharp () {
+    async transpileBaseTestsToCSharp () {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
+        await this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToCSharp(outDir);
         this.transpileWsCacheTestsToCSharp(outDir);
         this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
-    transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1527,18 +1537,24 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        for (const testName of baseFunctionTests) {
+        // filter out NO_AUTO_TRANSPILE files first, then transpile the rest through the
+        // worker pool — the previous serial loop was ~1s per file and dominated the build
+        const eligible = baseFunctionTests.filter ((testName) => {
+            const tsContent = fs.readFileSync (baseFolders.ts + testName + '.ts').toString ();
+            return !tsContent.includes ('// NO_AUTO_TRANSPILE');
+        });
+        const paths = eligible.map ((testName) => baseFolders.ts + testName + '.ts');
+        const transpiled = await this.webworkerTranspile (paths, this.getTranspilerConfig ());
+
+        for (let i = 0; i < eligible.length; i++) {
+            const testName = eligible[i];
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
-                continue;
-            }
 
             const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
+            const csharp = transpiled[i];
             let content = csharp.content;
             content = this.regexAll (content, [
                 [/object  = functions;/g, '' ], // tmp fix
@@ -1559,7 +1575,7 @@ class NewTranspiler {
             ]).trim ()
 
             const contentLines = content.split ('\n');
-            const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+            const contentIdented = contentLines.map ((line: string) => '        ' + line).join ('\n');
 
             const file = [
                 'using ccxt;',
@@ -1665,7 +1681,7 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        return this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
     transpileWsExchangeTests(){
@@ -1687,7 +1703,7 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        return this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
 
     async transpileAndSaveCsharpExchangeTests(tests: any[], isWs = false) {
@@ -1764,14 +1780,17 @@ class NewTranspiler {
         });
     }
 
-    transpileTests(){
+    async transpileTests(){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        // the three groups are independent — run them concurrently
+        await Promise.all ([
+            this.transpileBaseTestsToCSharp(),
+            this.transpileExchangeTests(),
+            this.transpileWsExchangeTests(),
+        ]);
     }
 }
 
@@ -1809,9 +1828,19 @@ async function runMain () {
             }
         }
     } else if (test) {
-        transpiler.transpileTests ()
+        await transpiler.transpileTests ()
     } else if (multiprocess) {
-        await parallelizeTranspiling (exchangeIds)
+        // run the serial tail (base methods, tests, error hierarchy) in the parent
+        // CONCURRENTLY with the exchange fan-out — previously the first fork ran it
+        // after finishing its own exchange chunk, serializing most of the build time
+        await Promise.all ([
+            parallelizeTranspiling (exchangeIds, undefined, force, false, false, true),
+            (async () => {
+                transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+                await transpiler.transpileTests ()
+                transpiler.transpileErrorHierarchy ()
+            }) (),
+        ])
         // the prediction exchanges are few — transpile them serially after the workers finish
         await transpiler.transpileEverything (force, false, false, false, true)
     } else {

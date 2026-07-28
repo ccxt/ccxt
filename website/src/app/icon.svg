@@ -7,8 +7,8 @@
       .gl  { fill: #0a0a0a; }
     }
   </style>
-  <rect class="box" width="90" height="90"/>
-  <g class="gl">
+  <circle class="box" cx="45" cy="45" r="45"/>
+  <g class="gl" transform="translate(45 45) scale(0.67) translate(-45 -45)">
     <path d="M10 10h30v10H20v10h20v10H10z"/>
     <path d="M50 10h30v10H60v10h20v10H50z"/>
     <rect x="10" y="50" width="10" height="10"/>

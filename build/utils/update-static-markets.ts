@@ -1,7 +1,7 @@
 //
 // Usage to update specific symbols, currencies, everything (existing keys with new datas):
 //
-//   tsx ./utils/update-static-markets.ts binance BTC/USDT ETH/USDT
+//   tsx ./build/utils/update-static-markets.ts binance BTC/USDT ETH/USDT
 //                                        binance USDC LTC
 //                                        binance --all
 //
@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path'
 import { platform } from 'process'
-import ccxt from '../ts/ccxt.js';
+import ccxt from '../../ts/ccxt.js';
 
 const [,, ...args] = process.argv;
 
@@ -18,7 +18,7 @@ let __dirname = new URL('.', import.meta.url).pathname;
 if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring (1);
 }
-const rootDir = __dirname + '/../';
+const rootDir = __dirname + '/../../';
 const useJsonParsing = false; 
 
 function getExchangeSettings (exchangeId: string) {

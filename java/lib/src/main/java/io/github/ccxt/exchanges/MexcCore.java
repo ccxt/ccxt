@@ -3555,7 +3555,7 @@ public class MexcCore extends MexcApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "spotPrivateDeleteOrderAll", new Object[] { parameters })).join();
+                    (this.spotPrivateDeleteOrderAll(parameters)).join();
                     //
                     //     {
                     //         "code": 200,

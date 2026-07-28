@@ -52,7 +52,7 @@ const foldersToSearch = [
 const args = process.argv.slice(2);
 
 if (args.length < 1) {
-    console.error("Usage: tsx utils/remove-exchange.ts <targetFileName>");
+    console.error("Usage: tsx build/utils/remove-exchange.ts <targetFileName>");
     process.exit(1);
 }
 

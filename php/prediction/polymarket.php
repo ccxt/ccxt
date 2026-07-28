@@ -333,6 +333,9 @@ class polymarket extends Exchange {
                 'ctfExchangeVersion' => '2',
                 'exchangeAddress' => '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress' => '0xe2222d279d744050d28e00520010520000310F59',
+                'builder' => '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
+                'builderFee' => true, // when true, feeRate below is packed into the builder code's upper bytes
+                'feeRate' => 0, // builder fee in bps, applied only when builderFee is true
             ),
         ));
     }
@@ -348,6 +351,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra exchange-specific parameters
              * @param {string} [$params->query] a single search term used to filter the fetched events
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string[]} [$params->tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
              * @param {string} [$params->status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
              * @param {int} [$params->limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
              * @return {array[]} an array of objects representing market data
@@ -480,6 +484,37 @@ class polymarket extends Exchange {
         })();
     }
 
+    public function tag_to_slug(string $tag): string {
+        /**
+         * @ignore
+         * converts a human-readable $tag label into gamma's $slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a $tag already in $slug form passes through unchanged
+         * @param {string} $tag the $tag label or $slug
+         * @return {string} the gamma $tag $slug
+         */
+        $lower = strtolower($tag);
+        $allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $chars = $this->string_to_chars_array($lower);
+        $slug = '';
+        $pendingSep = false;
+        for ($i = 0; $i < count($chars); $i++) {
+            $ch = $chars[$i];
+            if (mb_strpos($allowed, $ch) !== false) {
+                if ($pendingSep && ($slug !== '')) {
+                    $slug = $slug . '-';
+                }
+                $slug = $slug . $ch;
+                $pendingSep = false;
+            } else {
+                $pendingSep = true;
+            }
+        }
+        if ($slug === '') {
+            // a $tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return $lower;
+        }
+        return $slug;
+    }
+
     public function fetch_raw_events_list($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -536,7 +571,9 @@ class polymarket extends Exchange {
                 return $unioned;
             }
             if ($requestedTagsLength > 0) {
-                $baseRequest['tag_slug'] = $this->safe_string($requestedTags, 0);
+                // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+                // so human-readable labels ("Fed Rates") must be slugified first
+                $baseRequest['tag_slug'] = $this->tag_to_slug($this->safe_string($requestedTags, 0));
             }
             if ($status === 'active') {
                 $baseRequest['active'] = true;
@@ -968,7 +1005,7 @@ class polymarket extends Exchange {
             //             "hash" => "11aa0feabec970de83b04a2c0d50a7639e144f43",
             //             "bids" => array(
             //                 array(
-            //                     "price" => "0.45",
+            //                     "price" => "0.46",
             //                     "size" => "100"
             //                 ),
             //             ),
@@ -1934,6 +1971,7 @@ class polymarket extends Exchange {
              * @param {string} [$params->salt] $order salt; defaults to the current time in ms (pin it for idempotent retries)
              * @param {string} [$params->timestamp] $order timestamp; defaults to the current time in ms
              * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
+             * @param {string} [$params->builderCode] builder wallet address or full bytes32 builder code attached to the $order for attribution (zero fee — tracking only); defaults to options.builder
              * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             Async\await($this->load_api_credentials());
@@ -2063,12 +2101,36 @@ class polymarket extends Exchange {
         $expiration = $this->safe_string($params, 'expiration', '0');
         // a market buy can be sized by USDC $cost instead of shares (see createMarketBuyOrderWithCost)
         $cost = $this->safe_number($params, 'cost');
-        $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ));
+        $rest = $this->omit($params, array( 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode' ));
         $amounts = $this->polymarket_order_raw_amounts($sideStr, $amount, $price, $tickSize, $cost);
         $makerAmount = $this->safe_string($amounts, 'makerAmount');
         $takerAmount = $this->safe_string($amounts, 'takerAmount');
         $sideInt = ($sideStr === 'BUY') ? 0 : 1;
         $bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // builder attribution => the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        $builderRaw = $this->safe_string_lower_2($params, 'builder', 'builderCode', $this->safe_string_lower($this->options, 'builder'));
+        $builderBytes32 = $bytes32Zero;
+        if ($builderRaw !== null) {
+            $builderHex = $this->remove0x_prefix($builderRaw);
+            if (strlen($builderHex) <= 40) {
+                $builderFeeEnabled = $this->safe_bool($this->options, 'builderFee', true);
+                $feeRate = 0;
+                if ($builderFeeEnabled) {
+                    $feeRate = $this->safe_integer($this->options, 'feeRate', 0);
+                }
+                $feeHex = $this->int_to_base16($feeRate);
+                $feeHex = str_pad($feeHex, 24, '0', STR_PAD_LEFT);
+                $addressHex = $builderHex;
+                $addressHex = str_pad($addressHex, 40, '0', STR_PAD_LEFT);
+                $builderHex = $feeHex . $addressHex;
+            } else {
+                $builderHex = str_pad($builderHex, 64, '0', STR_PAD_LEFT);
+            }
+            $builderBytes32 = '0x' . $builderHex;
+        }
         // POLY_1271 ($type 3) => the order $signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the $signature and is checked on-chain wallet $owner). Otherwise $signer = EOA.
@@ -2085,7 +2147,7 @@ class polymarket extends Exchange {
             'signatureType' => $signatureType,
             'timestamp' => $timestamp,
             'metadata' => $bytes32Zero,
-            'builder' => $bytes32Zero,
+            'builder' => $builderBytes32,
         );
         $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
@@ -2109,7 +2171,7 @@ class polymarket extends Exchange {
                 'timestamp' => $timestamp,
                 'expiration' => $expiration,
                 'metadata' => $bytes32Zero,
-                'builder' => $bytes32Zero,
+                'builder' => $builderBytes32,
                 'signature' => $signature,
             ),
             'owner' => $owner,
@@ -2374,6 +2436,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra exchange-specific parameters
              * @param {string} [$params->query] a single keyword search term
              * @param {string[]} [$params->queries] multiple search terms (alternative to query)
+             * @param {string[]} [$params->tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
              * @param {int} [$params->limit] max number of events to return
              * @param {string} [$params->sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
              * @param {string} [$params->status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2558,12 +2621,14 @@ class polymarket extends Exchange {
             $active = $rawActive && !$closed;
         }
         // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the $slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         $rawTags = $this->safe_list($rawEvent, 'tags', array());
         $rawTagsLength = count($rawTags);
         $parsedTags = array();
         for ($ti = 0; $ti < $rawTagsLength; $ti++) {
-            $tagLabel = $this->safe_string_2($rawTags[$ti], 'slug', 'label');
+            $tagLabel = $this->safe_string_2($rawTags[$ti], 'label', 'slug');
             if ($tagLabel !== null) {
                 $parsedTags[] = $tagLabel;
             }

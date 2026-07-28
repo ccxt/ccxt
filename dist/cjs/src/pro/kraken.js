@@ -1105,7 +1105,7 @@ class kraken extends kraken$1["default"] {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
     /**
      * @method

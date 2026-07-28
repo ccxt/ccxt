@@ -21,7 +21,7 @@ Current feature list:
 - implements public and private APIs, both REST and WebSocket
 - optionally normalizes data for cross-exchange analytics and arbitrage
 - has an out of the box unified API that is extremely easy to integrate
-- ideal for AI agents and vibe coding
+- ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
 ## See Also
@@ -258,13 +258,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.65/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.65/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.68/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.68/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.65/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.68/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:

@@ -271,6 +271,37 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
+    public virtual object normalizeTagKey(object tag)
+    {
+        // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
+        // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
+        // of the same tag compare equal — venues surface tags in different forms and callers
+        // pass any of them. keeping the word boundary avoids cross-word false positives that
+        // plain concatenation would create ("us open" vs "household")
+        object lower = ((string)tag).ToLower();
+        object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        object chars = this.stringToCharsArray(lower);
+        object s = "";
+        object pendingSep = false;
+        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        {
+            object ch = getValue(chars, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
+            {
+                if (isTrue(isTrue(pendingSep) && isTrue((!isEqual(s, "")))))
+                {
+                    s = add(s, " ");
+                }
+                s = add(s, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        return s;
+    }
+
     public virtual object filterEventsByTags(object events, object tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
@@ -287,7 +318,12 @@ public partial class PredictionExchange : BaseExchange
         object wanted = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
         {
-            ((IList<object>)wanted).Add(((string)getValue(tags, i)).ToLower());
+            object wantedKey = this.normalizeTagKey(getValue(tags, i));
+            if (isTrue(!isEqual(wantedKey, "")))
+            {
+                // an empty normalized key would substring-match every tag
+                ((IList<object>)wanted).Add(wantedKey);
+            }
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
@@ -308,10 +344,10 @@ public partial class PredictionExchange : BaseExchange
                 }
                 if (isTrue(!isEqual(tagLabel, null)))
                 {
-                    object tagLower = ((string)tagLabel).ToLower();
+                    object tagKey = this.normalizeTagKey(tagLabel);
                     for (object wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
                     {
-                        if (isTrue(isGreaterThanOrEqual(getIndexOf(tagLower, getValue(wanted, wi)), 0)))
+                        if (isTrue(isGreaterThanOrEqual(getIndexOf(tagKey, getValue(wanted, wi)), 0)))
                         {
                             matched = true;
                             break;
