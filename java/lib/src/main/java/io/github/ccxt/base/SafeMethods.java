@@ -210,26 +210,26 @@ public final class SafeMethods {
     }
 
     public static Object SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
-        Object defaultValue = opt(defaultValue2);
-        Object result = SafeValueN(obj, keys, defaultValue);
-        if (result == null) return (defaultValue instanceof String s) ? s : null;
-
-        if (result instanceof List<?> || result instanceof Map<?, ?>) {
-            return (defaultValue instanceof String s) ? s : null;
+        Object result = SafeValueN(obj, keys);
+        if (result != null) {
+            if (result instanceof String s) {
+                if (s != null && !s.isEmpty()) return s;
+            } else if (result instanceof Float f) {
+                return String.valueOf(f);
+            } else if (result instanceof Integer i) {
+                return String.valueOf(i);
+            } else if (result instanceof Double d) {
+                return String.valueOf(d);
+            } else if (result instanceof java.math.BigDecimal bd) {
+                return bd.toPlainString();
+            } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
+                return (opt(defaultValue) instanceof String s) ? s : null;
+            } else {
+                String s = String.valueOf(result);
+                if (s != null && !s.isEmpty()) return s;
+            }
         }
-
-        String ret;
-        if (result instanceof Float f) {
-            ret = String.valueOf(f);
-        } else if (result instanceof Double d) {
-            ret = String.valueOf(d);
-        } else if (result instanceof java.math.BigDecimal bd) {
-            ret = bd.toPlainString();
-        } else {
-            ret = String.valueOf(result);
-        }
-        if (ret != null && !ret.isEmpty()) return ret;
-        return (defaultValue instanceof String s) ? s : null;
+        return (opt(defaultValue) instanceof String s) ? s : null;
     }
 
     // ----------------------------
