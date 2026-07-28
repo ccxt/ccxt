@@ -10,6 +10,7 @@ import type {
     Balances,
     PredictionOutcome,
     PredictionPosition,
+    PredictionTrade,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,7 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPosition': true,
+                'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrders': true,
                 'cancelOrder': true,
@@ -1306,6 +1308,7 @@ export default class binance extends Exchange {
             outcomeObj = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
+        const totalCost = this.parseNumber (this.safeString (position, 'totalCost'));
         return this.safePredictionPosition ({
             'id': this.safeInteger (position, 'positionId'),
             'outcome': this.safeString (outcomeObj, 'outcome'),
@@ -1317,13 +1320,13 @@ export default class binance extends Exchange {
             'hedged': undefined,
             'side': 'long',
             'contracts': undefined,
-            'contractSize': undefined,
+            'contractSize': this.parseNumber (this.safeString (position, 'shares')),
             'entryPrice': this.parseNumber (this.safeString (position, 'avgPrice')),
             'markPrice': undefined,
-            'notional': this.parseNumber (this.safeString (position, 'totalCost')),
+            'notional': this.parseNumber (this.safeString (position, 'value')),
             'leverage': undefined,
-            'collateral': this.parseNumber (this.safeString (position, 'value')),
-            'initialMargin': undefined,
+            'collateral': totalCost,
+            'initialMargin': totalCost,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -1335,6 +1338,177 @@ export default class binance extends Exchange {
             'percentage': this.parseNumber (this.safeString (position, 'unrealizedPnlPercent')),
             'info': position,
         });
+    }
+
+    /**
+     * @method
+     * @name binance#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#query-order-history
+     * @param {string} [outcome] filter by outcome
+     * @param {int} [since] only return orders updated since this timestamp in ms
+     * @param {int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] Filter by order type. Enum: MARKET, LIMIT
+     * @param {string} [params.l1Category] Filter by level-1 category
+     * @param {string} [params.status] Filter by order status
+     * @param {string} [params.until] end timestamp in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let maxEntriesPerRequest = undefined;
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        const pageKey = 'ccxtPageKey';
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionTrade[];
+        }
+        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const request = {
+            'status': 'FILLED',
+        };
+        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        if (offSet > 0) {
+            request['offset'] = offSet;
+        }
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.yyyymmdd (limit);
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endDate'] = this.yyyymmdd (until);
+        }
+        const wallet = await this.fetchWallet ('fetchMyTrades', params);
+        request['walletAddress'] = wallet['walletAddress'];
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        //
+        // {
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
+        //         {
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
+        //         }
+        //     ]
+        // }
+        //
+        const trades = this.safeList (response, 'orders', []);
+        const parsedTrades = this.parsePredictionTrades (trades, outcomeObj);
+        return this.filterByOutcomeSinceLimit (parsedTrades, outcome, since, limit) as PredictionTrade[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name binance#parsePredictionTrade
+     * @description parses a single hyperliquid fill into a unified trade object
+     * @param {object} trade the raw fill object
+     * @param {object} [outcomeObj] the outcome the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
+        //
+        // {
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
+        // }
+        //
+        if (outcomeObj === undefined) {
+            const marketId = this.safeString (trade, 'marketId');
+            const outcome = this.safeStringUpper (trade, 'outcome');
+            const market = this.safeMarket (marketId);
+            let outcomeName = market['market'];
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
+            outcomeObj = this.safeOutcome (outcomeName);
+        }
+        const timestamp = this.safeInteger (trade, 'createTime');
+        const filled = this.safeString (trade, 'filledShareQty');
+        const cost = this.safeString (trade, 'filledUsdtAmount');
+        const providerFee = this.safeString (trade, 'marketProviderFee');
+        const networkFee = this.safeString (trade, 'networkFee');
+        const feeCost = this.sum (providerFee, networkFee);
+        return this.safePredictionTrade ({
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (trade, 'modifyTime'),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': this.safeString (trade, 'orderId'),
+            'type': this.safeStringLower (trade, 'orderType'),
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'makerShareQty'),
+            'filled': filled,
+            'cost': cost,
+            'fee': {
+                'currency': 'USDT',
+                'cost': feeCost,
+            },
+        }, outcomeObj);
     }
 
     /**
