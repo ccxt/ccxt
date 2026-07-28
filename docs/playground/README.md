@@ -27,7 +27,7 @@ code for you.
 ## Quick start
 
 ```bash
-cd playground
+cd docs/playground
 npm install
 npm run setup-runtimes        # optional but recommended (see below)
 cp .env.example .env.local    # add your OPENROUTER_API_KEY for the AI panel
@@ -45,7 +45,7 @@ The Docker setup makes the **container the trust boundary** — user code can on
 touch the container filesystem; the host is unreachable.
 
 ```bash
-cd playground
+cd docs/playground
 OPENROUTER_API_KEY=sk-or-... docker compose up --build
 # → http://localhost:3000
 ```
@@ -112,9 +112,9 @@ the container's `/etc/hosts` and a non-root `/home/playground`, and a crash
 
 ## Production: docs.ccxt.com/playground
 
-Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../.github/workflows/deploy-playground.yml)
+Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../../.github/workflows/deploy-playground.yml)
 (modeled on the Fumadocs workflow, same box + secrets). On push to `master` under
-`playground/**` (or manual dispatch) it: builds the arm64 image on a native
+`docs/playground/**` (or manual dispatch) it: builds the arm64 image on a native
 runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box →
 runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` JS
 run) → promotes to the live container only if green (else leaves the old one up).
@@ -159,8 +159,8 @@ installs the nightly-restart cron automatically.
 - **C#** → `runtime/csharp/app` project (`dotnet add package ccxt`) restored and
   build-warmed. Needs the .NET SDK.
 
-Python and PHP fall back to the surrounding monorepo's CCXT (`../python` via
-`PYTHONPATH`, `../ccxt.php`) if not provisioned. Go and C# show a "run
+Python and PHP fall back to the surrounding monorepo's CCXT (`../../python` via
+`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go and C# show a "run
 setup-runtimes" message until provisioned (no fallback — they need the warm
 cache/restore to be fast).
 
