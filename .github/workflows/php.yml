@@ -12,7 +12,7 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -26,12 +26,6 @@ jobs:
           echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
           echo "GITHUB_REF: {{ github.ref }}"
     - uses: actions/checkout@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
       with:
         fetch-depth: 2
     - name: Skip Automated Push Commits

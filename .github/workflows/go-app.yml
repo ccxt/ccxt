@@ -6,6 +6,8 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,12 +15,6 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-        if: github.ref == 'refs/heads/master'
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
       - name: Setup Golang with cache
