@@ -22,6 +22,7 @@ interface Exchange {
     opinionPrivateGetOrderOrderId (params?: {}): Promise<implicitReturnType>;
     opinionPrivateGetPositionsUserWalletAddress (params?: {}): Promise<implicitReturnType>;
     opinionPrivateGetTradeUserWalletAddress (params?: {}): Promise<implicitReturnType>;
+    opinionPrivateGetAuthApiKey (params?: {}): Promise<implicitReturnType>;
     opinionPrivatePostAuthApiKey (params?: {}): Promise<implicitReturnType>;
     opinionPrivateDeleteAuthApiKey (params?: {}): Promise<implicitReturnType>;
 }
