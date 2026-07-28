@@ -483,27 +483,6 @@ func WithWatchMyTradesParams(params map[string]any) WatchMyTradesOptions {
 }
 
 
-type FetchOrdersByIdsOptionsStruct struct {
-    Outcome *string
-    Params *map[string]any
-}
-
-type FetchOrdersByIdsOptions func(opts *FetchOrdersByIdsOptionsStruct)
-
-func WithFetchOrdersByIdsOutcome(outcome string) FetchOrdersByIdsOptions {
-    return func(opts *FetchOrdersByIdsOptionsStruct) {
-        opts.Outcome = &outcome
-    }
-}
-
-
-func WithFetchOrdersByIdsParams(params map[string]any) FetchOrdersByIdsOptions {
-    return func(opts *FetchOrdersByIdsOptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
 type FetchSettlementsOptionsStruct struct {
     Outcome *string
     Since *int64
@@ -588,6 +567,27 @@ type FetchEventOptions func(opts *FetchEventOptionsStruct)
 
 func WithFetchEventParams(params map[string]any) FetchEventOptions {
     return func(opts *FetchEventOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchOrdersByIdsOptionsStruct struct {
+    Outcome *string
+    Params *map[string]any
+}
+
+type FetchOrdersByIdsOptions func(opts *FetchOrdersByIdsOptionsStruct)
+
+func WithFetchOrdersByIdsOutcome(outcome string) FetchOrdersByIdsOptions {
+    return func(opts *FetchOrdersByIdsOptionsStruct) {
+        opts.Outcome = &outcome
+    }
+}
+
+
+func WithFetchOrdersByIdsParams(params map[string]any) FetchOrdersByIdsOptions {
+    return func(opts *FetchOrdersByIdsOptionsStruct) {
         opts.Params = &params
     }
 }
