@@ -1070,7 +1070,9 @@ export default class nado extends nadoRest {
         }
         return this.safeTrade ({
             'info': trade,
-            'id': undefined,
+            // the id is required: myTrades are cached by id, and fills with an undefined id
+            // would overwrite each other in the cache, collapsing the history to the last fill
+            'id': this.safeString2 (trade, 'id', 'submission_idx'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
