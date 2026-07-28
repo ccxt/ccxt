@@ -51,7 +51,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'npm'
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies

@@ -38,7 +38,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'npm'
     - name: Set up JDK
       uses: actions/setup-java@v4
       with:
@@ -106,12 +105,16 @@ jobs:
       with:
           name: shared_env
           path: shared_env.txt
-
     - name: Upload Java Files
       uses: actions/upload-artifact@v4
       with:
         name: java-files
-        path: java/
+        path: | 
+          java/
+          !java/lib/build/**
+          !java/.gradle/**
+        retention-days: 1
+
     - name: Push Java changes to master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
