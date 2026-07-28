@@ -22,6 +22,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - name: Print vars
       run: |
@@ -41,10 +42,10 @@ jobs:
           exit 0
         fi
     - name: Setup PHP with PECL extension
+      if: runner.environment == 'github-hosted'
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
-        # cache: true
         ini-values: |
           zend.assertions=1
           display_errors=On

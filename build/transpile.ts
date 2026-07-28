@@ -3381,8 +3381,8 @@ class Transpiler {
     }
 }
 
-async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false, allChildren = false) {
-    const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
+async function parallelizeTranspiling (exchanges: string[], processes: number | string | undefined = undefined, force = false, python = false, php = false, allChildren = false) {
+    const processesNum = Math.min(Number(processes) || os.availableParallelism (), exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     // by default the first fork runs without --child so it also transpiles the serial
     // tail (base methods, tests, ...); pass allChildren=true when the caller runs that
@@ -3481,7 +3481,7 @@ if (isMainEntry(metaFileUrl)) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         (async () => {
-            await parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+            await parallelizeTranspiling (exchangeIds, process.env.CCXT_TRANSPILE_PROCESSES, force, pyOnly, phpOnly)
             // the prediction exchanges are few — transpile them serially after the workers finish
             await transpiler.transpileEverything (force, false, true)
         })()
