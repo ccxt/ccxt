@@ -1999,7 +1999,9 @@ export default class myriad extends Exchange {
         for (let i = 0; i < n; i++) {
             const v = digits.indexOf (chars[i]);
             if (v > -1) {
-                result = Precise.stringAdd (Precise.stringMul (result, '16') || '0', this.numberToString (v) || '0') || '0';
+                const mul = Precise.stringMul (result, '16');
+                const digit = this.numberToString (v);
+                result = Precise.stringAdd (mul, digit);
             }
         }
         return result;
