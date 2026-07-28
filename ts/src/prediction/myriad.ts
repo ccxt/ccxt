@@ -619,7 +619,7 @@ export default class myriad extends Exchange {
         const value = this.safeNumber (position, 'value');
         const profit = this.safeNumber (position, 'profit');
         const roi = this.safeString (position, 'roi');
-        let percentage = undefined;
+        let percentage: Str = undefined;
         if (roi !== undefined) {
             percentage = Precise.stringMul (roi, '100');
         }
@@ -1380,29 +1380,29 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (trade, 'networkId');
         const marketId = this.safeString (trade, 'marketId');
         const rawOutcomeId = this.safeString (trade, 'outcomeId');
-        let composite = undefined;
+        let composite: Str = undefined;
         if ((networkId !== undefined) && (marketId !== undefined) && (rawOutcomeId !== undefined)) {
             composite = networkId + ':' + marketId + '/' + rawOutcomeId;
         }
         const outcomeObj = this.safeOutcome (composite, market as any);
         const marketSlug = this.safeString (trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
-        let outcome = this.safeString (outcomeObj, 'outcome');
+        let outcome: Str = this.safeString (outcomeObj, 'outcome');
         if (outcome === undefined) {
             outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
         }
-        let marketSymbol = this.safeString (outcomeObj, 'market');
+        let marketSymbol: Str = this.safeString (outcomeObj, 'market');
         if (marketSymbol === undefined) {
             marketSymbol = this.slugToMarketSymbol (marketSlug, marketSlug);
         }
-        let label = this.safeString (outcomeObj, 'label');
+        let label: Str = this.safeString (outcomeObj, 'label');
         if (label === undefined) {
             label = outcomeTitle;
         }
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const amountStr = this.safeString (trade, 'shares');
         const costStr = this.safeString (trade, 'value');
-        let priceStr = undefined;
+        let priceStr: Str = undefined;
         if ((amountStr !== undefined) && (costStr !== undefined) && !Precise.stringEq (amountStr, '0')) {
             priceStr = Precise.stringDiv (costStr, amountStr);
         }
@@ -1453,7 +1453,7 @@ export default class myriad extends Exchange {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        let trader = this.safeString2 (params, 'trader', 'address');
+        let trader: Str = this.safeString2 (params, 'trader', 'address');
         if (trader === undefined) {
             trader = this.walletAddressOrUndefined ();
         }
@@ -1463,9 +1463,9 @@ export default class myriad extends Exchange {
         const request: Dict = {
             'address': trader,
         };
-        let outcomeObj = undefined;
-        let outcomeSymbol = undefined;
-        let rowOutcomeId = undefined;
+        let outcomeObj: any = undefined;
+        let outcomeSymbol: Str = undefined;
+        let rowOutcomeId: Str = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
             outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
@@ -1514,7 +1514,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
             const row = rows[i];
@@ -1778,9 +1778,9 @@ export default class myriad extends Exchange {
                 request['trader'] = this.walletAddress;
             }
         }
-        let requestedTradingModel = this.safeStringLower2 (params, 'tradingModel', 'trading_model');
+        let requestedTradingModel: Str = this.safeStringLower2 (params, 'tradingModel', 'trading_model');
         params = this.omit (params, [ 'tradingModel', 'trading_model' ]);
-        let outcomeObj = undefined;
+        let outcomeObj: any = undefined;
         let outcomeSymbol: Str = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -3057,7 +3057,7 @@ export default class myriad extends Exchange {
                 rawMarkets = this.safeList (listResponses, 0, []);
                 rawQuestions = this.safeList (listResponses, 1, []);
             } else {
-                const tagQueries = [];
+                const tagQueries: string[] = [];
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     const tagSlug = requestedTags[i];
@@ -3084,7 +3084,7 @@ export default class myriad extends Exchange {
             const ev = this.parseEvent (rawQuestion);
             const evMarkets = this.safeList (ev, 'markets', []);
             const evMarketsLength = evMarkets.length;
-            const filteredMarkets = [];
+            const filteredMarkets: any[] = [];
             for (let j = 0; j < evMarketsLength; j++) {
                 const m = this.safeDict (evMarkets, j, {});
                 const marketHandle = this.safeString (m, 'market');
