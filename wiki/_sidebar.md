@@ -86,6 +86,7 @@
 	- [mexc](exchanges/mexc.md)
 	- [modetrade](exchanges/modetrade.md)
 	- [mudrex](exchanges/mudrex.md)
+	- [nado](exchanges/nado.md)
 	- [ndax](exchanges/ndax.md)
 	- [okx](exchanges/okx.md)
 	- [onetrading](exchanges/onetrading.md)

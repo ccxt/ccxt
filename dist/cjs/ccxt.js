@@ -93,6 +93,7 @@ var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
 var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
+var nado = require('./src/nado.js');
 var ndax = require('./src/ndax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
@@ -175,6 +176,7 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
+var nado$1 = require('./src/pro/nado.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
@@ -285,6 +287,7 @@ const exchanges = {
     'modetrade': modetrade["default"],
     'mudrex': mudrex["default"],
     'myokx': myokx["default"],
+    'nado': nado["default"],
     'ndax': ndax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
@@ -369,6 +372,7 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
+    'nado': nado$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
@@ -535,6 +539,7 @@ exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
 exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
+exports.nado = nado["default"];
 exports.ndax = ndax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
