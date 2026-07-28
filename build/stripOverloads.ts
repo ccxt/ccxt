@@ -21,14 +21,21 @@ function writeOverloadStrippedFile (srcPath: string): string {
     const dir = path.dirname (srcPath);
     const ext = path.extname (srcPath);
     const base = path.basename (srcPath, ext);
-    const tmpPath = path.join (dir, base + '.nooverloads' + ext);
+    // the transpilers fan out into parallel worker processes that each strip the same
+    // base file - the temp name must be per-process, or the workers create/delete each
+    // other's copy (ENOENT on unlink, or a worker parsing a half-deleted file)
+    const tmpPath = path.join (dir, base + '.nooverloads.' + process.pid.toString () + ext);
     fs.writeFileSync (tmpPath, filtered);
     return tmpPath;
 }
 
 function removeOverloadStrippedFile (tmpPath: string, srcPath: string): void {
-    if (tmpPath !== srcPath && fs.existsSync (tmpPath)) {
-        fs.unlinkSync (tmpPath);
+    if (tmpPath !== srcPath) {
+        try {
+            fs.unlinkSync (tmpPath);
+        } catch (e) {
+            // already removed - nothing to clean up
+        }
     }
 }
 
