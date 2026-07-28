@@ -83,7 +83,7 @@ public class PolymarketCore extends PolymarketApi
                 put( "1d", "1440" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567" );
+                put( "logo", "https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "gamma", "https://gamma-api.polymarket.com" );
                     put( "clob", "https://clob.polymarket.com" );
@@ -313,6 +313,9 @@ public class PolymarketCore extends PolymarketApi
                 put( "ctfExchangeVersion", "2" );
                 put( "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B" );
                 put( "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59" );
+                put( "builder", "0xea409de8b037bb6ac664b6d12d6831b03cb04a37" );
+                put( "builderFee", true );
+                put( "feeRate", 0 );
             }} );
         }});
     }
@@ -326,6 +329,7 @@ public class PolymarketCore extends PolymarketApi
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -506,6 +510,45 @@ public class PolymarketCore extends PolymarketApi
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    public Object tagToSlug(Object tag)
+    {
+        Object lower = ((String)tag).toLowerCase();
+        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Object chars = this.stringToCharsArray(lower);
+        Object slug = "";
+        Object pendingSep = false;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
+        {
+            Object ch = Helpers.GetValue(chars, i);
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(slug, "")))))
+                {
+                    slug = Helpers.add(slug, "-");
+                }
+                slug = Helpers.add(slug, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(slug, "")))
+        {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -575,7 +618,9 @@ public class PolymarketCore extends PolymarketApi
             }
             if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 0)))
             {
-                Helpers.addElementToObject(baseRequest, "tag_slug", this.safeString(requestedTags, 0));
+                // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+                // so human-readable labels ("Fed Rates") must be slugified first
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
             }
             if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {
@@ -1059,7 +1104,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
     {
@@ -1097,7 +1142,7 @@ final Object finalOutcomePrice = outcomePrice;
             //             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
             //             "bids": [
             //                 {
-            //                     "price": "0.45",
+            //                     "price": "0.46",
             //                     "size": "100"
             //                 },
             //             ],
@@ -1132,7 +1177,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
@@ -1236,7 +1281,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
@@ -1339,7 +1384,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by polymarket fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
@@ -1694,7 +1739,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {int} [since] not used by polymarket fetchTrades
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
     {
@@ -1750,7 +1795,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
     {
@@ -1786,7 +1831,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
@@ -1831,7 +1876,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
@@ -1950,7 +1995,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
     {
@@ -2012,7 +2057,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object outcome, Object... optionalArgs)
     {
@@ -2033,7 +2078,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
@@ -2093,7 +2138,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {int} [since] not used by polymarket fetchOpenOrders
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
     {
@@ -2127,7 +2172,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
     {
@@ -2155,7 +2200,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
@@ -2255,7 +2300,8 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
@@ -2284,7 +2330,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/trade/post-orders
      * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
     {
@@ -2420,18 +2466,47 @@ final Object finalOutcomePrice = outcomePrice;
         Object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Object cost = this.safeNumber(parameters, "cost");
-        Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost")));
+        Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
         Object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         Object makerAmount = this.safeString(amounts, "makerAmount");
         Object takerAmount = this.safeString(amounts, "takerAmount");
         Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "BUY"))))) ? 0 : 1;
         Object bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        Object builderRaw = this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
+        Object builderBytes32 = bytes32Zero;
+        if (Helpers.isTrue(!Helpers.isEqual(builderRaw, null)))
+        {
+            Object builderHex = this.remove0xPrefix(builderRaw);
+            if (Helpers.isTrue(Helpers.isLessThanOrEqual(Helpers.getArrayLength(builderHex), 40)))
+            {
+                Object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
+                Object feeRate = 0;
+                if (Helpers.isTrue(builderFeeEnabled))
+                {
+                    feeRate = this.safeInteger(this.options, "feeRate", 0);
+                }
+                Object feeHex = this.intToBase16(feeRate);
+                feeHex = Helpers.padStart((String)feeHex, ((Number)24).intValue(), ((String)"0").charAt(0));
+                Object addressHex = builderHex;
+                addressHex = Helpers.padStart((String)addressHex, ((Number)40).intValue(), ((String)"0").charAt(0));
+                builderHex = Helpers.add(feeHex, addressHex);
+            } else
+            {
+                builderHex = Helpers.padStart((String)builderHex, ((Number)64).intValue(), ((String)"0").charAt(0));
+            }
+            builderBytes32 = Helpers.add("0x", builderHex);
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         Object maker = funder;
         Object signer = ((Helpers.isTrue((Helpers.isEqual(signatureType, 3))))) ? funder : eoa;
         final Object finalSignatureType = signatureType;
+        final Object finalBuilderBytes32 = builderBytes32;
         Object message = new java.util.HashMap<String, Object>() {{
             put( "salt", salt );
             put( "maker", maker );
@@ -2443,7 +2518,7 @@ final Object finalOutcomePrice = outcomePrice;
             put( "signatureType", finalSignatureType );
             put( "timestamp", timestamp );
             put( "metadata", bytes32Zero );
-            put( "builder", bytes32Zero );
+            put( "builder", finalBuilderBytes32 );
         }};
         Object exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         Object negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
@@ -2469,7 +2544,7 @@ final Object finalOutcomePrice = outcomePrice;
                 put( "timestamp", timestamp );
                 put( "expiration", expiration );
                 put( "metadata", bytes32Zero );
-                put( "builder", bytes32Zero );
+                put( "builder", finalBuilderBytes32 );
                 put( "signature", signature );
             }} );
             put( "owner", owner );
@@ -2506,7 +2581,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string} outcome unified outcome or outcome token id
      * @param {float} cost the amount of USDC to spend
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
     {
@@ -2715,7 +2790,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
     {
@@ -2752,7 +2827,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {string[]} ids the order ids to cancel
      * @param {string} [outcome] not used by polymarket cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
     {
@@ -2788,7 +2863,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
      * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
     {
@@ -2838,6 +2913,7 @@ final Object finalOutcomePrice = outcomePrice;
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -3062,13 +3138,15 @@ final Object finalOutcomePrice = outcomePrice;
             active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         Object rawTags = this.safeList(rawEvent, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawTagsLength = Helpers.getArrayLength(rawTags);
         Object parsedTags = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
         {
-            Object tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "slug", "label");
+            Object tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "label", "slug");
             if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
             {
                 ((java.util.List<Object>)parsedTags).add(tagLabel);
@@ -3675,7 +3753,7 @@ final Object finalOutcome = outcome;
      * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object outcome2, Object... optionalArgs)
     {
@@ -3708,7 +3786,7 @@ final Object finalOutcome = outcome;
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchTrades(Object outcome2, Object... optionalArgs)
     {
@@ -3740,7 +3818,7 @@ final Object finalOutcome = outcome;
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
      * @param {string} outcome unified outcome
      * @param {object} [params] extra params (unused)
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchTicker(Object outcome2, Object... optionalArgs)
     {
@@ -3847,7 +3925,7 @@ final Object finalOutcome = outcome;
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
     {
@@ -3885,7 +3963,7 @@ final Object finalOutcome = outcome;
      * @param {int} [since] the earliest time in ms to return trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> watchMyTrades(Object... optionalArgs)
     {

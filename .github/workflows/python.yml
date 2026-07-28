@@ -1,4 +1,5 @@
 name: Python
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
 env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -39,7 +40,7 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     - name: Install python dependencies
-      run: pip install -r ci-requirements.txt
+      run: pip install -r build/ci-requirements.txt
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -49,7 +50,7 @@ jobs:
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-py
     - name: Transpile to Python
@@ -152,7 +153,7 @@ jobs:
           name: python-files
           path: python/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -164,7 +165,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Run Id Tests
@@ -188,7 +189,7 @@ jobs:
           name: python-files
           path: python/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
+        run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -200,7 +201,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests

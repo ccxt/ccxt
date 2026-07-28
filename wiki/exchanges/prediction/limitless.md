@@ -78,7 +78,7 @@ limitless.fetchEvent (id, params?)
 fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 **See**
 
@@ -103,7 +103,7 @@ limitless.fetchTicker (outcome, params?)
 fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market (two requests per market: detail + order book)
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+**Returns**: <code>object</code> - a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
 
 **See**
 
@@ -128,7 +128,7 @@ limitless.fetchTickers (outcomes, params?)
 fetches recent public trades for a single outcome token from the market events feed
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trading/market-events  
 
@@ -151,7 +151,7 @@ limitless.fetchTrades (outcome, since?, limit?, params?)
 fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trading/orderbook  
 
@@ -197,7 +197,7 @@ limitless.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 fetches orders for the authenticated user for a single outcome
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/get-user-orders  
 
@@ -220,7 +220,7 @@ limitless.fetchOrders (outcome?, since?, limit?, params?)
 fetches open orders for the authenticated user for a single outcome
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/get-user-orders  
 
@@ -243,7 +243,7 @@ limitless.fetchOpenOrders (outcome?, since?, limit?, params?)
 fetches closed orders for the authenticated user for a single outcome
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/get-user-orders  
 
@@ -266,7 +266,7 @@ limitless.fetchClosedOrders (outcome?, since?, limit?, params?)
 fetch orders by the list of order id
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trading/order-status-batch  
 
@@ -288,7 +288,7 @@ limitless.fetchOrdersByIds (ids, outcome?, params?)
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trading/order-status-batch  
 
@@ -330,7 +330,7 @@ limitless.fetchAccounts (params?)
 places a limit or market order on limitless for the given outcome token
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/create-order  
 
@@ -380,7 +380,7 @@ limitless.approve (params?)
 cancels a single open order by id
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/cancel-order  
 
@@ -424,7 +424,7 @@ limitless.redeem (outcome?, params?)
 cancel multiple orders at the same time
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trading/cancel-batch  
 
@@ -446,7 +446,7 @@ limitless.cancelOrders (ids, outcome?, params?)
 cancels all open orders for one market slug
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/orders/cancel-all-orders  
 
@@ -468,7 +468,7 @@ limitless.cancelAllOrders (outcome?, params?)
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/trades/get-trades  
 
@@ -491,7 +491,7 @@ limitless.fetchMyTrades (outcome?, since?, limit?, params?)
 fetches open positions for the authenticated limitless user from the portfolio endpoint
 
 **Kind**: instance method of [<code>limitless</code>](#limitless)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://docs.limitless.exchange/api-reference/portfolio/get-positions  
 

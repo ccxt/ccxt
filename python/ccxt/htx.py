@@ -6793,7 +6793,7 @@ class htx(Exchange, ImplicitAPI):
         }
         if market['linear']:
             if limit is not None:
-                request['limit'] = limit
+                request['limit'] = min(limit, 100)  # max 100
             if since is not None:
                 request['start_time'] = since
         else:

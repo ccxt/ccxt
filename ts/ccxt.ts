@@ -41,7 +41,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.65';
+const version = '4.5.69';
 
 //-----------------------------------------------------------------------------
 
@@ -129,6 +129,7 @@ import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
+import nado from  './src/nado.js'
 import ndax from  './src/ndax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
@@ -214,6 +215,7 @@ import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
 import mudrexPro from  './src/pro/mudrex.js'
 import myokxPro from  './src/pro/myokx.js'
+import nadoPro from  './src/pro/nado.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
@@ -322,6 +324,7 @@ const exchanges = {
     'modetrade':              modetrade,
     'mudrex':                 mudrex,
     'myokx':                  myokx,
+    'nado':                   nado,
     'ndax':                   ndax,
     'okx':                    okx,
     'okxus':                  okxus,
@@ -407,6 +410,7 @@ const pro = {
     'modetrade':              modetradePro,
     'mudrex':                 mudrexPro,
     'myokx':                  myokxPro,
+    'nado':                   nadoPro,
     'ndax':                   ndaxPro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
@@ -686,6 +690,7 @@ export {
     modetrade,
     mudrex,
     myokx,
+    nado,
     ndax,
     okx,
     okxus,

@@ -6254,6 +6254,7 @@ class bingx extends Exchange {
 
     public function parse_params($params) {
         // $sortedParams = $this->keysort($params);
+        $copied = $this->clone($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
         $keys = $this->sort($rawKeys);
         for ($i = 0; $i < count($keys); $i++) {
@@ -6269,10 +6270,10 @@ class bingx extends Exchange {
                     $arrStr .= (string) $arrayElement;
                 }
                 $arrStr .= ']';
-                $params[$key] = $arrStr;
+                $copied[$key] = $arrStr;
             }
         }
-        return $params;
+        return $copied;
     }
 
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -6668,7 +6669,7 @@ class bingx extends Exchange {
             $request['cancelOrderId'] = $id;
             $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
             if ($market['swap']) {
-                $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($this->extend($request, $params)));
+                $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($request));
                 //
                 //    {
                 //        code => '0',
@@ -6724,7 +6725,7 @@ class bingx extends Exchange {
                 //    }
                 //
             } else {
-                $response = Async\await($this->spotV1PrivatePostTradeOrderCancelReplace($this->extend($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeOrderCancelReplace($request));
                 //
                 //    {
                 //        code => '0',

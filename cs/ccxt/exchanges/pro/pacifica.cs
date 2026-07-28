@@ -16,7 +16,7 @@ public partial class pacifica : ccxt.pacifica
                 { "cancelOrdersWs", true },
                 { "cancelAllOrdersWs", true },
                 { "createOrderWs", true },
-                { "createOrdersWs", true },
+                { "createOrdersWs", false },
                 { "editOrderWs", true },
                 { "watchBalance", false },
                 { "watchMyTrades", true },

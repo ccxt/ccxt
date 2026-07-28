@@ -6175,6 +6175,7 @@ export default class bingx extends Exchange {
 
     parseParams (params) {
         // const sortedParams = this.keysort (params);
+        const copied = this.clone (params);
         const rawKeys = Object.keys (params);
         const keys = this.sort (rawKeys);
         for (let i = 0; i < keys.length; i++) {
@@ -6190,10 +6191,10 @@ export default class bingx extends Exchange {
                     arrStr += arrayElement.toString ();
                 }
                 arrStr += ']';
-                params[key] = arrStr;
+                copied[key] = arrStr;
             }
         }
-        return params;
+        return copied;
     }
 
     /**
@@ -6582,7 +6583,7 @@ export default class bingx extends Exchange {
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
         let response: Dict;
         if (market['swap']) {
-            response = await this.swapV1PrivatePostTradeCancelReplace (this.extend (request, params));
+            response = await this.swapV1PrivatePostTradeCancelReplace (request);
             //
             //    {
             //        code: '0',
@@ -6638,7 +6639,7 @@ export default class bingx extends Exchange {
             //    }
             //
         } else {
-            response = await this.spotV1PrivatePostTradeOrderCancelReplace (this.extend (request, params));
+            response = await this.spotV1PrivatePostTradeOrderCancelReplace (request);
             //
             //    {
             //        code: '0',

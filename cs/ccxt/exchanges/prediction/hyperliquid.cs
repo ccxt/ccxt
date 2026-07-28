@@ -115,7 +115,10 @@ public partial class hyperliquid : PredictionExchange
                 { "outcomeQuoteCurrency", "USDH" },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
-                { "builderFee", false },
+                { "builderFee", true },
+                { "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6" },
+                { "feeRate", "0%" },
+                { "feeInt", 0 },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -678,7 +681,7 @@ public partial class hyperliquid : PredictionExchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
@@ -716,7 +719,7 @@ public partial class hyperliquid : PredictionExchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
@@ -782,7 +785,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public override object parsePredictionTicker(object raw, object market = null)
     {
@@ -856,7 +859,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} outcome unified outcome
      * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -1051,7 +1054,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
@@ -1134,7 +1137,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public override object parsePredictionPosition(object position, object market = null)
     {
@@ -1329,7 +1332,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.slippage] slippage for market orders (default 5%)
      * @param {string} [params.clientOrderId] hex cloid
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1403,6 +1406,21 @@ public partial class hyperliquid : PredictionExchange
             { "orders", new List<object>() {orderObj} },
             { "grouping", "na" },
         };
+        if (isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+        {
+            object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+            object feeInt = this.safeInteger(this.options, "feeInt", 0);
+            if (!isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                feeInt = 0;
+            }
+            ((IDictionary<string,object>)orderAction)["builder"] = new Dictionary<string, object>() {
+                { "b", wallet },
+                { "f", feeInt },
+            };
+        }
         object signature = this.signL1Action(orderAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", orderAction },
@@ -1469,7 +1487,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] cancel by client order id
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1486,7 +1504,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified outcome (required)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
@@ -1606,7 +1624,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1653,7 +1671,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1716,7 +1734,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.clientOrderId] fetch by client order id instead
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1762,7 +1780,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public override object parsePredictionOrder(object order, object market = null)
     {
@@ -1889,7 +1907,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [since] only return trades at or after this timestamp in ms
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -1918,7 +1936,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {int} [params.until] end timestamp in ms
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1970,7 +1988,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public override object parsePredictionTrade(object trade, object market = null)
     {
@@ -2319,6 +2337,78 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
+    public virtual object signUserSignedAction(object messageTypes, object message)
+    {
+        object zeroAddress = this.safeString(this.options, "zeroAddress");
+        object chainId = 421614;
+        object domain = new Dictionary<string, object>() {
+            { "chainId", chainId },
+            { "name", "HyperliquidSignTransaction" },
+            { "verifyingContract", zeroAddress },
+            { "version", "1" },
+        };
+        object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        object signature = this.signMessage(msg, this.privateKey);
+        return signature;
+    }
+
+    public virtual object buildApproveBuilderFeeSig(object message)
+    {
+        object messageTypes = new Dictionary<string, object>() {
+            { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "maxFeeRate" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "builder" },
+    { "type", "address" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}} },
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
+    {
+        object nonce = this.milliseconds();
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object payload = new Dictionary<string, object>() {
+            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
+            { "maxFeeRate", maxFeeRate },
+            { "builder", builder },
+            { "nonce", nonce },
+        };
+        object sig = this.buildApproveBuilderFeeSig(payload);
+        object action = new Dictionary<string, object>() {
+            { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
+            { "signatureChainId", "0x66eee" },
+            { "maxFeeRate", getValue(payload, "maxFeeRate") },
+            { "builder", getValue(payload, "builder") },
+            { "nonce", nonce },
+            { "type", "approveBuilderFee" },
+        };
+        object request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", sig },
+            { "vaultAddress", null },
+        };
+        return await this.privatePostExchange(request);
+    }
+
     public async virtual Task<object> initializeClient()
     {
         // createOrder/createOrders call this before trading; load markets so the order builder can
@@ -2330,7 +2420,22 @@ public partial class hyperliquid : PredictionExchange
         {
             return null;
         }
-        // builder fee approval would go here if needed
+        if (isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+        {
+            return null;  // already approved
+        }
+        try
+        {
+            object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            // the default feeRate is '0%': the builder is approved and attached for statistics
+            // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            object maxFeeRate = this.safeString(this.options, "feeRate", "0%");
+            await this.approveBuilderFee(builder, maxFeeRate);
+            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+        } catch(Exception e)
+        {
+            ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+        }
         return null;
     }
 

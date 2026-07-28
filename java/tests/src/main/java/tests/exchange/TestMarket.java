@@ -119,7 +119,11 @@ public class TestMarket extends BaseTest {
             ((java.util.List<Object>)emptyAllowedFor).add("quote");
         }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
+        // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+        if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction")))
+        {
+            TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
+        }
         Object logText = TestSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0

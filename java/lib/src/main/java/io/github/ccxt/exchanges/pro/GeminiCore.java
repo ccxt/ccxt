@@ -456,6 +456,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
 
     public void handleOrderBook(Client client, Object message)
     {
+        Object isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
         Object changes = this.safeValue(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object marketId = this.safeStringLower(message, "symbol");
         Object market = this.safeMarket(marketId);
@@ -464,6 +465,14 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+        } else if (Helpers.isTrue(isInitial))
+        {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
+            {
+                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);

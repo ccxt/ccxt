@@ -128,7 +128,10 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "outcomeQuoteCurrency", "USDH" );
                 put( "defaultSlippage", 0.05 );
                 put( "zeroAddress", "0x0000000000000000000000000000000000000000" );
-                put( "builderFee", false );
+                put( "builderFee", true );
+                put( "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6" );
+                put( "feeRate", "0%" );
+                put( "feeInt", 0 );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
                 put( "exact", new java.util.HashMap<String, Object>() {{
@@ -699,7 +702,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object outcome, Object... optionalArgs)
     {
@@ -742,7 +745,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
@@ -815,7 +818,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public Object parsePredictionTicker(Object raw, Object... optionalArgs)
     {
@@ -893,7 +896,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string} outcome unified outcome
      * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
@@ -1109,7 +1112,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
     {
@@ -1199,7 +1202,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
@@ -1400,7 +1403,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string} [params.slippage] slippage for market orders (default 5%)
      * @param {string} [params.clientOrderId] hex cloid
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
@@ -1479,6 +1482,22 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderObj)) );
                 put( "grouping", "na" );
             }};
+            if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+            {
+                Object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+                // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+                Object feeInt = this.safeInteger(this.options, "feeInt", 0);
+                if (!Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+                {
+                    feeInt = 0;
+                }
+                final Object finalFeeInt = feeInt;
+                Helpers.addElementToObject(orderAction, "builder", new java.util.HashMap<String, Object>() {{
+        put( "b", wallet );
+        put( "f", finalFeeInt );
+    }});
+            }
             Object signature = this.signL1Action(orderAction, nonce, vaultAddress);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", orderAction );
@@ -1550,7 +1569,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] cancel by client order id
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
     {
@@ -1573,7 +1592,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified outcome (required)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
     {
@@ -1703,7 +1722,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
     {
@@ -1760,7 +1779,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
     {
@@ -1832,7 +1851,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.clientOrderId] fetch by client order id instead
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
     {
@@ -1885,7 +1904,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
@@ -2017,7 +2036,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {int} [since] only return trades at or after this timestamp in ms
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
     {
@@ -2053,7 +2072,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {int} [params.until] end timestamp in ms
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
     {
@@ -2114,7 +2133,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
@@ -2478,6 +2497,83 @@ public class HyperliquidCore extends HyperliquidApi
         return this.signMessage(msg, this.privateKey);
     }
 
+    public Object signUserSignedAction(Object messageTypes, Object message)
+    {
+        Object zeroAddress = this.safeString(this.options, "zeroAddress");
+        Object chainId = 421614;
+        Object domain = new java.util.HashMap<String, Object>() {{
+            put( "chainId", chainId );
+            put( "name", "HyperliquidSignTransaction" );
+            put( "verifyingContract", zeroAddress );
+            put( "version", "1" );
+        }};
+        Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        Object signature = this.signMessage(msg, this.privateKey);
+        return signature;
+    }
+
+    public Object buildApproveBuilderFeeSig(Object message)
+    {
+        Object messageTypes = new java.util.HashMap<String, Object>() {{
+            put( "HyperliquidTransaction:ApproveBuilderFee", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "maxFeeRate" );
+    put( "type", "string" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "builder" );
+    put( "type", "address" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}})) );
+        }};
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    public java.util.concurrent.CompletableFuture<Object> approveBuilderFee(Object builder, Object maxFeeRate)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object nonce = this.milliseconds();
+            Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Object payload = new java.util.HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "maxFeeRate", maxFeeRate );
+                put( "builder", builder );
+                put( "nonce", nonce );
+            }};
+            Object sig = this.buildApproveBuilderFeeSig(payload);
+            Object action = new java.util.HashMap<String, Object>() {{
+                put( "hyperliquidChain", Helpers.GetValue(payload, "hyperliquidChain") );
+                put( "signatureChainId", "0x66eee" );
+                put( "maxFeeRate", Helpers.GetValue(payload, "maxFeeRate") );
+                put( "builder", Helpers.GetValue(payload, "builder") );
+                put( "nonce", nonce );
+                put( "type", "approveBuilderFee" );
+            }};
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "action", action );
+                put( "nonce", nonce );
+                put( "signature", sig );
+                put( "vaultAddress", null );
+            }};
+            return (this.privatePostExchange(request)).join();
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> initializeClient()
     {
 
@@ -2492,7 +2588,22 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 return null;
             }
-            // builder fee approval would go here if needed
+            if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+            {
+                return null;  // already approved
+            }
+            try
+            {
+                Object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                // the default feeRate is '0%': the builder is approved and attached for statistics
+                // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+                Object maxFeeRate = this.safeString(this.options, "feeRate", "0%");
+                (this.approveBuilderFee(builder, maxFeeRate)).join();
+                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+            } catch(Exception e)
+            {
+                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+            }
             return null;
         });
 

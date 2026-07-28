@@ -51,6 +51,11 @@ public partial class toobit : Exchange
         return await this.callAsync ("commonGetQuoteV1IndexKlines",parameters);
     }
 
+    public async Task<object> commonGetQuoteV1IndexPriceComponents (object parameters = null)
+    {
+        return await this.callAsync ("commonGetQuoteV1IndexPriceComponents",parameters);
+    }
+
     public async Task<object> commonGetQuoteV1MarkPriceKlines (object parameters = null)
     {
         return await this.callAsync ("commonGetQuoteV1MarkPriceKlines",parameters);
@@ -81,9 +86,19 @@ public partial class toobit : Exchange
         return await this.callAsync ("commonGetQuoteV1TickerPrice",parameters);
     }
 
+    public async Task<object> commonGetQuoteV1ContractTickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("commonGetQuoteV1ContractTickerPrice",parameters);
+    }
+
     public async Task<object> commonGetQuoteV1TickerBookTicker (object parameters = null)
     {
         return await this.callAsync ("commonGetQuoteV1TickerBookTicker",parameters);
+    }
+
+    public async Task<object> commonGetQuoteV1ContractTickerBookTicker (object parameters = null)
+    {
+        return await this.callAsync ("commonGetQuoteV1ContractTickerBookTicker",parameters);
     }
 
     public async Task<object> commonGetApiV1FuturesFundingRate (object parameters = null)
@@ -94,6 +109,11 @@ public partial class toobit : Exchange
     public async Task<object> commonGetApiV1FuturesHistoryFundingRate (object parameters = null)
     {
         return await this.callAsync ("commonGetApiV1FuturesHistoryFundingRate",parameters);
+    }
+
+    public async Task<object> commonGetApiV1FuturesRiskLimits (object parameters = null)
+    {
+        return await this.callAsync ("commonGetApiV1FuturesRiskLimits",parameters);
     }
 
     public async Task<object> privateGetApiV1Account (object parameters = null)
@@ -161,6 +181,16 @@ public partial class toobit : Exchange
         return await this.callAsync ("privateGetApiV1SubAccount",parameters);
     }
 
+    public async Task<object> privateGetApiV1AccountSubAccount (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AccountSubAccount",parameters);
+    }
+
+    public async Task<object> privateGetApiV1SubAccountList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1SubAccountList",parameters);
+    }
+
     public async Task<object> privateGetApiV1FuturesAccountLeverage (object parameters = null)
     {
         return await this.callAsync ("privateGetApiV1FuturesAccountLeverage",parameters);
@@ -174,6 +204,11 @@ public partial class toobit : Exchange
     public async Task<object> privateGetApiV1FuturesPositions (object parameters = null)
     {
         return await this.callAsync ("privateGetApiV1FuturesPositions",parameters);
+    }
+
+    public async Task<object> privateGetApiV1FuturesHistoryPositions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1FuturesHistoryPositions",parameters);
     }
 
     public async Task<object> privateGetApiV1FuturesBalance (object parameters = null)
@@ -199,6 +234,76 @@ public partial class toobit : Exchange
     public async Task<object> privateGetApiV1FuturesTodayPnl (object parameters = null)
     {
         return await this.callAsync ("privateGetApiV1FuturesTodayPnl",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AccountDownloadDetail (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AccountDownloadDetail",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentInviteUserList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentInviteUserList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentCommissionDataList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentCommissionDataList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentCommissionDataInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentCommissionDataInfo",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentInviteRelationCheck (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentInviteRelationCheck",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentDepositDetailList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentDepositDetailList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentQuerySubAgentData (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentQuerySubAgentData",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentSpotOrdersList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentSpotOrdersList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentFuturesOrdersList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentFuturesOrdersList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentFuturesPositionsList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentFuturesPositionsList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentInviteCommissionDetail (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentInviteCommissionDetail",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentUserExport (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentUserExport",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentExportList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentExportList",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AgentExportUrl (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AgentExportUrl",parameters);
     }
 
     public async Task<object> privatePostApiV1SpotOrderTest (object parameters = null)
@@ -256,6 +361,31 @@ public partial class toobit : Exchange
         return await this.callAsync ("privatePostApiV1FuturesPositionMargin",parameters);
     }
 
+    public async Task<object> privatePostApiV1FuturesOrderUpdate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesOrderUpdate",parameters);
+    }
+
+    public async Task<object> privatePostApiV1FuturesAutoAddMargin (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesAutoAddMargin",parameters);
+    }
+
+    public async Task<object> privatePostApiV1FuturesFlashClose (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesFlashClose",parameters);
+    }
+
+    public async Task<object> privatePostApiV1FuturesReversePosition (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesReversePosition",parameters);
+    }
+
+    public async Task<object> privatePostApiV1AccountDownloadApply (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1AccountDownloadApply",parameters);
+    }
+
     public async Task<object> privatePostApiV1UserDataStream (object parameters = null)
     {
         return await this.callAsync ("privatePostApiV1UserDataStream",parameters);
@@ -296,9 +426,19 @@ public partial class toobit : Exchange
         return await this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds",parameters);
     }
 
+    public async Task<object> privateDeleteApiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteApiV1UserDataStream",parameters);
+    }
+
     public async Task<object> privateDeleteApiV1ListenKey (object parameters = null)
     {
         return await this.callAsync ("privateDeleteApiV1ListenKey",parameters);
+    }
+
+    public async Task<object> privatePutApiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("privatePutApiV1UserDataStream",parameters);
     }
 
     public async Task<object> privatePutApiV1ListenKey (object parameters = null)

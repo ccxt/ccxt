@@ -84,7 +84,7 @@ class polymarket extends polymarket$1["default"] {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567',
+                'logo': 'https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437',
                 'api': {
                     'gamma': 'https://gamma-api.polymarket.com',
                     'clob': 'https://clob.polymarket.com',
@@ -328,6 +328,9 @@ class polymarket extends polymarket$1["default"] {
                 'ctfExchangeVersion': '2',
                 'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
+                'builder': '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
+                'builderFee': true, // when true, feeRate below is packed into the builder code's upper bytes
+                'feeRate': 0, // builder fee in bps, applied only when builderFee is true
             },
         });
     }
@@ -340,6 +343,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -475,6 +479,39 @@ class polymarket extends polymarket$1["default"] {
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    tagToSlug(tag) {
+        const lower = tag.toLowerCase();
+        const allowed = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        const chars = this.stringToCharsArray(lower);
+        let slug = '';
+        let pendingSep = false;
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf(ch) >= 0) {
+                if (pendingSep && (slug !== '')) {
+                    slug = slug + '-';
+                }
+                slug = slug + ch;
+                pendingSep = false;
+            }
+            else {
+                pendingSep = true;
+            }
+        }
+        if (slug === '') {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -528,7 +565,9 @@ class polymarket extends polymarket$1["default"] {
             return unioned;
         }
         if (requestedTagsLength > 0) {
-            baseRequest['tag_slug'] = this.safeString(requestedTags, 0);
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            baseRequest['tag_slug'] = this.tagToSlug(this.safeString(requestedTags, 0));
         }
         if (status === 'active') {
             baseRequest['active'] = true;
@@ -930,7 +969,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -954,7 +993,7 @@ class polymarket extends polymarket$1["default"] {
         //             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
         //             "bids": [
         //                 {
-        //                     "price": "0.45",
+        //                     "price": "0.46",
         //                     "size": "100"
         //                 },
         //             ],
@@ -986,7 +1025,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     async fetchTickers(outcomes = undefined, params = {}) {
         if (outcomes === undefined) {
@@ -1064,7 +1103,7 @@ class polymarket extends polymarket$1["default"] {
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     parsePredictionTicker(ticker, market = undefined) {
         //
@@ -1162,7 +1201,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by polymarket fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -1437,7 +1476,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] not used by polymarket fetchTrades
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -1477,7 +1516,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -1501,7 +1540,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchOrderTrades(id, outcome = undefined, since = undefined, limit = undefined, params = {}) {
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
@@ -1531,7 +1570,7 @@ class polymarket extends polymarket$1["default"] {
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parsePredictionTrade(trade, market = undefined) {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
@@ -1628,7 +1667,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     async fetchPositions(outcomes = undefined, params = {}) {
         let outcomesLength = 0;
@@ -1675,7 +1714,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     async fetchPosition(outcome, params = {}) {
         const positions = await this.fetchPositions([outcome], params);
@@ -1688,7 +1727,7 @@ class polymarket extends polymarket$1["default"] {
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     parsePredictionPosition(position, market = undefined) {
         const tokenId = this.safeString(position, 'asset');
@@ -1743,7 +1782,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] not used by polymarket fetchOpenOrders
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -1765,7 +1804,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder(id, outcome = undefined, params = {}) {
         // the request only needs the order id; the outcome is a labelling hint, so resolve it from
@@ -1782,7 +1821,7 @@ class polymarket extends polymarket$1["default"] {
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     parsePredictionOrder(order, market = undefined) {
         //
@@ -1876,7 +1915,8 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -1896,7 +1936,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/trade/post-orders
      * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrders(orders, params = {}) {
         await this.loadApiCredentials();
@@ -2007,12 +2047,37 @@ class polymarket extends polymarket$1["default"] {
         const expiration = this.safeString(params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber(params, 'cost');
-        const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost']);
+        const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode']);
         const amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
         const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        const builderRaw = this.safeStringLower2(params, 'builder', 'builderCode', this.safeStringLower(this.options, 'builder'));
+        let builderBytes32 = bytes32Zero;
+        if (builderRaw !== undefined) {
+            let builderHex = this.remove0xPrefix(builderRaw);
+            if (builderHex.length <= 40) {
+                const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
+                let feeRate = 0;
+                if (builderFeeEnabled) {
+                    feeRate = this.safeInteger(this.options, 'feeRate', 0);
+                }
+                let feeHex = this.intToBase16(feeRate);
+                feeHex = feeHex.padStart(24, '0');
+                let addressHex = builderHex;
+                addressHex = addressHex.padStart(40, '0');
+                builderHex = feeHex + addressHex;
+            }
+            else {
+                builderHex = builderHex.padStart(64, '0');
+            }
+            builderBytes32 = '0x' + builderHex;
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
@@ -2029,7 +2094,7 @@ class polymarket extends polymarket$1["default"] {
             'signatureType': signatureType,
             'timestamp': timestamp,
             'metadata': bytes32Zero,
-            'builder': bytes32Zero,
+            'builder': builderBytes32,
         };
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
@@ -2053,7 +2118,7 @@ class polymarket extends polymarket$1["default"] {
                 'timestamp': timestamp,
                 'expiration': expiration,
                 'metadata': bytes32Zero,
-                'builder': bytes32Zero,
+                'builder': builderBytes32,
                 'signature': signature,
             },
             'owner': owner,
@@ -2090,7 +2155,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} outcome unified outcome or outcome token id
      * @param {float} cost the amount of USDC to spend
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createMarketBuyOrderWithCost(outcome, cost, params = {}) {
         const request = this.extend(params, { 'cost': cost });
@@ -2224,7 +2289,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder(id, outcome = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -2246,7 +2311,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string[]} ids the order ids to cancel
      * @param {string} [outcome] not used by polymarket cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrders(ids, outcome = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -2267,7 +2332,7 @@ class polymarket extends polymarket$1["default"] {
      * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
      * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders(outcome = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -2298,6 +2363,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2483,12 +2549,14 @@ class polymarket extends polymarket$1["default"] {
             active = rawActive && !closed;
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         const rawTags = this.safeList(rawEvent, 'tags', []);
         const rawTagsLength = rawTags.length;
         const parsedTags = [];
         for (let ti = 0; ti < rawTagsLength; ti++) {
-            const tagLabel = this.safeString2(rawTags[ti], 'slug', 'label');
+            const tagLabel = this.safeString2(rawTags[ti], 'label', 'slug');
             if (tagLabel !== undefined) {
                 parsedTags.push(tagLabel);
             }
@@ -2975,7 +3043,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -2996,7 +3064,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -3015,7 +3083,7 @@ class polymarket extends polymarket$1["default"] {
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
      * @param {string} outcome unified outcome
      * @param {object} [params] extra params (unused)
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
@@ -3099,7 +3167,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async watchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
@@ -3124,7 +3192,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {int} [since] the earliest time in ms to return trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async watchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();

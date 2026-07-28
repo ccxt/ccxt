@@ -2029,7 +2029,7 @@ func (this *XtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"baseVolume":    this.SafeNumber2(ticker, "a", "q"),
 		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)

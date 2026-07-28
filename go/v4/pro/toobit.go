@@ -169,7 +169,7 @@ func (this *ToobitCore) HandleIncomingPong(client any, pongTimestamp any) {
  * @method
  * @name toobit#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -201,7 +201,7 @@ func (this *ToobitCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any 
  * @method
  * @name toobit#watchTradesForSymbols
  * @description get the list of most recent trades for a list of symbols
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -309,7 +309,8 @@ func (this *ToobitCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name toobit#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -346,7 +347,8 @@ func (this *ToobitCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name toobit#watchOHLCVForSymbols
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
@@ -366,8 +368,8 @@ func (this *ToobitCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalA
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes29712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes29712)
+			retRes29912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes29912)
 		}
 		var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
 		var messageHashes any = []any{}
@@ -481,7 +483,8 @@ func (this *ToobitCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name toobit#watchTicker
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -496,8 +499,8 @@ func (this *ToobitCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes41112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes41112)
+			retRes41412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes41412)
 		}
 		symbol = this.Symbol(symbol)
 
@@ -514,7 +517,8 @@ func (this *ToobitCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
 /**
  * @method
  * @name toobit#watchTickers
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -531,8 +535,8 @@ func (this *ToobitCore) WatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes42912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes42912)
+			retRes43312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes43312)
 		}
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var messageHashes any = []any{}
@@ -627,7 +631,10 @@ func (this *ToobitCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name toobit#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -643,9 +650,9 @@ func (this *ToobitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes52215 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes52215)
-		ch <- retRes52215
+		retRes52915 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes52915)
+		ch <- retRes52915
 		return nil
 
 	}()
@@ -656,7 +663,10 @@ func (this *ToobitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @method
  * @name toobit#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -673,8 +683,8 @@ func (this *ToobitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes53712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes53712)
+			retRes54712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes54712)
 		}
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var channel any = nil
@@ -812,7 +822,8 @@ func (this *ToobitCore) SetOrderBookSnapshot(client any, message any, channel an
  * @method
  * @name toobit#watchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -825,12 +836,12 @@ func (this *ToobitCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes67612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes67612)
+			retRes68712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes68712)
 		}
 
-		retRes6788 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes6788)
+		retRes6898 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes6898)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 		marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
@@ -848,9 +859,9 @@ func (this *ToobitCore) WatchBalance(optionalArgs ...any) <-chan any {
 		this.SetBalanceCache(client, marketType, subscriptionHash, params)
 		client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
 
-		retRes69315 := (<-this.Watch(url, messageHash, params, subscriptionHash))
-		ccxt.PanicOnError(retRes69315)
-		ch <- retRes69315
+		retRes70415 := (<-this.Watch(url, messageHash, params, subscriptionHash))
+		ccxt.PanicOnError(retRes70415)
+		ch <- retRes70415
 		return nil
 
 	}()
@@ -956,7 +967,8 @@ func (this *ToobitCore) LoadBalanceSnapshot(client any, messageHash any, marketT
  * @method
  * @name toobit#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -978,12 +990,12 @@ func (this *ToobitCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes79212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes79212)
+			retRes80412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes80412)
 		}
 
-		retRes7948 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes7948)
+		retRes8068 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes8068)
 		var market any = this.MarketOrNull(symbol)
 		symbol = this.SafeString(market, "symbol", symbol)
 		var messageHash any = "orders"
@@ -1100,7 +1112,8 @@ func (this *ToobitCore) ParseWsOrder(order any, optionalArgs ...any) any {
  * @method
  * @name toobit#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1123,12 +1136,12 @@ func (this *ToobitCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes91412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes91412)
+			retRes92712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes92712)
 		}
 
-		retRes9168 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes9168)
+		retRes9298 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes9298)
 		var market any = this.MarketOrNull(symbol)
 		symbol = this.SafeString(market, "symbol", symbol)
 		var messageHash any = "myTrades"
@@ -1203,7 +1216,7 @@ func (this *ToobitCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 /**
  * @method
  * @name toobit#watchPositions
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch positions for
@@ -1226,12 +1239,12 @@ func (this *ToobitCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes99412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes99412)
+			retRes100712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes100712)
 		}
 
-		retRes9968 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes9968)
+		retRes10098 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes10098)
 		var messageHash any = ""
 		if !ccxt.IsTrue(this.IsEmpty(symbols)) {
 			symbols = this.MarketSymbols(symbols)
@@ -1240,8 +1253,8 @@ func (this *ToobitCore) WatchPositions(optionalArgs ...any) <-chan any {
 		var url any = this.GetUserStreamUrl()
 		var client any = this.Client(url)
 
-		retRes10048 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes10048)
+		retRes10178 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes10178)
 		this.SetPositionsCache(client, symbols)
 		var cache any = this.Positions
 		if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -1457,9 +1470,9 @@ func (this *ToobitCore) Authenticate(optionalArgs ...any) <-chan any {
 			}
 		}
 
-		retRes117215 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes117215)
-		ch <- retRes117215
+		retRes118515 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes118515)
+		ch <- retRes118515
 		return nil
 
 	}()

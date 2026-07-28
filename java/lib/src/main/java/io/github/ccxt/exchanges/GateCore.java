@@ -1350,13 +1350,14 @@ public class GateCore extends GateApi
             //
             //     [
             //         {
-            //             "id": "ETH_USDT",
-            //             "base": "ETH",
-            //             "quote": "USDT",
-            //             "leverage": 3,
-            //             "min_base_amount": "0.01",
-            //             "min_quote_amount": "100",
-            //             "max_quote_amount": "1000000"
+            //             "id":"HOODON_USDT",
+            //             "base":"HOODON",
+            //             "quote":"USDT",
+            //             "leverage":10,
+            //             "min_base_amount":"0.01",
+            //             "min_quote_amount":"1",
+            //             "max_quote_amount":"5000",
+            //             "status":1
             //         }
             //     ]
             //
@@ -1376,12 +1377,14 @@ public class GateCore extends GateApi
                 Object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
                 Object tradeStatus = this.safeString(market, "trade_status");
+                Object marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
                 Object leverage = this.safeNumber(market, "leverage");
                 Object margin = !Helpers.isEqual(leverage, null);
                 Object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
                 Object createdTs = ((Helpers.isTrue((!Helpers.isEqual(buyStart, 0))))) ? buyStart : null;
+                Object active = Helpers.isTrue((Helpers.isEqual(tradeStatus, "tradable"))) || Helpers.isTrue((Helpers.isTrue(margin) && Helpers.isTrue((Helpers.isEqual(marginStatus, 1)))));
     final Object finalBase = base;
-                final Object finalTradeStatus = tradeStatus;
+                final Object finalMargin = margin;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
@@ -1393,11 +1396,11 @@ public class GateCore extends GateApi
                     put( "settleId", null );
                     put( "type", "spot" );
                     put( "spot", true );
-                    put( "margin", margin );
+                    put( "margin", finalMargin );
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", (Helpers.isEqual(finalTradeStatus, "tradable")) );
+                    put( "active", active );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -1427,7 +1430,7 @@ public class GateCore extends GateApi
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
                             put( "min", GateCore.this.safeNumber(market, "min_quote_amount") );
-                            put( "max", ((Helpers.isTrue(margin))) ? GateCore.this.safeNumber(market, "max_quote_amount") : null );
+                            put( "max", ((Helpers.isTrue(finalMargin))) ? GateCore.this.safeNumber(market, "max_quote_amount") : null );
                         }} );
                     }} );
                     put( "created", createdTs );
@@ -1504,46 +1507,60 @@ public class GateCore extends GateApi
         //
         //  Perpetual swap
         //
-        //    {
-        //        "name": "BTC_USDT",
-        //        "type": "direct",
-        //        "quanto_multiplier": "0.0001",
-        //        "ref_discount_rate": "0",
-        //        "order_price_deviate": "0.5",
-        //        "maintenance_rate": "0.005",
-        //        "mark_type": "index",
-        //        "last_price": "38026",
-        //        "mark_price": "37985.6",
-        //        "index_price": "37954.92",
-        //        "funding_rate_indicative": "0.000219",
-        //        "mark_price_round": "0.01",
-        //        "funding_offset": 0,
-        //        "in_delisting": false,
-        //        "risk_limit_base": "1000000",
-        //        "interest_rate": "0.0003",
-        //        "order_price_round": "0.1",
-        //        "order_size_min": 1,
-        //        "ref_rebate_rate": "0.2",
-        //        "funding_interval": 28800,
-        //        "risk_limit_step": "1000000",
-        //        "leverage_min": "1",
-        //        "leverage_max": "100",
-        //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
-        //        "taker_fee_rate": "0.00075", // not actual value for regular users
-        //        "funding_rate": "0.002053",
-        //        "order_size_max": 1000000,
-        //        "funding_next_apply": 1610035200,
-        //        "short_users": 977,
-        //        "config_change_time": 1609899548,
-        //        "create_time": 1609800048,
-        //        "trade_size": 28530850594,
-        //        "position_size": 5223816,
-        //        "long_users": 455,
-        //        "funding_impact_value": "60000",
-        //        "orders_limit": 50,
-        //        "trade_id": 10851092,
-        //        "orderbook_id": 2129638396
+        //     {
+        //         "funding_rate_indicative":"-0.003216",
+        //         "mark_price_round":"0.0001",
+        //         "funding_offset":0,
+        //         "in_delisting":false,
+        //         "risk_limit_base":"5000",
+        //         "interest_rate":"0.0003",
+        //         "index_price":"0.2077",
+        //         "order_price_round":"0.0001",
+        //         "order_size_min":1,
+        //         "enable_decimal":false,
+        //         "ref_rebate_rate":"0.2",
+        //         "name":"0G_USDT",
+        //         "ref_discount_rate":"0",
+        //         "order_price_deviate":"0.15",
+        //         "maintenance_rate":"0.01",
+        //         "mark_type":"index",
+        //         "funding_interval":28800,
+        //         "type":"direct",
+        //         "risk_limit_step":"2495000",
+        //         "enable_bonus":true,
+        //         "enable_credit":true,
+        //         "leverage_min":"1",
+        //         "funding_rate":"-0.003216",
+        //         "last_price":"0.2048",
+        //         "mark_price":"0.2048",
+        //         "order_size_max":450000,
+        //         "funding_next_apply":1784131200,
+        //         "short_users":157,
+        //         "config_change_time":1782119113,
+        //         "create_time":1758124392,
+        //         "trade_size":767606392,
+        //         "position_size":783779,
+        //         "long_users":191,
+        //         "quanto_multiplier":"1",
+        //         "funding_impact_value":"7000",
+        //         "leverage_max":"50",
+        //         "cross_leverage_default":"10",
+        //         "risk_limit_max":"2500000",
+        //         "maker_fee_rate":"-0.0001", // not actual value for regular users
+        //         "taker_fee_rate":"0.00075", // not actual value for regular users
+        //         "orders_limit":100,
+        //         "trade_id":10376084,
+        //         "orderbook_id":1203922859,
+        //         "funding_cap_ratio":"1",
+        //         "voucher_leverage":"0",
+        //         "is_pre_market":false,
+        //         "status":"trading", // or "suspend"
+        //         "launch_time":1758124392,
+        //         "enable_circuit_breaker":false,
+        //         "funding_rate_limit":"0.02",
+        //         "market_order_slip_ratio":"0.04",
+        //         "market_order_size_max":"300000",
+        //         "contract_type":""
         //    }
         //
         //  Delivery Futures
@@ -1622,10 +1639,12 @@ public class GateCore extends GateApi
         {
             contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
+        Object status = this.safeString(market, "status", "trading"); // or "suspend"
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalQuote = quote;
         final Object finalMarketType = marketType;
+        final Object finalStatus = status;
         final Object finalContractSize = contractSize;
         return new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1642,7 +1661,7 @@ public class GateCore extends GateApi
             put( "swap", Helpers.isEqual(finalMarketType, "swap") );
             put( "future", Helpers.isEqual(finalMarketType, "future") );
             put( "option", Helpers.isEqual(finalMarketType, "option") );
-            put( "active", true );
+            put( "active", Helpers.isEqual(finalStatus, "trading") );
             put( "contract", true );
             put( "linear", isLinear );
             put( "inverse", !Helpers.isTrue(isLinear) );

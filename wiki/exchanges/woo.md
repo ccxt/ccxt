@@ -230,7 +230,7 @@ create a market buy order by providing the symbol and cost
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -252,7 +252,7 @@ create a market sell order by providing the symbol and cost
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -274,7 +274,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-algo-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -301,7 +301,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.woox.io/#send-algo-order  
+**See**: https://developer.woox.io/api-reference/endpoint/trading/post_algo_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -722,7 +722,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.woox.io/#get-current-holding-get-balance-new  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/get_balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -855,7 +855,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.woox.io/#get-transfer-history  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -903,7 +903,7 @@ make a withdrawal
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.woox.io/#token-withdraw-v3  
+**See**: https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1340,7 +1340,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
 
-**See**: https://docs.woox.io/#get-all-position-info-new  
+**See**: https://developer.woox.io/api-reference/endpoint/futures/get_positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

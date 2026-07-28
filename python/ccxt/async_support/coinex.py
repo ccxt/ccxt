@@ -1049,7 +1049,11 @@ class coinex(Exchange, ImplicitAPI):
         #
         marketType = 'swap' if ('mark_price' in ticker) else 'spot'
         marketId = self.safe_string(ticker, 'market')
-        symbol = self.safe_symbol(marketId, market, None, marketType)
+        market = self.safe_market(marketId, market, None, marketType)
+        symbol = market['symbol']
+        # on inverse contracts 'value' is denominated in the settle currency, not
+        # the quote, so it is the quote volume only for spot and linear markets
+        quoteVolume = None if market['inverse'] else self.safe_string(ticker, 'value')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1069,7 +1073,7 @@ class coinex(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'quoteVolume': quoteVolume,
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,

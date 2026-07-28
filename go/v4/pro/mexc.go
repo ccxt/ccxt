@@ -92,12 +92,10 @@ func (this *MexcCore) Describe() any {
  * @method
  * @name mexc#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *MexcCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
@@ -109,17 +107,17 @@ func (this *MexcCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes9812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes9812)
+			retRes9612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes9612)
 		}
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 		if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
 			var channel any = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id"))
 
-			retRes10419 := (<-this.WatchSpotPublic(channel, messageHash, params))
-			ccxt.PanicOnError(retRes10419)
-			ch <- retRes10419
+			retRes10219 := (<-this.WatchSpotPublic(channel, messageHash, params))
+			ccxt.PanicOnError(retRes10219)
+			ch <- retRes10219
 			return nil
 		} else {
 			var channel any = "sub.ticker"
@@ -127,9 +125,9 @@ func (this *MexcCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
 				"symbol": ccxt.GetValue(market, "id"),
 			}
 
-			retRes11019 := (<-this.WatchSwapPublic(channel, messageHash, requestParams, params))
-			ccxt.PanicOnError(retRes11019)
-			ch <- retRes11019
+			retRes10819 := (<-this.WatchSwapPublic(channel, messageHash, requestParams, params))
+			ccxt.PanicOnError(retRes10819)
+			ch <- retRes10819
 			return nil
 		}
 
@@ -227,12 +225,9 @@ func (this *MexcCore) HandleTicker(client any, message any) {
  * @method
  * @name mexc#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *MexcCore) WatchTickers(optionalArgs ...any) <-chan any {
@@ -246,8 +241,8 @@ func (this *MexcCore) WatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes21512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes21512)
+			retRes21012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes21012)
 		}
 		symbols = this.MarketSymbols(symbols, nil)
 		var messageHashes any = []any{}
@@ -440,7 +435,7 @@ func (this *MexcCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
 /**
  * @method
  * @name mexc#watchBidsAsks
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -457,8 +452,8 @@ func (this *MexcCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes43112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes43112)
+			retRes42612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes42612)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, false, true)
 		var marketType any = nil
@@ -562,9 +557,9 @@ func (this *MexcCore) WatchSpotPublic(channel any, messageHash any, optionalArgs
 			"params": []any{channel},
 		}
 
-		retRes51815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes51815)
-		ch <- retRes51815
+		retRes51315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+		ccxt.PanicOnError(retRes51315)
+		ch <- retRes51315
 		return nil
 
 	}()
@@ -587,9 +582,9 @@ func (this *MexcCore) WatchSpotPrivate(channel any, messageHash any, optionalArg
 			"params": []any{channel},
 		}
 
-		retRes52915 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel))
-		ccxt.PanicOnError(retRes52915)
-		ch <- retRes52915
+		retRes52415 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel))
+		ccxt.PanicOnError(retRes52415)
+		ch <- retRes52415
 		return nil
 
 	}()
@@ -609,9 +604,9 @@ func (this *MexcCore) WatchSwapPublic(channel any, messageHash any, requestParam
 		}
 		var message any = this.Extend(request, params)
 
-		retRes53915 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes53915)
-		ch <- retRes53915
+		retRes53415 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes53415)
+		ch <- retRes53415
 		return nil
 
 	}()
@@ -640,9 +635,9 @@ func (this *MexcCore) WatchSwapPrivate(messageHash any, optionalArgs ...any) <-c
 		}
 		var message any = this.Extend(request, params)
 
-		retRes55815 := (<-this.Watch(url, messageHash, message, channel))
-		ccxt.PanicOnError(retRes55815)
-		ch <- retRes55815
+		retRes55315 := (<-this.Watch(url, messageHash, message, channel))
+		ccxt.PanicOnError(retRes55315)
+		ch <- retRes55315
 		return nil
 
 	}()
@@ -652,7 +647,8 @@ func (this *MexcCore) WatchSwapPrivate(messageHash any, optionalArgs ...any) <-c
 /**
  * @method
  * @name mexc#watchOHLCV
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -676,8 +672,8 @@ func (this *MexcCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes57512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes57512)
+			retRes57112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes57112)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -864,8 +860,8 @@ func (this *MexcCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name mexc#watchOrderBook
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -884,8 +880,8 @@ func (this *MexcCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes77112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes77112)
+			retRes76712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes76712)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1101,8 +1097,8 @@ func (this *MexcCore) HandleDelta(orderbook any, delta any) {
 /**
  * @method
  * @name mexc#watchTrades
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1123,8 +1119,8 @@ func (this *MexcCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes97612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes97612)
+			retRes97212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes97212)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1235,8 +1231,8 @@ func (this *MexcCore) HandleTrades(client any, message any) {
 /**
  * @method
  * @name mexc#watchMyTrades
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
  * @description watches information on multiple trades made by the user
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1259,8 +1255,8 @@ func (this *MexcCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes109012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes109012)
+			retRes108612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes108612)
 		}
 		var messageHash any = "myTrades"
 		var market any = nil
@@ -1442,14 +1438,14 @@ func (this *MexcCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 /**
  * @method
  * @name mexc#watchOrders
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
  * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+ * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *MexcCore) WatchOrders(optionalArgs ...any) <-chan any {
@@ -1467,8 +1463,8 @@ func (this *MexcCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes127112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes127112)
+			retRes126712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes126712)
 		}
 		var messageHash any = "orders"
 		var market any = nil
@@ -1755,7 +1751,8 @@ func (this *MexcCore) ParseWsTimeInForce(timeInForce any) any {
 /**
  * @method
  * @name mexc#watchBalance
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1769,8 +1766,8 @@ func (this *MexcCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes155512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes155512)
+			retRes155212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes155212)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
@@ -1780,15 +1777,15 @@ func (this *MexcCore) WatchBalance(optionalArgs ...any) <-chan any {
 		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
 			var channel any = "spot@private.account.v3.api.pb"
 
-			retRes156219 := (<-this.WatchSpotPrivate(channel, messageHash, params))
-			ccxt.PanicOnError(retRes156219)
-			ch <- retRes156219
+			retRes155919 := (<-this.WatchSpotPrivate(channel, messageHash, params))
+			ccxt.PanicOnError(retRes155919)
+			ch <- retRes155919
 			return nil
 		} else {
 
-			retRes156419 := (<-this.WatchSwapPrivate(messageHash, params))
-			ccxt.PanicOnError(retRes156419)
-			ch <- retRes156419
+			retRes156119 := (<-this.WatchSwapPrivate(messageHash, params))
+			ccxt.PanicOnError(retRes156119)
+			ch <- retRes156119
 			return nil
 		}
 
@@ -1856,7 +1853,7 @@ func (this *MexcCore) HandleBalance(client any, message any) {
  * @method
  * @name mexc#watchFundingRate
  * @description watch the current funding rate
- * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1870,8 +1867,8 @@ func (this *MexcCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes163612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes163612)
+			retRes163312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes163312)
 		}
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("fundingRate:", ccxt.GetValue(market, "symbol"))
@@ -1880,9 +1877,9 @@ func (this *MexcCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan a
 			"symbol": ccxt.GetValue(market, "id"),
 		}
 
-		retRes164415 := (<-this.WatchSwapPublic(channel, messageHash, requestParams, params))
-		ccxt.PanicOnError(retRes164415)
-		ch <- retRes164415
+		retRes164115 := (<-this.WatchSwapPublic(channel, messageHash, requestParams, params))
+		ccxt.PanicOnError(retRes164115)
+		ch <- retRes164115
 		return nil
 
 	}()
@@ -1893,7 +1890,7 @@ func (this *MexcCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan a
  * @method
  * @name mexc#unWatchFundingRate
  * @description unWatches the current funding rate for a symbol
- * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1907,8 +1904,8 @@ func (this *MexcCore) UnWatchFundingRate(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes165812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes165812)
+			retRes165512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes165512)
 		}
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("unsubscribe:fundingRate:", ccxt.GetValue(market, "symbol"))
@@ -1965,8 +1962,8 @@ func (this *MexcCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes170512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes170512)
+			retRes170212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes170212)
 		}
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol"))
@@ -2013,8 +2010,8 @@ func (this *MexcCore) UnWatchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes173912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes173912)
+			retRes173612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes173612)
 		}
 		symbols = this.MarketSymbols(symbols, nil)
 		var messageHashes any = []any{}
@@ -2066,8 +2063,8 @@ func (this *MexcCore) UnWatchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes180212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes180212)
+			retRes179912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes179912)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, false, true)
 		var marketType any = nil
@@ -2127,8 +2124,8 @@ func (this *MexcCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes184712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes184712)
+			retRes184412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes184412)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2177,8 +2174,8 @@ func (this *MexcCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes188512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes188512)
+			retRes188212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes188212)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2228,8 +2225,8 @@ func (this *MexcCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes192212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes192212)
+			retRes191912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes191912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2372,8 +2369,8 @@ func (this *MexcCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) <-c
 				}()
 				// try block:
 
-				retRes202212 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes202212)
+				retRes201912 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes201912)
 				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 				return nil

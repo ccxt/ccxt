@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official onetrading API documentation:** [docs.onetrading.com](https://docs.onetrading.com)
 
-> 19 implicit endpoints across 2 access groups.
+> 20 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -82,9 +82,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAccountFees` | GET | `account/fees` |  |
 | `privateGetAccountOrders` | GET | `account/orders` |  |
 | `privateGetAccountOrdersOrderId` | GET | `account/orders/{order_id}` |  |
+| `privateGetAccountOrdersClientClientId` | GET | `account/orders/client/{client_id}` |  |
 | `privateGetAccountOrdersOrderIdTrades` | GET | `account/orders/{order_id}/trades` |  |
 | `privateGetAccountTrades` | GET | `account/trades` |  |
-| `privateGetAccountTradesTradeId` | GET | `account/trades/{trade_id}` |  |
+| `privateGetAccountTradeTradeId` | GET | `account/trade/{trade_id}` |  |
 | `privatePostAccountOrders` | POST | `account/orders` |  |
 | `privateDeleteAccountOrders` | DELETE | `account/orders` |  |
 | `privateDeleteAccountOrdersOrderId` | DELETE | `account/orders/{order_id}` |  |

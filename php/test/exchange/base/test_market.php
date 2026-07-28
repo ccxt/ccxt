@@ -109,7 +109,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'quote';
     }
     assert_structure($exchange, $skipped_properties, $method, $market, $format, $empty_allowed_for);
-    assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
+    // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if ($market['type'] !== 'prediction') {
+        assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
+    }
     $log_text = log_template($exchange, $method, $market);
     // check taker/maker
     // todo: check not all to be within 0-1.0

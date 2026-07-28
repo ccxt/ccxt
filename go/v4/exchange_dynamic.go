@@ -345,6 +345,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		myokxItf := NewMyokxCore()
 		myokxItf.Init(exchangeArgs)
 		return myokxItf, true
+	case "nado":
+		nadoItf := NewNadoCore()
+		nadoItf.Init(exchangeArgs)
+		return nadoItf, true
 	case "ndax":
 		ndaxItf := NewNdaxCore()
 		ndaxItf.Init(exchangeArgs)

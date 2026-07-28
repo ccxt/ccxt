@@ -90,7 +90,7 @@ func (this *Kalshi) FetchOutcomes(outcomeSymbols []string) (map[string]any, erro
  * @see https://docs.kalshi.com/api-reference/market/get-market
  * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Kalshi) FetchTicker(outcome string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -162,7 +162,7 @@ func (this *Kalshi) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenI
  * @see https://docs.kalshi.com/api-reference/market/get-markets
  * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *Kalshi) FetchTickers(options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -196,7 +196,7 @@ func (this *Kalshi) FetchTickers(options ...FetchTickersOptions) (ccxt.Predictio
  * @param {string} outcome unified outcome or outcome id
  * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Kalshi) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -277,7 +277,7 @@ func (this *Kalshi) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOptions
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Kalshi) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -317,7 +317,7 @@ func (this *Kalshi) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
  * @param {int} [since] the earliest fill timestamp (ms) to fetch
  * @param {int} [limit] the maximum number of fills to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Kalshi) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -376,7 +376,7 @@ func (this *Kalshi) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @see https://trading-api.readme.io/reference/getportfoliopositions
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Kalshi) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
@@ -456,7 +456,7 @@ func (this *Kalshi) FetchSettlements(options ...FetchSettlementsOptions) ([]ccxt
  * @param {int} [since] timestamp in ms of the earliest order to fetch
  * @param {int} [limit] the maximum number of orders to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -501,7 +501,7 @@ func (this *Kalshi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.P
  * @param {int} [since] timestamp in ms of the earliest order to fetch
  * @param {int} [limit] the maximum number of orders to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -546,7 +546,7 @@ func (this *Kalshi) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predictio
  * @param {int} [since] timestamp in ms of the earliest order to fetch
  * @param {int} [limit] the maximum number of orders to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -590,7 +590,7 @@ func (this *Kalshi) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]cc
  * @param {string} id order id
  * @param {string} [outcome] unified outcome
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -627,7 +627,7 @@ func (this *Kalshi) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.Pr
  * @param {float} amount number of contracts
  * @param {float} [price] limit price in dollars (0–1 range)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -665,7 +665,7 @@ func (this *Kalshi) CreateOrder(outcome string, typeVar string, side string, amo
  * @param {float} [amount] the new number of contracts
  * @param {float} [price] the new price (0..1)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) EditOrder(id string, outcome string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -704,7 +704,7 @@ func (this *Kalshi) EditOrder(id string, outcome string, typeVar string, side st
  * @param {string} id order id
  * @param {string} [outcome] unified outcome
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -737,7 +737,7 @@ func (this *Kalshi) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.
  * @see https://trading-api.readme.io/reference/cancelorders
  * @param {string} [outcome] unified outcome to scope the cancellation to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Kalshi) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 

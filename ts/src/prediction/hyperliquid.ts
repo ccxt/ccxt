@@ -129,7 +129,10 @@ export default class hyperliquid extends Exchange {
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
-                'builderFee': false,
+                'builderFee': true,
+                'builder': '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6',
+                'feeRate': '0%', // max builder fee rate to approve
+                'feeInt': 0, // builder fee attached per order, in tenths of a basis point
             },
             'exceptions': {
                 'exact': {
@@ -625,7 +628,7 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
@@ -659,7 +662,7 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         const requestedOutcomeSymbols = {};
@@ -711,7 +714,7 @@ export default class hyperliquid extends Exchange {
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
@@ -783,7 +786,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} outcome unified outcome
      * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
@@ -967,7 +970,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         const requestedOutcomeSymbols = {};
@@ -1037,7 +1040,7 @@ export default class hyperliquid extends Exchange {
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
@@ -1203,7 +1206,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.slippage] slippage for market orders (default 5%)
      * @param {string} [params.clientOrderId] hex cloid
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.initializeClient ();
@@ -1265,6 +1268,16 @@ export default class hyperliquid extends Exchange {
             'orders': [ orderObj ],
             'grouping': 'na',
         };
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+            // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+            let feeInt = this.safeInteger (this.options, 'feeInt', 0);
+            if (!this.safeBool (this.options, 'builderFee', true)) {
+                feeInt = 0;
+            }
+            orderAction['builder'] = { 'b': wallet, 'f': feeInt };
+        }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
@@ -1329,7 +1342,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] cancel by client order id
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
@@ -1344,7 +1357,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified outcome (required)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
@@ -1439,7 +1452,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
@@ -1473,7 +1486,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
@@ -1522,7 +1535,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.clientOrderId] fetch by client order id instead
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         let userAddress: Str;
@@ -1557,7 +1570,7 @@ export default class hyperliquid extends Exchange {
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
@@ -1676,7 +1689,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [since] only return trades at or after this timestamp in ms
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
@@ -1703,7 +1716,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {int} [params.until] end timestamp in ms
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         let outcomeHandle: Str = undefined;
@@ -1744,7 +1757,7 @@ export default class hyperliquid extends Exchange {
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         //
@@ -2049,6 +2062,68 @@ export default class hyperliquid extends Exchange {
         return this.signMessage (msg, this.privateKey);
     }
 
+    signUserSignedAction (messageTypes: Dict, message: Dict): Dict {
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const chainId = 421614;
+        const domain: Dict = {
+            'chainId': chainId,
+            'name': 'HyperliquidSignTransaction',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
+    buildApproveBuilderFeeSig (message: Dict): Dict {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:ApproveBuilderFee': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'maxFeeRate', 'type': 'string' },
+                { 'name': 'builder', 'type': 'address' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    async approveBuilderFee (builder: string, maxFeeRate: string): Promise<any> {
+        const nonce = this.milliseconds ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'maxFeeRate': maxFeeRate,
+            'builder': builder,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveBuilderFeeSig (payload);
+        const action: Dict = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'maxFeeRate': payload['maxFeeRate'],
+            'builder': payload['builder'],
+            'nonce': nonce,
+            'type': 'approveBuilderFee',
+        };
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        return await this.privatePostExchange (request);
+    }
+
     async initializeClient (): Promise<any> {
         // createOrder/createOrders call this before trading; load markets so the order builder can
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
@@ -2058,7 +2133,19 @@ export default class hyperliquid extends Exchange {
         if (!buildFee) {
             return undefined;
         }
-        // builder fee approval would go here if needed
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
+            return undefined; // already approved
+        }
+        try {
+            const builder = this.safeString (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            // the default feeRate is '0%': the builder is approved and attached for statistics
+            // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+            const maxFeeRate = this.safeString (this.options, 'feeRate', '0%');
+            await this.approveBuilderFee (builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        } catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
         return undefined;
     }
 

@@ -70,7 +70,7 @@ public partial class polymarket : PredictionExchange
                 { "1d", "1440" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567" },
+                { "logo", "https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437" },
                 { "api", new Dictionary<string, object>() {
                     { "gamma", "https://gamma-api.polymarket.com" },
                     { "clob", "https://clob.polymarket.com" },
@@ -300,6 +300,9 @@ public partial class polymarket : PredictionExchange
                 { "ctfExchangeVersion", "2" },
                 { "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B" },
                 { "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59" },
+                { "builder", "0xea409de8b037bb6ac664b6d12d6831b03cb04a37" },
+                { "builderFee", true },
+                { "feeRate", 0 },
             } },
         });
     }
@@ -313,6 +316,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single search term used to filter the fetched events
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
      * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
      * @returns {object[]} an array of objects representing market data
@@ -481,6 +485,45 @@ public partial class polymarket : PredictionExchange
     /**
      * @ignore
      * @method
+     * @name polymarket#tagToSlug
+     * @description converts a human-readable tag label into gamma's slug form, "Fed Rates" -> "fed-rates"; lowercase alphanumeric runs joined by single dashes, so a tag already in slug form passes through unchanged
+     * @param {string} tag the tag label or slug
+     * @returns {string} the gamma tag slug
+     */
+    public virtual object tagToSlug(object tag)
+    {
+        object lower = ((string)tag).ToLower();
+        object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        object chars = this.stringToCharsArray(lower);
+        object slug = "";
+        object pendingSep = false;
+        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        {
+            object ch = getValue(chars, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
+            {
+                if (isTrue(isTrue(pendingSep) && isTrue((!isEqual(slug, "")))))
+                {
+                    slug = add(slug, "-");
+                }
+                slug = add(slug, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (isTrue(isEqual(slug, "")))
+        {
+            // a tag with no alphanumerics at all — pass it through so gamma just returns no match
+            return lower;
+        }
+        return slug;
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name polymarket#fetchRawEventsList
      * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
      * @see https://docs.polymarket.com/api-reference/events/list-events
@@ -546,7 +589,9 @@ public partial class polymarket : PredictionExchange
         }
         if (isTrue(isGreaterThan(requestedTagsLength, 0)))
         {
-            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.safeString(requestedTags, 0);
+            // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            // so human-readable labels ("Fed Rates") must be slugified first
+            ((IDictionary<string,object>)baseRequest)["tag_slug"] = this.tagToSlug(this.safeString(requestedTags, 0));
         }
         if (isTrue(isEqual(status, "active")))
         {
@@ -1014,7 +1059,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
@@ -1049,7 +1094,7 @@ public partial class polymarket : PredictionExchange
         //             "hash": "11aa0feabec970de83b04a2c0d50a7639e144f43",
         //             "bids": [
         //                 {
-        //                     "price": "0.45",
+        //                     "price": "0.46",
         //                     "size": "100"
         //                 },
         //             ],
@@ -1082,7 +1127,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
@@ -1178,7 +1223,7 @@ public partial class polymarket : PredictionExchange
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public override object parsePredictionTicker(object ticker, object market = null)
     {
@@ -1277,7 +1322,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by polymarket fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -1592,7 +1637,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] not used by polymarket fetchTrades
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -1640,7 +1685,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1668,7 +1713,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchOrderTrades(object id, object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1705,7 +1750,7 @@ public partial class polymarket : PredictionExchange
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public override object parsePredictionTrade(object trade, object market = null)
     {
@@ -1814,7 +1859,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string[]} [outcomes] unified outcomes to filter by
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
@@ -1870,7 +1915,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPosition(object outcome, object parameters = null)
     {
@@ -1886,7 +1931,7 @@ public partial class polymarket : PredictionExchange
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public override object parsePredictionPosition(object position, object market = null)
     {
@@ -1942,7 +1987,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] not used by polymarket fetchOpenOrders
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1968,7 +2013,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1990,7 +2035,7 @@ public partial class polymarket : PredictionExchange
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public override object parsePredictionOrder(object order, object market = null)
     {
@@ -2089,7 +2134,8 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2112,7 +2158,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/trade/post-orders
      * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -2241,12 +2287,40 @@ public partial class polymarket : PredictionExchange
         object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         object cost = this.safeNumber(parameters, "cost");
-        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost"});
+        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
         object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         object makerAmount = this.safeString(amounts, "makerAmount");
         object takerAmount = this.safeString(amounts, "takerAmount");
         object sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         object bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+        // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        // false the fee bytes stay zeroed, so orders are attributed for statistics only and
+        // the user is not charged; a full 32-byte builder code is passed through unchanged
+        object builderRaw = this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
+        object builderBytes32 = bytes32Zero;
+        if (isTrue(!isEqual(builderRaw, null)))
+        {
+            object builderHex = this.remove0xPrefix(builderRaw);
+            if (isTrue(isLessThanOrEqual(getArrayLength(builderHex), 40)))
+            {
+                object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
+                object feeRate = 0;
+                if (isTrue(builderFeeEnabled))
+                {
+                    feeRate = this.safeInteger(this.options, "feeRate", 0);
+                }
+                object feeHex = this.intToBase16(feeRate);
+                feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
+                object addressHex = builderHex;
+                addressHex = (addressHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
+                builderHex = add(feeHex, addressHex);
+            } else
+            {
+                builderHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+            }
+            builderBytes32 = add("0x", builderHex);
+        }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
@@ -2263,7 +2337,7 @@ public partial class polymarket : PredictionExchange
             { "signatureType", signatureType },
             { "timestamp", timestamp },
             { "metadata", bytes32Zero },
-            { "builder", bytes32Zero },
+            { "builder", builderBytes32 },
         };
         object exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         object negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
@@ -2287,7 +2361,7 @@ public partial class polymarket : PredictionExchange
                 { "timestamp", timestamp },
                 { "expiration", expiration },
                 { "metadata", bytes32Zero },
-                { "builder", bytes32Zero },
+                { "builder", builderBytes32 },
                 { "signature", signature },
             } },
             { "owner", owner },
@@ -2323,7 +2397,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} outcome unified outcome or outcome token id
      * @param {float} cost the amount of USDC to spend
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createMarketBuyOrderWithCost(object outcome, object cost, object parameters = null)
     {
@@ -2526,7 +2600,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} id the order id
      * @param {string} [outcome] unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
@@ -2557,7 +2631,7 @@ public partial class polymarket : PredictionExchange
      * @param {string[]} ids the order ids to cancel
      * @param {string} [outcome] not used by polymarket cancelOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
@@ -2586,7 +2660,7 @@ public partial class polymarket : PredictionExchange
      * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
      * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
@@ -2628,6 +2702,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.query] a single keyword search term
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped)
      * @param {int} [params.limit] max number of events to return
      * @param {string} [params.sort] 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field
      * @param {string} [params.status] 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable)
@@ -2840,13 +2915,15 @@ public partial class polymarket : PredictionExchange
             active = isTrue(rawActive) && !isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
+        // prefer the human-readable label ("Fed Rates") over the slug — matching is
+        // normalized (normalizeTagKey), so the display form is free to be the friendly one
         object rawTags = this.safeList(rawEvent, "tags", new List<object>() {});
         object rawTagsLength = getArrayLength(rawTags);
         object parsedTags = new List<object>() {};
         for (object ti = 0; isLessThan(ti, rawTagsLength); postFixIncrement(ref ti))
         {
-            object tagLabel = this.safeString2(getValue(rawTags, ti), "slug", "label");
+            object tagLabel = this.safeString2(getValue(rawTags, ti), "label", "slug");
             if (isTrue(!isEqual(tagLabel, null)))
             {
                 ((IList<object>)parsedTags).Add(tagLabel);
@@ -3422,7 +3499,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
      * @param {int} [limit] optional depth limit applied after resolving
      * @param {object} [params] extra params (currently unused)
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
     public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -3449,7 +3526,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] optional unix timestamp (ms) lower bound
      * @param {int} [limit] optional max number of trades to return
      * @param {object} [params] extra params (unused)
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
     public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -3474,7 +3551,7 @@ public partial class polymarket : PredictionExchange
      * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
      * @param {string} outcome unified outcome
      * @param {object} [params] extra params (unused)
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
      */
     public async override Task<object> watchTicker(object outcome, object parameters = null)
     {
@@ -3570,7 +3647,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] the earliest time in ms to return orders for
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> watchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3600,7 +3677,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [since] the earliest time in ms to return trades for
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> watchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {

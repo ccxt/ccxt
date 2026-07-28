@@ -25,13 +25,13 @@ public class PacificaCore extends PacificaApi
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "version", "v1" );
             put( "isSandboxModeEnabled", false );
-            put( "rateLimit", 50 );
+            put( "rateLimit", 600 );
             put( "certified", false );
             put( "pro", true );
             put( "dex", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -56,7 +56,7 @@ public class PacificaCore extends PacificaApi
                 put( "createStopOrder", true );
                 put( "editOrder", true );
                 put( "editOrders", false );
-                put( "fetchAccounts", true );
+                put( "fetchAccounts", false );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRateHistories", false );
@@ -70,7 +70,7 @@ public class PacificaCore extends PacificaApi
                 put( "fetchDepositAddress", false );
                 put( "fetchDepositAddresses", false );
                 put( "fetchDeposits", false );
-                put( "fetchDepositWithdrawFee", "emulated" );
+                put( "fetchDepositWithdrawFee", false );
                 put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", true );
                 put( "fetchFundingRate", false );
@@ -136,6 +136,8 @@ public class PacificaCore extends PacificaApi
                 put( "8h", "8h" );
                 put( "12h", "12h" );
                 put( "1d", "1d" );
+                put( "1w", "1w" );
+                put( "1M", "1M" );
             }} );
             put( "hostname", "pacifica.fi" );
             put( "urls", new java.util.HashMap<String, Object>() {{
@@ -157,22 +159,33 @@ public class PacificaCore extends PacificaApi
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "info", 1 );
+                        put( "info/fees", 1 );
                         put( "info/prices", 1 );
                         put( "kline", 12 );
                         put( "kline/mark", 12 );
                         put( "book", 1 );
                         put( "trades", 1 );
                         put( "funding_rate/history", 1 );
+                        put( "loan_pool", 1 );
                         put( "account", 1 );
+                        put( "account/loan", 1 );
                         put( "account/settings", 1 );
                         put( "positions", 1 );
                         put( "trades/history", 12 );
                         put( "funding/history", 1 );
                         put( "portfolio", 1 );
                         put( "account/balance/history", 12 );
+                        put( "account/spot_balance/history", 1 );
+                        put( "account/spot_asset/deposit/history", 1 );
+                        put( "account/spot_asset/withdraw/history", 1 );
+                        put( "account/spot_asset/withdraw/pending", 1 );
                         put( "orders", 1 );
                         put( "orders/history", 12 );
                         put( "orders/history_by_id", 1 );
+                        put( "spot_assets", 1 );
+                        put( "spot_assets/bridge/info", 1 );
+                        put( "spot_assets/bridge/parameters/{symbol}", 1 );
+                        put( "lake/list", 1 );
                         put( "account/builder_codes/approvals", 1 );
                     }} );
                 }} );
@@ -181,9 +194,14 @@ public class PacificaCore extends PacificaApi
                         put( "account/leverage", 1 );
                         put( "account/margin", 1 );
                         put( "account/withdraw", 1 );
+                        put( "account/settings/auto_lend_disabled", 1 );
+                        put( "account/settings/spot", 1 );
+                        put( "account/spot_asset/withdraw", 1 );
                         put( "account/subaccount/create", 1 );
                         put( "account/subaccount/list", 1 );
                         put( "account/subaccount/transfer", 1 );
+                        put( "account/subaccount/spot_asset/transfer", 1 );
+                        put( "positions/add_isolated_margin", 1 );
                         put( "orders/create", 1 );
                         put( "orders/create_market", 1 );
                         put( "orders/stop/create", 1 );
@@ -199,6 +217,18 @@ public class PacificaCore extends PacificaApi
                         put( "account/api_keys/create", 1 );
                         put( "account/api_keys/revoke", 1 );
                         put( "account/api_keys", 1 );
+                        put( "lake/add_blacklist", 1 );
+                        put( "lake/add_max_leverage", 1 );
+                        put( "lake/add_whitelist", 1 );
+                        put( "lake/claim_manager", 1 );
+                        put( "lake/claim_referral_code", 1 );
+                        put( "lake/create", 1 );
+                        put( "lake/deposit", 1 );
+                        put( "lake/remove_blacklist", 1 );
+                        put( "lake/remove_max_leverage", 1 );
+                        put( "lake/remove_whitelist", 1 );
+                        put( "lake/update_deposit_cap", 1 );
+                        put( "lake/withdraw", 1 );
                     }} );
                 }} );
             }} );
@@ -216,10 +246,131 @@ public class PacificaCore extends PacificaApi
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
                 put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "0", ExchangeError.class );
+                    put( "1", ExchangeError.class );
+                    put( "2", ExchangeError.class );
+                    put( "3", ExchangeError.class );
+                    put( "4", InvalidOrder.class );
+                    put( "5", InsufficientFunds.class );
+                    put( "6", OrderNotFound.class );
+                    put( "7", InvalidOrder.class );
+                    put( "8", InvalidOrder.class );
+                    put( "9", InsufficientFunds.class );
+                    put( "10", InvalidOrder.class );
+                    put( "11", ExchangeError.class );
+                    put( "12", ExchangeError.class );
+                    put( "13", ExchangeError.class );
+                    put( "14", ExchangeError.class );
+                    put( "15", BadRequest.class );
+                    put( "16", InvalidOrder.class );
+                    put( "17", InvalidOrder.class );
+                    put( "18", InvalidOrder.class );
+                    put( "19", InvalidOrder.class );
+                    put( "20", InvalidOrder.class );
+                    put( "21", InvalidOrder.class );
+                    put( "22", InvalidOrder.class );
+                    put( "23", InvalidOrder.class );
+                    put( "24", ExchangeError.class );
+                    put( "25", InvalidOrder.class );
+                    put( "26", ExchangeError.class );
+                    put( "27", ExchangeError.class );
+                    put( "28", InvalidOrder.class );
+                    put( "29", InvalidOrder.class );
+                    put( "30", InvalidOrder.class );
+                    put( "31", PermissionDenied.class );
+                    put( "32", PermissionDenied.class );
+                    put( "33", BadRequest.class );
+                    put( "34", PermissionDenied.class );
+                    put( "35", PermissionDenied.class );
+                    put( "36", InvalidOrder.class );
+                    put( "37", InvalidOrder.class );
+                    put( "38", PermissionDenied.class );
+                    put( "39", BadRequest.class );
+                    put( "40", PermissionDenied.class );
+                    put( "41", InvalidOrder.class );
+                    put( "42", ExchangeError.class );
+                    put( "43", InvalidOrder.class );
+                    put( "44", InvalidOrder.class );
+                    put( "45", InvalidOrder.class );
+                    put( "46", InvalidOrder.class );
+                    put( "47", OrderNotFound.class );
+                    put( "48", InvalidOrder.class );
+                    put( "49", InvalidOrder.class );
+                    put( "50", BadRequest.class );
+                    put( "51", NotSupported.class );
+                    put( "52", InvalidOrder.class );
+                    put( "53", InvalidOrder.class );
+                    put( "54", ExchangeError.class );
+                    put( "55", ExchangeError.class );
+                    put( "56", ExchangeError.class );
+                    put( "59", InvalidOrder.class );
+                    put( "61", InsufficientFunds.class );
+                    put( "62", InsufficientFunds.class );
+                    put( "63", ExchangeError.class );
+                    put( "64", BadRequest.class );
+                    put( "65", InsufficientFunds.class );
+                    put( "66", ExchangeError.class );
+                    put( "67", ExchangeError.class );
+                    put( "68", InvalidOrder.class );
+                    put( "69", InvalidOrder.class );
+                    put( "70", InsufficientFunds.class );
+                    put( "71", ExchangeError.class );
+                    put( "72", PermissionDenied.class );
+                    put( "73", PermissionDenied.class );
+                    put( "74", PermissionDenied.class );
+                    put( "75", InvalidOrder.class );
+                    put( "76", PermissionDenied.class );
+                    put( "77", BadRequest.class );
+                    put( "78", InsufficientFunds.class );
+                    put( "79", ExchangeError.class );
+                    put( "80", InvalidOrder.class );
+                    put( "81", BadRequest.class );
+                    put( "82", InvalidOrder.class );
+                    put( "83", ExchangeNotAvailable.class );
+                    put( "84", BadRequest.class );
+                    put( "85", BadRequest.class );
+                    put( "86", BadRequest.class );
+                    put( "87", PermissionDenied.class );
+                    put( "88", BadRequest.class );
+                    put( "89", BadRequest.class );
+                    put( "90", BadRequest.class );
+                    put( "91", ExchangeError.class );
+                    put( "92", ExchangeNotAvailable.class );
+                    put( "93", BadRequest.class );
+                    put( "94", InvalidOrder.class );
+                    put( "95", ExchangeError.class );
+                    put( "96", ExchangeError.class );
+                    put( "97", ExchangeError.class );
+                    put( "99", InvalidOrder.class );
+                    put( "100", PermissionDenied.class );
+                    put( "101", ExchangeNotAvailable.class );
+                    put( "102", BadRequest.class );
+                    put( "103", PermissionDenied.class );
+                    put( "104", InvalidOrder.class );
+                    put( "105", InvalidOrder.class );
+                    put( "106", NotSupported.class );
+                    put( "107", NotSupported.class );
+                    put( "108", NotSupported.class );
+                    put( "109", NotSupported.class );
+                    put( "110", BadRequest.class );
+                    put( "111", ExchangeNotAvailable.class );
+                    put( "112", InvalidOrder.class );
+                    put( "113", ExchangeError.class );
+                    put( "114", ExchangeError.class );
+                    put( "115", ExchangeError.class );
+                    put( "116", ExchangeError.class );
+                    put( "117", ExchangeError.class );
+                    put( "118", ExchangeError.class );
+                    put( "119", ExchangeNotAvailable.class );
+                    put( "120", PermissionDenied.class );
+                    put( "121", InvalidOrder.class );
                     put( "400", BadRequest.class );
+                    put( "401", AuthenticationError.class );
+                    put( "402", AuthenticationError.class );
                     put( "403", PermissionDenied.class );
                     put( "404", BadRequest.class );
                     put( "409", ExchangeError.class );
+                    put( "420", ExchangeError.class );
                     put( "422", ExchangeError.class );
                     put( "429", RateLimitExceeded.class );
                     put( "500", ExchangeError.class );
@@ -252,7 +403,7 @@ public class PacificaCore extends PacificaApi
                 put( "defaultType", "swap" );
                 put( "defaultSlippage", "0.5" );
                 put( "expiryWindow", 5000 );
-                put( "maxCostHugeWithApiKey", 3 );
+                put( "maxCostHugeWithApiKey", 4 );
                 put( "marketHelperProps", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "defaultMarginMode", "cross" );
                 put( "builderSupportOperations", new java.util.HashMap<String, Object>() {{
@@ -433,8 +584,9 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchMarkets
      * @description retrieves data on all markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
+     * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
@@ -442,13 +594,48 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
-            {
-                (this.initializeClient()).join();
-                (this.loadAccountSettings()).join();
-            }
-            Object swapMarkets = (this.fetchSwapMarkets(parameters)).join();
-            return swapMarkets;
+            Object response = (this.publicGetInfo(parameters)).join(); // meta
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "symbol": "BTC",
+            //       "tick_size": "1",
+            //       "min_tick": "0",
+            //       "max_tick": "1000000",
+            //       "lot_size": "0.00001",
+            //       "max_leverage": 50,
+            //       "isolated_only": false,
+            //       "min_order_size": "10",
+            //       "max_order_size": "5000000",
+            //       "funding_rate": "0.0000125",
+            //       "next_funding_rate": "0.0000125",
+            //       "created_at": 1748881333944,
+            //       "instrument_type": "perpetual",
+            //       "base_asset": "BTC"
+            //     },
+            //     {
+            //       "symbol": "SOL-USDC",
+            //       "tick_size": "0.01",
+            //       "min_tick": "0",
+            //       "max_tick": "1000000",
+            //       "lot_size": "0.001",
+            //       "max_leverage": 1,
+            //       "isolated_only": false,
+            //       "min_order_size": "10",
+            //       "max_order_size": "1000000",
+            //       "funding_rate": "0",
+            //       "next_funding_rate": "0",
+            //       "created_at": 1776615970246,
+            //       "instrument_type": "spot",
+            //       "base_asset": "SOL"
+            //     },
+            //   ],
+            //   "error": null,
+            //   "code": null
+            // }
+            Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseMarkets(markets);
         });
 
     }
@@ -467,70 +654,14 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetInfo(parameters)).join(); // meta
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "symbol": "ETH",
-            //       "tick_size": "0.1",
-            //       "min_tick": "0",
-            //       "max_tick": "1000000",
-            //       "lot_size": "0.0001",
-            //       "max_leverage": 50,
-            //       "isolated_only": false,
-            //       "min_order_size": "10",
-            //       "max_order_size": "5000000",
-            //       "funding_rate": "0.0000125",
-            //       "next_funding_rate": "0.0000125",
-            //       "created_at": 1748881333944
-            //     },
-            //     {
-            //       "symbol": "BTC",
-            //       "tick_size": "1",
-            //       "min_tick": "0",
-            //       "max_tick": "1000000",
-            //       "lot_size": "0.00001",
-            //       "max_leverage": 50,
-            //       "isolated_only": false,
-            //       "min_order_size": "10",
-            //       "max_order_size": "5000000",
-            //       "funding_rate": "0.0000125",
-            //       "next_funding_rate": "0.0000125",
-            //       "created_at": 1748881333944
-            //     },
-            //     ....
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            Object meta = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(meta)); i++)
-            {
-                ((java.util.List<Object>)results).add(Helpers.GetValue(meta, i));
-            }
-            return this.parseMarkets(results);
+            Object markets = (this.fetchMarkets(parameters)).join();
+            return this.filterBy(markets, "type", "swap");
         });
 
     }
 
     public Object parseMarket(Object market)
     {
-        //     {
-        //       "symbol": "ETH",
-        //       "tick_size": "0.1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.0001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
         //     {
         //       "symbol": "BTC",
         //       "tick_size": "1",
@@ -543,34 +674,85 @@ public class PacificaCore extends PacificaApi
         //       "max_order_size": "5000000",
         //       "funding_rate": "0.0000125",
         //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
         //     },
-        Object quoteId = "usdc";
-        Object settleId = "usdc";
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
         Object id = this.safeString(market, "symbol");
-        Object baseId = ((String)id).toLowerCase();
-        Object baseName = ((String)id).toUpperCase();
-        Object base = this.safeCurrencyCode(baseName);
+        Object baseId = this.safeString(market, "base_asset", id);
+        Object instrumentType = this.safeString(market, "instrument_type");
+        Object isSpot = (Helpers.isEqual(instrumentType, "spot"));
+        Object isSwap = !Helpers.isTrue(isSpot);
+        Object quoteId = "USDC";
+        Object settleId = null;
+        Object type = "spot";
+        Object linear = null;
+        Object inverse = null;
+        Object contractSize = null;
+        Object minLeverage = null;
+        Object maxLeverage = null;
+        Object crossMargin = null;
+        Object isolatedMargin = null;
+        if (Helpers.isTrue(isSpot))
+        {
+            Object idParts = Helpers.split(id, "-");
+            quoteId = this.safeString(idParts, 1, quoteId);
+        }
+        Object isolatedOnly = this.safeBool(market, "isolated_only", false);
+        if (Helpers.isTrue(isSwap))
+        {
+            settleId = quoteId;
+            type = "swap";
+            linear = true;
+            inverse = false;
+            contractSize = this.parseNumber("1");
+            minLeverage = 1;
+            maxLeverage = this.safeInteger(market, "max_leverage");
+            crossMargin = !Helpers.isTrue(isolatedOnly);
+            isolatedMargin = true;
+        }
+        Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object contract = true;
-        Object swap = true;
-        if (Helpers.isTrue(contract))
+        if (Helpers.isTrue(isSwap))
         {
-            if (Helpers.isTrue(swap))
-            {
-                symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
-            }
+            symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
         }
-        Object fees = this.safeDict(this.fees, "swap", new java.util.HashMap<String, Object>() {{}});
+        Object fees = this.safeDict(this.fees, type, new java.util.HashMap<String, Object>() {{}});
         Object taker = this.safeNumber(fees, "taker");
         Object maker = this.safeNumber(fees, "maker");
-        Object amountPrecisionStr = this.safeString(market, "lot_size");
-        Object pricePrecisionStr = this.safeString(market, "tick_size");
+        Object amountPrecision = this.safeNumber(market, "lot_size");
+        Object pricePrecision = this.safeNumber(market, "tick_size");
         Object active = true; // there is no non-active markets comes from endpoint market info
         final Object finalSymbol = symbol;
         final Object finalBase = base;
+        final Object finalQuoteId = quoteId;
+        final Object finalSettleId = settleId;
+        final Object finalType = type;
+        final Object finalLinear = linear;
+        final Object finalInverse = inverse;
+        final Object finalContractSize = contractSize;
+        final Object finalMinLeverage = minLeverage;
+        final Object finalMaxLeverage = maxLeverage;
+        final Object finalCrossMargin = crossMargin;
+        final Object finalIsolatedMargin = isolatedMargin;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -578,52 +760,51 @@ public class PacificaCore extends PacificaApi
             put( "quote", quote );
             put( "settle", settle );
             put( "baseId", baseId );
-            put( "baseName", baseName );
-            put( "quoteId", quoteId );
-            put( "settleId", settleId );
-            put( "type", "swap" );
-            put( "spot", false );
-            put( "margin", null );
-            put( "swap", swap );
+            put( "quoteId", finalQuoteId );
+            put( "settleId", finalSettleId );
+            put( "type", finalType );
+            put( "spot", isSpot );
+            put( "margin", false );
+            put( "swap", isSwap );
             put( "future", false );
             put( "option", false );
             put( "active", active );
-            put( "contract", contract );
-            put( "linear", true );
-            put( "inverse", false );
+            put( "contract", isSwap );
+            put( "linear", finalLinear );
+            put( "inverse", finalInverse );
             put( "taker", taker );
             put( "maker", maker );
-            put( "contractSize", PacificaCore.this.parseNumber("1") );
+            put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new java.util.HashMap<String, Object>() {{
-                put( "amount", PacificaCore.this.parseNumber(amountPrecisionStr) );
-                put( "price", PacificaCore.this.parseNumber(pricePrecisionStr) );
+                put( "amount", amountPrecision );
+                put( "price", pricePrecision );
             }} );
             put( "limits", new java.util.HashMap<String, Object>() {{
                 put( "leverage", new java.util.HashMap<String, Object>() {{
-                    put( "min", 1 );
-                    put( "max", PacificaCore.this.safeInteger(market, "max_leverage") );
+                    put( "min", finalMinLeverage );
+                    put( "max", finalMaxLeverage );
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", PacificaCore.this.safeString(market, "min_tick") );
-                    put( "max", PacificaCore.this.safeString(market, "max_tick") );
+                    put( "min", PacificaCore.this.safeNumber(market, "min_tick") );
+                    put( "max", PacificaCore.this.safeNumber(market, "max_tick") );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", null );
+                    put( "min", PacificaCore.this.safeNumber(market, "min_order_size") );
+                    put( "max", PacificaCore.this.safeNumber(market, "max_order_size") );
                 }} );
             }} );
-            put( "created", null );
+            put( "created", PacificaCore.this.safeInteger(market, "created_at") );
             put( "marginModes", new java.util.HashMap<String, Object>() {{
-                put( "cross", true );
-                put( "isolated", true );
+                put( "cross", finalCrossMargin );
+                put( "isolated", finalIsolatedMargin );
             }} );
             put( "info", market );
         }});
@@ -700,6 +881,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchLeverage
      * @description fetch the set leverage for a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {string} symbol  unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] will default to walletAddress if not provided
@@ -868,6 +1050,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchMarginMode
      * @description fetches the margin mode of the trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] will default to walletAddress if not provided
@@ -1026,6 +1209,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchFundingRates
      * @description retrieves data on all swap markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -1119,7 +1303,7 @@ public class PacificaCore extends PacificaApi
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+     * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2363,6 +2547,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchClosedOrders
      * @description fetch all unfilled currently closed orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2394,6 +2579,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchCanceledOrders
      * @description fetch all canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -2425,6 +2611,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchCanceledAndClosedOrders
      * @description fetch all closed and canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -3271,6 +3458,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchOpenInterests
      * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string[]} [symbols] Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -3297,6 +3485,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -3494,6 +3683,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3675,6 +3865,7 @@ public class PacificaCore extends PacificaApi
      * @method
      * @name pacifica#createSubAccount
      * @description creates a sub-account under the main account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
      * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds

@@ -6010,7 +6010,7 @@ func (this *HyperliquidCore) HandlePublicAddress(methodName any, params any) any
 	if IsTrue(IsTrue((!IsEqual(this.WalletAddress, nil))) && IsTrue((!IsEqual(this.WalletAddress, "")))) {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside \\'params\\' or the wallet address set")))
+	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")))
 }
 func (this *HyperliquidCore) CoinToMarketId(coin any) any {
 	// handle also hip3 tokens like flx:CRCL

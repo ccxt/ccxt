@@ -1370,13 +1370,14 @@ class gate extends Exchange {
         //
         //     array(
         //         {
-        //             "id" => "ETH_USDT",
-        //             "base" => "ETH",
-        //             "quote" => "USDT",
-        //             "leverage" => 3,
-        //             "min_base_amount" => "0.01",
-        //             "min_quote_amount" => "100",
-        //             "max_quote_amount" => "1000000"
+        //             "id":"HOODON_USDT",
+        //             "base":"HOODON",
+        //             "quote":"USDT",
+        //             "leverage":10,
+        //             "min_base_amount":"0.01",
+        //             "min_quote_amount":"1",
+        //             "max_quote_amount":"5000",
+        //             "status":1
         //         }
         //     )
         //
@@ -1393,10 +1394,12 @@ class gate extends Exchange {
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
+            $marginStatus = $this->safe_integer($market, 'status', 1); // 0 disabled, 1 enabled
             $leverage = $this->safe_number($market, 'leverage');
             $margin = $leverage !== null;
             $buyStart = $this->safe_integer_product($spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             $createdTs = ($buyStart !== 0) ? $buyStart : null;
+            $active = ($tradeStatus === 'tradable') || ($margin && ($marginStatus === 1));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -1412,11 +1415,11 @@ class gate extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($tradeStatus === 'tradable'),
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                // Fee is in %, so divide by 100
+                // fee is in %, so divide by 100
                 'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                 'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                 'contractSize' => null,
@@ -1497,46 +1500,60 @@ class gate extends Exchange {
         //
         //  Perpetual swap
         //
-        //    {
-        //        "name" => "BTC_USDT",
-        //        "type" => "direct",
-        //        "quanto_multiplier" => "0.0001",
-        //        "ref_discount_rate" => "0",
-        //        "order_price_deviate" => "0.5",
-        //        "maintenance_rate" => "0.005",
-        //        "mark_type" => "index",
-        //        "last_price" => "38026",
-        //        "mark_price" => "37985.6",
-        //        "index_price" => "37954.92",
-        //        "funding_rate_indicative" => "0.000219",
-        //        "mark_price_round" => "0.01",
-        //        "funding_offset" => 0,
-        //        "in_delisting" => false,
-        //        "risk_limit_base" => "1000000",
-        //        "interest_rate" => "0.0003",
-        //        "order_price_round" => "0.1",
-        //        "order_size_min" => 1,
-        //        "ref_rebate_rate" => "0.2",
-        //        "funding_interval" => 28800,
-        //        "risk_limit_step" => "1000000",
-        //        "leverage_min" => "1",
-        //        "leverage_max" => "100",
-        //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
-        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
-        //        "funding_rate" => "0.002053",
-        //        "order_size_max" => 1000000,
-        //        "funding_next_apply" => 1610035200,
-        //        "short_users" => 977,
-        //        "config_change_time" => 1609899548,
-        //        "create_time" => 1609800048,
-        //        "trade_size" => 28530850594,
-        //        "position_size" => 5223816,
-        //        "long_users" => 455,
-        //        "funding_impact_value" => "60000",
-        //        "orders_limit" => 50,
-        //        "trade_id" => 10851092,
-        //        "orderbook_id" => 2129638396
+        //     {
+        //         "funding_rate_indicative":"-0.003216",
+        //         "mark_price_round":"0.0001",
+        //         "funding_offset":0,
+        //         "in_delisting":false,
+        //         "risk_limit_base":"5000",
+        //         "interest_rate":"0.0003",
+        //         "index_price":"0.2077",
+        //         "order_price_round":"0.0001",
+        //         "order_size_min":1,
+        //         "enable_decimal":false,
+        //         "ref_rebate_rate":"0.2",
+        //         "name":"0G_USDT",
+        //         "ref_discount_rate":"0",
+        //         "order_price_deviate":"0.15",
+        //         "maintenance_rate":"0.01",
+        //         "mark_type":"index",
+        //         "funding_interval":28800,
+        //         "type":"direct",
+        //         "risk_limit_step":"2495000",
+        //         "enable_bonus":true,
+        //         "enable_credit":true,
+        //         "leverage_min":"1",
+        //         "funding_rate":"-0.003216",
+        //         "last_price":"0.2048",
+        //         "mark_price":"0.2048",
+        //         "order_size_max":450000,
+        //         "funding_next_apply":1784131200,
+        //         "short_users":157,
+        //         "config_change_time":1782119113,
+        //         "create_time":1758124392,
+        //         "trade_size":767606392,
+        //         "position_size":783779,
+        //         "long_users":191,
+        //         "quanto_multiplier":"1",
+        //         "funding_impact_value":"7000",
+        //         "leverage_max":"50",
+        //         "cross_leverage_default":"10",
+        //         "risk_limit_max":"2500000",
+        //         "maker_fee_rate":"-0.0001", // not actual value for regular users
+        //         "taker_fee_rate":"0.00075", // not actual value for regular users
+        //         "orders_limit":100,
+        //         "trade_id":10376084,
+        //         "orderbook_id":1203922859,
+        //         "funding_cap_ratio":"1",
+        //         "voucher_leverage":"0",
+        //         "is_pre_market":false,
+        //         "status":"trading", // or "suspend"
+        //         "launch_time":1758124392,
+        //         "enable_circuit_breaker":false,
+        //         "funding_rate_limit":"0.02",
+        //         "market_order_slip_ratio":"0.04",
+        //         "market_order_size_max":"300000",
+        //         "contract_type":""
         //    }
         //
         //  Delivery Futures
@@ -1612,6 +1629,7 @@ class gate extends Exchange {
         if ($contractSize === '0') {
             $contractSize = '1'; // 1 USD in WEB => https://i.imgur.com/MBBUI04.png
         }
+        $status = $this->safe_string($market, 'status', 'trading'); // or "suspend"
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1627,7 +1645,7 @@ class gate extends Exchange {
             'swap' => $marketType === 'swap',
             'future' => $marketType === 'future',
             'option' => $marketType === 'option',
-            'active' => true,
+            'active' => $status === 'trading',
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,

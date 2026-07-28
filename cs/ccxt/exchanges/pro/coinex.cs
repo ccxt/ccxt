@@ -1204,7 +1204,9 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object order = this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {});
+        object order = this.extend(new Dictionary<string, object>() {
+            { "status", this.safeString(data, "event") },
+        }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         object parsedOrder = this.parseWsOrder(order);
         object symbol = getValue(parsedOrder, "symbol");
         object market = this.market(((string)symbol));
@@ -1360,6 +1362,10 @@ public partial class coinex : ccxt.coinex
             { "active_success", "open" },
             { "active_fail", "canceled" },
             { "cancel", "canceled" },
+            { "put", "open" },
+            { "update", "open" },
+            { "modify", "open" },
+            { "finish", "closed" },
         };
         return this.safeString(statuses, status, status);
     }

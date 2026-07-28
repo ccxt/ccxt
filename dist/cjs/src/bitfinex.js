@@ -1175,8 +1175,7 @@ class bitfinex extends bitfinex$1["default"] {
             const signedAmount = this.safeString(order, 2);
             const amount = Precise["default"].stringAbs(signedAmount);
             const side = Precise["default"].stringGt(signedAmount, '0') ? 'bids' : 'asks';
-            const resultSide = result[side];
-            resultSide.push([price, this.parseNumber(amount)]);
+            result[side].push([price, this.parseNumber(amount)]);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);

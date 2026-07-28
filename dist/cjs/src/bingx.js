@@ -6180,6 +6180,7 @@ class bingx extends bingx$1["default"] {
     }
     parseParams(params) {
         // const sortedParams = this.keysort (params);
+        const copied = this.clone(params);
         const rawKeys = Object.keys(params);
         const keys = this.sort(rawKeys);
         for (let i = 0; i < keys.length; i++) {
@@ -6195,10 +6196,10 @@ class bingx extends bingx$1["default"] {
                     arrStr += arrayElement.toString();
                 }
                 arrStr += ']';
-                params[key] = arrStr;
+                copied[key] = arrStr;
             }
         }
-        return params;
+        return copied;
     }
     /**
      * @method
@@ -6585,7 +6586,7 @@ class bingx extends bingx$1["default"] {
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
         let response;
         if (market['swap']) {
-            response = await this.swapV1PrivatePostTradeCancelReplace(this.extend(request, params));
+            response = await this.swapV1PrivatePostTradeCancelReplace(request);
             //
             //    {
             //        code: '0',
@@ -6642,7 +6643,7 @@ class bingx extends bingx$1["default"] {
             //
         }
         else {
-            response = await this.spotV1PrivatePostTradeOrderCancelReplace(this.extend(request, params));
+            response = await this.spotV1PrivatePostTradeOrderCancelReplace(request);
             //
             //    {
             //        code: '0',

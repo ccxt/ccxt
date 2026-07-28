@@ -58,6 +58,7 @@ retrieves data on all markets for polymarket, each prediction market becomes one
 | params | <code>object</code> | No | extra exchange-specific parameters |
 | params.query | <code>string</code> | No | a single search term used to filter the fetched events |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
+| params.tags | <code>Array&lt;string&gt;</code> | No | filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned) |
 | params.status | <code>string</code> | No | 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active' |
 | params.limit | <code>int</code> | No | max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome) |
 
@@ -73,7 +74,7 @@ polymarket.fetchMarkets (params?)
 fetches the current mid-price and best bid/ask for a single outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 **See**
 
@@ -99,7 +100,7 @@ polymarket.fetchTicker (outcome, params?)
 fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+**Returns**: <code>object</code> - a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
 
 **See**
 
@@ -125,7 +126,7 @@ polymarket.fetchTickers (outcomes, params?)
 fetches the CLOB order book for a single outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 **See**: https://docs.polymarket.com/api-reference/market-data/get-order-book  
 
@@ -253,7 +254,7 @@ polymarket.fetchTradingFee (outcome, params?)
 fetches public trade history for a single outcome token from the data API
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets  
 
@@ -276,7 +277,7 @@ polymarket.fetchTrades (outcome, since?, limit?, params?)
 fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/get-trades  
 
@@ -299,7 +300,7 @@ polymarket.fetchMyTrades (outcome?, since?, limit?, params?)
 fetches all the trades made from a single order
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/get-trades  
 
@@ -344,7 +345,7 @@ polymarket.fetchBalance (params?)
 fetches open outcome token positions for the wallet from the data API
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user  
 
@@ -365,7 +366,7 @@ polymarket.fetchPositions (outcomes?, params?)
 fetches the open position for a single outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user  
 
@@ -386,7 +387,7 @@ polymarket.fetchPosition (outcome, params?)
 fetches open resting orders for the authenticated user, optionally filtered by outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/get-user-orders  
 
@@ -409,7 +410,7 @@ polymarket.fetchOpenOrders (outcome?, since?, limit?, params?)
 fetches a single order by id from the CLOB private data endpoint
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/get-single-order-by-id  
 
@@ -431,7 +432,7 @@ polymarket.fetchOrder (id, outcome?, params?)
 places a limit or market order on the CLOB for the given outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/post-a-new-order  
 
@@ -451,6 +452,7 @@ places a limit or market order on the CLOB for the given outcome token
 | params.salt | <code>string</code> | No | order salt; defaults to the current time in ms (pin it for idempotent retries) |
 | params.timestamp | <code>string</code> | No | order timestamp; defaults to the current time in ms |
 | params.expiration | <code>string</code> | No | unix-seconds expiration for GTD orders; defaults to '0' (no expiry) |
+| params.builderCode | <code>string</code> | No | builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder |
 
 
 ```javascript
@@ -464,7 +466,7 @@ polymarket.createOrder (outcome, type, side, amount, price?, params?)
 places multiple orders on the CLOB in a single batched request
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/post-orders  
 
@@ -485,7 +487,7 @@ polymarket.createOrders (orders, params?)
 places a market buy order sized by USDC cost (how much to spend) rather than shares
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/post-a-new-order  
 
@@ -507,7 +509,7 @@ polymarket.createMarketBuyOrderWithCost (outcome, cost, params?)
 cancels a single open order by id on the CLOB
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/cancel-single-order  
 
@@ -529,7 +531,7 @@ polymarket.cancelOrder (id, outcome?, params?)
 cancels multiple open orders by id on the CLOB in a single request
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/api-reference/trade/cancel-orders  
 
@@ -551,7 +553,7 @@ polymarket.cancelOrders (ids, outcome?, params?)
 cancels all open orders on the CLOB, optionally scoped to one outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**
 
@@ -589,6 +591,7 @@ fetches prediction-market events matching the given scope (query/queries/tags/ev
 | params | <code>object</code> | No | extra exchange-specific parameters |
 | params.query | <code>string</code> | No | a single keyword search term |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
+| params.tags | <code>Array&lt;string&gt;</code> | No | filter events by tag — human-readable labels ("Fed Rates") or slugs ("fed-rates") both work; multiple tags match ANY (one gamma listing per tag, unioned and deduped) |
 | params.limit | <code>int</code> | No | max number of events to return |
 | params.sort | <code>string</code> | No | 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field |
 | params.status | <code>string</code> | No | 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable) |
@@ -697,7 +700,7 @@ polymarket.createOrDeriveApiKey (params?)
 streams live order-book updates for a single Polymarket outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -718,7 +721,7 @@ polymarket.watchOrderBook (outcome, limit?, params?)
 streams live fills for a single Polymarket outcome token
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -740,7 +743,7 @@ polymarket.watchTrades (outcome, since?, limit?, params?)
 streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -760,7 +763,7 @@ polymarket.watchTicker (outcome, params?)
 watches the authenticated user's order updates over the CLOB user websocket channel
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.polymarket.com/developers/CLOB/websocket/user-channel  
 
@@ -783,7 +786,7 @@ polymarket.watchOrders (outcome?, since?, limit?, params?)
 watches the authenticated user's trade fills over the CLOB user websocket channel
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.polymarket.com/developers/CLOB/websocket/user-channel  
 

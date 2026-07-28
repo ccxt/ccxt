@@ -462,6 +462,7 @@ func (this *GeminiCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
 	return ch
 }
 func (this *GeminiCore) HandleOrderBook(client any, message any) {
+	var isInitial any = ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "auction_events"))) && ccxt.IsTrue((ccxt.InOp(message, "trades")))) && ccxt.IsTrue((ccxt.InOp(message, "changes")))
 	var changes any = this.SafeValue(message, "changes", []any{})
 	var marketId any = this.SafeStringLower(message, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -469,6 +470,12 @@ func (this *GeminiCore) HandleOrderBook(client any, message any) {
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	} else if ccxt.IsTrue(isInitial) {
+		// handle https://github.com/ccxt/ccxt/issues/29210
+		if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.Remove(this.Orderbooks, symbol)
+		}
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -535,9 +542,9 @@ func (this *GeminiCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes44615 := (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
-		ccxt.PanicOnError(retRes44615)
-		ch <- retRes44615
+		retRes45315 := (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
+		ccxt.PanicOnError(retRes45315)
+		ch <- retRes45315
 		return nil
 
 	}()
@@ -617,8 +624,8 @@ func (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, option
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes51512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51512)
+			retRes52212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes52212)
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMultiple requires at least one symbol")))
@@ -647,9 +654,9 @@ func (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, option
 			url = ccxt.Add(url, "trades=true&bids=false&offers=false")
 		}
 
-		retRes54315 := (<-this.WatchMultiple(url, messageHashes, nil))
-		ccxt.PanicOnError(retRes54315)
-		ch <- retRes54315
+		retRes55015 := (<-this.WatchMultiple(url, messageHashes, nil))
+		ccxt.PanicOnError(retRes55015)
+		ch <- retRes55015
 		return nil
 
 	}()
@@ -771,15 +778,15 @@ func (this *GeminiCore) WatchOrders(optionalArgs ...any) <-chan any {
 		var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked")
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes65012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes65012)
+			retRes65712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes65712)
 		}
 		var authParams any = map[string]any{
 			"url": url,
 		}
 
-		retRes6558 := (<-this.Authenticate(authParams))
-		ccxt.PanicOnError(retRes6558)
+		retRes6628 := (<-this.Authenticate(authParams))
+		ccxt.PanicOnError(retRes6628)
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			var market any = this.Market(symbol)
 			symbol = ccxt.GetValue(market, "symbol")

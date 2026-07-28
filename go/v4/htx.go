@@ -8111,7 +8111,7 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(GetValue(market, "linear")) {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
+				AddElementToObject(request, "limit", mathMin(limit, 100)) // max 100
 			}
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "start_time", since)
