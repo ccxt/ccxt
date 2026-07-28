@@ -179,7 +179,7 @@ export interface PredictionMarket {
     image?: Str;
 }
 
-export interface PredictionOutcome {
+export interface PredictionOutcomeInterface {
     info: any;
     outcome: string;             // unified handle "TRUMP_WIN_2024:YES" — round-trips; ex.outcomes key
     outcomeId?: Str;             // raw exchange/on-chain id (token id / ticker / coin)
@@ -195,6 +195,8 @@ export interface PredictionOutcome {
     settleFraction?: Num;        // 0..1 fractional settlement
     precision?: Precision;       // outcome-level price/amount precision
 }
+
+export type PredictionOutcome = PredictionOutcomeInterface | undefined;
 
 // Prediction trading structures are standalone — they do NOT extend the base unified
 // types and carry only prediction-meaningful fields, with no `symbol`. `outcome` (the
