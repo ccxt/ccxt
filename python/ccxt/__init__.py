@@ -168,6 +168,7 @@ from ccxt.mexc import mexc                                            # noqa: F4
 from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.mudrex import mudrex                                        # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
+from ccxt.nado import nado                                            # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
@@ -274,6 +275,7 @@ exchanges = [
     'modetrade',
     'mudrex',
     'myokx',
+    'nado',
     'ndax',
     'okx',
     'okxus',
