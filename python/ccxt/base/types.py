@@ -623,7 +623,7 @@ class PredictionFees(TypedDict):
     resolution: Num    # fee taken from winnings at settlement (fraction)
 
 
-class PredictionOutcome(TypedDict):
+class PredictionOutcomeInterface(TypedDict):
     info: Any
     outcome: str         # unified handle "TRUMP_WIN_2024:YES" — round-trips; ex.outcomes key
     outcomeId: Str       # raw exchange/on-chain id (token id / ticker / coin)
@@ -639,6 +639,7 @@ class PredictionOutcome(TypedDict):
     settleFraction: Num  # 0..1 fractional settlement
     precision: Precision  # outcome-level price/amount precision
 
+PredictionOutcome = Optional[PredictionOutcomeInterface]
 
 class PredictionMarket(TypedDict):
     info: Any
