@@ -7049,10 +7049,13 @@ impl std::ops::DerefMut for ${coreName} {
             .map(f => f.replace('.ts', ''));
 
         const written: string[] = [];
-        // `test.close.ts` is excluded by the TS-side `tests.init.ts`
-        // itself ("// todo : testWsClose ()") and depends on live
-        // WebSocket plumbing we haven't ported yet. Skip it.
-        const SKIP = new Set<string>(['tests.init', 'test.close']);
+        // `test.close` is excluded by the TS-side `tests.init.ts` itself
+        // ("// todo : testWsClose ()") and depends on live WebSocket plumbing
+        // we haven't ported. `test.close.manual` is a js-only manual harness
+        // (process APIs, a `try/finally` with no `catch` the Rust transpiler
+        // can't lower, and its own "NOT wired into CI" banner) — never meant
+        // to be transpiled. Skip both.
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual']);
         for (const testName of testFiles) {
             if (SKIP.has(testName)) continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
