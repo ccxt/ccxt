@@ -44,7 +44,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       # committed wiki/*.md -> website/content/docs (baked into the image at build)
       - name: Convert wiki to Fumadocs content

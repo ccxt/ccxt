@@ -50,7 +50,7 @@ jobs:
         fi
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
@@ -194,7 +194,7 @@ jobs:
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

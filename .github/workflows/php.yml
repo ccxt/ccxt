@@ -44,14 +44,14 @@ jobs:
     - name: Setup PHP with PECL extension
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4.6'
+        php-version: '8.5'
         # cache: true
         ini-values: |
           zend.assertions=1
           display_errors=On
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - name: Install npm dependencies
       run: npm ci --include=dev
@@ -166,7 +166,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.6'
+          php-version: '8.5'
           extensions: protobuf
           # cache: true
           ini-values: |
@@ -174,7 +174,7 @@ jobs:
             display_errors=On
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

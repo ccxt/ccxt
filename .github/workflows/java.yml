@@ -37,7 +37,7 @@ jobs:
         fi
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - name: Set up JDK
       uses: actions/setup-java@v4
@@ -156,7 +156,7 @@ jobs:
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
