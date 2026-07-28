@@ -37,7 +37,7 @@ jobs:
         fi
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.14'
+        python-version: '3.13'
         cache: 'pip'
     - name: Install python dependencies
       run: pip install -r build/ci-requirements.txt
@@ -162,7 +162,7 @@ jobs:
         run: npm ci --include=dev
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: '3.13'
           cache: 'pip'
       - name: Install python dependencies
         run: pip install -r build/ci-requirements.txt
@@ -198,7 +198,7 @@ jobs:
         run: npm ci --include=dev
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: '3.13'
           cache: 'pip'
       - name: Install python dependencies
         run: pip install -r build/ci-requirements.txt
