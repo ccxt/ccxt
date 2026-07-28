@@ -44,6 +44,7 @@ async function loadMarketsWithCache (exchange: any, refreshTimeout: number, forc
     const cacheKey = exchange.id + '-' + namespace + '-' + marketType;
     const marketsPath = path.join (cachePath, 'markets', cacheKey + '.json');
     const currenciesPath = path.join (cachePath, 'currencies', cacheKey + '.json');
+    if (!forceRefresh && fs.existsSync (marketsPath)) {
         try {
             const stats = fs.statSync (marketsPath);
             const age = Date.now () - stats.mtime.getTime ();
