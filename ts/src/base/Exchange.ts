@@ -1455,6 +1455,13 @@ export class BaseExchange {
         // no quoteJsonNumbers guard needed here: parseJson returns early when
         // quoteJsonNumbers is false, so this is only reached after an integer
         // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        if (responseBody.includes ('\\"')) {
+            // check https://github.com/ccxt/ccxt/pull/29239 for explanation
+            return responseBody.replace (
+                /(?:"(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+                (match, number) => (number ? `"${number}"` : match)
+            );
+        }
         return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
 
