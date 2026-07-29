@@ -9,6 +9,7 @@ from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderB
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
@@ -40,6 +41,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'unWatchTickers': True,
                 'unWatchTrades': True,
                 'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
                 'unWatchMyTrades': True,
                 'unWatchOrders': True,
             },
@@ -777,6 +779,32 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messagehash = 'unsubscribe:' + subMessageHash
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
+
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
+        """
+        unWatches historical candlestick data containing the open, high, low, close price, and the volume of multiple markets
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of the exchange responses, one per unsubscribed symbol and timeframe
+        """
+        symbolsLength = len(symbolsAndTimeframes)
+        if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " unWatchOHLCVForSymbols() requires an array of symbols and timeframes, like  [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]")
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
+        unifiedSymbols = self.market_symbols(symbols, None, False)
+        # hyperliquid subscribes candles per coin and interval, so each pair needs its own unsubscribe message
+        results = []
+        for i in range(0, symbolsLength):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
+            result = await self.un_watch_ohlcv(unifiedSymbols[i], timeframe, params)
+            results.append(result)
+        return results
 
     def handle_ohlcv(self, client: Client, message):
         #

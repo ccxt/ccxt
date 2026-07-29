@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -42,6 +43,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'unWatchTickers' => true,
                 'unWatchTrades' => true,
                 'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
                 'unWatchMyTrades' => true,
                 'unWatchOrders' => true,
             ),
@@ -869,6 +871,38 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $messagehash = 'unsubscribe:' . $subMessageHash;
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messagehash, $message, $messagehash));
+        })();
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, close price, and the volume of multiple markets
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             *
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of the exchange responses, one per unsubscribed symbol and $timeframe
+             */
+            $symbolsLength = count($symbolsAndTimeframes);
+            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+                throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires an array of $symbols and timeframes, like  [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]");
+            }
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+            $unifiedSymbols = $this->market_symbols($symbols, null, false);
+            // hyperliquid subscribes candles per coin and interval, so each pair needs its own unsubscribe message
+            $results = array();
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+                $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
+                $result = Async\await($this->un_watch_ohlcv($unifiedSymbols[$i], $timeframe, $params));
+                $results[] = $result;
+            }
+            return $results;
         })();
     }
 
