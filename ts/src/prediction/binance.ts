@@ -39,21 +39,21 @@ export default class binance extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchBalance': true,
-                'fetchOpenOrders': true,
-                'fetchOrders': true,
-                'fetchPositions': true,
-                'fetchPosition': true,
-                'fetchMyTrades': true,
-                'createOrder': true,
-                'cancelOrders': true,
-                'cancelOrder': true,
                 'prediction': true,
             },
             'urls': {
@@ -1525,7 +1525,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    async fetchWallet (methodName: string, params: {}): Promise<any> {
+    async fetchWallet (methodName: string, params = {}): Promise<any> {
         let cachedWallet = this.safeDict (this.options, 'wallet');
         if (cachedWallet !== undefined) {
             return cachedWallet;
