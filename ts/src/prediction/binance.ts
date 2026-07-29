@@ -479,8 +479,8 @@ export default class binance extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const events = await this.fetchEvents (this.extend ({ 'eventId': id }), params);
-        return this.safeDict (events, 0);
+        const events = await this.fetchEvents (this.extend ({ 'eventId': id }, params));
+        return this.safeDict (events, 0) as PredictionEvent;
     }
 
     /**
@@ -921,7 +921,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, outcomeObj: PredictionOutcome = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, outcomeObj: Market = undefined): PredictionOrder {
         //
         // {
         //     "orderId": "54124",
@@ -1301,7 +1301,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, outcomeObj: PredictionOutcome = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, outcomeObj: Market = undefined): PredictionPosition {
         if (outcomeObj === undefined) {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
@@ -1447,7 +1447,7 @@ export default class binance extends Exchange {
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: Market = undefined): PredictionTrade {
         //
         // {
         //     "orderId": "54124",
