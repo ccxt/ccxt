@@ -8,7 +8,9 @@ class NetworkError extends Error {}
 test ('isBenignStreamClose recognizes ccxt.pro close-time rejections', () => {
     assert.equal (isBenignStreamClose (new ExchangeClosedByUser ('binance closedByUser')), true);
     assert.equal (isBenignStreamClose (new Error ('WebSocket connection closed')), true);
+    assert.equal (isBenignStreamClose (new Error ('WebSocket was closed before the connection was established')), true);
     assert.equal (isBenignStreamClose (new Error ('socket hang up')), true);
+    assert.equal (isBenignStreamClose (new Error ('read ECONNRESET')), true);
     assert.equal (isBenignStreamClose ('kraken closed by user'), true);
 });
 

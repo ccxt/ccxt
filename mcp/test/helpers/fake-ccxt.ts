@@ -50,6 +50,8 @@ export class FakeExchange {
         'watchTrades': true,
         'watchOrderBook': false,
         'watchTickers': true, // multi-symbol STATE stream — used to test snapshot merging
+        'watchMarkPrices': true, // STATE stream whose data lives in markPrice, not TICKER_FIELDS
+        'watchFundingRate': true, // single STATE stream that never ticks (parks waitForChange)
         'watchBidsAsks': true, // used to exercise the fatal-error path (always throws)
         'watchOrders': true,  // private — used to test the account-required guard
         'createOrder': true,
@@ -239,6 +241,22 @@ export class FakeExchange {
         const symbol = list[this.tickerToggle % list.length];
         this.tickerToggle += 1;
         return { [symbol]: { symbol, 'last': 50000 + this.watchTick, 'bid': 49999, 'ask': 50001, 'info': { 'raw': true } } };
+    }
+
+    // multi-symbol STATE stream whose real data (markPrice) is NOT in TICKER_FIELDS — the
+    // snapshot must not blank it (mergeDict blocker fix)
+    async watchMarkPrices (symbols?: string[]): Promise<any> {
+        await this.nextTick ();
+        this.watchTick += 1;
+        const list = (Array.isArray (symbols) && symbols.length > 0) ? symbols : [ 'BTC/USDT' ];
+        const symbol = list[this.tickerToggle % list.length];
+        this.tickerToggle += 1;
+        return { [symbol]: { symbol, 'markPrice': 60000 + this.watchTick, 'indexPrice': 60001, 'last': undefined, 'timestamp': 1700000000000, 'info': { 'raw': true } } };
+    }
+
+    // a silent stream that never resolves, so a waitForChange read genuinely parks
+    async watchFundingRate (): Promise<any> {
+        return new Promise (() => undefined);
     }
 
     // always throws a fatal-class error, to exercise the terminal-error socket release

@@ -173,7 +173,7 @@ export class SubscriptionRegistry {
             const argsKey = JSON.stringify (args);
             // idempotent: an identical active stream already exists — reuse it instead of
             // opening a duplicate socket (a fresh cursor still works, the buffer is shared)
-            const existing = this.findActive (exchange.id, method, argsKey, opts.account);
+            const existing = this.findActive (exchange.id, method, argsKey, opts.account, streamKey);
             if (existing !== undefined) {
                 release ();
                 const info: Record<string, any> = { 'subscriptionId': existing.id, 'exchange': existing.exchangeId, 'method': existing.method, 'streamKind': existing.kind, 'args': existing.args, 'reused': true, 'note': 'reusing the existing identical subscription — watch_read it (watch_list shows all active streams; watch_unsubscribe to stop)' };
@@ -243,6 +243,12 @@ export class SubscriptionRegistry {
         if (sub === undefined) {
             return { 'found': false };
         }
+        return this.readSub (sub, cursor);
+    }
+
+    // reads a subscription record directly — works even after it has been removed from the
+    // map (a waitForChange parked reader woken by unsubscribe/idle still gets a terminal read)
+    private readSub (sub: Subscription, cursor?: number): any {
         sub.lastReadAt = Date.now ();
         if (sub.active) {
             this.resetIdle (sub);
@@ -260,11 +266,11 @@ export class SubscriptionRegistry {
             common['environment'] = sub.environment;
         }
         if (sub.kind === 'state') {
-            // the current snapshot ccxt has built up — no cursor, no history
+            // materialize the current snapshot lazily (projection/sort paid at read, not per tick)
             const updatesSinceRead = sub.seq - sub.lastReadSeq;
             sub.lastReadSeq = sub.seq;
             common['updatesSinceRead'] = updatesSinceRead;
-            common['latest'] = sub.latest?.data;
+            common['latest'] = buildSnapshot (sub);
             common['latestSeq'] = sub.latest?.seq;
             return common;
         }
@@ -301,8 +307,10 @@ export class SubscriptionRegistry {
         if (waitForChange && sub.active && !this.hasNewSince (sub, cursor)) {
             timedOut = !(await this.waitForUpdate (sub, timeoutMs));
         }
-        const result = this.read (id, cursor);
-        if (waitForChange && result.found !== false) {
+        // read the captured sub directly: if it was stopped (unsubscribe/idle) while we were
+        // parked, the agent still gets a terminal read (active:false + last state) not "not found"
+        const result = this.readSub (sub, cursor);
+        if (waitForChange) {
             result.waited = true;
             result.timedOut = timedOut;
         }
@@ -323,15 +331,22 @@ export class SubscriptionRegistry {
         return new Promise<boolean> ((resolve) => {
             let settled = false;
             let timer: ReturnType<typeof setTimeout>;
+            const waiter = () => done (true);
             const done = (changed: boolean) => {
                 if (settled) {
                     return;
                 }
                 settled = true;
                 clearTimeout (timer);
+                // drop our own waiter so a quiet-but-polled stream doesn't accumulate dead
+                // closures between ticks (notifyWaiters only drains on an actual update/stop)
+                const i = sub.waiters.indexOf (waiter);
+                if (i !== -1) {
+                    sub.waiters.splice (i, 1);
+                }
                 resolve (changed);
             };
-            sub.waiters.push (() => done (true));
+            sub.waiters.push (waiter);
             timer = this.armTimer (() => done (false), ms);
         });
     }
@@ -408,9 +423,13 @@ export class SubscriptionRegistry {
         }
     }
 
-    private findActive (exchangeId: string, method: string, argsKey: string, account: string | undefined): Subscription | undefined {
+    private findActive (exchangeId: string, method: string, argsKey: string, account: string | undefined, streamKey: string | undefined): Subscription | undefined {
         for (const sub of this.subs.values ()) {
-            if (sub.active && sub.exchangeId === exchangeId && sub.method === method && sub.argsKey === argsKey && sub.account === account) {
+            // streamKey encodes the pool namespace (exchange|marketType|prediction) for public
+            // streams, so it distinguishes spot vs swap and prediction vs regular — which are
+            // NOT reflected in args; without it an identical-args re-subscribe on a different
+            // marketType/prediction would wrongly reuse the first stream
+            if (sub.active && sub.exchangeId === exchangeId && sub.method === method && sub.argsKey === argsKey && sub.account === account && sub.streamKey === streamKey) {
                 return sub;
             }
         }
@@ -419,7 +438,10 @@ export class SubscriptionRegistry {
 
     private otherActiveSharesStream (sub: Subscription): boolean {
         for (const other of this.subs.values ()) {
-            if (other.id !== sub.id && other.active && other.account === sub.account && other.method === sub.method && other.argsKey === sub.argsKey) {
+            // match on account+method only (ignore args): unWatch<Method> on a shared account
+            // instance can tear down the whole channel, disrupting a sibling subscription on the
+            // same method with different args — so skip unWatch while any such sibling is active
+            if (other.id !== sub.id && other.active && other.account === sub.account && other.method === sub.method) {
                 return true;
             }
         }
@@ -442,11 +464,23 @@ export class SubscriptionRegistry {
     }
 
     private async runLoop (sub: Subscription): Promise<void> {
+        // Attach exactly ONE reaction to the persistent stopPromise for the whole loop and let
+        // it wake whichever per-iteration wait is in flight. Racing stopPromise on every tick
+        // would append a reaction to it per tick — an O(ticks) closure leak on a long-lived
+        // high-frequency stream (the biggest per-subscription memory sink otherwise).
+        let wake: (() => void) | undefined;
+        void sub.stopPromise.then (() => { if (wake !== undefined) { wake (); } });
         while (sub.active) {
             let result: any;
             try {
-                result = await Promise.race ([ sub.exchange[sub.method] (...sub.args), sub.stopPromise ]);
+                const tick = Promise.resolve (sub.exchange[sub.method] (...sub.args));
+                result = await new Promise ((resolve, reject) => {
+                    wake = () => resolve (sub.stopSentinel);
+                    tick.then (resolve, reject);
+                });
+                wake = undefined;
             } catch (e: any) {
+                wake = undefined;
                 if (!sub.active) {
                     break;
                 }
@@ -471,7 +505,15 @@ export class SubscriptionRegistry {
                     sub.timer = this.armTimer (() => this.stopSub (sub), DEAD_TTL_MS);
                     break;
                 }
-                await Promise.race ([ sleep (Math.min (30000, 500 * Math.pow (2, sub.consecutiveErrors))), sub.stopPromise ]);
+                // interruptible backoff — a stop wakes it immediately instead of blocking up to 30s
+                await new Promise<void> ((resolve) => {
+                    wake = resolve;
+                    const t = setTimeout (resolve, Math.min (30000, 500 * Math.pow (2, sub.consecutiveErrors)));
+                    if (typeof (t as any).unref === 'function') {
+                        (t as any).unref ();
+                    }
+                });
+                wake = undefined;
                 continue;
             }
             if (result === sub.stopSentinel || !sub.active) {
@@ -482,8 +524,9 @@ export class SubscriptionRegistry {
             sub.totalUpdates += 1;
             sub.lastUpdateAt = Date.now ();
             if (sub.kind === 'state') {
-                // merge this delta into the running snapshot (never overwrite with a subset)
-                sub.latest = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': accumulate (sub, result) };
+                // O(delta) merge only; the full snapshot is materialized lazily at read time
+                mergeDelta (sub, result);
+                sub.latest = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': undefined };
             } else {
                 const update: Update = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': trimWatchUpdate (sub.method, result) };
                 sub.buffer.push (update);
@@ -497,6 +540,9 @@ export class SubscriptionRegistry {
 
     // wake every waitForChange caller parked on this subscription (new update, or it stopped)
     private notifyWaiters (sub: Subscription): void {
+        if (sub.waiters.length === 0) {
+            return; // hot path: no allocation when nobody is blocked (the common case)
+        }
         const waiters = sub.waiters.splice (0);
         for (const wake of waiters) {
             wake ();
@@ -525,37 +571,44 @@ export class SubscriptionRegistry {
     }
 }
 
-// merge a state stream's latest delta into its running snapshot and return the full snapshot.
-// Never overwrites the accumulator with a partial subset — that was the blocker this fixes.
-function accumulate (sub: Subscription, result: any): any {
+// bidsAsks tickers carry the top-of-book SIZES too — the whole point of the stream — which
+// TICKER_FIELDS omits, so add them for that method.
+const BIDSASKS_FIELDS = [ ...TICKER_FIELDS, 'bidVolume', 'askVolume' ];
+
+// Merge a state stream's latest delta into its accumulator. CHEAP — runs on every socket
+// tick. Stores raw ccxt objects BY REFERENCE (ccxt.pro already retains them in its own
+// cache), so per-tick cost is O(delta), not O(full snapshot). The expensive projection/sort
+// happens lazily in buildSnapshot() at read time, which is far rarer than ticks on a fast
+// stream. Never overwrites the accumulator with a partial subset — that was the blocker.
+function mergeDelta (sub: Subscription, result: any): void {
     const strategy = sub.strategy;
     if (strategy === 'replace' || strategy === undefined) {
         // the watch* return is already the whole object (single ticker/book/balance)
-        sub.accumulator = trimWatchUpdate (sub.method, result);
-        return sub.accumulator;
+        sub.accumulator = result;
+        return;
     }
     if (sub.accumulator === undefined) {
         sub.accumulator = {};
     }
     if (strategy === 'mergeDict') {
-        // { symbol: ticker } delta — keep every subscribed symbol, refresh the ones that ticked
+        // { symbol: item } delta — keep every subscribed symbol, refresh the ones that ticked
         const entries = Array.isArray (result) ? result.map ((t: any) => [ t?.symbol, t ]) : Object.entries (result ?? {});
-        for (const [ symbol, ticker ] of entries) {
+        for (const [ symbol, item ] of entries) {
             if (symbol !== undefined && symbol !== null) {
-                sub.accumulator[symbol] = project (ticker, TICKER_FIELDS);
+                sub.accumulator[symbol] = item;
             }
         }
-        return sub.accumulator;
+        return;
     }
     if (strategy === 'mergeBook') {
         // one order book per tick (…ForSymbols) — key by its own symbol
         const books = Array.isArray (result) ? result : [ result ];
         for (const book of books) {
             if (book !== null && book !== undefined && book.symbol !== undefined) {
-                sub.accumulator[book.symbol] = trimOrderBook (book);
+                sub.accumulator[book.symbol] = book;
             }
         }
-        return sub.accumulator;
+        return;
     }
     if (strategy === 'upsertArray') {
         // positions array delta — upsert by symbol+side (a closed position arrives with
@@ -563,16 +616,60 @@ function accumulate (sub: Subscription, result: any): any {
         const items = Array.isArray (result) ? result : ((result === null || result === undefined) ? [] : [ result ]);
         for (const item of items) {
             const key = String (item?.symbol ?? '') + '|' + String (item?.side ?? '');
-            sub.accumulator[key] = project (item, POSITION_FIELDS);
+            sub.accumulator[key] = item;
         }
-        return Object.values (sub.accumulator);
+        return;
     }
     // window: merge candles by timestamp into a bounded recent window per (symbol, timeframe)
     // so closed candles are never lost. watchOHLCV returns a flat candle array (keyed here by
     // the subscription's own symbol/timeframe args); watchOHLCVForSymbols returns a nested
     // { symbol: { timeframe: candles } } object.
     mergeOhlcvWindow (sub.accumulator, result, sub.args);
-    return buildOhlcvSnapshot (sub.accumulator);
+}
+
+// Project the accumulator into the full snapshot returned by watch_read. Runs at READ time
+// only, so the projection/sort cost is paid at read frequency, not tick frequency.
+function buildSnapshot (sub: Subscription): any {
+    const strategy = sub.strategy;
+    const acc = sub.accumulator;
+    if (acc === undefined) {
+        return undefined;
+    }
+    if (strategy === 'replace' || strategy === undefined) {
+        return trimWatchUpdate (sub.method, acc);
+    }
+    if (strategy === 'mergeDict') {
+        const out: Record<string, any> = {};
+        for (const [ symbol, item ] of Object.entries (acc)) {
+            out[symbol] = projectSnapshotItem (sub.method, item);
+        }
+        return out;
+    }
+    if (strategy === 'mergeBook') {
+        const out: Record<string, any> = {};
+        for (const [ symbol, book ] of Object.entries (acc)) {
+            out[symbol] = trimOrderBook (book);
+        }
+        return out;
+    }
+    if (strategy === 'upsertArray') {
+        return Object.values (acc).map ((p: any) => project (p, POSITION_FIELDS));
+    }
+    return buildOhlcvSnapshot (acc);
+}
+
+// mergeDict serves tickers, bidsAsks, markPrices and fundingRates, whose essential data
+// lives in different fields — so project per method rather than forcing every item through
+// TICKER_FIELDS (which has no markPrice/fundingRate/bidVolume and would silently blank them).
+function projectSnapshotItem (method: string, item: any): any {
+    const m = method.toLowerCase ();
+    if (m.includes ('bidsask')) {
+        return project (item, BIDSASKS_FIELDS);
+    }
+    if (m.includes ('markprice') || m.includes ('fundingrate')) {
+        return stripInfo (item); // value is markPrice/indexPrice/fundingRate/… — keep all unified fields
+    }
+    return project (item, TICKER_FIELDS);
 }
 
 function trimOrderBook (data: any): any {
@@ -598,6 +695,15 @@ function mergeOhlcvWindow (acc: Record<string, Record<string, Map<number, any>>>
             if (Array.isArray (candle) && candle[0] !== undefined) {
                 byTs.set (candle[0], candle);
             }
+        }
+        // bound the retained window (candles arrive in timestamp order, so the oldest-inserted
+        // key is the oldest candle) — the Map, not just the emitted slice, must stay capped
+        while (byTs.size > OHLCV_WINDOW) {
+            const oldest = byTs.keys ().next ().value;
+            if (oldest === undefined) {
+                break;
+            }
+            byTs.delete (oldest);
         }
     };
     if (Array.isArray (result)) {
@@ -665,13 +771,4 @@ function trimWatchUpdate (method: string, data: any): any {
         return Array.isArray (data) ? data.map ((p: any) => project (p, POSITION_FIELDS)) : project (data, POSITION_FIELDS);
     }
     return stripInfo (data);
-}
-
-function sleep (ms: number): Promise<void> {
-    return new Promise ((resolve) => {
-        const t = setTimeout (resolve, ms);
-        if (typeof (t as any).unref === 'function') {
-            (t as any).unref ();
-        }
-    });
 }

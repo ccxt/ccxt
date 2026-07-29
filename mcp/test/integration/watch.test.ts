@@ -95,6 +95,46 @@ test ('multi-symbol state stream merges deltas into a full snapshot (blocker fix
     await client.close ();
 });
 
+test ('mergeDict snapshot keeps method-specific fields (markPrice is not blanked)', async () => {
+    const { client, ctx } = await connect ({});
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchMarkPrices', 'args': [ [ 'BTC/USDT' ] ] });
+    assert.equal (sub.data.streamKind, 'state');
+    await sleep (40);
+    const read = await call (client, 'watch_read', { 'subscriptionId': sub.data.subscriptionId });
+    const mark = read.data.latest['BTC/USDT'];
+    assert.ok (mark.markPrice > 60000, 'markPrice survives the snapshot projection (not forced through TICKER_FIELDS)');
+    assert.equal (mark.indexPrice, 60001);
+    assert.equal (mark.info, undefined, 'info stripped');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('a waitForChange parked when the stream is stopped returns a terminal read, not NOT_FOUND', async () => {
+    const { client, ctx } = await connect ({});
+    // watchFundingRate never ticks, so the blocking read genuinely parks
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchFundingRate', 'args': [ 'BTC/USDT' ] });
+    const id = sub.data.subscriptionId;
+    const parked = call (client, 'watch_read', { 'subscriptionId': id, 'waitForChange': true, 'timeoutMs': 5000 });
+    await sleep (40); // let the read park
+    await call (client, 'watch_unsubscribe', { 'subscriptionId': id });
+    const result = await parked;
+    assert.equal (result.ok, true, 'the parked read resolves cleanly');
+    assert.equal (result.data.active, false, 'terminal read shows the stream stopped');
+    assert.equal (result.data.waited, true);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('re-subscribe distinguishes marketType (no false reuse across pool namespaces)', async () => {
+    const { client, ctx } = await connect ({});
+    const spot = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ], 'marketType': 'spot' });
+    const swap = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ], 'marketType': 'swap' });
+    assert.notEqual (swap.data.subscriptionId, spot.data.subscriptionId, 'a different marketType is a different stream');
+    assert.notEqual (swap.data.reused, true);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
 test ('re-subscribing an identical stream reuses it instead of opening a duplicate', async () => {
     const { client, ctx } = await connect ({});
     const first = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });

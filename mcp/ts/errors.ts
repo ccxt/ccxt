@@ -100,7 +100,12 @@ export function isCcxtError (error: any): boolean {
 export function isBenignStreamClose (reason: any): boolean {
     const name = String (reason?.constructor?.name ?? '');
     const message = String (reason?.message ?? reason ?? '');
-    return /ClosedByUser|ConnectionClosed/.test (name) || /closed by user|WebSocket connection closed|socket hang up/i.test (message);
+    return /ClosedByUser|ConnectionClosed/.test (name)
+        || /closed by user|socket hang up|ECONNRESET/i.test (message)
+        // WebSocket teardown variants, incl. a stream stopped before its socket finished
+        // connecting (rapid subscribe/unsubscribe churn)
+        || /WebSocket (connection closed|was closed|is closed|is closing|is not open)/i.test (message)
+        || /closed before the connection (is|was) established/i.test (message);
 }
 
 export interface ErrorContext {
