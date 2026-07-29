@@ -1838,10 +1838,8 @@ export default class binance extends Exchange {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
         let querystring = this.urlencodeNested (extendedParams);
-        if ('batch-cancel' in path) {
-            querystring = querystring.replaceAll ('%5B', '[');
-            querystring = querystring.replaceAll ('%5D', ']');
-        }
+        querystring = querystring.replaceAll ('%5B', '[');
+        querystring = querystring.replaceAll ('%5D', ']');
         const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
         querystring = querystring + '&signature=' + signature;
         headers = {
