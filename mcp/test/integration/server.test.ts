@@ -36,8 +36,10 @@ test ('market data flows end to end with projection and info stripped', async ()
     assert.equal (tickers.ok, true);
     assert.equal (tickers.data[0].last, 50000);
     assert.equal (tickers.data[0].info, undefined);
-    const book = await call (client, 'get_orderbook', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'depth': 5 });
-    assert.equal (book.data.bids.length, 5);
+    const book = await call (client, 'get_orderbook', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'limit': 5 });
+    assert.equal (book.data.bids.length, 5, 'get_orderbook honors limit (aligned with get_ohlcv/get_trades)');
+    const bookDepth = await call (client, 'get_orderbook', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'depth': 7 });
+    assert.equal (bookDepth.data.bids.length, 7, 'depth still works as an alias');
     const markets = await call (client, 'search_markets', { 'exchange': 'fakex', 'base': 'BTC' });
     assert.equal (markets.data[0].symbol, 'BTC/USDT');
     assert.equal (markets.data[0].info, undefined);

@@ -91,7 +91,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'inputSchema': {
             'method': z.string ().optional ().describe ('exact method name to describe, e.g. "fetchOHLCV" (or an implicit endpoint name when "exchange" is set)'),
             'query': z.string ().optional ().describe ('keyword search over method names, e.g. "funding"'),
-            'exchange': z.string ().optional ().describe ('exchange id for per-exchange docs, feature support and implicit endpoints'),
+            'exchange': z.string ().optional ().describe ('exchange id for per-exchange docs, feature support and implicit endpoints; when omitted a reference exchange (binance) is used, so implicit-endpoint results are binance-specific — pass "exchange" to search another'),
             'prediction': predictionParam,
         },
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
@@ -280,15 +280,16 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol — resolve with search_markets'),
-            'depth': z.number ().int ().optional ().describe ('price levels per side (default 20, max 100)'),
+            'limit': z.number ().int ().optional ().describe ('price levels per side (default 20, max 100)'),
+            'depth': z.number ().int ().optional ().describe ('alias for limit (price levels per side)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, symbol, depth, marketType, prediction, params }) => run ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbol, limit, depth, marketType, prediction, params }) => run ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
-        const levels = clampLimit (depth, 20, 100);
+        const levels = clampLimit (limit ?? depth, 20, 100);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
         // some exchanges ignore the API-level limit — slice server-side; and normalize each
         // level to the unified [price, amount] (some venues, e.g. kraken, append a per-level
@@ -484,10 +485,10 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('call_implicit_get', {
         'title': 'Call a raw GET endpoint (implicit API)',
-        'description': 'Call an exchange-specific implicit REST endpoint over HTTP GET, for data the unified API does not cover. Endpoint names are exchange-specific (find them with describe_method {"query": ..., "exchange": ...}); the response is the raw exchange payload. Consult the exchange API reference (describe_exchange .urls.doc) and the ccxt manual: https://docs.ccxt.com/',
+        'description': 'Call an exchange-specific implicit REST endpoint over HTTP GET, for data the unified API does not cover. Pass the implicit method name in the "method" argument (e.g. "publicGetTickerPrice"); these are exchange-specific — find them with describe_method {"query": ..., "exchange": ...} (its results list the name to pass here). The response is the raw exchange payload. Consult the exchange API reference (describe_exchange .urls.doc) and the ccxt manual: https://docs.ccxt.com/',
         'inputSchema': {
             'exchange': exchangeParam,
-            'method': z.string ().describe ('implicit method name whose HTTP verb is GET, e.g. "publicGetTickerPrice"'),
+            'method': z.string ().describe ('implicit method name whose HTTP verb is GET, e.g. "publicGetTickerPrice" (from describe_method)'),
             'account': z.string ().optional ().describe ('configured account name for authenticated (private/signed) GET endpoints'),
             'prediction': predictionParam,
             'params': paramsParam,

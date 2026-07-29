@@ -95,6 +95,21 @@ test ('multi-symbol state stream merges deltas into a full snapshot (blocker fix
     await client.close ();
 });
 
+test ('re-subscribing an identical stream reuses it instead of opening a duplicate', async () => {
+    const { client, ctx } = await connect ({});
+    const first = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
+    const second = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
+    assert.equal (second.data.subscriptionId, first.data.subscriptionId, 'same subscription id');
+    assert.equal (second.data.reused, true);
+    const list = await call (client, 'watch_list', {});
+    assert.equal (list.data.length, 1, 'no duplicate socket/subscription');
+    // a different symbol is a genuinely different stream
+    const other = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'ETH/USDT' ] });
+    assert.notEqual (other.data.subscriptionId, first.data.subscriptionId);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
 test ('waitForChange blocks until the next event, and reports timeout when idle', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });

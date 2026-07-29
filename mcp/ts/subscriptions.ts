@@ -170,6 +170,19 @@ export class SubscriptionRegistry {
                 release ();
                 throw e;
             }
+            const argsKey = JSON.stringify (args);
+            // idempotent: an identical active stream already exists — reuse it instead of
+            // opening a duplicate socket (a fresh cursor still works, the buffer is shared)
+            const existing = this.findActive (exchange.id, method, argsKey, opts.account);
+            if (existing !== undefined) {
+                release ();
+                const info: Record<string, any> = { 'subscriptionId': existing.id, 'exchange': existing.exchangeId, 'method': existing.method, 'streamKind': existing.kind, 'args': existing.args, 'reused': true, 'note': 'reusing the existing identical subscription — watch_read it (watch_list shows all active streams; watch_unsubscribe to stop)' };
+                if (existing.account !== undefined) {
+                    info['account'] = existing.account;
+                    info['environment'] = existing.environment;
+                }
+                return info;
+            }
             const sentinel = Symbol ('stop');
             let stopResolve!: (value: symbol) => void;
             const stopPromise = new Promise<symbol> ((resolve) => {
@@ -183,7 +196,7 @@ export class SubscriptionRegistry {
                 kind,
                 'strategy': (kind === 'state') ? snapshotStrategy (method) : undefined,
                 args,
-                'argsKey': JSON.stringify (args),
+                argsKey,
                 'account': opts.account,
                 environment,
                 streamKey,
@@ -393,6 +406,15 @@ export class SubscriptionRegistry {
                 // best-effort only
             }
         }
+    }
+
+    private findActive (exchangeId: string, method: string, argsKey: string, account: string | undefined): Subscription | undefined {
+        for (const sub of this.subs.values ()) {
+            if (sub.active && sub.exchangeId === exchangeId && sub.method === method && sub.argsKey === argsKey && sub.account === account) {
+                return sub;
+            }
+        }
+        return undefined;
     }
 
     private otherActiveSharesStream (sub: Subscription): boolean {
