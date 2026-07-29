@@ -877,12 +877,12 @@ export default class binance extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/wallet#query-payment-option-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'cedefi', 'funding', or 'spot'
+     * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        // const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'SPOT');
+        const type = this.safeString (params, 'type', defaultType);
         const response = await this.sapiPrivateGetBalancePaymentOptions (params);
         //
         // {
@@ -902,10 +902,12 @@ export default class binance extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const accountType = this.safeString (balance, 'accountType');
-            const free = this.safeString (balance, 'availableBalanceDisplay');
-            const account = this.account ();
-            account['free'] = free;
-            result[accountType] = account;
+            if (accountType === type) {
+                const free = this.safeString (balance, 'availableBalanceDisplay');
+                const account = this.account ();
+                account['free'] = free;
+                result['USDT'] = account;
+            }
         }
         return result;
     }
