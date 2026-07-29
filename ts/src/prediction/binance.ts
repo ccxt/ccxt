@@ -1679,9 +1679,10 @@ export default class binance extends Exchange {
             "amountIn": Precise.stringMul (amountStr, '1000000000000000000'),
         });
         const quote = await this.fetchQuote (quoteRequest, params);
+        const quoteId = this.safeString (quote, 'quoteId');
         const orderRequest = this.extend (commonRequest, {
             'walletId': wallet['walletId'],
-            'quoteId': quote['quoteId'],
+            'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
         });
