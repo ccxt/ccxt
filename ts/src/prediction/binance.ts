@@ -1490,7 +1490,7 @@ export default class binance extends Exchange {
         const cost = this.safeString (trade, 'filledUsdtAmount');
         const providerFee = this.safeString (trade, 'marketProviderFee');
         const networkFee = this.safeString (trade, 'networkFee');
-        const feeCost = this.sum (providerFee, networkFee);
+        const feeCost = Precise.stringAdd (providerFee, networkFee);
         return this.safePredictionTrade ({
             'id': undefined,
             'info': trade,
