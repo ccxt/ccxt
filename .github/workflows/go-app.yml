@@ -21,16 +21,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Generate App token
+        if: github.ref == 'refs/heads/master'
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.CCXT_APP_CLIENT_ID }}
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
           private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
           permission-contents: write
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
@@ -154,6 +155,7 @@ jobs:
             path: shared_env.txt
 
       - name: Get App bot user ID
+        if: github.ref == 'refs/heads/master'
         id: app-user
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
