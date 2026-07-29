@@ -1746,7 +1746,7 @@ export default class binance extends Exchange {
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (let i = 0; i < ids.length; i++) {
-            const key = 'cancelInfoList[' + i + '].orderId';
+            const key = 'cancelInfoList[' + this.numberToString (i) + '].orderId';
             request[key] = ids[i];
         }
         const response = await this.sapiPrivatePostTradeBatchCancel (this.extend (request, params));
