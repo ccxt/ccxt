@@ -145,7 +145,7 @@ export default class opinion extends Exchange {
                     }
                     eventsDict[event['event']] = event;
                 } else {
-                    flatMarkets.push (this.parseMarket (raw));
+                    flatMarkets.push (this.parseOpinionMarket (raw));
                 }
             }
             const collectedLength = flatMarkets.length;
@@ -162,7 +162,16 @@ export default class opinion extends Exchange {
         return flatMarkets;
     }
 
-    parseMarket (raw: Dict, eventSlug: any = undefined): Market {
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parseOpinionMarket
+     * @description converts a single raw opinion market (standalone binary, or one categorical child) into one ccxt market with yes/no outcomes
+     * @param {object} raw the raw opinion market object
+     * @param {string} [eventSlug] the slug of the parent categorical market, when raw is a child
+     * @returns {object} a market structure
+     */
+    parseOpinionMarket (raw: Dict, eventSlug: any = undefined): Market {
         // {
         //     "chainId": "56",
         //     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
@@ -445,7 +454,7 @@ export default class opinion extends Exchange {
         const rawChildrenLength = rawChildren.length;
         const markets: any[] = [];
         for (let i = 0; i < rawChildrenLength; i++) {
-            markets.push (this.parseMarket (rawChildren[i], slug));
+            markets.push (this.parseOpinionMarket (rawChildren[i], slug));
         }
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
