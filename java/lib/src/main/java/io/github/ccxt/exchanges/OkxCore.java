@@ -7640,9 +7640,12 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+            Object ruleType = this.safeString(marketInfo, "ruleType");
+            Object isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+            if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "swap")) && !Helpers.isTrue(isExtendedPerpetual)))
             {
-                throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -7691,7 +7694,21 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols, "swap", true);
+            symbols = this.marketSymbols(symbols, null, true);
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                {
+                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+                    Object ruleType = this.safeString(marketInfo, "ruleType");
+                    Object isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                    if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "swap")) && !Helpers.isTrue(isExtendedPerpetual)))
+                    {
+                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), Helpers.GetValue(symbols, i)), " is not")) ;
+                    }
+                }
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", "ANY" );
             }};
