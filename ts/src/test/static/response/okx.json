@@ -11137,7 +11137,7 @@
                 "description": "fetchFundingRate on an XPERP future (long-dated future that still pays funding)",
                 "method": "fetchFundingRate",
                 "input": [
-                    "ETH/USD:USD-310404"
+                    "ETH-USD_UM_XPERP-310404"
                 ],
                 "httpResponse": {
                     "code": "0",
