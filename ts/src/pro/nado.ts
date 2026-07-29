@@ -1092,7 +1092,7 @@ export default class nado extends nadoRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        let trades = this.trades[symbol];
+        let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             trades = new ArrayCache (limit);
@@ -1138,7 +1138,7 @@ export default class nado extends nadoRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.ohlcvs[symbol][timeframe];
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1498,10 +1498,14 @@ export default class nado extends nadoRest {
     handleUnsubscriptionCache (messageHash: string) {
         if (messageHash.indexOf ('trade:') === 0) {
             const symbol = messageHash.replace ('trade:', '');
-            delete this.trades[symbol];
+            if (symbol in this.trades) {
+                delete this.trades[symbol];
+            }
         } else if (messageHash.indexOf ('orderbook:') === 0) {
             const symbol = messageHash.replace ('orderbook:', '');
-            delete this.orderbooks[symbol];
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
         } else if (messageHash.indexOf ('ohlcv:') === 0) {
             const parts = messageHash.split (':');
             const timeframe = this.safeString (parts, 1);
@@ -1511,7 +1515,9 @@ export default class nado extends nadoRest {
             }
         } else if (messageHash.indexOf ('ticker:') === 0) {
             const symbol = messageHash.replace ('ticker:', '');
-            delete this.tickers[symbol];
+            if (symbol in this.tickers) {
+                delete this.tickers[symbol];
+            }
         } else if (messageHash === 'ticker') {
             const symbols = Object.keys (this.tickers);
             for (let i = 0; i < symbols.length; i++) {
@@ -1519,7 +1525,9 @@ export default class nado extends nadoRest {
             }
         } else if (messageHash.indexOf ('bidask:') === 0) {
             const symbol = messageHash.replace ('bidask:', '');
-            delete this.bidsasks[symbol];
+            if (symbol in this.bidsasks) {
+                delete this.bidsasks[symbol];
+            }
         } else if (messageHash === 'bidask') {
             const symbols = Object.keys (this.bidsasks);
             for (let i = 0; i < symbols.length; i++) {
@@ -1584,6 +1592,13 @@ export default class nado extends nadoRest {
         const id = this.safeString (message, 'id');
         const hasResult = ('result' in message);
         const result = this.safeValue (message, 'result');
+        const method = this.safeString (result, 'method');
+        if (method === 'pong') {
+            // pong replies carry both 'id' and 'result' so they must be routed
+            // before the subscription-ack branch below swallows them
+            this.handlePong (client, message);
+            return;
+        }
         if ((id !== undefined) && hasResult) {
             const authentication = this.safeValue (client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
@@ -1600,11 +1615,6 @@ export default class nado extends nadoRest {
                 return;
             }
             this.handleSubscription (client, message);
-            return;
-        }
-        const method = this.safeString (result, 'method');
-        if (method === 'pong') {
-            this.handlePong (client, message);
             return;
         }
         const type = this.safeString (message, 'type');
