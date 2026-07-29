@@ -31,6 +31,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
+          clean: false
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
       - name: Install dependencies
         run: go mod download
@@ -199,6 +200,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:

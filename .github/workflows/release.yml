@@ -36,6 +36,7 @@ jobs:
         with:
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
           fetch-depth: 2
+          clean: false
           fetch-tags: true
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
