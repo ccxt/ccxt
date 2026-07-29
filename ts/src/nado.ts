@@ -1528,8 +1528,18 @@ export default class nado extends Exchange {
         const symbols = this.safeList (responses, 0, []);
         const pairs = this.safeList (responses, 1, []);
         const assets = this.safeList (responses, 2, []);
-        const pairsById = this.indexBy (pairs, 'product_id');
-        const assetsById = this.indexBy (assets, 'product_id');
+        // product_id is a JSON number: JS object keys are always strings but a Python
+        // dict keeps int keys, so indexBy would never match the safeString lookups below
+        const pairsById: Dict = {};
+        for (let i = 0; i < pairs.length; i++) {
+            const rawPair = pairs[i];
+            pairsById[this.safeString (rawPair, 'product_id')] = rawPair;
+        }
+        const assetsById: Dict = {};
+        for (let i = 0; i < assets.length; i++) {
+            const rawAsset = assets[i];
+            assetsById[this.safeString (rawAsset, 'product_id')] = rawAsset;
+        }
         const assetsByCode: Dict = {};
         for (let i = 0; i < assets.length; i++) {
             const rawAsset = assets[i];
