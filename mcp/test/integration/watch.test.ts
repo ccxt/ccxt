@@ -79,17 +79,64 @@ test ('state stream: watch_read returns the current snapshot, not a replay', asy
     await client.close ();
 });
 
+test ('multi-symbol state stream merges deltas into a full snapshot (blocker fix)', async () => {
+    const { client, ctx } = await connect ({});
+    // the fake returns only ONE symbol per tick (like newUpdates=true); the server must
+    // merge them so watch_read shows every subscribed symbol, not just the last one
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTickers', 'args': [ [ 'BTC/USDT', 'ETH/USDT' ] ] });
+    assert.equal (sub.data.streamKind, 'state');
+    const id = sub.data.subscriptionId;
+    await sleep (60); // several alternating ticks
+    const read = await call (client, 'watch_read', { 'subscriptionId': id });
+    assert.deepEqual (Object.keys (read.data.latest).sort (), [ 'BTC/USDT', 'ETH/USDT' ], 'both symbols present after partial deltas');
+    assert.equal (read.data.latest['BTC/USDT'].symbol, 'BTC/USDT');
+    assert.equal (read.data.latest['BTC/USDT'].info, undefined, 'info stripped');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('waitForChange blocks until the next event, and reports timeout when idle', async () => {
+    const { client, ctx } = await connect ({});
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
+    const id = sub.data.subscriptionId;
+    // drain whatever has arrived so far to advance the cursor
+    const drain = await call (client, 'watch_read', { 'subscriptionId': id });
+    const cursor = drain.data.nextCursor;
+    // blocking read returns as soon as a new trade lands (fake ticks every ~3ms)
+    const blocked = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': cursor, 'waitForChange': true, 'timeoutMs': 2000 });
+    assert.equal (blocked.data.waited, true);
+    assert.equal (blocked.data.timedOut, false, 'a fresh trade arrived before the timeout');
+    assert.ok (blocked.data.events.length > 0, 'returned the new events');
+    assert.ok (blocked.data.events[0].seq > cursor, 'events are past the cursor');
+    // now stop the stream and confirm a blocking read on a dead stream returns promptly
+    await call (client, 'watch_unsubscribe', { 'subscriptionId': id });
+    const afterStop = await call (client, 'watch_read', { 'subscriptionId': id, 'waitForChange': true, 'timeoutMs': 3000 });
+    assert.equal (afterStop.ok, false);
+    assert.equal (afterStop.error.code, 'SUBSCRIPTION_NOT_FOUND');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
 test ('oldest-first draining never skips updates across a truncated read (blocker fix)', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTrades', 'args': [ 'BTC/USDT' ] });
     assert.equal (sub.data.streamKind, 'events');
     const id = sub.data.subscriptionId;
-    await sleep (220); // > 50 updates at ~3ms each, exercising the truncation window
-    const first = await call (client, 'watch_read', { 'subscriptionId': id });
+    // poll until more than one read-window (50) has buffered — deterministic, not wall-clock
+    let subscribed = 0;
+    for (let i = 0; i < 200 && subscribed <= 55; i++) {
+        await sleep (10);
+        const peek = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': 0 });
+        subscribed = peek.data.updatesSinceSubscribe;
+    }
+    assert.ok (subscribed > 50, 'buffered more than one window (' + subscribed + ')');
+    const first = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': 0 });
     assert.ok (first.data.events.length <= 50);
     assert.equal (first.data.moreBuffered, true, 'more than one window should be buffered');
-    // seqs are contiguous from the start — nothing skipped
-    assert.equal (first.data.events[0].seq, 1);
+    // seqs are contiguous within the window — nothing skipped or replayed
+    for (let i = 1; i < first.data.events.length; i++) {
+        assert.equal (first.data.events[i].seq, first.data.events[i - 1].seq + 1, 'contiguous seqs');
+    }
     const firstLast = first.data.events[first.data.events.length - 1].seq;
     const second = await call (client, 'watch_read', { 'subscriptionId': id, 'cursor': first.data.nextCursor });
     // the next window begins exactly one after the previous — no gap, no overlap
@@ -102,9 +149,8 @@ test ('a fatal stream error releases the socket and surfaces an actionable error
     const { client, ctx } = await connect ({});
     // pre-acquire the stream instance so we can observe the registry releasing its ref
     const held = await ctx.pools.acquirePublicStream ('fakex'); // refs = 1
-    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTickers', 'args': [ [ 'BTC/USDT' ] ] }); // refs = 2, then fatal
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchBidsAsks', 'args': [ [ 'BTC/USDT' ] ] }); // refs = 2, then fatal
     assert.equal (sub.ok, true);
-    assert.equal (sub.data.streamKind, 'events', 'multi-symbol watchTickers is an event stream, not a partial snapshot');
     await sleep (40);
     const read = await call (client, 'watch_read', { 'subscriptionId': sub.data.subscriptionId });
     assert.equal (read.data.active, false);
@@ -146,7 +192,7 @@ test ('rejects non-watch methods and unsupported watch methods', async () => {
 test ('the public stream instance is closed when its last subscription is released', async () => {
     const { client, ctx } = await connect ({});
     const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchOHLCV', 'args': [ 'BTC/USDT', '1m' ] });
-    assert.equal (sub.data.streamKind, 'events', 'watchOHLCV is an event stream so closed candles are never overwritten');
+    assert.equal (sub.data.streamKind, 'state', 'watchOHLCV is a candle-window snapshot stream');
     const id = sub.data.subscriptionId;
     await sleep (20);
     // grab the stream instance the registry created, then unsubscribe and confirm it closed

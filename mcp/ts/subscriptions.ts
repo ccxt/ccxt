@@ -7,28 +7,57 @@ import { log } from './logging.js';
 // MCP over stdio is request/response, but the server process is long-lived — so streaming
 // is modelled as "subscribe + poll". ccxt.pro maintains a live cache per channel, and two
 // access patterns fall out of that:
-//   - STATE streams (ticker, order book, ohlcv, balance, positions): each watch* returns
-//     the FULL current snapshot ccxt has built up; the agent wants "what is it right now",
-//     so watch_read returns the latest snapshot (no history buffer).
-//   - EVENT streams (trades, my trades, orders): each watch* returns NEW items; the agent
-//     wants every one, so they accumulate in a bounded ring buffer that watch_read drains
-//     oldest-first via a cursor (no skipping, no replay).
+//   - STATE streams (ticker(s), order book(s), ohlcv, balance, positions, ...): the agent
+//     wants "what is it right now". ccxt.pro keeps the FULL current state in the instance,
+//     but with newUpdates=true each watch* returns only the CHANGED subset, so we merge each
+//     delta into a per-subscription accumulator (by symbol / by candle timestamp) and
+//     watch_read returns the coherent full snapshot in `latest` — never a partial delta
+//     mistaken for the whole set. No cursor, no history.
+//   - EVENT streams (trades, my trades, orders, liquidations): each watch* yields NEW items;
+//     the agent wants every one, so they accumulate in a bounded ring buffer that watch_read
+//     drains oldest-first via a cursor (no skipping, no replay).
+// watch_read can also block (waitForChange) until the next update lands — the closest thing
+// to a push in a request/response protocol, and the right fit for slow event streams (fills).
 
 const BUFFER_MAX = 200;             // updates retained per EVENT subscription (ring buffer)
 const READ_MAX = 50;                // event updates returned per watch_read
+const OHLCV_WINDOW = 200;           // candles retained per (symbol, timeframe) in a snapshot
 const IDLE_TTL_MS = 10 * 60 * 1000; // stop a stream with no watch_read for 10 minutes
 const DEAD_TTL_MS = 30 * 1000;      // purge a dead (errored) subscription after 30s
 const MAX_CONSECUTIVE_ERRORS = 5;   // give up a stream after this many back-to-back errors
+const WAIT_DEFAULT_MS = 25 * 1000;  // default block for waitForChange
+const WAIT_MAX_MS = 55 * 1000;      // clamp — stay under typical host tool-call timeouts
 
 const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|MyLiquidations|Balance|Positions)/;
-// STATE = a watch* that returns the COMPLETE current object for a SINGLE entity each call
-// (one symbol's ticker or order book) — watch_read returns that snapshot in `latest`.
-// Everything else — multi-symbol/aggregating (watchTickers/watchPositions/watchBalance/…)
-// or discrete-event (watchTrades/watchOrders/watchOHLCV) — is an EVENT stream, so with
-// newUpdates=true only the CHANGED subset arrives each cycle and must NOT be treated as a
-// full snapshot; those deltas accumulate in the ring buffer, and the agent uses the fetch*
-// tools (get_tickers/get_positions/get_balance/get_ohlcv) when it wants a full snapshot.
-const STATE_STREAM_RE = /^watch(Ticker|OrderBook)$/;
+// STATE = a watch* whose value is the CURRENT STATE of something (a snapshot the agent reads
+// on demand), as opposed to a log of discrete events. All snapshot streams keep a merged
+// accumulator so watch_read always returns the full current set; see accumulate() for how
+// each shape (single object / symbol-keyed dict / positions array / candle window) is merged.
+const STATE_STREAM_RE = /^watch(Ticker|Tickers|OrderBook|OrderBookForSymbols|OHLCV|OHLCVForSymbols|Balance|Positions|BidsAsks|MarkPrice|MarkPrices|FundingRate|FundingRates)$/;
+
+type SnapshotStrategy = 'replace' | 'mergeDict' | 'upsertArray' | 'mergeBook' | 'window';
+
+// how each snapshot method's delta merges into the accumulator:
+//  - replace:     the watch* return IS the whole object (single ticker/book/balance) — store it
+//  - mergeDict:   a { symbol: item } delta — merge keys so all subscribed symbols persist
+//  - upsertArray: a positions array delta — upsert by symbol+side, emit the full array
+//  - mergeBook:   one order book per tick (…ForSymbols) — key by its own symbol
+//  - window:      a { symbol: { timeframe: candles } } delta — merge candles by timestamp
+function snapshotStrategy (method: string): SnapshotStrategy {
+    if (/^watch(Tickers|BidsAsks|MarkPrices|FundingRates)$/.test (method)) {
+        return 'mergeDict';
+    }
+    if (/^watchPositions$/.test (method)) {
+        return 'upsertArray';
+    }
+    if (/^watchOrderBookForSymbols$/.test (method)) {
+        return 'mergeBook';
+    }
+    if (/^watch(OHLCV|OHLCVForSymbols)$/.test (method)) {
+        return 'window';
+    }
+    return 'replace';
+}
 
 interface Update {
     seq: number;
@@ -48,14 +77,17 @@ interface Subscription {
     exchangeId: string;
     method: string;
     kind: 'state' | 'events';
+    strategy: SnapshotStrategy | undefined; // state streams only
     args: any[];
     argsKey: string;
     account: string | undefined;
     environment: string | undefined;
     streamKey: string | undefined;
     exchange: any;
-    latest: Update | undefined;   // state streams: the current snapshot
+    latest: Update | undefined;   // state streams: the current merged snapshot
+    accumulator: any;             // state streams: merge target (shape depends on strategy)
     buffer: Update[];             // event streams: the ring buffer
+    waiters: Array<() => void>;   // waitForChange callbacks, resolved on the next update
     seq: number;
     totalUpdates: number;
     lastReadSeq: number;
@@ -149,6 +181,7 @@ export class SubscriptionRegistry {
                 'exchangeId': exchange.id,
                 method,
                 kind,
+                'strategy': (kind === 'state') ? snapshotStrategy (method) : undefined,
                 args,
                 'argsKey': JSON.stringify (args),
                 'account': opts.account,
@@ -156,7 +189,9 @@ export class SubscriptionRegistry {
                 streamKey,
                 exchange,
                 'latest': undefined,
+                'accumulator': undefined,
                 'buffer': [],
+                'waiters': [],
                 'seq': 0,
                 'totalUpdates': 0,
                 'lastReadSeq': 0,
@@ -239,6 +274,53 @@ export class SubscriptionRegistry {
         // true = more buffered updates remain beyond this window; call again with nextCursor
         common['moreBuffered'] = fresh.length > returned.length;
         return common;
+    }
+
+    // watch_read with optional blocking: if waitForChange and there is nothing new yet, park
+    // until the next update lands (or the stream stops, or the timeout elapses), then read.
+    // This is the "notify me on the next fill" pattern — one long request instead of polling.
+    async readWaiting (id: string, cursor?: number, waitForChange = false, timeoutMs?: number): Promise<any> {
+        const sub = this.subs.get (id);
+        if (sub === undefined) {
+            return { 'found': false };
+        }
+        let timedOut = false;
+        if (waitForChange && sub.active && !this.hasNewSince (sub, cursor)) {
+            timedOut = !(await this.waitForUpdate (sub, timeoutMs));
+        }
+        const result = this.read (id, cursor);
+        if (waitForChange && result.found !== false) {
+            result.waited = true;
+            result.timedOut = timedOut;
+        }
+        return result;
+    }
+
+    private hasNewSince (sub: Subscription, cursor?: number): boolean {
+        if (sub.kind === 'state') {
+            return sub.seq > sub.lastReadSeq;
+        }
+        const from = cursor ?? 0;
+        return sub.buffer.some ((u) => u.seq > from);
+    }
+
+    // resolves true when a fresh update arrives, false on timeout; also resolves on stop/error
+    private waitForUpdate (sub: Subscription, timeoutMs?: number): Promise<boolean> {
+        const ms = Math.min (WAIT_MAX_MS, Math.max (1000, timeoutMs ?? WAIT_DEFAULT_MS));
+        return new Promise<boolean> ((resolve) => {
+            let settled = false;
+            let timer: ReturnType<typeof setTimeout>;
+            const done = (changed: boolean) => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                clearTimeout (timer);
+                resolve (changed);
+            };
+            sub.waiters.push (() => done (true));
+            timer = this.armTimer (() => done (false), ms);
+        });
     }
 
     unsubscribe (id: string): boolean {
@@ -330,6 +412,7 @@ export class SubscriptionRegistry {
             sub.timer = undefined;
         }
         sub.stopResolve (sub.stopSentinel);
+        this.notifyWaiters (sub); // unblock any waitForChange
         this.subs.delete (sub.id);
         if (wasActive) {
             this.releaseTransport (sub);
@@ -356,6 +439,7 @@ export class SubscriptionRegistry {
                         'hint': 'the stream stopped and will not resume — fix the cause (e.g. credentials/permissions for a private stream, or the symbol) and call watch_subscribe again; do not keep polling watch_read',
                     };
                     sub.active = false;
+                    this.notifyWaiters (sub); // unblock any waitForChange with the error
                     // free the socket now, keep the record readable, then reap it so it
                     // stops occupying a subscription slot
                     this.releaseTransport (sub);
@@ -375,15 +459,25 @@ export class SubscriptionRegistry {
             sub.seq += 1;
             sub.totalUpdates += 1;
             sub.lastUpdateAt = Date.now ();
-            const update: Update = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': trimWatchUpdate (sub.method, result) };
             if (sub.kind === 'state') {
-                sub.latest = update;
+                // merge this delta into the running snapshot (never overwrite with a subset)
+                sub.latest = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': accumulate (sub, result) };
             } else {
+                const update: Update = { 'seq': sub.seq, 'ts': sub.lastUpdateAt, 'data': trimWatchUpdate (sub.method, result) };
                 sub.buffer.push (update);
                 if (sub.buffer.length > BUFFER_MAX) {
                     sub.buffer.splice (0, sub.buffer.length - BUFFER_MAX);
                 }
             }
+            this.notifyWaiters (sub);
+        }
+    }
+
+    // wake every waitForChange caller parked on this subscription (new update, or it stopped)
+    private notifyWaiters (sub: Subscription): void {
+        const waiters = sub.waiters.splice (0);
+        for (const wake of waiters) {
+            wake ();
         }
     }
 
@@ -409,6 +503,110 @@ export class SubscriptionRegistry {
     }
 }
 
+// merge a state stream's latest delta into its running snapshot and return the full snapshot.
+// Never overwrites the accumulator with a partial subset — that was the blocker this fixes.
+function accumulate (sub: Subscription, result: any): any {
+    const strategy = sub.strategy;
+    if (strategy === 'replace' || strategy === undefined) {
+        // the watch* return is already the whole object (single ticker/book/balance)
+        sub.accumulator = trimWatchUpdate (sub.method, result);
+        return sub.accumulator;
+    }
+    if (sub.accumulator === undefined) {
+        sub.accumulator = {};
+    }
+    if (strategy === 'mergeDict') {
+        // { symbol: ticker } delta — keep every subscribed symbol, refresh the ones that ticked
+        const entries = Array.isArray (result) ? result.map ((t: any) => [ t?.symbol, t ]) : Object.entries (result ?? {});
+        for (const [ symbol, ticker ] of entries) {
+            if (symbol !== undefined && symbol !== null) {
+                sub.accumulator[symbol] = project (ticker, TICKER_FIELDS);
+            }
+        }
+        return sub.accumulator;
+    }
+    if (strategy === 'mergeBook') {
+        // one order book per tick (…ForSymbols) — key by its own symbol
+        const books = Array.isArray (result) ? result : [ result ];
+        for (const book of books) {
+            if (book !== null && book !== undefined && book.symbol !== undefined) {
+                sub.accumulator[book.symbol] = trimOrderBook (book);
+            }
+        }
+        return sub.accumulator;
+    }
+    if (strategy === 'upsertArray') {
+        // positions array delta — upsert by symbol+side (a closed position arrives with
+        // contracts=0, which is correct to keep; the agent sees it flatten, not vanish)
+        const items = Array.isArray (result) ? result : ((result === null || result === undefined) ? [] : [ result ]);
+        for (const item of items) {
+            const key = String (item?.symbol ?? '') + '|' + String (item?.side ?? '');
+            sub.accumulator[key] = project (item, POSITION_FIELDS);
+        }
+        return Object.values (sub.accumulator);
+    }
+    // window: merge candles by timestamp into a bounded recent window per (symbol, timeframe)
+    // so closed candles are never lost. watchOHLCV returns a flat candle array (keyed here by
+    // the subscription's own symbol/timeframe args); watchOHLCVForSymbols returns a nested
+    // { symbol: { timeframe: candles } } object.
+    mergeOhlcvWindow (sub.accumulator, result, sub.args);
+    return buildOhlcvSnapshot (sub.accumulator);
+}
+
+function trimOrderBook (data: any): any {
+    return {
+        'symbol': data.symbol,
+        'timestamp': data.timestamp,
+        'datetime': data.datetime,
+        'nonce': data.nonce,
+        'bids': (data.bids ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
+        'asks': (data.asks ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
+    };
+}
+
+function mergeOhlcvWindow (acc: Record<string, Record<string, Map<number, any>>>, result: any, args: any[]): void {
+    const add = (symbol: string, timeframe: string, candles: any) => {
+        if (!Array.isArray (candles)) {
+            return;
+        }
+        acc[symbol] = acc[symbol] ?? {};
+        const byTs = acc[symbol][timeframe] ?? new Map<number, any> ();
+        acc[symbol][timeframe] = byTs;
+        for (const candle of candles) {
+            if (Array.isArray (candle) && candle[0] !== undefined) {
+                byTs.set (candle[0], candle);
+            }
+        }
+    };
+    if (Array.isArray (result)) {
+        // watchOHLCV: a flat candle array — key it by this subscription's symbol/timeframe
+        const symbol = (typeof args[0] === 'string') ? args[0] : 'symbol';
+        const timeframe = (typeof args[1] === 'string') ? args[1] : 'default';
+        add (symbol, timeframe, result);
+        return;
+    }
+    // watchOHLCVForSymbols: nested { symbol: { timeframe: candles } }
+    for (const [ symbol, byTimeframe ] of Object.entries (result ?? {})) {
+        if (byTimeframe !== null && typeof byTimeframe === 'object' && !Array.isArray (byTimeframe)) {
+            for (const [ timeframe, candles ] of Object.entries (byTimeframe as Record<string, any>)) {
+                add (symbol, timeframe, candles);
+            }
+        }
+    }
+}
+
+function buildOhlcvSnapshot (acc: Record<string, Record<string, Map<number, any>>>): any {
+    const out: Record<string, any> = {};
+    for (const [ symbol, byTimeframe ] of Object.entries (acc)) {
+        out[symbol] = {};
+        for (const [ timeframe, byTs ] of Object.entries (byTimeframe)) {
+            const sorted = [ ...byTs.values () ].sort ((a, b) => a[0] - b[0]);
+            out[symbol][timeframe] = sorted.slice (-OHLCV_WINDOW);
+        }
+    }
+    return out;
+}
+
 // keep updates small: project to the same fields the fetch* tools return, and cap
 // array-valued streams (order book depth, trade/order batches, ohlcv candles)
 function trimWatchUpdate (method: string, data: any): any {
@@ -417,14 +615,7 @@ function trimWatchUpdate (method: string, data: any): any {
     }
     const m = method.toLowerCase ();
     if (m.includes ('orderbook')) {
-        return {
-            'symbol': data.symbol,
-            'timestamp': data.timestamp,
-            'datetime': data.datetime,
-            'nonce': data.nonce,
-            'bids': (data.bids ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
-            'asks': (data.asks ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
-        };
+        return trimOrderBook (data);
     }
     if (m.includes ('ohlcv')) {
         return Array.isArray (data) ? data.slice (-5) : data;

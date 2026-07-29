@@ -49,7 +49,8 @@ export class FakeExchange {
         'watchOHLCV': true,
         'watchTrades': true,
         'watchOrderBook': false,
-        'watchTickers': true, // used to exercise the fatal-error path (always throws)
+        'watchTickers': true, // multi-symbol STATE stream — used to test snapshot merging
+        'watchBidsAsks': true, // used to exercise the fatal-error path (always throws)
         'watchOrders': true,  // private — used to test the account-required guard
         'createOrder': true,
         'cancelOrder': true,
@@ -227,9 +228,22 @@ export class FakeExchange {
         return [ { 'id': 'wt' + this.watchTick, symbol, 'side': 'buy', 'price': 50000, 'amount': 0.01, 'cost': 500, 'info': { 'raw': true } } ];
     }
 
+    private tickerToggle = 0;
+
+    // multi-symbol snapshot stream that, like ccxt.pro with newUpdates=true, returns only the
+    // ONE symbol that changed this cycle — the server must merge these into a full snapshot
+    async watchTickers (symbols?: string[]): Promise<any> {
+        await this.nextTick ();
+        this.watchTick += 1;
+        const list = (Array.isArray (symbols) && symbols.length > 0) ? symbols : [ 'BTC/USDT' ];
+        const symbol = list[this.tickerToggle % list.length];
+        this.tickerToggle += 1;
+        return { [symbol]: { symbol, 'last': 50000 + this.watchTick, 'bid': 49999, 'ask': 50001, 'info': { 'raw': true } } };
+    }
+
     // always throws a fatal-class error, to exercise the terminal-error socket release
-    async watchTickers (): Promise<any> {
-        throw new BadSymbol ('fakex has no ticker-stream for this symbol');
+    async watchBidsAsks (): Promise<any> {
+        throw new BadSymbol ('fakex has no bidsAsks stream for this symbol');
     }
 
     private nextTick (): Promise<void> {
