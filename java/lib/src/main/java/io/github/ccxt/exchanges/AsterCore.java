@@ -4792,12 +4792,13 @@ public class AsterCore extends AsterApi
             Object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             Object walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            Object cachedPrivateKey = this.safeString(this.options, "privateKeyForCachedWalletAddress");
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(walletAddress, null))) || Helpers.isTrue((!Helpers.isEqual(cachedPrivateKey, this.privateKey)))))
+            Object privateKeyHash = this.hash(this.privateKey, keccak(), "hex");
+            Object cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(walletAddress, null))) || Helpers.isTrue((!Helpers.isEqual(cachedPrivateKeyHash, privateKeyHash)))))
             {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
                 Helpers.addElementToObject(this.options, "cachedWalletAddress", walletAddress);
-                Helpers.addElementToObject(this.options, "privateKeyForCachedWalletAddress", this.privateKey);
+                Helpers.addElementToObject(this.options, "privateKeyHashForCachedWalletAddress", privateKeyHash);
             }
             Object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
