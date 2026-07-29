@@ -1,4 +1,4 @@
-name: Release workflow
+name: Release Short workflow
 
 on:
   workflow_dispatch:
