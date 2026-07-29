@@ -6692,6 +6692,10 @@ public partial class BaseExchange
         var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        parameters = this.omit(parameters, "paginationDirection");
         object current = this.milliseconds();
         object tasks = new List<object>() {};
         object time = multiply(this.parseTimeframe(timeframe), 1000);
