@@ -3,12 +3,11 @@ import { Precise } from '../base/Precise.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
 import type {
-    Int, int, Str, Dict, Strings,
+    Int, int, Str, Dict, Strings, Num,
     Market, PredictionOrderBook,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder,
     fetchEventsParams,
     Balances,
-    PredictionOutcome,
     PredictionPosition,
     PredictionTrade,
 } from '../base/types.js';
