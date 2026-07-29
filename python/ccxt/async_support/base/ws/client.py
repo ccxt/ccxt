@@ -299,9 +299,14 @@ class Client(object):
         if 'cookies' in self.options:
             for key, value in self.options['cookies'].items():
                 session.cookie_jar.update_cookies({key: value})
+        # offer permessage-deflate (RFC 7692) by default, matching the JS `ws` client and
+        # browsers - some gateways (e.g. nado behind cloudflare) 403 handshakes without the
+        # Sec-WebSocket-Extensions offer; servers that don't support it simply ignore it.
+        # can be disabled per exchange via options['ws'] = {'compress': 0}
+        compress = self.options.get('compress', 15)
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:
