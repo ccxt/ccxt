@@ -4896,7 +4896,13 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
 		var zeroAddress any = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId any = this.SafeInteger(this.Options, "v3ChainId", 1666)
-		var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		var walletAddress any = this.SafeString(this.Options, "cachedWalletAddress")
+		var cachedPrivateKey any = this.SafeString(this.Options, "privateKeyForCachedWalletAddress")
+		if IsTrue(IsTrue((IsEqual(walletAddress, nil))) || IsTrue((!IsEqual(cachedPrivateKey, this.PrivateKey)))) {
+			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+			AddElementToObject(this.Options, "cachedWalletAddress", walletAddress)
+			AddElementToObject(this.Options, "privateKeyForCachedWalletAddress", this.PrivateKey)
+		}
 		var signerAddress any = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet
 		if IsTrue(IsEqual(signerAddress, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " requires signerAddress in options when use v3 api")))
@@ -5003,8 +5009,8 @@ func (this *AsterCore) LoadMarketsAndSignIn() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes42428 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes42428)
+		retRes42488 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes42488)
 		return nil
 	}()
 	return ch
@@ -5037,8 +5043,8 @@ func (this *AsterCore) SignIn(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
 		}
 
-		retRes42638 := (<-this.InitializeClient(params))
-		PanicOnError(retRes42638)
+		retRes42698 := (<-this.InitializeClient(params))
+		PanicOnError(retRes42698)
 
 		ch <- true
 		return nil
