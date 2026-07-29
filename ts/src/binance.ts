@@ -1632,6 +1632,7 @@ export default class binance extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'rollingWindow': true,
                 },
                 'forDerivatives': {
                     'sandbox': true,
@@ -1707,6 +1708,7 @@ export default class binance extends Exchange {
                     'fetchOHLCV': {
                         'limit': 500,
                     },
+                    'rollingWindow': true,
                 },
                 'swap': {
                     'linear': {
