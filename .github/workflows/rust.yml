@@ -18,8 +18,9 @@ jobs:
     # isolated feature checks incl. the ~100-core transpiled-ws combo, clippy,
     # the examples' own recompile, and the test build). After the crate grew
     # from an upstream merge the cumulative time crossed 60 min and the runner
-    # SIGTERM'd mid-compile (exit 143). 90 gives headroom.
-    timeout-minutes: 90
+    # SIGTERM'd mid-compile (exit 143). 120 covers a cold-cache run; the
+    # rust-cache step above makes subsequent runs much faster.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
         if: github.ref == 'refs/heads/master'
