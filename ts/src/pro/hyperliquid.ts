@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -35,6 +35,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'unWatchMyTrades': true,
                 'unWatchOrders': true,
             },
@@ -832,6 +833,36 @@ export default class hyperliquid extends hyperliquidRest {
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend (request, params);
         return await this.watch (url, messagehash, message, messagehash);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, close price, and the volume of multiple markets
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of the exchange responses, one per unsubscribed symbol and timeframe
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires an array of symbols and timeframes, like  [['BTC/USDC:USDC', '1m'], ['ETH/USDC:USDC', '5m']]");
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+        const unifiedSymbols = this.marketSymbols (symbols, undefined, false);
+        // hyperliquid subscribes candles per coin and interval, so each pair needs its own unsubscribe message
+        const results = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const timeframe = this.safeString (symbolAndTimeframe, 1, '1m');
+            const result = await this.unWatchOHLCV (unifiedSymbols[i], timeframe, params);
+            results.push (result);
+        }
+        return results;
     }
 
     handleOHLCV (client: Client, message) {
