@@ -4154,7 +4154,13 @@ export default class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString (this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger (this.options, 'v3ChainId', 1666);
-            const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+            let walletAddress = this.safeString (this.options, 'cachedWalletAddress');
+            const cachedPrivateKey = this.safeString (this.options, 'privateKeyForCachedWalletAddress');
+            if ((walletAddress === undefined) || (cachedPrivateKey !== this.privateKey)) {
+                walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+                this.options['cachedWalletAddress'] = walletAddress;
+                this.options['privateKeyForCachedWalletAddress'] = this.privateKey;
+            }
             const signerAddress = this.safeString (this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
