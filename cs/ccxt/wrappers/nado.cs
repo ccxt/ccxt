@@ -95,6 +95,32 @@ public partial class nado
         return new Order(res);
     }
     /// <summary>
+    /// build and sign the place_order execute payload
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the request payload for the place_order execute.</returns>
+    public async Task<Dictionary<string, object>> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// edit a trade order
     /// </summary>
     /// <remarks>
@@ -163,6 +189,33 @@ public partial class nado
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// build and sign the cancel_and_place execute payload
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the request payload for the cancel_and_place execute.</returns>
+    public async Task<Dictionary<string, object>> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// cancels an open order
@@ -247,6 +300,31 @@ public partial class nado
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// build and sign the cancel_product_orders execute payload
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, when undefined all orders for all products are canceled
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the request payload for the cancel_product_orders execute.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersRequest(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersRequest(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
@@ -289,6 +367,25 @@ public partial class nado
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// build and sign the cancel_orders execute payload
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the request payload for the cancel_orders execute.</returns>
+    public async Task<Dictionary<string, object>> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersRequest(ids, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches information on an order made by the user

@@ -1754,6 +1754,17 @@ export default class bitget extends bitgetRest {
         const isLinearSwap = (category === 'usdt-futures');
         const isInverseSwap = (category === 'coin-futures');
         const isUSDCFutures = (category === 'usdc-futures');
+        if (instType === 'uta') {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            // watcher never matches. Derive marketType from category for UTA.
+            if ((category === 'spot') || (category === 'margin')) {
+                marketType = 'spot';
+            } else {
+                marketType = 'contract';
+            }
+        }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -2241,9 +2252,24 @@ export default class bitget extends bitgetRest {
         const data = this.safeList (message, 'data', []);
         const length = data.length;
         const messageHash = 'myTrades';
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
         for (let i = 0; i < length; i++) {
             const trade = data[i];
-            const parsed = this.parseWsTrade (trade);
+            let market: Market = undefined;
+            if (instType === 'uta') {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+                // otherwise resolves to the swap market and the messageHash never matches).
+                const category = this.safeStringLower (trade, 'category');
+                let marketType = 'contract';
+                if ((category === 'spot') || (category === 'margin')) {
+                    marketType = 'spot';
+                }
+                const marketId = this.safeString2 (trade, 'instId', 'symbol');
+                market = this.safeMarket (marketId, undefined, undefined, marketType);
+            }
+            const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const symbolSpecificMessageHash = 'myTrades:' + symbol;

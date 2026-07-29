@@ -57,7 +57,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.69'; }
+    static { this.ccxtVersion = '4.5.70'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -7205,6 +7205,10 @@ export class BaseExchange {
         let maxCalls = undefined;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
         [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        params = this.omit(params, 'paginationDirection');
         const current = this.milliseconds();
         const tasks = [];
         const time = this.parseTimeframe(timeframe) * 1000;

@@ -1126,6 +1126,10 @@ class NewTranspiler {
         //     ''
         // ]
         const blacklistMethods = new Set ([
+            'createOrderRequest',
+            'editOrderRequest',
+            'cancelOrdersRequest',
+            'cancelAllOrdersRequest',
             'createContractOrder',
             'createNetworksByIdObject',
             'createSpotOrder',

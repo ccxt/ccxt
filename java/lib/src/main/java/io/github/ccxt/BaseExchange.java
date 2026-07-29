@@ -11487,6 +11487,10 @@ public Object describe()
             var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
+            // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+            // pagination always walks forward internally, so strip it here to avoid leaking an
+            // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+            parameters = this.omit(parameters, "paginationDirection");
             Object current = this.milliseconds();
             Object tasks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);

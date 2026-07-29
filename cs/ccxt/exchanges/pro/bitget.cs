@@ -1950,6 +1950,20 @@ public partial class bitget : ccxt.bitget
         object isLinearSwap = (isEqual(category, "usdt-futures"));
         object isInverseSwap = (isEqual(category, "coin-futures"));
         object isUSDCFutures = (isEqual(category, "usdc-futures"));
+        if (isTrue(isEqual(instType, "uta")))
+        {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            // watcher never matches. Derive marketType from category for UTA.
+            if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "margin")))))
+            {
+                marketType = "spot";
+            } else
+            {
+                marketType = "contract";
+            }
+        }
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2481,10 +2495,27 @@ public partial class bitget : ccxt.bitget
         object data = this.safeList(message, "data", new List<object>() {});
         object length = getArrayLength(data);
         object messageHash = "myTrades";
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object trade = getValue(data, i);
-            object parsed = this.parseWsTrade(trade);
+            object market = null;
+            if (isTrue(isEqual(instType, "uta")))
+            {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+                // otherwise resolves to the swap market and the messageHash never matches).
+                object category = this.safeStringLower(trade, "category");
+                object marketType = "contract";
+                if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "margin")))))
+                {
+                    marketType = "spot";
+                }
+                object marketId = this.safeString2(trade, "instId", "symbol");
+                market = this.safeMarket(marketId, null, null, marketType);
+            }
+            object parsed = this.parseWsTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
             object symbolSpecificMessageHash = add("myTrades:", symbol);

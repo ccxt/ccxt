@@ -4440,7 +4440,15 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            object walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            object privateKeyHash = this.hash(this.privateKey, keccak, "hex");
+            object cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
+            if (isTrue(isTrue((isEqual(walletAddress, null))) || isTrue((!isEqual(cachedPrivateKeyHash, privateKeyHash)))))
+            {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                ((IDictionary<string,object>)this.options)["cachedWalletAddress"] = walletAddress;
+                ((IDictionary<string,object>)this.options)["privateKeyHashForCachedWalletAddress"] = privateKeyHash;
+            }
             object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (isTrue(isEqual(signerAddress, null)))
             {

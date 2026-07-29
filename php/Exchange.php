@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.69';
+$version = '4.5.70';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.69';
+    const VERSION = '4.5.70';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.69';
+    public static $ccxt_version = '4.5.70';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -532,18 +532,45 @@ class BaseExchange {
     }
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_string($object, $key1);
-        return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
+        $val = $object[$key1] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return $val;
+            else if (is_numeric($val)) return (string)$val;
+        }
+        $val = $object[$key2] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return $val;
+            else if (is_numeric($val)) return (string)$val;
+        }
+        return $default_value;
     }
 
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_string_lower($object, $key1);
-        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+        $val = $object[$key1] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return strtolower($val);
+            else if (is_numeric($val)) return strtolower((string)$val);
+        }
+        $val = $object[$key2] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return strtolower($val);
+            else if (is_numeric($val)) return strtolower((string)$val);
+        }
+        return $default_value;
     }
 
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_string_upper($object, $key1);
-        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
+        $val = $object[$key1] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return strtoupper($val);
+            else if (is_numeric($val)) return strtoupper((string)$val);
+        }
+        $val = $object[$key2] ?? null;
+        if ($val !== null) {
+            if (is_string($val) && $val !== '') return strtoupper($val);
+            else if (is_numeric($val)) return strtoupper((string)$val);
+        }
+        return $default_value;
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
@@ -574,27 +601,26 @@ class BaseExchange {
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') {
-                return $value;
-            } else if (is_numeric($value)) {
-                return (string)$value;
-            }
+            if (is_string($value) && $value !== '') return $value;
+            else if (is_numeric($value)) return (string)$value;
         }
         return $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
-        $value = static::safe_string_n($object, $array);
-        if (isset($value)) {
-            return strtolower($value);
+        $value = static::get_object_value_from_key_array($object, $array);
+        if ($value !== null) {
+            if (is_string($value) && $value !== '') return strtolower($value);
+            else if (is_numeric($value)) return strtolower((string)$value);
         }
         return $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
-        $value = static::safe_string_n($object, $array);
-        if (isset($value)) {
-            return strtoupper($value);
+        $value = static::get_object_value_from_key_array($object, $array);
+        if ($value !== null) {
+            if (is_string($value) && $value !== '') return strtoupper($value);
+            else if (is_numeric($value)) return strtoupper((string)$value);
         }
         return $default_value;
     }
@@ -8170,6 +8196,10 @@ class BaseExchange {
         $maxCalls = null;
         list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        $params = $this->omit($params, 'paginationDirection');
         $current = $this->milliseconds();
         $tasks = array();
         $time = $this->parse_timeframe($timeframe) * 1000;
