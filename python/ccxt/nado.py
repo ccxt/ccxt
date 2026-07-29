@@ -370,6 +370,40 @@ class nado(Exchange, ImplicitAPI):
         self.check_required_credentials()
         self.load_markets()
         market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        placeOrder = self.safe_dict(request, 'place_order', {})
+        isTriggerOrder = ('trigger' in placeOrder)
+        response = None
+        if isTriggerOrder:
+            response = self.triggerPrivatePostExecute(request)
+        else:
+            response = self.gatewayPrivatePostExecute(request)
+        #
+        #     {
+        #         "status": "success",
+        #         "signature": "0x...",
+        #         "data": {
+        #             "digest": "0x..."
+        #         },
+        #         "request_type": "execute_place_order",
+        #         "id": 100
+        #     }
+        #
+        return self.parse_order(self.extend({'place_order': placeOrder}, response), market)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
+        """
+ @ignore
+        build and sign the place_order execute payload
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: must be 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the request payload for the place_order execute
+        """
+        market = self.market(symbol)
         if type != 'limit':
             raise InvalidOrder(self.id + ' createOrder() supports limit orders only')
         if price is None:
@@ -455,23 +489,7 @@ class nado(Exchange, ImplicitAPI):
         request = {
             'place_order': placeOrder,
         }
-        response = None
-        if isTriggerOrder:
-            response = self.triggerPrivatePostExecute(self.extend(request, params))
-        else:
-            response = self.gatewayPrivatePostExecute(self.extend(request, params))
-        #
-        #     {
-        #         "status": "success",
-        #         "signature": "0x...",
-        #         "data": {
-        #             "digest": "0x..."
-        #         },
-        #         "request_type": "execute_place_order",
-        #         "id": 100
-        #     }
-        #
-        return self.parse_order(self.extend({'place_order': placeOrder}, response), market)
+        return self.extend(request, params)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
@@ -499,6 +517,36 @@ class nado(Exchange, ImplicitAPI):
         """
         self.check_required_credentials()
         self.load_markets()
+        market = self.market(symbol)
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        response = self.gatewayPrivatePostExecute(request)
+        #
+        #     {
+        #         "status": "success",
+        #         "signature": "0x...",
+        #         "data": {
+        #             "digest": "0x..."
+        #         },
+        #         "request_type": "execute_cancel_and_place"
+        #     }
+        #
+        cancelAndPlace = self.safe_dict(request, 'cancel_and_place', {})
+        placeOrder = self.safe_dict(cancelAndPlace, 'place_order', {})
+        return self.parse_order(self.extend({'place_order': placeOrder}, response), market)
+
+    def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> dict:
+        """
+ @ignore
+        build and sign the cancel_and_place execute payload
+        :param str id: order id
+        :param str symbol: unified symbol of the market to edit an order in
+        :param str type: must be 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the request payload for the cancel_and_place execute
+        """
         market = self.market(symbol)
         if type != 'limit':
             raise InvalidOrder(self.id + ' editOrder() supports limit orders only')
@@ -569,18 +617,7 @@ class nado(Exchange, ImplicitAPI):
         request = {
             'cancel_and_place': cancelAndPlace,
         }
-        response = self.gatewayPrivatePostExecute(self.extend(request, params))
-        #
-        #     {
-        #         "status": "success",
-        #         "signature": "0x...",
-        #         "data": {
-        #             "digest": "0x..."
-        #         },
-        #         "request_type": "execute_cancel_and_place"
-        #     }
-        #
-        return self.parse_order(self.extend({'place_order': placeOrder}, response), market)
+        return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
@@ -615,42 +652,14 @@ class nado(Exchange, ImplicitAPI):
         self.check_required_credentials()
         self.load_markets()
         market = None
-        productIds = []
         if symbol is not None:
             market = self.market(symbol)
-            productIds.append(self.parse_to_int(market['id']))
-        subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
-        sender = self.create_subaccount(self.walletAddress, subaccount)
-        recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
-        nonce = self.create_order_nonce(recvWindow)
-        tx = {
-            'sender': sender,
-            'productIds': productIds,
-            'nonce': nonce,
-        }
-        contracts = self.query_contracts()
-        chainId = self.safe_string(contracts, 'chain_id')
-        endpointAddress = self.safe_string(contracts, 'endpoint_addr')
-        if endpointAddress is None:
-            raise ExchangeError(self.id + ' cancelAllOrders() requires endpoint_addr from contracts query')
-        signature = self.sign_cancellation_products(tx, chainId, endpointAddress)
-        requestId = self.safe_integer(params, 'id')
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['id', 'stop', 'trigger'])
-        cancelProductOrders = {
-            'tx': tx,
-            'signature': signature,
-        }
-        if requestId is not None:
-            cancelProductOrders['id'] = requestId
-        request = {
-            'cancel_product_orders': cancelProductOrders,
-        }
+        params = self.omit(params, ['stop', 'trigger'])
+        request = self.cancel_all_orders_request(symbol, params)
         response = None
         if trigger:
-            response = self.triggerPrivatePostExecute(self.extend(request, params))
+            response = self.triggerPrivatePostExecute(request)
             #
             # {
             #     "status": "success",
@@ -659,7 +668,7 @@ class nado(Exchange, ImplicitAPI):
             # }
             #
         else:
-            response = self.gatewayPrivatePostExecute(self.extend(request, params))
+            response = self.gatewayPrivatePostExecute(request)
             #
             #     {
             #         "status": "success",
@@ -692,6 +701,48 @@ class nado(Exchange, ImplicitAPI):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
+    def cancel_all_orders_request(self, symbol: Str = None, params={}) -> dict:
+        """
+ @ignore
+        build and sign the cancel_product_orders execute payload
+        :param str [symbol]: unified market symbol, when None all orders for all products are canceled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the request payload for the cancel_product_orders execute
+        """
+        productIds = []
+        if symbol is not None:
+            market = self.market(symbol)
+            productIds.append(self.parse_to_int(market['id']))
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
+        sender = self.create_subaccount(self.walletAddress, subaccount)
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
+        nonce = self.create_order_nonce(recvWindow)
+        tx = {
+            'sender': sender,
+            'productIds': productIds,
+            'nonce': nonce,
+        }
+        contracts = self.query_contracts()
+        chainId = self.safe_string(contracts, 'chain_id')
+        endpointAddress = self.safe_string(contracts, 'endpoint_addr')
+        if endpointAddress is None:
+            raise ExchangeError(self.id + ' cancelAllOrders() requires endpoint_addr from contracts query')
+        signature = self.sign_cancellation_products(tx, chainId, endpointAddress)
+        requestId = self.safe_integer(params, 'id')
+        params = self.omit(params, ['id'])
+        cancelProductOrders = {
+            'tx': tx,
+            'signature': signature,
+        }
+        if requestId is not None:
+            cancelProductOrders['id'] = requestId
+        request = {
+            'cancel_product_orders': cancelProductOrders,
+        }
+        return self.extend(request, params)
+
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
@@ -712,49 +763,12 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        productId = self.parse_to_int(market['id'])
-        subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'cancelOrders', 'subaccount', 'default')
-        sender = self.create_subaccount(self.walletAddress, subaccount)
-        productIds = []
-        for i in range(0, len(ids)):
-            productIds.append(productId)
-        recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'cancelOrders', 'recvWindow', 5000)
-        nonce = self.create_order_nonce(recvWindow)
-        tx = {
-            'sender': sender,
-            'productIds': productIds,
-            'digests': ids,
-            'nonce': nonce,
-        }
-        contracts = self.query_contracts()
-        chainId = self.safe_string(contracts, 'chain_id')
-        endpointAddress = self.safe_string(contracts, 'endpoint_addr')
-        if endpointAddress is None:
-            raise ExchangeError(self.id + ' cancelOrders() requires endpoint_addr from contracts query')
-        signature = self.sign_cancellation(tx, chainId, endpointAddress)
-        requestId = self.safe_integer(params, 'id')
-        requiredUnfilledAmountRaw = self.safe_string(params, 'required_unfilled_amount')
-        requiredUnfilledAmount = self.safe_string(params, 'requiredUnfilledAmount')
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        params = self.omit(params, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount', 'stop', 'trigger'])
-        cancelOrders = {
-            'tx': tx,
-            'signature': signature,
-        }
-        if requiredUnfilledAmountRaw is not None:
-            cancelOrders['required_unfilled_amount'] = requiredUnfilledAmountRaw
-        elif requiredUnfilledAmount is not None:
-            cancelOrders['required_unfilled_amount'] = self.convert_to_x18(requiredUnfilledAmount)
-        if requestId is not None:
-            cancelOrders['id'] = requestId
-        request = {
-            'cancel_orders': cancelOrders,
-        }
+        params = self.omit(params, ['stop', 'trigger'])
+        request = self.cancel_orders_request(ids, symbol, params)
         response = None
         if trigger:
-            response = self.triggerPrivatePostExecute(self.extend(request, params))
+            response = self.triggerPrivatePostExecute(request)
             #
             # {
             #     "status": "success",
@@ -763,7 +777,7 @@ class nado(Exchange, ImplicitAPI):
             # }
             #
         else:
-            response = self.gatewayPrivatePostExecute(self.extend(request, params))
+            response = self.gatewayPrivatePostExecute(request)
             #
             #     {
             #         "status": "success",
@@ -795,6 +809,57 @@ class nado(Exchange, ImplicitAPI):
         for i in range(0, len(cancelledOrders)):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
+
+    def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
+        """
+ @ignore
+        build and sign the cancel_orders execute payload
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the request payload for the cancel_orders execute
+        """
+        market = self.market(symbol)
+        productId = self.parse_to_int(market['id'])
+        subaccount = None
+        subaccount, params = self.handle_option_and_params(params, 'cancelOrders', 'subaccount', 'default')
+        sender = self.create_subaccount(self.walletAddress, subaccount)
+        productIds = []
+        for i in range(0, len(ids)):
+            productIds.append(productId)
+        recvWindow = None
+        recvWindow, params = self.handle_option_and_params(params, 'cancelOrders', 'recvWindow', 5000)
+        nonce = self.create_order_nonce(recvWindow)
+        tx = {
+            'sender': sender,
+            'productIds': productIds,
+            'digests': ids,
+            'nonce': nonce,
+        }
+        contracts = self.query_contracts()
+        chainId = self.safe_string(contracts, 'chain_id')
+        endpointAddress = self.safe_string(contracts, 'endpoint_addr')
+        if endpointAddress is None:
+            raise ExchangeError(self.id + ' cancelOrders() requires endpoint_addr from contracts query')
+        signature = self.sign_cancellation(tx, chainId, endpointAddress)
+        requestId = self.safe_integer(params, 'id')
+        requiredUnfilledAmountRaw = self.safe_string(params, 'required_unfilled_amount')
+        requiredUnfilledAmount = self.safe_string(params, 'requiredUnfilledAmount')
+        params = self.omit(params, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount'])
+        cancelOrders = {
+            'tx': tx,
+            'signature': signature,
+        }
+        if requiredUnfilledAmountRaw is not None:
+            cancelOrders['required_unfilled_amount'] = requiredUnfilledAmountRaw
+        elif requiredUnfilledAmount is not None:
+            cancelOrders['required_unfilled_amount'] = self.convert_to_x18(requiredUnfilledAmount)
+        if requestId is not None:
+            cancelOrders['id'] = requestId
+        request = {
+            'cancel_orders': cancelOrders,
+        }
+        return self.extend(request, params)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
@@ -936,7 +1001,6 @@ class nado(Exchange, ImplicitAPI):
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires walletAddress')
         self.load_markets()
-        market = self.market(symbol)
         subaccount = None
         subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -949,6 +1013,7 @@ class nado(Exchange, ImplicitAPI):
             }))
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        market = self.market(symbol)
         request = {
             'sender': sender,
             'type': 'subaccount_orders',
@@ -1466,8 +1531,16 @@ class nado(Exchange, ImplicitAPI):
         symbols = self.safe_list(responses, 0, [])
         pairs = self.safe_list(responses, 1, [])
         assets = self.safe_list(responses, 2, [])
-        pairsById = self.index_by(pairs, 'product_id')
-        assetsById = self.index_by(assets, 'product_id')
+        # product_id is a JSON number: JS object keys are always strings but a Python
+        # dict keeps int keys, so indexBy would never match the safeString lookups below
+        pairsById = {}
+        for i in range(0, len(pairs)):
+            rawPair = pairs[i]
+            pairsById[self.safe_string(rawPair, 'product_id')] = rawPair
+        assetsById = {}
+        for i in range(0, len(assets)):
+            rawAsset = assets[i]
+            assetsById[self.safe_string(rawAsset, 'product_id')] = rawAsset
         assetsByCode = {}
         for i in range(0, len(assets)):
             rawAsset = assets[i]
