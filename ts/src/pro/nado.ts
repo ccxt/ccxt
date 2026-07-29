@@ -1592,6 +1592,13 @@ export default class nado extends nadoRest {
         const id = this.safeString (message, 'id');
         const hasResult = ('result' in message);
         const result = this.safeValue (message, 'result');
+        const method = this.safeString (result, 'method');
+        if (method === 'pong') {
+            // pong replies carry both 'id' and 'result' so they must be routed
+            // before the subscription-ack branch below swallows them
+            this.handlePong (client, message);
+            return;
+        }
         if ((id !== undefined) && hasResult) {
             const authentication = this.safeValue (client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
@@ -1608,11 +1615,6 @@ export default class nado extends nadoRest {
                 return;
             }
             this.handleSubscription (client, message);
-            return;
-        }
-        const method = this.safeString (result, 'method');
-        if (method === 'pong') {
-            this.handlePong (client, message);
             return;
         }
         const type = this.safeString (message, 'type');
