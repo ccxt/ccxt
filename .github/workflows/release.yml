@@ -110,7 +110,7 @@ jobs:
       - name: Generate Release Notes
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN2 }}
           VERSION: ${{ env.NPM_VERSION }}
         run: |
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
