@@ -162,9 +162,10 @@ jobs:
       env:
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo "id=$(gh api \
-          "/users/${{ steps.app-token.outputs.app-slug }}[bot]" \
-          --jq .id)" >> "$GITHUB_OUTPUT"
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
 
     - name: Push JS changes to master
       if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
@@ -187,7 +188,7 @@ jobs:
         git commit -m "[Automated changes] JS files"
 
         git fetch origin master
-        git rebase origin/master
+        git rebase --autostash origin/master
         git push origin HEAD:master
         # NB: the wiki/*.md committed above is mirrored to the ccxt/ccxt.wiki repo by the
         # mirror-wiki job in docs-fumadocs.yml (on release / docs changes / manual dispatch).
