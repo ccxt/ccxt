@@ -1671,11 +1671,12 @@ export default class binance extends Exchange {
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
+        const amountStr = this.numberToString (amount);
         params = this.omit (params, [ 'timeInForce', 'accountType' ]);
         const quoteRequest = this.extend (commonRequest, {
             "tokenId": outcomeObj['id'],
             "side": sideUpper,
-            "amountIn": Precise.stringMul (amount.toString (), '1000000000000000000'),
+            "amountIn": Precise.stringMul (amountStr, '1000000000000000000'),
         });
         const quote = await this.fetchQuote (quoteRequest, params);
         const orderRequest = this.extend (commonRequest, {
