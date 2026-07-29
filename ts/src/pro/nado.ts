@@ -61,13 +61,13 @@ export default class nado extends nadoRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'gateway': 'wss://gateway.prod.nado.xyz/v2/ws',
+                        'gateway': 'wss://gateway.prod.nado.xyz/ws/v2',
                         'subscriptions': 'wss://gateway.prod.nado.xyz/v1/subscribe',
                     },
                 },
                 'test': {
                     'ws': {
-                        'gateway': 'wss://gateway.test.nado.xyz/v2/ws',
+                        'gateway': 'wss://gateway.test.nado.xyz/ws/v2',
                         'subscriptions': 'wss://gateway.test.nado.xyz/v1/subscribe',
                     },
                 },
