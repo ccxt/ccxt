@@ -33,6 +33,20 @@ jobs:
       - uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-hack
+      # Cache compiled third-party deps + the cargo registry across runs. The
+      # generated `ccxt` crate changes every run (re-transpiled), so it always
+      # recompiles — but reqwest/k256/rsa/ed25519/chrono/... are the slow part
+      # and don't change. Without this every step (buildRust, the separate
+      # examples manifest, the test build) rebuilds the whole dep tree from
+      # scratch, which after the upstream merge grew the crate pushed the job
+      # past its timeout (SIGTERM/exit 143 mid-compile). Cache both manifests'
+      # target dirs since the examples are a standalone workspace.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+            examples/rust
+          cache-all-crates: true
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
