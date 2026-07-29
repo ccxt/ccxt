@@ -27,10 +27,10 @@ export default class opinion extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'prediction': true,
-                'fetchMarkets': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
+                'fetchMarkets': true,
+                'prediction': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -79,7 +79,7 @@ export default class opinion extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,  
+                'apiKey': true,
                 'secret': false,
                 'walletAddress': true,
                 'privateKey': true,
@@ -89,7 +89,7 @@ export default class opinion extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': -0.02,
-                    'taker': 0.04, 
+                    'taker': 0.04,
                 },
             },
             'exceptions': {
@@ -100,8 +100,8 @@ export default class opinion extends Exchange {
                 'broad': {},
             },
             'options': {
-                'eventScopeParams': [ 'labelId' ], 
-                'fetchEventsLimit': 20,        
+                'eventScopeParams': [ 'labelId' ],
+                'fetchEventsLimit': 20,
                 'maxFetchMarketsPages': 50,
             },
         });
