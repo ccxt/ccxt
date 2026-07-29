@@ -48,6 +48,7 @@ const version = '4.5.69';
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import aster from  './src/aster.js'
+import ax from  './src/ax.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
@@ -156,6 +157,7 @@ import zebpay from  './src/zebpay.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import asterPro from  './src/pro/aster.js'
+import axPro from  './src/pro/ax.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
@@ -243,6 +245,7 @@ const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
     'aster':                  aster,
+    'ax':                     ax,
     'backpack':               backpack,
     'bequant':                bequant,
     'bigone':                 bigone,
@@ -351,6 +354,7 @@ const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'aster':                  asterPro,
+    'ax':                     axPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
@@ -609,6 +613,7 @@ export {
     alpaca,
     apex,
     aster,
+    ax,
     backpack,
     bequant,
     bigone,
