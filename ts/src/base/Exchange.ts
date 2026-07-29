@@ -7980,6 +7980,10 @@ export class BaseExchange {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        params = this.omit (params, 'paginationDirection');
         const current = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
