@@ -353,6 +353,44 @@ export default class nado extends Exchange {
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const market = this.market(symbol);
+        const request = await this.createOrderRequest(symbol, type, side, amount, price, params);
+        const placeOrder = this.safeDict(request, 'place_order', {});
+        const isTriggerOrder = ('trigger' in placeOrder);
+        let response = undefined;
+        if (isTriggerOrder) {
+            response = await this.triggerPrivatePostExecute(request);
+        }
+        else {
+            response = await this.gatewayPrivatePostExecute(request);
+        }
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
+        //     }
+        //
+        return this.parseOrder(this.extend({ 'place_order': placeOrder }, response), market);
+    }
+    /**
+     * @method
+     * @ignore
+     * @name nado#createOrderRequest
+     * @description build and sign the place_order execute payload
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the place_order execute
+     */
+    async createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         if (type !== 'limit') {
             throw new InvalidOrder(this.id + ' createOrder() supports limit orders only');
         }
@@ -449,25 +487,7 @@ export default class nado extends Exchange {
         const request = {
             'place_order': placeOrder,
         };
-        let response = undefined;
-        if (isTriggerOrder) {
-            response = await this.triggerPrivatePostExecute(this.extend(request, params));
-        }
-        else {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, params));
-        }
-        //
-        //     {
-        //         "status": "success",
-        //         "signature": "0x...",
-        //         "data": {
-        //             "digest": "0x..."
-        //         },
-        //         "request_type": "execute_place_order",
-        //         "id": 100
-        //     }
-        //
-        return this.parseOrder(this.extend({ 'place_order': placeOrder }, response), market);
+        return this.extend(request, params);
     }
     /**
      * @method
@@ -495,6 +515,38 @@ export default class nado extends Exchange {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = await this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const response = await this.gatewayPrivatePostExecute(request);
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_cancel_and_place"
+        //     }
+        //
+        const cancelAndPlace = this.safeDict(request, 'cancel_and_place', {});
+        const placeOrder = this.safeDict(cancelAndPlace, 'place_order', {});
+        return this.parseOrder(this.extend({ 'place_order': placeOrder }, response), market);
+    }
+    /**
+     * @method
+     * @ignore
+     * @name nado#editOrderRequest
+     * @description build and sign the cancel_and_place execute payload
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_and_place execute
+     */
+    async editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
         if (type !== 'limit') {
             throw new InvalidOrder(this.id + ' editOrder() supports limit orders only');
@@ -573,18 +625,7 @@ export default class nado extends Exchange {
         const request = {
             'cancel_and_place': cancelAndPlace,
         };
-        const response = await this.gatewayPrivatePostExecute(this.extend(request, params));
-        //
-        //     {
-        //         "status": "success",
-        //         "signature": "0x...",
-        //         "data": {
-        //             "digest": "0x..."
-        //         },
-        //         "request_type": "execute_cancel_and_place"
-        //     }
-        //
-        return this.parseOrder(this.extend({ 'place_order': placeOrder }, response), market);
+        return this.extend(request, params);
     }
     /**
      * @method
@@ -619,45 +660,15 @@ export default class nado extends Exchange {
         this.checkRequiredCredentials();
         await this.loadMarkets();
         let market = undefined;
-        const productIds = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
-            productIds.push(this.parseToInt(market['id']));
         }
-        let subaccount = undefined;
-        [subaccount, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'subaccount', 'default');
-        const sender = this.createSubaccount(this.walletAddress, subaccount);
-        let recvWindow = undefined;
-        [recvWindow, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'recvWindow', 5000);
-        const nonce = this.createOrderNonce(recvWindow);
-        const tx = {
-            'sender': sender,
-            'productIds': productIds,
-            'nonce': nonce,
-        };
-        const contracts = await this.queryContracts();
-        const chainId = this.safeString(contracts, 'chain_id');
-        const endpointAddress = this.safeString(contracts, 'endpoint_addr');
-        if (endpointAddress === undefined) {
-            throw new ExchangeError(this.id + ' cancelAllOrders() requires endpoint_addr from contracts query');
-        }
-        const signature = this.signCancellationProducts(tx, chainId, endpointAddress);
-        const requestId = this.safeInteger(params, 'id');
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        params = this.omit(params, ['id', 'stop', 'trigger']);
-        const cancelProductOrders = {
-            'tx': tx,
-            'signature': signature,
-        };
-        if (requestId !== undefined) {
-            cancelProductOrders['id'] = requestId;
-        }
-        const request = {
-            'cancel_product_orders': cancelProductOrders,
-        };
+        params = this.omit(params, ['stop', 'trigger']);
+        const request = await this.cancelAllOrdersRequest(symbol, params);
         let response = undefined;
         if (trigger) {
-            response = await this.triggerPrivatePostExecute(this.extend(request, params));
+            response = await this.triggerPrivatePostExecute(request);
             //
             // {
             //     "status": "success",
@@ -667,7 +678,7 @@ export default class nado extends Exchange {
             //
         }
         else {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, params));
+            response = await this.gatewayPrivatePostExecute(request);
             //
             //     {
             //         "status": "success",
@@ -704,6 +715,53 @@ export default class nado extends Exchange {
     }
     /**
      * @method
+     * @ignore
+     * @name nado#cancelAllOrdersRequest
+     * @description build and sign the cancel_product_orders execute payload
+     * @param {string} [symbol] unified market symbol, when undefined all orders for all products are canceled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_product_orders execute
+     */
+    async cancelAllOrdersRequest(symbol = undefined, params = {}) {
+        const productIds = [];
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            productIds.push(this.parseToInt(market['id']));
+        }
+        let subaccount = undefined;
+        [subaccount, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'subaccount', 'default');
+        const sender = this.createSubaccount(this.walletAddress, subaccount);
+        let recvWindow = undefined;
+        [recvWindow, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'recvWindow', 5000);
+        const nonce = this.createOrderNonce(recvWindow);
+        const tx = {
+            'sender': sender,
+            'productIds': productIds,
+            'nonce': nonce,
+        };
+        const contracts = await this.queryContracts();
+        const chainId = this.safeString(contracts, 'chain_id');
+        const endpointAddress = this.safeString(contracts, 'endpoint_addr');
+        if (endpointAddress === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrders() requires endpoint_addr from contracts query');
+        }
+        const signature = this.signCancellationProducts(tx, chainId, endpointAddress);
+        const requestId = this.safeInteger(params, 'id');
+        params = this.omit(params, ['id']);
+        const cancelProductOrders = {
+            'tx': tx,
+            'signature': signature,
+        };
+        if (requestId !== undefined) {
+            cancelProductOrders['id'] = requestId;
+        }
+        const request = {
+            'cancel_product_orders': cancelProductOrders,
+        };
+        return this.extend(request, params);
+    }
+    /**
+     * @method
      * @name nado#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
@@ -723,54 +781,12 @@ export default class nado extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const productId = this.parseToInt(market['id']);
-        let subaccount = undefined;
-        [subaccount, params] = this.handleOptionAndParams(params, 'cancelOrders', 'subaccount', 'default');
-        const sender = this.createSubaccount(this.walletAddress, subaccount);
-        const productIds = [];
-        for (let i = 0; i < ids.length; i++) {
-            productIds.push(productId);
-        }
-        let recvWindow = undefined;
-        [recvWindow, params] = this.handleOptionAndParams(params, 'cancelOrders', 'recvWindow', 5000);
-        const nonce = this.createOrderNonce(recvWindow);
-        const tx = {
-            'sender': sender,
-            'productIds': productIds,
-            'digests': ids,
-            'nonce': nonce,
-        };
-        const contracts = await this.queryContracts();
-        const chainId = this.safeString(contracts, 'chain_id');
-        const endpointAddress = this.safeString(contracts, 'endpoint_addr');
-        if (endpointAddress === undefined) {
-            throw new ExchangeError(this.id + ' cancelOrders() requires endpoint_addr from contracts query');
-        }
-        const signature = this.signCancellation(tx, chainId, endpointAddress);
-        const requestId = this.safeInteger(params, 'id');
-        const requiredUnfilledAmountRaw = this.safeString(params, 'required_unfilled_amount');
-        const requiredUnfilledAmount = this.safeString(params, 'requiredUnfilledAmount');
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        params = this.omit(params, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount', 'stop', 'trigger']);
-        const cancelOrders = {
-            'tx': tx,
-            'signature': signature,
-        };
-        if (requiredUnfilledAmountRaw !== undefined) {
-            cancelOrders['required_unfilled_amount'] = requiredUnfilledAmountRaw;
-        }
-        else if (requiredUnfilledAmount !== undefined) {
-            cancelOrders['required_unfilled_amount'] = this.convertToX18(requiredUnfilledAmount);
-        }
-        if (requestId !== undefined) {
-            cancelOrders['id'] = requestId;
-        }
-        const request = {
-            'cancel_orders': cancelOrders,
-        };
+        params = this.omit(params, ['stop', 'trigger']);
+        const request = await this.cancelOrdersRequest(ids, symbol, params);
         let response = undefined;
         if (trigger) {
-            response = await this.triggerPrivatePostExecute(this.extend(request, params));
+            response = await this.triggerPrivatePostExecute(request);
             //
             // {
             //     "status": "success",
@@ -780,7 +796,7 @@ export default class nado extends Exchange {
             //
         }
         else {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, params));
+            response = await this.gatewayPrivatePostExecute(request);
             //
             //     {
             //         "status": "success",
@@ -814,6 +830,64 @@ export default class nado extends Exchange {
             result.push(this.parseOrder(this.extend({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
         return result;
+    }
+    /**
+     * @method
+     * @ignore
+     * @name nado#cancelOrdersRequest
+     * @description build and sign the cancel_orders execute payload
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_orders execute
+     */
+    async cancelOrdersRequest(ids, symbol = undefined, params = {}) {
+        const market = this.market(symbol);
+        const productId = this.parseToInt(market['id']);
+        let subaccount = undefined;
+        [subaccount, params] = this.handleOptionAndParams(params, 'cancelOrders', 'subaccount', 'default');
+        const sender = this.createSubaccount(this.walletAddress, subaccount);
+        const productIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            productIds.push(productId);
+        }
+        let recvWindow = undefined;
+        [recvWindow, params] = this.handleOptionAndParams(params, 'cancelOrders', 'recvWindow', 5000);
+        const nonce = this.createOrderNonce(recvWindow);
+        const tx = {
+            'sender': sender,
+            'productIds': productIds,
+            'digests': ids,
+            'nonce': nonce,
+        };
+        const contracts = await this.queryContracts();
+        const chainId = this.safeString(contracts, 'chain_id');
+        const endpointAddress = this.safeString(contracts, 'endpoint_addr');
+        if (endpointAddress === undefined) {
+            throw new ExchangeError(this.id + ' cancelOrders() requires endpoint_addr from contracts query');
+        }
+        const signature = this.signCancellation(tx, chainId, endpointAddress);
+        const requestId = this.safeInteger(params, 'id');
+        const requiredUnfilledAmountRaw = this.safeString(params, 'required_unfilled_amount');
+        const requiredUnfilledAmount = this.safeString(params, 'requiredUnfilledAmount');
+        params = this.omit(params, ['id', 'requiredUnfilledAmount', 'required_unfilled_amount']);
+        const cancelOrders = {
+            'tx': tx,
+            'signature': signature,
+        };
+        if (requiredUnfilledAmountRaw !== undefined) {
+            cancelOrders['required_unfilled_amount'] = requiredUnfilledAmountRaw;
+        }
+        else if (requiredUnfilledAmount !== undefined) {
+            cancelOrders['required_unfilled_amount'] = this.convertToX18(requiredUnfilledAmount);
+        }
+        if (requestId !== undefined) {
+            cancelOrders['id'] = requestId;
+        }
+        const request = {
+            'cancel_orders': cancelOrders,
+        };
+        return this.extend(request, params);
     }
     /**
      * @method
@@ -960,7 +1034,6 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires walletAddress');
         }
         await this.loadMarkets();
-        const market = this.market(symbol);
         let subaccount = undefined;
         [subaccount, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -975,6 +1048,7 @@ export default class nado extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
+        const market = this.market(symbol);
         const request = {
             'sender': sender,
             'type': 'subaccount_orders',
@@ -1516,8 +1590,18 @@ export default class nado extends Exchange {
         const symbols = this.safeList(responses, 0, []);
         const pairs = this.safeList(responses, 1, []);
         const assets = this.safeList(responses, 2, []);
-        const pairsById = this.indexBy(pairs, 'product_id');
-        const assetsById = this.indexBy(assets, 'product_id');
+        // product_id is a JSON number: JS object keys are always strings but a Python
+        // dict keeps int keys, so indexBy would never match the safeString lookups below
+        const pairsById = {};
+        for (let i = 0; i < pairs.length; i++) {
+            const rawPair = pairs[i];
+            pairsById[this.safeString(rawPair, 'product_id')] = rawPair;
+        }
+        const assetsById = {};
+        for (let i = 0; i < assets.length; i++) {
+            const rawAsset = assets[i];
+            assetsById[this.safeString(rawAsset, 'product_id')] = rawAsset;
+        }
         const assetsByCode = {};
         for (let i = 0; i < assets.length; i++) {
             const rawAsset = assets[i];
