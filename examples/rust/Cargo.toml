@@ -34,3 +34,12 @@ path = "src/binance_typed.rs"
 # hot frames. Negligible perf impact, larger binary.
 [profile.release]
 debug = true
+
+# The examples recompile the whole `ccxt` crate from scratch (a separate
+# manifest, so no artifact reuse from the workspace build). Drop debug info in
+# the default dev profile — for a ~100-exchange generated crate, debuginfo
+# generation is a large share of compile time and memory, and these examples
+# are smoke/CLI programs that don't need it. Keeps the CI examples step well
+# under the job timeout.
+[profile.dev]
+debug = 0

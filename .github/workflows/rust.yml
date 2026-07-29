@@ -14,7 +14,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
-    timeout-minutes: 60
+    # Bumped from 60: the job runs several full `ccxt` compiles (buildRust, the
+    # isolated feature checks incl. the ~100-core transpiled-ws combo, clippy,
+    # the examples' own recompile, and the test build). After the crate grew
+    # from an upstream merge the cumulative time crossed 60 min and the runner
+    # SIGTERM'd mid-compile (exit 143). 90 gives headroom.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
         if: github.ref == 'refs/heads/master'
