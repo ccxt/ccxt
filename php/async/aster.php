@@ -4230,7 +4230,13 @@ class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             $zeroAddress = $this->safe_string($this->options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             $v3ChainId = $this->safe_integer($this->options, 'v3ChainId', 1666);
-            $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+            $walletAddress = $this->safe_string($this->options, 'cachedWalletAddress');
+            $cachedPrivateKey = $this->safe_string($this->options, 'privateKeyForCachedWalletAddress');
+            if (($walletAddress === null) || ($cachedPrivateKey !== $this->privateKey)) {
+                $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+                $this->options['cachedWalletAddress'] = $walletAddress;
+                $this->options['privateKeyForCachedWalletAddress'] = $this->privateKey;
+            }
             $signerAddress = $this->safe_string($this->options, 'signerAddress', $walletAddress); // default to user's wallet
             if ($signerAddress === null) {
                 throw new ArgumentsRequired($this->id . ' requires $signerAddress in options when use v3 api');

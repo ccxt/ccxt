@@ -637,16 +637,6 @@ func (this *Hyperliquid) CreateMarketSellOrderWithCost(outcome string, cost floa
 	}
 	return ccxt.NewPredictionOrder(res), nil
 }
-
-/**
- * @method
- * @name hyperliquid#createOrders
- * @description create a list of trade orders
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
- * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := ccxt.CreateOrdersOptionsStruct{}
@@ -677,18 +667,6 @@ func (this *Hyperliquid) FetchBorrowInterest(options ...ccxt.FetchBorrowInterest
 func (this *Hyperliquid) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchClosedOrders
- * @description fetch all unfilled currently closed orders
- * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
- * @param {int} [limit] the maximum number of open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchClosedOrdersOptionsStruct{}
@@ -842,15 +820,6 @@ func (this *Hyperliquid) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMark
 func (this *Hyperliquid) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchOpenInterest
- * @description retrieves the open interest of a contract trading pair
- * @param {string} symbol unified CCXT market symbol
- * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
- */
 func (this *Hyperliquid) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenInterestOptions) (ccxt.PredictionOpenInterest, error) {
 
 	opts := ccxt.FetchOpenInterestOptionsStruct{}
@@ -920,17 +889,6 @@ func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTrades
 func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchPosition
- * @description fetch data on an open position
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
- * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
- */
 func (this *Hyperliquid) FetchPosition(outcome string, options ...ccxt.FetchPositionOptions) (ccxt.PredictionPosition, error) {
 
 	opts := ccxt.FetchPositionOptionsStruct{}
@@ -961,17 +919,6 @@ func (this *Hyperliquid) FetchStatus(params ...any) (map[string]any, error) {
 func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchTradingFee
- * @description fetch the trading fees for a market
- * @param {string} symbol unified market symbol
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
- */
 func (this *Hyperliquid) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {
 
 	opts := ccxt.FetchTradingFeeOptionsStruct{}
