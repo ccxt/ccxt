@@ -6861,7 +6861,7 @@ export default class okx extends Exchange {
                 const ruleType = this.safeString (marketInfo, 'ruleType');
                 const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if (!market['swap'] && !isExtendedPerpetual) {
-                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets, ' + symbols[i] + ' is not');
+                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not');
                 }
             }
         }
