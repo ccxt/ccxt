@@ -14,10 +14,15 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, javascript ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - name: Print vars
       run: |
@@ -32,15 +37,10 @@ jobs:
         echo "SHA: $GITHUB_SHA"
         echo "Head Commit: $HEAD_COMMIT_MESSAGE"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
-    - uses: actions/checkout@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
+        clean: false
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
@@ -48,10 +48,9 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies
@@ -162,25 +161,14 @@ jobs:
           git config --global pull.rebase false
           git pull origin master
           git push
-    - name: Push To CCXT.WIKI
-      if: github.ref == 'refs/heads/master'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        cd build/ccxt.wiki
-        cp -R ../../wiki/* .
-        git add .
-        git commit -a -m "[Automated changes] $HEAD_COMMIT_MESSAGE" || true
-        git remote remove origin
-        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
-        git push origin HEAD:master
-        cd ../..
+    # NB: the wiki/*.md committed above is mirrored to the ccxt/ccxt.wiki repo by the
+    # mirror-wiki job in docs-fumadocs.yml (on release / docs changes / manual dispatch).
 
   live-tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -192,9 +180,9 @@ jobs:
           path: js/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

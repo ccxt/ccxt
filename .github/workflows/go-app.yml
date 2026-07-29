@@ -6,30 +6,29 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-        if: github.ref == 'refs/heads/master'
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2
-      - name: Setup Golang with cache
-        uses: magnetikonline/action-golang-cache@v5
-        with:
-          go-version: ~1.25
+          clean: false
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
@@ -137,7 +136,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: go-files
-          path: go/
+          path: |
+            go/
+            !go/main
+          retention-days: 1
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
         with:
@@ -167,7 +169,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -177,7 +179,7 @@ jobs:
       #   with:
       #     name: go-files
       #     path: go/
-      # - uses: actions/checkout@v4
+      # - uses: actions/checkout@v5
       - name: Download Go Binary
         uses: actions/download-artifact@v4
         with:
@@ -209,5 +211,3 @@ jobs:
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
-
-

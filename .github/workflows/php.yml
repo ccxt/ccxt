@@ -12,12 +12,17 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, php ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - name: Print vars
       run: |
@@ -25,15 +30,10 @@ jobs:
           echo "GITHUB_EVENT_NAME: {{ github.event_name }}"
           echo "GITHUB_EVENT_PUSH_NAME: {{ github.event.pusher.name }}"
           echo "GITHUB_REF: {{ github.ref }}"
-    - uses: actions/checkout@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
+        clean: false
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
@@ -42,17 +42,16 @@ jobs:
           exit 0
         fi
     - name: Setup PHP with PECL extension
+      if: runner.environment == 'github-hosted'
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4.6'
-        # cache: true
+        php-version: '8.5'
         ini-values: |
           zend.assertions=1
           display_errors=On
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Composer install
@@ -151,7 +150,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -166,15 +165,15 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.6'
+          php-version: '8.5'
           extensions: protobuf
           # cache: true
           ini-values: |
             zend.assertions=1
             display_errors=On
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

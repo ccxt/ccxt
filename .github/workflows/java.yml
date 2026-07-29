@@ -12,22 +12,22 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, java ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
+        clean: false
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
@@ -35,12 +35,11 @@ jobs:
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Set up JDK
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: '21'   # or '20' – but match what :lib is targeting
@@ -106,12 +105,16 @@ jobs:
       with:
           name: shared_env
           path: shared_env.txt
-
     - name: Upload Java Files
       uses: actions/upload-artifact@v4
       with:
         name: java-files
-        path: java/
+        path: | 
+          java/
+          !java/**/build/**
+          !java/.gradle/**
+        retention-days: 1
+
     - name: Push Java changes to master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,13 +140,13 @@ jobs:
     # enough. 60 min gives margin without burning runner time on a runaway hang.
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
           name: shared_env
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'   # or '20' – but match what :lib is targeting
@@ -154,9 +157,9 @@ jobs:
           path: java/
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

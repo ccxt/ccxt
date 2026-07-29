@@ -44,7 +44,11 @@ jobs:
       CANARY_IP: 172.31.0.11
       BASE_PATH: /playground
     steps:
+      # Both docker build contexts are under docs/playground/ — the ~490MB of ts/, dist/ and the
+      # six generated language trees are never read here.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: docs/playground
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
