@@ -1720,7 +1720,7 @@ export default class binance extends Exchange {
      */
     async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
-        return this.safeDict (orders, 0) as PredictionOrder;
+        return this.safeDict (orders, 0, {}) as PredictionOrder;
     }
 
     /**
