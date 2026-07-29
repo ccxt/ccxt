@@ -8196,6 +8196,10 @@ class BaseExchange {
         $maxCalls = null;
         list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        $params = $this->omit($params, 'paginationDirection');
         $current = $this->milliseconds();
         $tasks = array();
         $time = $this->parse_timeframe($timeframe) * 1000;
