@@ -1,0 +1,71 @@
+{
+    "exchange": "template_exchange_name",
+    "skipKeys": [
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchMarkets": [
+            // TODO: fill with the results of calling `tsx ${ccxt_dir}/examples/ts/cli.ts exchange_name fetchMarkets --report`
+        ],
+        "fetchBalance": [
+
+        ],
+        "fetchOrderBook": [
+
+        ],
+        "fetchStatus": [
+
+        ],
+        "fetchTicker": [
+
+        ],
+        "fetchTickers": [
+
+        ],
+        "fetchOHLCV": [
+
+        ],
+        "fetchTrades": [
+
+        ],
+        "editOrder": [
+
+        ],
+        "createOrder": [
+
+        ],
+        "fetchOrder": [
+
+        ],
+        "fetchOpenOrders": [
+
+        ],
+        "fetchClosedOrders": [
+
+        ],
+        "fetchCanceledOrders": [
+
+        ],
+        "cancelOrder": [
+
+        ],
+        "cancelAllOrders": [
+
+        ],
+        "fetchMyTrades": [
+
+        ],
+        "fetchDepositsWithdrawals": [
+
+        ],
+        "fetchDepositAddress": [
+
+        ],
+        "withdraw": [
+
+        ],
+        "fetchLedger": [
+
+        ]
+    }
+}
