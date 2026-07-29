@@ -350,7 +350,59 @@ public class NadoCore extends NadoApi
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            this.checkRequiredCredentials();
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object request = (this.createOrderRequest(symbol, type, side, amount, price, parameters)).join();
+            Object placeOrder = this.safeDict(request, "place_order", new java.util.HashMap<String, Object>() {{}});
+            Object isTriggerOrder = (Helpers.inOp(placeOrder, "trigger"));
+            Object response = null;
+            if (Helpers.isTrue(isTriggerOrder))
+            {
+                response = (this.triggerPrivatePostExecute(request)).join();
+            } else
+            {
+                response = (this.gatewayPrivatePostExecute(request)).join();
+            }
+            //
+            //     {
+            //         "status": "success",
+            //         "signature": "0x...",
+            //         "data": {
+            //             "digest": "0x..."
+            //         },
+            //         "request_type": "execute_place_order",
+            //         "id": 100
+            //     }
+            //
+            return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+                put( "place_order", placeOrder );
+            }}, response), market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#createOrderRequest
+     * @description build and sign the place_order execute payload
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the place_order execute
+     */
+    public java.util.concurrent.CompletableFuture<Object> createOrderRequest(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -359,8 +411,6 @@ public class NadoCore extends NadoApi
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
@@ -475,28 +525,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }};
-            Object response = null;
-            if (Helpers.isTrue(isTriggerOrder))
-            {
-                response = (this.triggerPrivatePostExecute(this.extend(request, parameters))).join();
-            } else
-            {
-                response = (this.gatewayPrivatePostExecute(this.extend(request, parameters))).join();
-            }
-            //
-            //     {
-            //         "status": "success",
-            //         "signature": "0x...",
-            //         "data": {
-            //             "digest": "0x..."
-            //         },
-            //         "request_type": "execute_place_order",
-            //         "id": 100
-            //     }
-            //
-            return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
-                put( "place_order", placeOrder );
-            }}, response), market);
+            return this.extend(request, parameters);
         });
 
     }
@@ -524,7 +553,53 @@ public class NadoCore extends NadoApi
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object amount = Helpers.getArg(optionalArgs, 0, null);
+            Object price = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            this.checkRequiredCredentials();
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object request = (this.editOrderRequest(id, symbol, type, side, amount, price, parameters)).join();
+            Object response = (this.gatewayPrivatePostExecute(request)).join();
+            //
+            //     {
+            //         "status": "success",
+            //         "signature": "0x...",
+            //         "data": {
+            //             "digest": "0x..."
+            //         },
+            //         "request_type": "execute_cancel_and_place"
+            //     }
+            //
+            Object cancelAndPlace = this.safeDict(request, "cancel_and_place", new java.util.HashMap<String, Object>() {{}});
+            Object placeOrder = this.safeDict(cancelAndPlace, "place_order", new java.util.HashMap<String, Object>() {{}});
+            return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+                put( "place_order", placeOrder );
+            }}, response), market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#editOrderRequest
+     * @description build and sign the cancel_and_place execute payload
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_and_place execute
+     */
+    public java.util.concurrent.CompletableFuture<Object> editOrderRequest(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -534,8 +609,6 @@ public class NadoCore extends NadoApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
@@ -631,20 +704,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_and_place", cancelAndPlace );
             }};
-            Object response = (this.gatewayPrivatePostExecute(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "status": "success",
-            //         "signature": "0x...",
-            //         "data": {
-            //             "digest": "0x..."
-            //         },
-            //         "request_type": "execute_cancel_and_place"
-            //     }
-            //
-            return this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
-                put( "place_order", placeOrder );
-            }}, response), market);
+            return this.extend(request, parameters);
         });
 
     }
@@ -697,10 +757,55 @@ public class NadoCore extends NadoApi
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Object market = null;
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
+            }
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
+            Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
+            Object response = null;
+            if (Helpers.isTrue(trigger))
+            {
+                response = (this.triggerPrivatePostExecute(request)).join();
+            } else
+            {
+                response = (this.gatewayPrivatePostExecute(request)).join();
+            }
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
+            {
+                ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "status", "canceled" );
+                }}, Helpers.GetValue(cancelledOrders, i)), market));
+            }
+            return result;
+        });
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#cancelAllOrdersRequest
+     * @description build and sign the cancel_product_orders execute payload
+     * @param {string} [symbol] unified market symbol, when undefined all orders for all products are canceled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_product_orders execute
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersRequest(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Object market = this.market(symbol);
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
@@ -727,8 +832,7 @@ public class NadoCore extends NadoApi
             }
             Object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
             Object requestId = this.safeInteger(parameters, "id");
-            Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "stop", "trigger")));
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id")));
             Object cancelProductOrders = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -740,24 +844,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_product_orders", cancelProductOrders );
             }};
-            Object response = null;
-            if (Helpers.isTrue(trigger))
-            {
-                response = (this.triggerPrivatePostExecute(this.extend(request, parameters))).join();
-            } else
-            {
-                response = (this.gatewayPrivatePostExecute(this.extend(request, parameters))).join();
-            }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
-            {
-                ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
-            }
-            return result;
+            return this.extend(request, parameters);
         });
 
     }
@@ -789,6 +876,49 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
+            Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
+            Object response = null;
+            if (Helpers.isTrue(trigger))
+            {
+                response = (this.triggerPrivatePostExecute(request)).join();
+            } else
+            {
+                response = (this.gatewayPrivatePostExecute(request)).join();
+            }
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
+            {
+                ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "status", "canceled" );
+                }}, Helpers.GetValue(cancelledOrders, i)), market));
+            }
+            return result;
+        });
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#cancelOrdersRequest
+     * @description build and sign the cancel_orders execute payload
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_orders execute
+     */
+    public java.util.concurrent.CompletableFuture<Object> cancelOrdersRequest(Object ids, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object market = this.market(symbol);
             Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object subaccount = null;
@@ -823,8 +953,7 @@ public class NadoCore extends NadoApi
             Object requestId = this.safeInteger(parameters, "id");
             Object requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
             Object requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
-            Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount", "stop", "trigger")));
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
             Object cancelOrders = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -843,24 +972,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_orders", cancelOrders );
             }};
-            Object response = null;
-            if (Helpers.isTrue(trigger))
-            {
-                response = (this.triggerPrivatePostExecute(this.extend(request, parameters))).join();
-            } else
-            {
-                response = (this.gatewayPrivatePostExecute(this.extend(request, parameters))).join();
-            }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
-            {
-                ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "status", "canceled" );
-                }}, Helpers.GetValue(cancelledOrders, i)), market));
-            }
-            return result;
+            return this.extend(request, parameters);
         });
 
     }
@@ -1048,7 +1160,6 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
             Object subaccount = null;
             var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
@@ -1065,6 +1176,7 @@ public class NadoCore extends NadoApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "type", "subaccount_orders" );
@@ -1764,8 +1876,20 @@ public class NadoCore extends NadoApi
             Object symbols = this.safeList(responses, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object pairs = this.safeList(responses, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object assets = this.safeList(responses, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object pairsById = this.indexBy(pairs, "product_id");
-            Object assetsById = this.indexBy(assets, "product_id");
+            // product_id is a JSON number: JS object keys are always strings but a Python
+            // dict keeps int keys, so indexBy would never match the safeString lookups below
+            Object pairsById = new java.util.HashMap<String, Object>() {{}};
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
+            {
+                Object rawPair = Helpers.GetValue(pairs, i);
+                Helpers.addElementToObject(pairsById, this.safeString(rawPair, "product_id"), rawPair);
+            }
+            Object assetsById = new java.util.HashMap<String, Object>() {{}};
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
+            {
+                Object rawAsset = Helpers.GetValue(assets, i);
+                Helpers.addElementToObject(assetsById, this.safeString(rawAsset, "product_id"), rawAsset);
+            }
             Object assetsByCode = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {

@@ -264,6 +264,7 @@ cancel all open orders in a market
 * [bitvavo](/exchanges/bitvavo.md#cancelallordersws)
 * [cryptocom](/exchanges/cryptocom.md#cancelallordersws)
 * [gate](/exchanges/gate.md#cancelallordersws)
+* [nado](/exchanges/nado.md#cancelallordersws)
 * [okx](/exchanges/okx.md#cancelallordersws)
 * [pacifica](/exchanges/pacifica.md#cancelallordersws)
 
@@ -470,6 +471,7 @@ cancel multiple orders
 * [cryptocom](/exchanges/cryptocom.md#cancelorderws)
 * [gate](/exchanges/gate.md#cancelorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelorderws)
+* [nado](/exchanges/nado.md#cancelorderws)
 * [okx](/exchanges/okx.md#cancelorderws)
 * [pacifica](/exchanges/pacifica.md#cancelorderws)
 
@@ -597,6 +599,7 @@ cancel multiple orders
 ##### Supported exchanges
 * [cex](/exchanges/cex.md#cancelordersws)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersws)
+* [nado](/exchanges/nado.md#cancelordersws)
 * [okx](/exchanges/okx.md#cancelordersws)
 * [pacifica](/exchanges/pacifica.md#cancelordersws)
 
@@ -1183,6 +1186,7 @@ create a trade order
 * [cryptocom](/exchanges/cryptocom.md#createorderws)
 * [gate](/exchanges/gate.md#createorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#createorderws)
+* [nado](/exchanges/nado.md#createorderws)
 * [okx](/exchanges/okx.md#createorderws)
 * [pacifica](/exchanges/pacifica.md#createorderws)
 
@@ -1656,6 +1660,7 @@ edit a trade order
 * [cryptocom](/exchanges/cryptocom.md#editorderws)
 * [gate](/exchanges/gate.md#editorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#editorderws)
+* [nado](/exchanges/nado.md#editorderws)
 * [okx](/exchanges/okx.md#editorderws)
 * [pacifica](/exchanges/pacifica.md#editorderws)
 
