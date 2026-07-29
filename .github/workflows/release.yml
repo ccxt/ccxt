@@ -107,8 +107,8 @@ jobs:
           git add -f exchanges.json
       - name: Git status
         run: git status
-      - name: cleanup old tags
-        run: npm run cleanup-old-tags --limit
+      # - name: cleanup old tags
+      #   run: npm run cleanup-old-tags --limit
       - name: Get App bot user ID
         if: github.ref == 'refs/heads/master'
         id: app-user
