@@ -3241,12 +3241,13 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarkets
      * @description retrieves data on all markets for binance
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
-     * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   // tokenized stocks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -3286,6 +3287,9 @@ export default class binance extends Exchange {
                 if (fetchMargins && this.checkRequiredCredentials (false) && !isDemoEnv) {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
+                }
+                if (!isDemoEnv) {
+                    promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
                 }
             } else if (marketType === 'linear') {
                 promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
@@ -3533,6 +3537,31 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
+        // spot tokenized equities
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "symbols": [
+        //             {
+        //                 "symbol": "A",
+        //                 "tradability": "BUY_SELL",
+        //                 "tradabilityUpdateTime": 1778468796000,
+        //                 "overnightSupported": true,
+        //                 "fractionable": true,
+        //                 "fractionableEh": true,
+        //                 "extendedSession": true,
+        //                 "maxNumOrders": 200,
+        //                 "stepSize": "0.000000001",
+        //                 "multiplierUp": "1.1000",
+        //                 "multiplierDown": "0.9000",
+        //                 "maxQty": "1000000.000000000",
+        //                 "minNotional": "5.00000000",
+        //                 "maxNotional": "1000000.00000000",
+        //                 "listingTime": 1778468966000
+        //             },
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -3553,7 +3582,12 @@ export default class binance extends Exchange {
         const optionBase = this.safeString (optionParts, 0);
         const lowercaseId = this.safeStringLower (market, 'symbol');
         const baseId = this.safeString (market, 'baseAsset', optionBase);
-        const quoteId = this.safeString (market, 'quoteAsset');
+        let quoteId = this.safeString (market, 'quoteAsset');
+        let stock = undefined;
+        if ('tradability' in market) {
+            quoteId = 'USDC';
+            stock = true;
+        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const contractType = this.safeString (market, 'contractType');
@@ -3636,6 +3670,12 @@ export default class binance extends Exchange {
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
+        const tradability = this.safeString (market, 'tradability');
+        if (tradability !== undefined) {
+            if (tradability !== 'NONE') {
+                active = true;
+            }
+        }
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3653,6 +3693,7 @@ export default class binance extends Exchange {
             'swap': swap,
             'future': future,
             'option': option,
+            'stock': stock,
             'active': active,
             'contract': contract,
             'linear': linear,
@@ -3684,13 +3725,17 @@ export default class binance extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'minNotional'),
+                    'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
             'info': market,
-            'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
+            'created': this.safeInteger2 (market, 'onboardDate', 'listingTime'),
         };
+        const stepSize = this.safeNumber (market, 'stepSize');
+        if (stepSize !== undefined) {
+            entry['precision']['amount'] = stepSize;
+        }
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
