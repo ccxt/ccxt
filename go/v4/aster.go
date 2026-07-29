@@ -4897,11 +4897,12 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		var zeroAddress any = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId any = this.SafeInteger(this.Options, "v3ChainId", 1666)
 		var walletAddress any = this.SafeString(this.Options, "cachedWalletAddress")
-		var cachedPrivateKey any = this.SafeString(this.Options, "privateKeyForCachedWalletAddress")
-		if IsTrue(IsTrue((IsEqual(walletAddress, nil))) || IsTrue((!IsEqual(cachedPrivateKey, this.PrivateKey)))) {
+		var privateKeyHash any = this.Hash(this.PrivateKey, keccak, "hex")
+		var cachedPrivateKeyHash any = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
+		if IsTrue(IsTrue((IsEqual(walletAddress, nil))) || IsTrue((!IsEqual(cachedPrivateKeyHash, privateKeyHash)))) {
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 			AddElementToObject(this.Options, "cachedWalletAddress", walletAddress)
-			AddElementToObject(this.Options, "privateKeyForCachedWalletAddress", this.PrivateKey)
+			AddElementToObject(this.Options, "privateKeyHashForCachedWalletAddress", privateKeyHash)
 		}
 		var signerAddress any = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet
 		if IsTrue(IsEqual(signerAddress, nil)) {
@@ -5009,8 +5010,8 @@ func (this *AsterCore) LoadMarketsAndSignIn() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes42488 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes42488)
+		retRes42498 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes42498)
 		return nil
 	}()
 	return ch
@@ -5043,8 +5044,8 @@ func (this *AsterCore) SignIn(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
 		}
 
-		retRes42698 := (<-this.InitializeClient(params))
-		PanicOnError(retRes42698)
+		retRes42708 := (<-this.InitializeClient(params))
+		PanicOnError(retRes42708)
 
 		ch <- true
 		return nil
