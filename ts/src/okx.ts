@@ -7599,8 +7599,10 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
-        const uly = this.safeString (market['info'], 'uly');
-        if (!uly) {
+        const marketInfo = this.safeDict (market, 'info', {});
+        const uly = this.safeString (marketInfo, 'uly');
+        const instFamily = this.safeString (marketInfo, 'instFamily', uly);
+        if (!instFamily) {
             if (type !== 'MARGIN') {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7613,10 +7615,29 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];
+        } else {
+            request['instFamily'] = instFamily;
+        }
+        const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
+        let contractSize = '1';
+        if (isFutureOrSwap) {
+            contractSize = this.safeString (marketInfo, 'ctVal');
+            if (!Precise.stringGt (contractSize, '0')) {
+                throw new ExchangeError (this.id + ' fetchMarketLeverageTiers() could not determine a valid contract size for ' + symbol);
+            }
+        }
+        let notionalMultiplier = contractSize;
+        if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
+            const ticker = await this.fetchMarkPrice (symbol);
+            const tickerInfo = this.safeDict (ticker, 'info', {});
+            const quoteConversionRate = this.safeString (tickerInfo, 'markPx');
+            if (!Precise.stringGt (quoteConversionRate, '0')) {
+                throw new ExchangeError (this.id + ' fetchMarketLeverageTiers() could not determine a valid mark price for ' + symbol);
+            }
+            notionalMultiplier = Precise.stringMul (contractSize, quoteConversionRate);
         }
         const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
         //
@@ -7641,7 +7662,19 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseMarketLeverageTiers (data, market);
+        const tiers = this.parseMarketLeverageTiers (data, market);
+        if (isFutureOrSwap) {
+            for (let i = 0; i < tiers.length; i++) {
+                const tier = tiers[i];
+                const tierInfo = this.safeDict (tier, 'info', {});
+                const minSize = this.safeString (tierInfo, 'minSz');
+                const maxSize = this.safeString (tierInfo, 'maxSz');
+                tier['minNotional'] = (minSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (minSize, notionalMultiplier));
+                tier['maxNotional'] = (maxSize === undefined) ? undefined : this.parseNumber (Precise.stringMul (maxSize, notionalMultiplier));
+                tiers[i] = tier;
+            }
+        }
+        return tiers;
     }
 
     parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {

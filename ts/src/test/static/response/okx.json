@@ -3,6 +3,205 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "linear swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USDT:USDT"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "markPx": "0.123456789123456789",
+                            "minSz": "0",
+                            "maxSz": "1000000000000000000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 0,
+                        "maxNotional": 1234567891234568.0,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "markPx": "0.123456789123456789",
+                            "minSz": "0",
+                            "maxSz": "1000000000000000000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "linear USD future leverage tiers preserve raw contract value",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:USD-310404"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instFamily": "BTC-USD_UM_XPERP",
+                            "instId": "",
+                            "instType": "FUTURES",
+                            "markPx": "64000",
+                            "minSz": "0",
+                            "maxSz": "25000",
+                            "mmr": "0.01",
+                            "maxLever": "50",
+                            "uly": "BTC-USD"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:USD-310404",
+                        "currency": "USD",
+                        "minNotional": 0,
+                        "maxNotional": 160000.00000000003,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 50,
+                        "info": {
+                            "tier": "1",
+                            "instFamily": "BTC-USD_UM_XPERP",
+                            "instId": "",
+                            "instType": "FUTURES",
+                            "markPx": "64000",
+                            "minSz": "0",
+                            "maxSz": "25000",
+                            "mmr": "0.01",
+                            "maxLever": "50",
+                            "uly": "BTC-USD"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:BTC"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USD-SWAP",
+                            "minSz": "1000",
+                            "maxSz": "2000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:BTC",
+                        "currency": "USD",
+                        "minNotional": 100000,
+                        "maxNotional": 200000,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USD-SWAP",
+                            "minSz": "1000",
+                            "maxSz": "2000",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "option leverage tiers unchanged",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USD:BTC-241227-60000-P"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USD-241227-60000-P",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USD:BTC-241227-60000-P",
+                        "currency": "USD",
+                        "minNotional": 10,
+                        "maxNotional": 20,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USD-241227-60000-P",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "margin leverage tiers unchanged",
+                "method": "fetchMarketLeverageTiers",
+                "input": ["BTC/USDT"],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "instId": "BTC-USDT",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT",
+                        "currency": "USDT",
+                        "minNotional": 10,
+                        "maxNotional": 20,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "1",
+                            "instId": "BTC-USDT",
+                            "minSz": "10",
+                            "maxSz": "20",
+                            "mmr": "0.01",
+                            "maxLever": "5"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
