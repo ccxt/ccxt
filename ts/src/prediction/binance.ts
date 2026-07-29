@@ -112,13 +112,13 @@ export default class binance extends Exchange {
             'exceptions': {
                 'exact': {
                     '-1003': RateLimitExceeded,
-                    '-1021': InvalidNonce,      // timestamp outside recvWindow
-                    '-1022': AuthenticationError,   // invalid signature
-                    '-1102': BadRequest,        // mandatory parameter missing
+                    '-1021': InvalidNonce, // timestamp outside recvWindow
+                    '-1022': AuthenticationError, // invalid signature
+                    '-1102': BadRequest, // mandatory parameter missing
                     '-1121': BadSymbol,
-                    '-2008': AuthenticationError,   // invalid api-key id
-                    '-2014': AuthenticationError,   // api-key format invalid
-                    '-2015': PermissionDenied,  // invalid key, ip or permissions
+                    '-2008': AuthenticationError, // invalid api-key id
+                    '-2014': AuthenticationError, // api-key format invalid
+                    '-2015': PermissionDenied, // invalid key, ip or permissions
                     '-2010': InsufficientFunds,
                 },
                 'broad': {
@@ -415,6 +415,7 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchEventsByQuery
      * @description resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data#market-search
      * @param {string[]} queries free-text search strings
      * @param {int} [limit] max number of topics to fetch
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
@@ -424,13 +425,16 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: any[] = [];
         const queriesLength = queries.length;
+        if (limit === undefined) {
+            limit = 20;
+        } else if (limit > 50) {
+            limit = 50;
+        }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],
             };
-            if (limit !== undefined) {
-                request['topK'] = limit;
-            }
+            request['topK'] = limit;
             const response = await this.sapiPrivateGetMarketSearch (this.extend (request, rest));
             //
             //     [
@@ -1436,7 +1440,7 @@ export default class binance extends Exchange {
      * @ignore
      * @method
      * @name binance#parsePredictionTrade
-     * @description parses a single hyperliquid fill into a unified trade object
+     * @description parses a single binance fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
