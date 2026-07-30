@@ -38,6 +38,14 @@ public partial class BaseExchange
 
     private void initHttpClient()
     {
+        // Dual-stack (IPv4 + IPv6) REST transport: HttpClientHandler performs no
+        // address-family restriction, so the OS/runtime resolves and dials both
+        // IPv4 and IPv6 per destination. On .NET 5+ runtimes HttpClientHandler
+        // wraps SocketsHttpHandler, whose default connect is dual-stack with
+        // Happy Eyeballs. (SocketsHttpHandler/ConnectCallback cannot be named
+        // directly here because this library targets netstandard2.0/2.1, whose
+        // reference surface does not include them; nothing IPv4-only is set, so
+        // IPv6-only, IPv4-only and dual-stack hosts all work.)
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {

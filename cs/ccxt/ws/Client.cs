@@ -261,6 +261,9 @@ public partial class BaseExchange
                         return; // already connected, return. Might happen when we call connect multiple times in a row
 
                     }
+                    // ClientWebSocket's default connect is dual-stack: the OS
+                    // resolves and dials both IPv4 and IPv6, and no option here
+                    // restricts the address family to IPv4-only.
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
