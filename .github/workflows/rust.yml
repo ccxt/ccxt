@@ -31,13 +31,6 @@ jobs:
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
       # Safety net for the same OOM: give the VM headroom so a memory spike
       # while compiling the `ccxt` crate swaps instead of killing the runner.
-      - name: Add swap space
-        run: |
-          sudo fallocate -l 10G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
       - uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-hack
@@ -206,13 +199,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Same OOM guard as the build job — this job recompiles `ccxt` too.
-      - name: Add swap space
-        run: |
-          sudo fallocate -l 10G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
