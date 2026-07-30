@@ -977,7 +977,7 @@ export class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 250, // ms before starting the parallel attempt to the next address family
+            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };

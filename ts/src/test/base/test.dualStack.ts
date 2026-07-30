@@ -21,12 +21,12 @@ function testDualStack () {
     // plain undici.Agent path (node rest default)
     const agentOptions = exchange.getDispatcherOptions (true);
     assert (agentOptions['autoSelectFamily'] === true, 'autoSelectFamily must be enabled for happy eyeballs dual-stack');
-    assert (agentOptions['autoSelectFamilyAttemptTimeout'] === 250, 'autoSelectFamilyAttemptTimeout should be 250ms');
+    assert (agentOptions['autoSelectFamilyAttemptTimeout'] === 10, 'autoSelectFamilyAttemptTimeout should be 10ms');
     assertNoForcedFamily (agentOptions);
     // undici.ProxyAgent path (proxied node rest)
     const proxyAgentOptions = exchange.getDispatcherOptions (false);
     assert (proxyAgentOptions['autoSelectFamily'] === true, 'autoSelectFamily must be enabled on the proxy dispatcher options too');
-    assert (proxyAgentOptions['autoSelectFamilyAttemptTimeout'] === 250, 'autoSelectFamilyAttemptTimeout should be 250ms on the proxy dispatcher options too');
+    assert (proxyAgentOptions['autoSelectFamilyAttemptTimeout'] === 10, 'autoSelectFamilyAttemptTimeout should be 10ms on the proxy dispatcher options too');
     assertNoForcedFamily (proxyAgentOptions);
     // tls-validation-disabled path must keep happy eyeballs alongside the connect/requestTls overrides
     const insecureExchange = new ccxt.Exchange ({
