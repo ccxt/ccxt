@@ -85,6 +85,9 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function create_connector($connector_options = array()) {
         $connector = new React\Socket\Connector(array_merge(array(
             'timeout' => $this->timeout,
+            // explicitly use happy eyeballs for dual-stack IPv4/IPv6 connections
+            // (supported since react/socket 1.12, enabled by default, composer.json pins 1.17)
+            'happy_eyeballs' => true,
         ), $connector_options), Loop::get());
         return $connector;
     }

@@ -1925,6 +1925,14 @@ class BaseExchange {
         }
     }
 
+    protected function configureCurlIpResolve($curl) {
+        // explicitly resolve hostnames as dual-stack, letting cURL pick IPv4 or IPv6,
+        // do not use CURL_IPRESOLVE_V4 here, it would break IPv6-only networks
+        if (defined('CURL_IPRESOLVE_WHATEVER') && defined('CURLOPT_IPRESOLVE')) {
+            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+        }
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
 
         // https://github.com/ccxt/ccxt/issues/5914
@@ -2034,6 +2042,9 @@ class BaseExchange {
         if ($this->curlopt_interface) {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
+
+        // explicit dual-stack (IPv4/IPv6) name resolution
+        $this->configureCurlIpResolve($this->curl);
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
