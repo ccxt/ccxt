@@ -20,10 +20,16 @@ import (
 // websocket.Dialer defaults), which dials dual-stack via Happy Eyeballs.
 // The deprecated net.Dialer.DualStack field is intentionally not set: since
 // Go 1.20 dual-stack is always enabled when dialing "tcp".
+//
+// FallbackDelay controls Fast Fallback (Happy Eyeballs): a zero value means
+// the 300ms default, and a negative value disables Fast Fallback entirely.
+// 1ns is the smallest positive time.Duration, so it starts racing the other
+// address family as soon as possible. Never set this to a negative value.
 func newDualStackDialer() *net.Dialer {
 	return &net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
+		Timeout:       30 * time.Second,
+		KeepAlive:     30 * time.Second,
+		FallbackDelay: 1 * time.Nanosecond,
 	}
 }
 

@@ -35,6 +35,19 @@ func TestDualStackHTTPClientTransport(t *testing.T) {
 	}
 }
 
+// The dual-stack dialer must use the most aggressive Fast Fallback setting:
+// the smallest positive duration (1ns). Zero would mean the 300ms default and
+// a negative value would disable Happy Eyeballs fast fallback altogether.
+func TestDualStackDialerFallbackDelay(t *testing.T) {
+	d := newDualStackDialer()
+	if d.FallbackDelay != time.Nanosecond {
+		t.Fatalf("expected FallbackDelay == 1ns, got %v", d.FallbackDelay)
+	}
+	if d.FallbackDelay <= 0 {
+		t.Fatal("FallbackDelay must be positive (negative disables fast fallback, zero means 300ms)")
+	}
+}
+
 // newDualStackTransport must actually dial with network "tcp" (dual-stack,
 // Happy Eyeballs). Prove it against a real local listener.
 func TestDualStackTransportDialsTCP(t *testing.T) {
