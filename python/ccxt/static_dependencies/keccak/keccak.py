@@ -171,11 +171,14 @@ def SHA3(_input):
 
     Args:
         size:   instance of desired SHA3 algorithm.
-        _input: list of bytes to compute a hash from.
+        _input: list of bytes to compute a hash from. str is accepted and
+                encoded as UTF-8 (matching JS hash()/utf8Bytes behaviour).
 
     Returns:
         Instance of the Keccak permutation that calculates the hash.
     """
+    if isinstance(_input, str):
+        _input = _input.encode('utf-8')
     size = 256
     # https://www.cybertest.com/blog/keccak-vs-sha3
     padding = 0x01  # change this to 0x06 for NIST sha3

@@ -1411,6 +1411,11 @@ class BaseExchange(object):
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
             from ccxt.static_dependencies import keccak
+            # Match JS hash(): noble-hashes receives utf8Bytes(request).
+            # Call sites such as aster.sign (a19507a5dd / #29342) pass a hex
+            # privateKey string; pure-Python Keccak requires a bytes-like input.
+            if isinstance(request, str):
+                request = Exchange.encode(request)
             binary = bytes(keccak.SHA3(request))
         else:
             h = hashlib.new(algorithm, request)

@@ -3923,11 +3923,12 @@ class aster(Exchange, ImplicitAPI):
             zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
             v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
             walletAddress = self.safe_string(self.options, 'cachedWalletAddress')
-            cachedPrivateKey = self.safe_string(self.options, 'privateKeyForCachedWalletAddress')
-            if (walletAddress is None) or (cachedPrivateKey != self.privateKey):
+            privateKeyHash = self.hash(self.privateKey, 'keccak', 'hex')
+            cachedPrivateKeyHash = self.safe_string(self.options, 'privateKeyHashForCachedWalletAddress')
+            if (walletAddress is None) or (cachedPrivateKeyHash != privateKeyHash):
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey)
                 self.options['cachedWalletAddress'] = walletAddress
-                self.options['privateKeyForCachedWalletAddress'] = self.privateKey
+                self.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash
             signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
             if signerAddress is None:
                 raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')
