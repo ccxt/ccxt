@@ -1177,7 +1177,7 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
+        const data: Dict = this.safeDict (response, 'data', {});
         const parsedOrder = this.parseOrder (data);
         return [ parsedOrder ];
     }
@@ -1507,7 +1507,7 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions: List = this.safeList (response, 'data', []) as List;
+        const positions: List = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }

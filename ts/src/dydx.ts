@@ -2069,8 +2069,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
-        const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN') as List;
-        const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT') as List;
+        const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN');
+        const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat (transferIn, transferOut);
         return this.parseTransfers (rows, currency, since, limit);
     }
@@ -2269,8 +2269,8 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
-        const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
-        const deposits: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
+        const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const deposits: List = this.filterBy (response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat (withdrawals, deposits);
         return this.parseTransactions (rows, currency, since, limit);
     }

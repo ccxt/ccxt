@@ -601,7 +601,7 @@ export default class latoken extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
-        const accountType = this.safeString (types, (type as string), type);
+        const accountType = this.safeString (types, (type), type);
         const balancesByType = this.groupBy (response, 'type');
         const balances = this.safeValue (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
@@ -1850,7 +1850,7 @@ export default class latoken extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = (this.urls['api'] as Dict)['rest'] + requestString;
+        const url = (this.urls['api'])['rest'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

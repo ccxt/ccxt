@@ -582,7 +582,7 @@ export default class coinone extends Exchange {
         let response = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market ((first as string));
+            market = this.market ((first));
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -879,7 +879,7 @@ export default class coinone extends Exchange {
             'currency': market['id'],
             'qty': amount,
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side as string));
+        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side));
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -1241,7 +1241,7 @@ export default class coinone extends Exchange {
                     'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                } as DepositAddress;
+                };
             }
             const address = this.safeString (depositAddress, 'address', value);
             this.checkAddress (address);

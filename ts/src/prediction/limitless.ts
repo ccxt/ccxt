@@ -217,7 +217,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.parseSearchQueries (params) as any[];
+        const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
@@ -234,7 +234,7 @@ export default class limitless extends Exchange {
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({ 'query': q, 'limit': limit }, searchRest));
-                const found = this.safeList (response, 'markets', []) as any[];
+                const found = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
@@ -281,7 +281,7 @@ export default class limitless extends Exchange {
                     page = this.sum (page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
-                    const rawPageMarkets = this.safeList (response, 'data', response as any);
+                    const rawPageMarkets = this.safeList (response, 'data', response);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
                     if (!page_markets || pageMarketsLength === 0) {
@@ -313,7 +313,7 @@ export default class limitless extends Exchange {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
-                const eventGroup = eventGroups[eventKey] as Dict;
+                const eventGroup = eventGroups[eventKey];
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -326,7 +326,7 @@ export default class limitless extends Exchange {
         const eventKeys = Object.keys (eventGroups);
         for (let i = 0; i < eventKeys.length; i++) {
             const eventKey = eventKeys[i];
-            const g = eventGroups[eventKey] as Dict;
+            const g = eventGroups[eventKey];
             eventsDict[eventKey] = this.parseEvent (g);
         }
         this.events = eventsDict;
@@ -1057,8 +1057,8 @@ export default class limitless extends Exchange {
         let midStr: Str = undefined;
         if (book !== undefined) {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
-            const rawBids = this.safeList (book, 'bids', []) as any[];
-            const rawAsks = this.safeList (book, 'asks', []) as any[];
+            const rawBids = this.safeList (book, 'bids', []);
+            const rawAsks = this.safeList (book, 'asks', []);
             const rawBidsLength = rawBids.length;
             const rawAsksLength = rawAsks.length;
             const yesBestBid = (rawBidsLength > 0) ? rawBids[0] : undefined;
@@ -1093,7 +1093,7 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        const prices = this.safeList (raw, 'prices', []) as any[];
+        const prices = this.safeList (raw, 'prices', []);
         const pricesLength = prices.length;
         if ((lastStr === undefined) && (pricesLength > 0)) {
             lastStr = (isYes) ? this.safeString (prices, 0) : this.safeString (prices, 1);
@@ -1191,7 +1191,7 @@ export default class limitless extends Exchange {
             const detail = responses[detailIndex];
             const book = responses[this.sum (detailIndex, 1)];
             const tickerInput: Dict = { 'market': detail, 'book': book };
-            const grouped = outcomesBySlug[slug] as any[];
+            const grouped = outcomesBySlug[slug];
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parsePredictionTicker (tickerInput, grouped[j]);
                 const symbolKey = this.safeString (ticker, 'outcome');
@@ -1248,7 +1248,7 @@ export default class limitless extends Exchange {
         //         "totalRows": 13
         //     }
         //
-        const rows = this.safeList (response, 'events', []) as any[];
+        const rows = this.safeList (response, 'events', []);
         const filtered: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
@@ -1305,8 +1305,8 @@ export default class limitless extends Exchange {
         const scaleStr = this.parsePrecision (this.numberToString (-decimals));
         const outcomeLabel = this.safeStringLower (outcomeObj['info'], 'outcomeLabel', 'yes');
         const isYes = outcomeLabel !== 'no';
-        const rawBids = this.safeList (response, 'bids', []) as any[];
-        const rawAsks = this.safeList (response, 'asks', []) as any[];
+        const rawBids = this.safeList (response, 'bids', []);
+        const rawAsks = this.safeList (response, 'asks', []);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         const bidsSource = (isYes) ? rawBids : rawAsks;
         const asksSource = (isYes) ? rawAsks : rawBids;
@@ -1399,7 +1399,7 @@ export default class limitless extends Exchange {
         //         }
         //     ]
         //
-        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response as any));
+        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response));
         const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history: any[] = rawHistory;
         const rawHistoryLength = rawHistory.length;
@@ -1861,7 +1861,7 @@ export default class limitless extends Exchange {
         }
         const id = this.safeString (rawOrder, 'id');
         const tokenId = this.safeString2 (rawOrder, 'token', 'tokenId');
-        const mkt = this.safeOutcome (tokenId, market as any);
+        const mkt = this.safeOutcome (tokenId, market);
         const outcomeSymbol = this.safeString (mkt, 'outcome');
         const rawSide = this.safeString (rawOrder, 'side');
         const side = this.parseOrderSide (rawSide);
@@ -2163,7 +2163,7 @@ export default class limitless extends Exchange {
             request['postOnly'] = postOnly;
         }
         const response = await this.limitlessPrivatePostOrders (this.extend (request, params));
-        const parsedOrder = this.parsePredictionOrder (response, outcomeObj as any);
+        const parsedOrder = this.parsePredictionOrder (response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
         if (parsedOrder['status'] === undefined) {
             parsedOrder['status'] = 'open';
@@ -2783,7 +2783,7 @@ export default class limitless extends Exchange {
         //         ]
         //     }
         //
-        const clob = this.safeList (response, 'clob', []) as any[];
+        const clob = this.safeList (response, 'clob', []);
         const result: PredictionPosition[] = [];
         const labels = [ 'yes', 'no' ];
         for (let i = 0; i < clob.length; i++) {
@@ -2921,7 +2921,7 @@ export default class limitless extends Exchange {
                     'query': q,
                     'limit': limit,
                 }, rest));
-                const found = this.safeList (response, 'markets', []) as any[];
+                const found = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');
@@ -2963,12 +2963,12 @@ export default class limitless extends Exchange {
             if (m === undefined) {
                 throw new ExchangeError (this.id + ' fetchEvents() missing m');
             }
-            this.markets[m['market'] as string] = m;
+            this.markets[m['market']] = m;
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
-                const eventGroup = eventGroups[eventKey] as Dict;
+                const eventGroup = eventGroups[eventKey];
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -2981,7 +2981,7 @@ export default class limitless extends Exchange {
         const eventKeys = Object.keys (eventGroups);
         const eventKeysLength = eventKeys.length;
         for (let i = 0; i < eventKeysLength; i++) {
-            const g = eventGroups[eventKeys[i]] as Dict;
+            const g = eventGroups[eventKeys[i]];
             const ev = this.parseEvent (g);
             result.push (ev);
         }
@@ -3025,7 +3025,7 @@ export default class limitless extends Exchange {
             } else {
                 response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
             }
-            const data = this.safeList (response, 'data', []) as any[];
+            const data = this.safeList (response, 'data', []);
             const dataLength = data.length;
             if (dataLength === 0) {
                 break;
@@ -3118,8 +3118,8 @@ export default class limitless extends Exchange {
     sign (path: any, section: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof section === 'string' ? section : section[0];
         const access: string = typeof section === 'string' ? 'public' : section[1];
-        const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless'] as string);
+        const baseUrls = this.urls['api'];
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencodeWithArrayRepeat (query);

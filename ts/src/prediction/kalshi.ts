@@ -225,7 +225,7 @@ export default class kalshi extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.parseSearchQueries (params) as any[];
+        const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
@@ -238,7 +238,7 @@ export default class kalshi extends Exchange {
             const eventsLength = events.length;
             const queryMarkets: Market[] = [];
             for (let ei = 0; ei < eventsLength; ei++) {
-                const eventMarkets = this.safeList (events[ei], 'markets', []) as any[];
+                const eventMarkets = this.safeList (events[ei], 'markets', []);
                 const eventMarketsLength = eventMarkets.length;
                 for (let mi = 0; mi < eventMarketsLength; mi++) {
                     queryMarkets.push (eventMarkets[mi]);
@@ -266,7 +266,7 @@ export default class kalshi extends Exchange {
                 request['cursor'] = cursor;
             }
             const response = await this.kalshiPublicGetMarkets (this.extend (request, rest));
-            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            const rawMarkets = this.safeList (response, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
@@ -287,7 +287,7 @@ export default class kalshi extends Exchange {
                                 'markets': [],
                             };
                         }
-                        const eventEntry = eventsDict[eventKey] as Dict;
+                        const eventEntry = eventsDict[eventKey];
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -442,7 +442,7 @@ export default class kalshi extends Exchange {
                 'limit': chunkSize,
             };
             const response = await this.kalshiPublicGetMarkets (request);
-            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            const rawMarkets = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const parsed = this.parseMarket (rawMarkets[i]);
                 if (parsed === undefined) {
@@ -899,7 +899,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const marketAny = market as any;
+        const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
@@ -1021,14 +1021,14 @@ export default class kalshi extends Exchange {
                 'limit': chunkSize,
             };
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
-            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            const rawMarkets = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
                 const marketTicker = this.safeString (raw, 'ticker');
                 if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
                     continue;
                 }
-                const grouped = outcomesByTicker[marketTicker] as any[];
+                const grouped = outcomesByTicker[marketTicker];
                 for (let j = 0; j < grouped.length; j++) {
                     const ticker = this.parsePredictionTicker (raw, grouped[j]);
                     const symbolKey = this.safeString (ticker, 'outcome');
@@ -1076,8 +1076,8 @@ export default class kalshi extends Exchange {
         const book = this.safeValue (response, 'orderbook_fp', response);
         const timestamp = this.milliseconds ();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
-        const rawYes = this.safeList (book, 'yes_dollars', []) as any[];
-        const rawNo = this.safeList (book, 'no_dollars', []) as any[];
+        const rawYes = this.safeList (book, 'yes_dollars', []);
+        const rawNo = this.safeList (book, 'no_dollars', []);
         // Convert [price_cents, size] → [price, size]
         const bids: any[] = [];
         const asks: any[] = [];
@@ -1217,7 +1217,7 @@ export default class kalshi extends Exchange {
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        const candles = this.safeList (response, 'candlesticks', []) as any[];
+        const candles = this.safeList (response, 'candlesticks', []);
         const usableCandles: Dict[] = [];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -1314,7 +1314,7 @@ export default class kalshi extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
-        const trades = this.safeList (response, 'trades', []) as any[];
+        const trades = this.safeList (response, 'trades', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1349,7 +1349,7 @@ export default class kalshi extends Exchange {
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
-        const marketAny = market as any;
+        const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const marketInfo = this.safeDict (outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
@@ -1417,7 +1417,7 @@ export default class kalshi extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.kalshiPrivateGetPortfolioFills (this.extend (request, params));
-        const fills = this.safeList (response, 'fills', []) as any[];
+        const fills = this.safeList (response, 'fills', []);
         const fillsLength = fills.length;
         const trades: any[] = [];
         for (let i = 0; i < fillsLength; i++) {
@@ -1456,7 +1456,7 @@ export default class kalshi extends Exchange {
         if ((sideLeg === 'no') && (ticker !== undefined)) {
             outcomeKey = ticker + '-NO';
         }
-        const mkt = this.safeOutcome (outcomeKey, market as any);
+        const mkt = this.safeOutcome (outcomeKey, market);
         const ts = this.parse8601 (this.safeString (fill, 'created_time'));
         // action is the order side (buy/sell) of the held leg
         const action = this.safeStringLower (fill, 'action');
@@ -1568,7 +1568,7 @@ export default class kalshi extends Exchange {
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
-        const positions = this.safeList (response, 'market_positions', []) as any[];
+        const positions = this.safeList (response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         const parsed = this.parsePredictionPositions (positions);
@@ -1619,7 +1619,7 @@ export default class kalshi extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.kalshiPrivateGetPortfolioSettlements (this.extend (request, params));
-        const rawSettlements = this.safeList (response, 'settlements', []) as any[];
+        const rawSettlements = this.safeList (response, 'settlements', []);
         const rawSettlementsLength = rawSettlements.length;
         const parsed: any[] = [];
         for (let i = 0; i < rawSettlementsLength; i++) {
@@ -1658,7 +1658,7 @@ export default class kalshi extends Exchange {
         const tickerMissing = (ticker === undefined);
         const useHeldYesTicker = (heldYes || tickerMissing);
         const heldTicker = (useHeldYesTicker) ? ticker : (ticker + '-NO');
-        const mkt = this.safeOutcome (heldTicker, market as any);
+        const mkt = this.safeOutcome (heldTicker, market);
         // which leg won; market_result is yes or no
         const marketResult = this.safeStringUpper (settlement, 'market_result');
         const won = (marketResult === heldLabel);
@@ -1714,7 +1714,7 @@ export default class kalshi extends Exchange {
      */
     parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const ticker = this.safeString (position, 'ticker');
-        const outcomeObj = this.safeOutcome (ticker, market as any);
+        const outcomeObj = this.safeOutcome (ticker, market);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
         let positionSide: Str = undefined;
         let contractsValue: Num = undefined;
@@ -1878,7 +1878,7 @@ export default class kalshi extends Exchange {
         if ((sideLeg === 'no') && (ticker !== undefined)) {
             outcomeKey = ticker + '-NO';
         }
-        const mkt = this.safeOutcome (outcomeKey, market as any);
+        const mkt = this.safeOutcome (outcomeKey, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
@@ -2022,7 +2022,7 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivatePostPortfolioEventsOrders (this.extend (request, params));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
-        const order = this.parsePredictionOrder (response, outcomeObj as any);
+        const order = this.parsePredictionOrder (response, outcomeObj);
         order['side'] = side;
         order['amount'] = amount;
         order['price'] = price;
@@ -2257,7 +2257,7 @@ export default class kalshi extends Exchange {
                 'order_by': 'querymatch',
                 'page_size': pageSize,
             });
-            const page = this.safeList (searchResponse, 'current_page', []) as any[];
+            const page = this.safeList (searchResponse, 'current_page', []);
             const pageLength = page.length;
             for (let pi = 0; pi < pageLength; pi++) {
                 const et = this.safeString (page[pi], 'event_ticker');
@@ -2326,7 +2326,7 @@ export default class kalshi extends Exchange {
         const tagsLength = tags.length;
         for (let ti = 0; ti < tagsLength; ti++) {
             const seriesResponse = await this.kalshiPublicGetSeries ({ 'tags': tags[ti] });
-            const seriesList = this.safeList (seriesResponse, 'series', []) as any[];
+            const seriesList = this.safeList (seriesResponse, 'series', []);
             const seriesListLength = seriesList.length;
             for (let si = 0; si < seriesListLength; si++) {
                 const st = this.safeString (seriesList[si], 'ticker');
@@ -2338,7 +2338,7 @@ export default class kalshi extends Exchange {
         const category = this.safeString (params, 'category');
         if (category !== undefined) {
             const seriesResponse = await this.kalshiPublicGetSeries ({ 'category': category });
-            const seriesList = this.safeList (seriesResponse, 'series', []) as any[];
+            const seriesList = this.safeList (seriesResponse, 'series', []);
             const seriesListLength = seriesList.length;
             for (let si = 0; si < seriesListLength; si++) {
                 const st = this.safeString (seriesList[si], 'ticker');
@@ -2414,7 +2414,7 @@ export default class kalshi extends Exchange {
                     request['cursor'] = cursor;
                 }
                 const response = await this.kalshiPublicGetEvents (this.extend (request, rest));
-                const pageEvents = this.safeList (response, 'events', []) as any[];
+                const pageEvents = this.safeList (response, 'events', []);
                 const pageEventsLength = pageEvents.length;
                 for (let ei = 0; ei < pageEventsLength; ei++) {
                     rawEvents.push (pageEvents[ei]);
@@ -2521,7 +2521,7 @@ export default class kalshi extends Exchange {
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
+        const rawMarkets = this.safeList (rawEvent, 'markets', []);
         const marketsList: any[] = [];
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
@@ -2616,8 +2616,8 @@ export default class kalshi extends Exchange {
     sign (path: any, api: any = 'kalshi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
-        const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi'] as string);
+        const baseUrls = this.urls['api'];
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi']);
         const implodedPath = this.implodeParams (path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));

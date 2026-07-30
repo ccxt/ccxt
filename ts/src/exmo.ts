@@ -682,7 +682,7 @@ export default class exmo extends Exchange {
                 }
             }
             if ((networkCode !== undefined) && (type !== undefined)) {
-                result['networks'][networkCode][type as string] = {
+                result['networks'][networkCode][type] = {
                     'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
                     'percentage': percentage,
                 };

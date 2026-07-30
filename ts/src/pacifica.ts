@@ -704,7 +704,7 @@ export default class pacifica extends Exchange {
         if (isSwap) {
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict (this.fees, (type as string), {});
+        const fees = this.safeDict (this.fees, (type), {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecision = this.safeNumber (market, 'lot_size');

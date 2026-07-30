@@ -469,7 +469,7 @@ export default class ndax extends Exchange {
             this.options['pending2faToken'] = pending2faToken;
             request = {
                 'Code': totp (this.twofa),
-            } as any;
+            };
             const responseInner = await this.publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
@@ -2497,7 +2497,7 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, (type as string), {});
+        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, (type), {});
         if (status === undefined) {
             return undefined;
         }

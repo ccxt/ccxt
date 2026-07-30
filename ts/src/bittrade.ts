@@ -518,7 +518,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols') as string;
+        const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols');
         const response = await this[method] (params);
         //
         //    {
@@ -1126,7 +1126,7 @@ export default class bittrade extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const request: Dict = {
-            'language': this.handleOption ('fetchCurrencies', 'language', 'en-US') as string,
+            'language': this.handleOption ('fetchCurrencies', 'language', 'en-US'),
         };
         const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
         //
@@ -1260,7 +1260,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
-        const method = this.handleOption ('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance') as string;
+        const method = this.handleOption ('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         const request: Dict = {
             'id': this.accounts[0]['id'],
         };
@@ -1280,7 +1280,7 @@ export default class bittrade extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders') as string;
+        const method = this.handleOption ('fetchOrdersByStates', 'method', 'private_get_order_orders');
         const response = await this[method] (this.extend (request, params));
         //
         //     { "status":   "ok",

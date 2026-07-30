@@ -147,7 +147,7 @@ function setExchangeProp (exchange, prop, value) {
 }
 
 function initExchange (exchangeId, args, isWs = false): Exchange {
-    const prediction = (ccxt as any).prediction;
+    const prediction = (ccxt).prediction;
     const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
     // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
     // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.

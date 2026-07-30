@@ -1129,7 +1129,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type as string), type);
+        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type), type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);

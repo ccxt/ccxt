@@ -895,7 +895,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         return result;
     }
@@ -976,7 +976,7 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1FapiMarketTicker24hr (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -1664,7 +1664,7 @@ export default class bydfi extends Exchange {
         } else {
             response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0, {});
         return this.parseOrder (order, market);
     }
@@ -2245,7 +2245,7 @@ export default class bydfi extends Exchange {
         const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
         //
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2320,7 +2320,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }

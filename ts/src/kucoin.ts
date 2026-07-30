@@ -8605,7 +8605,7 @@ export default class kucoin extends Exchange {
         const response = await this.utaPrivatePostAccountTransfer (this.extend (request, params));
         //
         //
-        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
+        const data: Dict = this.safeDict (response, 'data', {});
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -8692,7 +8692,7 @@ export default class kucoin extends Exchange {
             //
             response = await this.privatePostAccountsUniversalTransfer (this.extend (request, params));
         }
-        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
+        const data: Dict = this.safeDict (response, 'data', {});
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -9873,7 +9873,7 @@ export default class kucoin extends Exchange {
         //        }
         //    }
         //
-        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
+        const data: Dict = this.safeDict (response, 'data', {});
         const parsed = this.parseLeverage (data, market);
         return this.extend (parsed, {
             'marginMode': marginMode,
