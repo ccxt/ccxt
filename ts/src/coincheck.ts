@@ -575,8 +575,8 @@ export default class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amountString = this.safeString (funds, (baseId));
-            costString = this.safeString (funds, (quoteId));
+            amountString = this.safeString (funds, baseId);
+            costString = this.safeString (funds, quoteId);
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
                 'cost': this.safeString (trade, 'fee'),

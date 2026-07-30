@@ -2497,7 +2497,7 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, (type), {});
+        const statuses = (type === undefined) ? {} : this.safeValue (statusesByType, type, {});
         if (status === undefined) {
             return undefined;
         }

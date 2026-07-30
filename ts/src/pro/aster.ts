@@ -1274,9 +1274,9 @@ export default class aster extends asterRest {
     async authenticate (type = 'spot', params = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
-        const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, (type), 0);
+        const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);
         const listenKeyRefreshRateOptions = this.safeDict (this.options, 'listenKeyRefreshRate', {});
-        const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, (type), 3600000); // 1 hour
+        const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
             let response: Dict = {};
             if (type === 'spot') {
@@ -1382,7 +1382,7 @@ export default class aster extends asterRest {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
