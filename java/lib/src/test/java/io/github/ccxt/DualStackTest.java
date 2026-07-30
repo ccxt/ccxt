@@ -8,19 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Dual-stack IPv6 regression test.
- *
- * BaseExchange.initExchange() used to call
- *   System.setProperty("java.net.preferIPv4Stack", "true");
- * which forces the whole JVM onto the IPv4 stack, breaking IPv6-only and
- * dual-stack hosts for both REST (java.net.http.HttpClient) and WS
- * (Netty NioSocketChannel). The property is now removed so the JVM default
- * (dual-stack, IPv6 preferred when available with IPv4 fallback) applies.
- *
- * These tests are offline-safe: they assert on the system property and on
- * httpClient construction only, no DNS or network access.
- */
+/** Offline dual-stack regression: construction must not set preferIPv4Stack. */
 class DualStackTest {
 
     private static final String PROP = "java.net.preferIPv4Stack";
@@ -28,16 +16,14 @@ class DualStackTest {
 
     @BeforeAll
     static void clearIPv4StackPreference() {
-        // If the gradle/test JVM was launched with -Djava.net.preferIPv4Stack=true
-        // (or a previous test set it), clear it first so we can observe whether
-        // exchange construction re-sets it. Construction must NOT set it.
+        // Clear preferIPv4Stack so we can detect if construction re-sets it.
         savedProperty = System.getProperty(PROP);
         System.clearProperty(PROP);
     }
 
     @AfterAll
     static void restoreIPv4StackPreference() {
-        // Leave the JVM as we found it for other tests in the same fork.
+        // Restore JVM property for other tests in this fork.
         if (savedProperty != null) {
             System.setProperty(PROP, savedProperty);
         } else {
@@ -54,9 +40,7 @@ class DualStackTest {
         Exchange ex = createExchange(null);
         assertNotNull(ex);
         String value = System.getProperty(PROP);
-        assertNotEquals("true", value,
-                "Exchange construction must not set java.net.preferIPv4Stack=true " +
-                "(forces JVM-wide IPv4-only, breaks dual-stack IPv6)");
+        assertNotEquals("true", value, "construction must not set preferIPv4Stack=true");
     }
 
     @Test
@@ -66,18 +50,12 @@ class DualStackTest {
         Exchange ex = createExchange(config);
         assertNotNull(ex);
         String value = System.getProperty(PROP);
-        assertNotEquals("true", value,
-                "Exchange construction with user config must not set " +
-                "java.net.preferIPv4Stack=true");
+        assertNotEquals("true", value, "construction with config must not set preferIPv4Stack=true");
     }
 
     @Test
     void constructionDoesNotForceAddressFamilyPreference() {
-        // The JVM has no Happy-Eyeballs delay knob (no equivalent of Node's
-        // autoSelectFamilyAttemptTimeout on java.net.http.HttpClient or on
-        // Netty 4.1.x Bootstrap). The least aggressive correct configuration is
-        // to set NO address-family system property at all, so both of these
-        // must remain unset by exchange construction.
+        // Construction must not set preferIPv4Stack or preferIPv6Addresses.
         String savedV6 = System.getProperty("java.net.preferIPv6Addresses");
         System.clearProperty("java.net.preferIPv6Addresses");
         try {
@@ -86,9 +64,7 @@ class DualStackTest {
             assertNull(System.getProperty(PROP),
                     "construction must not set java.net.preferIPv4Stack at all");
             assertNull(System.getProperty("java.net.preferIPv6Addresses"),
-                    "construction must not set java.net.preferIPv6Addresses; " +
-                    "the JDK default already yields dual-stack and forcing it " +
-                    "does not speed up family selection");
+                    "construction must not set preferIPv6Addresses");
         } finally {
             if (savedV6 != null) {
                 System.setProperty("java.net.preferIPv6Addresses", savedV6);
@@ -98,10 +74,7 @@ class DualStackTest {
 
     @Test
     void jvmCanOpenIPv6Sockets() throws Exception {
-        // Sanity check that the test JVM is not IPv4-only: with
-        // preferIPv4Stack cleared, an INET6 socket must be creatable.
-        // This is what makes IPv6 endpoints reachable for both HttpClient
-        // and Netty's NioSocketChannel. No DNS/network access.
+        // With preferIPv4Stack cleared, an INET6 socket must be creatable.
         try (java.nio.channels.SocketChannel ch =
                      java.nio.channels.SocketChannel.open(
                              java.net.StandardProtocolFamily.INET6)) {

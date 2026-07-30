@@ -251,21 +251,7 @@ public class BaseExchange {
         } else {
             defaultConfig = new HashMap<String, Object>();
         }
-        // NOTE: no System.setProperty("java.net.preferIPv4Stack", ...) here.
-        // Forcing IPv4-stack JVM-wide breaks IPv6-only and dual-stack hosts
-        // for both REST (java.net.http.HttpClient) and WS (Netty
-        // NioSocketChannel). The JVM default is dual-stack: IPv6 is used
-        // when available with IPv4 fallback, which is what we want.
-        //
-        // Unlike Node (net.setDefaultAutoSelectFamilyAttemptTimeout /
-        // autoSelectFamily), the JVM exposes NO numeric Happy-Eyeballs
-        // connection-attempt delay: java.net.http.HttpClient has no such
-        // builder option, and java.net.preferIPv6Addresses only changes
-        // address *ordering* (its default, "false"/system, already gives
-        // dual-stack behaviour and setting it does not race faster).
-        // So "lowest possible dual-stack aggressiveness" in Java means
-        // exactly this: set no family-forcing property at all and let the
-        // JDK resolver + OS decide. Do not add an invented delay property.
+        // Do not set java.net.preferIPv4Stack; JVM default dual-stack (no HE delay knob).
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
@@ -1992,9 +1978,7 @@ public class BaseExchange {
     }
 
     private void initHttpClient() {
-        // HttpClient uses the JVM default dual-stack DNS/address selection
-        // (no preferIPv4Stack override), so IPv6-capable hosts work and IPv4
-        // remains the fallback.
+        // HttpClient uses JVM default dual-stack DNS (no preferIPv4Stack).
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
         // browsers transparently follow 3xx. Without this, requests against
