@@ -2287,13 +2287,15 @@ class bybit(ccxt.async_support.bybit):
                     raise ExchangeError(self.id + ' ' + ret_msg)
             return False
         except Exception as error:
-            if isinstance(error, AuthenticationError):
-                messageHash = 'authenticated'
+            messageHash = self.safe_string_2(message, 'req_id', 'reqId')
+            if messageHash is not None:
                 client.reject(error, messageHash)
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
+            elif isinstance(error, AuthenticationError):
+                authenticatedHash = 'authenticated'
+                client.reject(error, authenticatedHash)
+                if authenticatedHash in client.subscriptions:
+                    del client.subscriptions[authenticatedHash]
             else:
-                messageHash = self.safe_string_2(message, 'req_id', 'reqId')
                 client.reject(error, messageHash)
             return True
 
