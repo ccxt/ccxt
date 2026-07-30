@@ -230,6 +230,36 @@ test ('private watch methods require an account (rejected up front, no socket al
     await client.close ();
 });
 
+test ('symbol/symbols convenience aliases map to positional args (no silent zombie stream)', async () => {
+    const { client, ctx } = await connect ({});
+    // the natural "symbol" shape resolves to args[0] instead of starting a no-data stream
+    const bySymbol = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTicker', 'symbol': 'BTC/USDT' });
+    assert.equal (bySymbol.ok, true);
+    assert.deepEqual (bySymbol.data.args, [ 'BTC/USDT' ], 'symbol folded into args[0]');
+    await sleep (30);
+    const read = await call (client, 'watch_read', { 'subscriptionId': bySymbol.data.subscriptionId });
+    assert.ok (read.data.latest?.last > 0, 'the stream actually produces data');
+    // the "symbols" array shape also works for a single-symbol method
+    const bySymbols = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTicker', 'symbols': [ 'BTC/USDT' ] });
+    assert.deepEqual (bySymbols.data.args, [ 'BTC/USDT' ]);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('a symbol-required stream with no symbol fails fast instead of becoming a zombie', async () => {
+    const { client, ctx } = await connect ({});
+    const rejected = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchTicker' });
+    assert.equal (rejected.ok, false);
+    assert.equal (rejected.error.code, 'BAD_STREAM_REQUEST');
+    assert.ok (rejected.error.message.includes ('needs a symbol'));
+    assert.ok (rejected.error.hint.includes ('args'), 'hint points at the args shape');
+    // watch_list stays empty — no zombie subscription was created
+    const list = await call (client, 'watch_list', {});
+    assert.equal (list.data.length, 0);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
 test ('rejects non-watch methods and unsupported watch methods', async () => {
     const { client, ctx } = await connect ({});
     const notWatch = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'fetchTicker', 'args': [ 'BTC/USDT' ] });

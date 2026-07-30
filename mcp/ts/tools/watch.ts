@@ -15,15 +15,17 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
             'exchange': exchangeParam,
             'method': z.string ().describe ('a ccxt.pro watch* method, e.g. "watchOHLCV", "watchTicker", "watchOrderBook", "watchTrades"'),
             'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])) ])).optional ().describe ('positional arguments — they differ per method (get the exact signature with describe_method): e.g. watchTicker ["BTC/USDT"], watchOHLCV ["BTC/USDT","1m"], watchOrderBook ["BTC/USDT", depthLimit], watchTrades ["BTC/USDT"]. Methods that take a symbol LIST take a nested array, e.g. watchTickers [["BTC/USDT","ETH/USDT"]]. Resolve symbols with search_markets.'),
+            'symbol': z.string ().optional ().describe ('convenience alias for a single-symbol stream (watchTicker/watchOrderBook/watchTrades/watchOHLCV) — equivalent to passing it as args[0]; ignored if args is given'),
+            'symbols': z.array (z.string ()).optional ().describe ('convenience alias for a multi-symbol stream (watchTickers/watchOrderBookForSymbols/…) — equivalent to passing the list as args[0]; ignored if args is given'),
             'account': z.string ().optional ().describe ('configured account name — required for private streams (watchOrders, watchMyTrades, watchBalance, watchPositions, watchMyLiquidations)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, method, args, account, marketType, prediction, params }) => run ({ 'tool': 'watch_subscribe', 'exchange': exchangeId, account }, async () => {
+    }, async ({ exchange: exchangeId, method, args, symbol, symbols, account, marketType, prediction, params }) => run ({ 'tool': 'watch_subscribe', 'exchange': exchangeId, account }, async () => {
         try {
-            const sub = await ctx.subscriptions.subscribe ({ exchangeId, method, 'args': args ?? undefined, account, marketType, 'prediction': prediction, params });
+            const sub = await ctx.subscriptions.subscribe ({ exchangeId, method, 'args': args ?? undefined, symbol, symbols, account, marketType, 'prediction': prediction, params });
             return ok (sub, { 'notice': 'stream started — call watch_read with this subscriptionId (and the returned cursor on later reads) to get new updates; watch_unsubscribe to stop' });
         } catch (error: any) {
             if (error instanceof StreamArgError) {

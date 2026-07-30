@@ -34,6 +34,24 @@ const PRIVATE_STREAM_RE = /^watch(Orders|MyTrades|MyLiquidations|Balance|Positio
 // accumulator so watch_read always returns the full current set; see accumulate() for how
 // each shape (single object / symbol-keyed dict / positions array / candle window) is merged.
 const STATE_STREAM_RE = /^watch(Ticker|Tickers|OrderBook|OrderBookForSymbols|OHLCV|OHLCVForSymbols|Balance|Positions|BidsAsks|MarkPrice|MarkPrices|FundingRate|FundingRates)$/;
+// watch methods that MUST get a single symbol as their first arg — subscribing one without a
+// symbol produces a stream that can never yield data (a silent zombie), so we reject it up front
+const SYMBOL_REQUIRED_RE = /^watch(Ticker|OrderBook|Trades|OHLCV)$/;
+// watch methods whose first arg is a LIST of symbols rather than a single symbol
+const SYMBOL_LIST_RE = /^watch(.+ForSymbols|Tickers|BidsAsks|MarkPrices|FundingRates|Positions)$/;
+
+// Map the convenience symbol/symbols fields to the positional args ccxt expects. Single-symbol
+// methods take a string first arg; list methods take an array first arg.
+function foldSymbolArgs (method: string, symbol: string | undefined, symbols: string[] | undefined): any[] {
+    const isList = SYMBOL_LIST_RE.test (method);
+    if (symbols !== undefined && symbols.length > 0) {
+        return isList ? [ symbols ] : [ symbols[0] ];
+    }
+    if (symbol !== undefined && symbol !== '') {
+        return isList ? [ [ symbol ] ] : [ symbol ];
+    }
+    return [];
+}
 
 type SnapshotStrategy = 'replace' | 'mergeDict' | 'upsertArray' | 'mergeBook' | 'window';
 
@@ -125,7 +143,7 @@ export class SubscriptionRegistry {
         this.maxSubscriptions = maxSubscriptions;
     }
 
-    async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<any> {
+    async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], symbol?: string, symbols?: string[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<any> {
         const method = opts.method;
         if (!/^watch[A-Z]/.test (method)) {
             throw new StreamArgError (JSON.stringify (method) + ' is not a streaming method', 'use a watch* method, e.g. watchTicker, watchOHLCV, watchOrderBook, watchTrades, watchOrders (with an account)');
@@ -163,12 +181,23 @@ export class SubscriptionRegistry {
                 release ();
                 throw new StreamArgError (exchange.id + ' does not stream ' + method + ' (no WebSocket support for it)', 'check describe_exchange — not every exchange streams every method; the fetch* equivalent still works');
             }
+            // accept the natural symbol/symbols fields as aliases for the positional args when
+            // no args were given, so a mis-named symbol key can't create a no-data stream
+            let rawArgs: any[] = opts.args ?? [];
+            if (rawArgs.length === 0) {
+                rawArgs = foldSymbolArgs (method, opts.symbol, opts.symbols);
+            }
             let args: any[];
             try {
-                args = this.buildWatchArgs (exchange, method, opts.args ?? [], params);
+                args = this.buildWatchArgs (exchange, method, rawArgs, params);
             } catch (e) {
                 release ();
                 throw e;
+            }
+            // fail fast: a symbol-required stream with no symbol would poll empty forever
+            if (SYMBOL_REQUIRED_RE.test (method) && (typeof args[0] !== 'string' || args[0] === '')) {
+                release ();
+                throw new StreamArgError (method + ' needs a symbol', 'pass the unified symbol in args, e.g. args: ["BTC/USDT"] (or set the "symbol" field); resolve it with search_markets');
             }
             const argsKey = JSON.stringify (args);
             // idempotent: an identical active stream already exists — reuse it instead of
