@@ -104,7 +104,7 @@ export default class binance extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.02,
+                    'maker': 0,
                     'taker': 0.02,  // default feeRateBps of 200 applied per order
                 },
             },
@@ -696,7 +696,7 @@ export default class binance extends Exchange {
             'expiryDatetime': this.iso8601 (endDate),
             'strike': undefined,
             'optionType': undefined,
-            'taker': feeRate,
+            'taker': 0,
             'maker': feeRate,
             'percentage': true,
             'tierBased': false,
@@ -1488,9 +1488,16 @@ export default class binance extends Exchange {
         const timestamp = this.safeInteger (trade, 'createTime');
         const filled = this.safeString (trade, 'filledShareQty');
         const cost = this.safeString (trade, 'filledUsdtAmount');
-        const providerFee = this.safeString (trade, 'marketProviderFee');
-        const networkFee = this.safeString (trade, 'networkFee');
-        const feeCost = Precise.stringAdd (providerFee, networkFee);
+        const price = this.safeString (trade, 'price');
+        const orderType = this.safeStringLower (trade, 'orderType');
+        let fee = undefined;
+        if (orderType === 'market') {
+            const feeCost = Precise.stringSub (cost, Precise.stringMul (price, filled));
+            fee = {
+                'currency': 'USDT',
+                'cost': feeCost,
+            };
+        }
         return this.safePredictionTrade ({
             'id': undefined,
             'info': trade,
@@ -1502,17 +1509,14 @@ export default class binance extends Exchange {
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
             'order': this.safeString (trade, 'orderId'),
-            'type': this.safeStringLower (trade, 'orderType'),
+            'type': orderType,
             'side': this.safeStringLower (trade, 'side'),
             'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
+            'price': price,
             'amount': this.safeString (trade, 'makerShareQty'),
             'filled': filled,
             'cost': cost,
-            'fee': {
-                'currency': 'USDT',
-                'cost': feeCost,
-            },
+            'fee': fee,
         }, outcomeObj);
     }
 
@@ -1638,6 +1642,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundingSource] Funding source. Enum: MPC, CEX. Default MPC
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @param {string} [params.accountType] Payment account type. Enum: SPOT, FUNDING
+     * @param {string} [params.feeRateBps] Payment account type. Enum: SPOT, FUNDING
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
@@ -1658,7 +1663,32 @@ export default class binance extends Exchange {
             "orderType": typeUpper,
             "slippageBps": slippageBps,
         };
+        let amountStr = this.numberToString (amount);
+        const priceStr = this.numberToString (price);
         let defaultTif = 'FOK';
+        if (sideUpper === 'BUY') {
+            // the amountIn represents USDT for buy order
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires price for ' + side + ' order');
+            }
+            let feeRateBps = this.safeString (params, 'feeRateBps', '200');
+            if (typeUpper === 'LIMIT') {
+                // commonRequest['priceLimit'] = this.priceToPrecision (marketSymbol, price);
+                // defaultTif = 'GTC';
+                feeRateBps = '0';
+            }
+            //  else {
+            //     // const feeRateBps = this.safeString (params, 'feeRateBps', '200');
+            //     // const feeRate = Precise.stringDiv (feeRateBps, '10000');
+            //     // const minPrice = this.numberToString (Math.min (price, 1 - price));
+            //     // const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
+            //     // amountStr = Precise.stringMul (amountStr, priceStr) + fee;
+            // }
+            const feeRate = Precise.stringDiv (feeRateBps, '10000');
+            const minPrice = this.numberToString (Math.min (price, 1 - price));
+            const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
+            amountStr = Precise.stringAdd (Precise.stringMul (amountStr, priceStr), fee);
+        }
         if (typeUpper === 'LIMIT') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + 'createOrder requires price for limit order');
@@ -1671,7 +1701,6 @@ export default class binance extends Exchange {
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        const amountStr = this.numberToString (amount);
         params = this.omit (params, [ 'timeInForce', 'accountType' ]);
         const quoteRequest = this.extend (commonRequest, {
             "tokenId": outcomeObj['id'],
