@@ -4897,7 +4897,7 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		var zeroAddress any = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId any = this.SafeInteger(this.Options, "v3ChainId", 1666)
 		var walletAddress any = this.SafeString(this.Options, "cachedWalletAddress")
-		var privateKeyHash any = this.Hash(this.PrivateKey, keccak, "hex")
+		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash any = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
 		if IsTrue(IsTrue((IsEqual(walletAddress, nil))) || IsTrue((!IsEqual(cachedPrivateKeyHash, privateKeyHash)))) {
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
