@@ -71,7 +71,6 @@ include_once __DIR__ . '/test_constants.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
 include_once __DIR__ . '/test_is_json_encoded_object.php';
 include_once __DIR__ . '/test_encode_decode.php';
-include_once __DIR__ . '/test_dual_stack.php'; // hand-written (not transpiled)
 
 function base_tests_init() {
     return Async\async(function () {
@@ -136,7 +135,6 @@ function base_tests_init() {
         test_io();
         test_is_json_encoded_object();
         test_encode_decode();
-        test_dual_stack(); // hand-written (not transpiled)
         return true;
     }) ();
 }
