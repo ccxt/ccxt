@@ -1816,6 +1816,9 @@ export class BaseExchange {
         if (url === undefined) {
             throw new ArgumentsRequired (this.id + ' watch() requires a url argument');
         }
+        if (messageHash === undefined) {
+            throw new ArgumentsRequired (this.id + ' watch() requires a messageHash argument');
+        }
         const client = this.client (url) as WsClient;
         // todo: calculate the backoff using the clients cache
         const backoffDelay = 0;
