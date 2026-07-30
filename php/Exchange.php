@@ -2035,6 +2035,9 @@ class BaseExchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
+        curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+        curl_setopt($this->curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
 
