@@ -42,8 +42,15 @@ function safeFloat (o: implicitReturnType, k: IndexType, $default?: number): Num
 function safeInteger (o: implicitReturnType, k: IndexType, $default: number): number;
 function safeInteger (o: implicitReturnType, k: IndexType, $default?: number): Int;
 function safeInteger (o: implicitReturnType, k: IndexType, $default?: number): Int {
-    const n = asInteger (prop (o, k));
-    return isNumber (n) ? n : $default;
+    const n = prop (o, k);
+    if (isNumber (n)) {
+        return Math.trunc (n);
+    }
+    if (isString (n)) {
+        const num = Math.trunc (Number (n));
+        return isNumber (num) ? num : $default;
+    }
+    return $default;
 }
 
 function safeIntegerProduct (o: implicitReturnType, k: IndexType, $factor: number, $default?: number): Int {
@@ -93,8 +100,15 @@ function safeFloat2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $defau
 function safeInteger2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default: number): number;
 function safeInteger2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: number): Int;
 function safeInteger2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: number): Int {
-    const n = asInteger (prop2 (o, k1, k2));
-    return isNumber (n) ? n : $default;
+    const n = prop2 (o, k1, k2);
+    if (isNumber (n)) {
+        return Math.trunc (n);
+    }
+    if (isString (n)) {
+        const num = Math.trunc (Number (n));
+        return isNumber (num) ? num : $default;
+    }
+    return $default;
 }
 
 function safeIntegerProduct2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $factor: number, $default?: number): Int {
@@ -146,8 +160,15 @@ function safeIntegerN (o: implicitReturnType, k: (IndexType)[], $default?: numbe
     if (o === undefined) {
         return $default;
     }
-    const n = asInteger (getValueFromKeysInArray (o, k));
-    return isNumber (n) ? n : $default;
+    const n = getValueFromKeysInArray (o, k);
+    if (isNumber (n)) {
+        return Math.trunc (n);
+    }
+    if (isString (n)) {
+        const num = Math.trunc (Number (n));
+        return isNumber (num) ? num : $default;
+    }
+    return $default;
 }
 
 function safeIntegerProductN (o: implicitReturnType, k: (IndexType)[], $factor: number, $default?: number): Int {
