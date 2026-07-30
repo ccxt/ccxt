@@ -42,6 +42,7 @@ export default class binance extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createMarketOrderWithCost': true,
                 'fetchBalance': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
@@ -1643,6 +1644,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @param {string} [params.accountType] Payment account type. Enum: SPOT, FUNDING
      * @param {string} [params.feeRateBps] Payment account type. Enum: SPOT, FUNDING
+     * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
@@ -1657,6 +1659,7 @@ export default class binance extends Exchange {
         const wallet = await this.fetchWallet ('createOrder', params);
         const defaultSlippage = this.safeString (this.options, 'defaultSlippage', '0.05');
         const slippage = this.safeString (params, 'slippage', defaultSlippage);
+        const cost = this.safeString (params, 'cost');
         const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
         const commonRequest = {
             "walletAddress": wallet['walletAddress'],
@@ -1666,29 +1669,6 @@ export default class binance extends Exchange {
         let amountStr = this.numberToString (amount);
         const priceStr = this.numberToString (price);
         let defaultTif = 'FOK';
-        if (sideUpper === 'BUY') {
-            // the amountIn represents USDT for buy order
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires price for ' + side + ' order');
-            }
-            let feeRateBps = this.safeString (params, 'feeRateBps', '200');
-            if (typeUpper === 'LIMIT') {
-                // commonRequest['priceLimit'] = this.priceToPrecision (marketSymbol, price);
-                // defaultTif = 'GTC';
-                feeRateBps = '0';
-            }
-            //  else {
-            //     // const feeRateBps = this.safeString (params, 'feeRateBps', '200');
-            //     // const feeRate = Precise.stringDiv (feeRateBps, '10000');
-            //     // const minPrice = this.numberToString (Math.min (price, 1 - price));
-            //     // const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
-            //     // amountStr = Precise.stringMul (amountStr, priceStr) + fee;
-            // }
-            const feeRate = Precise.stringDiv (feeRateBps, '10000');
-            const minPrice = this.numberToString (Math.min (price, 1 - price));
-            const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
-            amountStr = Precise.stringAdd (Precise.stringMul (amountStr, priceStr), fee);
-        }
         if (typeUpper === 'LIMIT') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + 'createOrder requires price for limit order');
@@ -1696,12 +1676,31 @@ export default class binance extends Exchange {
             commonRequest['priceLimit'] = this.priceToPrecision (marketSymbol, price);
             defaultTif = 'GTC';
         }
+        if (sideUpper === 'BUY') {
+            if (cost !== undefined) {
+                amountStr = cost;
+            } else {
+                // the amountIn represents USDT for buy order
+                let feeRateBps = this.safeString (params, 'feeRateBps', '200');
+                if (typeUpper === 'LIMIT') {
+                    feeRateBps = '0';
+                } else {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder requires price for ' + side + ' order');
+                    }
+                }
+                const feeRate = Precise.stringDiv (feeRateBps, '10000');
+                const minPrice = this.numberToString (Math.min (price, 1 - price));
+                const fee = Precise.stringMul (Precise.stringMul (feeRate, minPrice), amountStr);
+                amountStr = Precise.stringAdd (Precise.stringMul (amountStr, priceStr), fee);
+            }
+        }
         const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTif);
         const accountType = this.safeString (params, 'accountType');
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        params = this.omit (params, [ 'timeInForce', 'accountType' ]);
+        params = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
         const quoteRequest = this.extend (commonRequest, {
             "tokenId": outcomeObj['id'],
             "side": sideUpper,
@@ -1737,6 +1736,24 @@ export default class binance extends Exchange {
             'fee': undefined,
             'trades': [],
         }, market);
+    }
+
+    /**
+     * @method
+     * @name binance#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/trade#place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createMarketOrderWithCost (symbol: string, side: string, cost: number, params = {}) {
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
     }
 
     /**
