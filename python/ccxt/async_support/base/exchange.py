@@ -128,7 +128,8 @@ class BaseExchange(SyncExchange):
             # Pass this SSL context to aiohttp and create a TCPConnector
             # family=socket.AF_UNSPEC makes dual-stack (IPv4 + IPv6) resolution explicit,
             # happy_eyeballs_delay enables RFC 8305 Happy Eyeballs to avoid IPv6 fallback stalls
-            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True, family=socket.AF_UNSPEC, happy_eyeballs_delay=0.25)
+            # 0 = race the other family immediately (aiohttp minimum; not Node's 10ms floor)
+            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True, family=socket.AF_UNSPEC, happy_eyeballs_delay=0)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self, clean_instance_data=False):

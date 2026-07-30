@@ -45,7 +45,7 @@ async def test_dual_stack():
     assert connector.family == socket.AF_UNSPEC
     # RFC 8305 Happy Eyeballs (supported by aiohttp >= 3.9)
     if hasattr(connector, '_happy_eyeballs_delay'):
-        assert connector._happy_eyeballs_delay == 0.25
+        assert connector._happy_eyeballs_delay == 0
     await exchange.close()
     return True
 
