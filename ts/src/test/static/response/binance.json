@@ -7462,6 +7462,50 @@
                         "count": "3187938"
                     }
                 }
+            },
+            {
+                "description": "tokenized stock fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "AAPL"
+                ],
+                "httpResponse": {
+                    "symbol": "AAPL",
+                    "bidPrice": "339.51",
+                    "askPrice": "339.62",
+                    "bidSize": 45,
+                    "askSize": 90
+                },
+                "parsedResponse": {
+                    "symbol": "AAPL/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": 339.51,
+                    "bidVolume": 45,
+                    "ask": 339.62,
+                    "askVolume": 90,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "AAPL",
+                        "bidPrice": "339.51",
+                        "askPrice": "339.62",
+                        "bidSize": 45,
+                        "askSize": 90
+                    }
+                }
             }
         ],
         "fetchMarginAdjustmentHistory": [

@@ -4391,6 +4391,16 @@ export default class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
+        // fetchTicker: tokenized equities
+        //
+        //     {
+        //         "symbol": "AAPL",
+        //         "bidPrice": "339.51",
+        //         "askPrice": "339.6",
+        //         "bidSize": 45,
+        //         "askSize": 90
+        //     }
+        //
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
         let marketType: Str = undefined;
         if (('time' in ticker)) {
@@ -4421,9 +4431,9 @@ export default class binance extends Exchange {
             'high': this.safeString2 (ticker, 'highPrice', 'high'),
             'low': this.safeString2 (ticker, 'lowPrice', 'low'),
             'bid': this.safeString (ticker, 'bidPrice'),
-            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'bidVolume': this.safeString2 (ticker, 'bidQty', 'bidSize'),
             'ask': this.safeString (ticker, 'askPrice'),
-            'askVolume': this.safeString (ticker, 'askQty'),
+            'askVolume': this.safeString2 (ticker, 'askQty', 'askSize'),
             'vwap': wAvg,
             'open': this.safeString2 (ticker, 'openPrice', 'open'),
             'close': last,
@@ -4475,6 +4485,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
@@ -4496,12 +4507,16 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            const rolling = this.safeBool (params, 'rolling', false);
-            params = this.omit (params, 'rolling');
-            if (rolling) {
-                response = await this.publicGetTicker (this.extend (request, params));
+            if (market['stock']) {
+                response = await this.sapiGetEquityMarketQuote (this.extend (request, params));
             } else {
-                response = await this.publicGetTicker24hr (this.extend (request, params));
+                const rolling = this.safeBool (params, 'rolling', false);
+                params = this.omit (params, 'rolling');
+                if (rolling) {
+                    response = await this.publicGetTicker (this.extend (request, params));
+                } else {
+                    response = await this.publicGetTicker24hr (this.extend (request, params));
+                }
             }
         }
         if (Array.isArray (response)) {
