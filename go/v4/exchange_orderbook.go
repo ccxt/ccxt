@@ -522,38 +522,15 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 		ob = typed
 	}
 
-	lockSide(this.Asks)
-	lockSide(this.Bids)
+	// CopySide acquires each side's read lock internally for the whole
+	// duration of the copy, so no concurrent StoreArray/Limit write (which
+	// takes the write lock) can race with the map/slice reads here.
 	ob.Asks = this.Asks.CopySide()
 	ob.Bids = this.Bids.CopySide()
-	unlockSide(this.Bids)
-	unlockSide(this.Asks)
 	ob.Nonce = this.Nonce
 	ob.Timestamp = this.Timestamp
 	ob.Datetime = this.Datetime
 	return copy
-}
-
-func lockSide(side IOrderBookSide) {
-	switch s := side.(type) {
-	case *OrderBookSide:
-		s.Mutex.RLock()
-	case *CountedOrderBookSide:
-		s.OrderBookSide.Mutex.RLock()
-	case *IndexedOrderBookSide:
-		s.Mutex.RLock()
-	}
-}
-
-func unlockSide(side IOrderBookSide) {
-	switch s := side.(type) {
-	case *OrderBookSide:
-		s.Mutex.RUnlock()
-	case *CountedOrderBookSide:
-		s.OrderBookSide.Mutex.RUnlock()
-	case *IndexedOrderBookSide:
-		s.Mutex.RUnlock()
-	}
 }
 
 func (this *WsOrderBook) GetNonce() any {

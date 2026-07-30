@@ -709,6 +709,8 @@ func (ords *OrderBookSide) GetSide() bool {
 }
 
 func (obs *OrderBookSide) CopySide() IOrderBookSide {
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
 
 	out := NewOrderBookSide(obs.Side, [][]any{}, obs.Depth)
 	base := out
@@ -723,6 +725,9 @@ func (obs *OrderBookSide) CopySide() IOrderBookSide {
 }
 
 func (cobs *CountedOrderBookSide) CopySide() IOrderBookSide {
+	cobs.OrderBookSide.Mutex.RLock()
+	defer cobs.OrderBookSide.Mutex.RUnlock()
+
 	out := NewCountedOrderBookSide(cobs.OrderBookSide.Side, [][]any{}, cobs.OrderBookSide.Depth)
 	base := out.OrderBookSide
 	base.Length = cobs.OrderBookSide.Length
@@ -736,6 +741,9 @@ func (cobs *CountedOrderBookSide) CopySide() IOrderBookSide {
 }
 
 func (iobs *IndexedOrderBookSide) CopySide() IOrderBookSide {
+	iobs.Mutex.RLock()
+	defer iobs.Mutex.RUnlock()
+
 	out := NewIndexedOrderBookSide(iobs.OrderBookSide.Side, [][]any{}, iobs.OrderBookSide.Depth)
 	out.Length = iobs.Length
 	out.Index = make([]float64, len(iobs.Index))
