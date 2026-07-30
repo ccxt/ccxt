@@ -748,7 +748,7 @@ export default class polymarket extends Exchange {
                 clobTokenIds = parsedTokenIds as any[];
             }
             if (parsedPrices && (parsedPricesLength !== undefined)) {
-                outcomePrices = parsedPrices as any[];
+                outcomePrices = parsedPrices;
             }
             const outcomeLabelsLength = outcomeLabels.length;
             const clobTokenIdsLength = clobTokenIds.length;
@@ -762,7 +762,7 @@ export default class polymarket extends Exchange {
             for (let oi = 0; oi < outcomeLabels.length; oi++) {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
-                const outcomePrice = this.safeNumber (outcomePrices as any, oi as any);
+                const outcomePrice = this.safeNumber (outcomePrices, oi);
                 if (!clobTokenId) {
                     continue;
                 }
@@ -895,7 +895,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcome() could not resolve mkt');
                     }
-                    this.markets[mkt['market'] as string] = mkt;
+                    this.markets[mkt['market']] = mkt;
                 }
                 this.populateOutcomes ();
                 const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
@@ -955,7 +955,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve mkt');
                     }
-                    this.markets[mkt['market'] as string] = mkt;
+                    this.markets[mkt['market']] = mkt;
                 }
                 startIndex = this.sum (startIndex, chunkSize);
             }
@@ -1220,7 +1220,7 @@ export default class polymarket extends Exchange {
      */
     async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = outcomeObj['outcomeId'];
         const request: Dict = {
             'token_id': tokenId,
         };
@@ -1269,7 +1269,7 @@ export default class polymarket extends Exchange {
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = outcomeObj['outcomeId'];
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds ();
         let startS: number;
@@ -1348,7 +1348,7 @@ export default class polymarket extends Exchange {
         const bucketKeys = Object.keys (buckets);
         const unsortedCandles: OHLCV[] = [];
         for (let i = 0; i < bucketKeys.length; i++) {
-            unsortedCandles.push (buckets[bucketKeys[i]] as OHLCV);
+            unsortedCandles.push (buckets[bucketKeys[i]]);
         }
         const candles = this.sortBy (unsortedCandles, 0);
         const candlesLength = candles.length;
@@ -1500,7 +1500,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = outcomeObj['outcomeId'];
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const conditionId = this.safeString (outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1548,7 +1548,7 @@ export default class polymarket extends Exchange {
             request['asset_id'] = outcomeObj['outcomeId'];
         }
         const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
-        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []) as any[];
+        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
     }
 
@@ -1710,7 +1710,7 @@ export default class polymarket extends Exchange {
             'user': this.walletAddress,
         };
         const response = await this.dataPublicGetPositions (this.extend (request, params));
-        const positions = this.safeList (response, 'data', []) as any[];
+        const positions = this.safeList (response, 'data', []);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         const parsed = this.parsePredictionPositions (positions);
@@ -1762,7 +1762,7 @@ export default class polymarket extends Exchange {
      */
     parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const tokenId = this.safeString (position, 'asset');
-        const marketData = this.safeOutcome (tokenId, market as any);
+        const marketData = this.safeOutcome (tokenId, market);
         const size = this.safeNumber (position, 'size');
         const entryPrice = this.safeNumber (position, 'avgPrice');
         const curPrice = this.safeNumber (position, 'currentPrice');
@@ -1870,7 +1870,7 @@ export default class polymarket extends Exchange {
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         const id = this.safeString2 (order, 'id', 'orderID');
         const tokenId = this.safeString (order, 'asset_id');
-        const mkt = this.safeOutcome (tokenId, market as any);
+        const mkt = this.safeOutcome (tokenId, market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'type'));
         const side = this.safeStringLower (order, 'side');
@@ -2033,7 +2033,7 @@ export default class polymarket extends Exchange {
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = outcomeObj['outcomeId'];
         const sideStr = (side as string).toUpperCase ();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2470,7 +2470,7 @@ export default class polymarket extends Exchange {
                     detailedEvent = await this.gammaPublicGetEventsSlugSlug ({ 'slug': rawEventSlug });
                 }
                 if (detailedEvent !== undefined) {
-                    eventForParsing = this.safeValue (detailedEvent, 'event', detailedEvent) as Dict;
+                    eventForParsing = this.safeValue (detailedEvent, 'event', detailedEvent);
                     ccxtMarkets = this.parseEventToMarkets (eventForParsing);
                 }
             }
@@ -2479,7 +2479,7 @@ export default class polymarket extends Exchange {
                 if (m === undefined) {
                     throw new ExchangeError (this.id + ' fetchEvents() missing m');
                 }
-                this.markets[m['market'] as string] = m;
+                this.markets[m['market']] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
             result.push (parsedEvent);
@@ -2684,7 +2684,7 @@ export default class polymarket extends Exchange {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma']);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
@@ -3037,8 +3037,8 @@ export default class polymarket extends Exchange {
                 continue; // no snapshot yet — discard delta
             }
             const orderbook = this.orderbooks[outcome];
-            const price = this.safeNumber (change, 'price') as number;
-            const size = this.safeNumber (change, 'size') as number;
+            const price = this.safeNumber (change, 'price');
+            const size = this.safeNumber (change, 'size');
             const isBuy = this.safeStringUpper (change, 'side', '') === 'BUY';
             const side = isBuy ? orderbook['bids'] : orderbook['asks'];
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
@@ -3064,8 +3064,8 @@ export default class polymarket extends Exchange {
             return;
         }
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const price = this.safeNumber (event, 'price') as number;
-        const amount = this.safeNumber (event, 'size') as number;
+        const price = this.safeNumber (event, 'price');
+        const amount = this.safeNumber (event, 'size');
         const market = this.safeOutcome (tokenId);
         const trade = this.safePredictionTrade ({
             'id': this.safeString (event, 'transaction_hash'),

@@ -1597,7 +1597,7 @@ export default class bitrue extends Exchange {
         }
         symbols = this.marketSymbols (symbols, undefined, false);
         const first = this.safeString (symbols, 0);
-        const market = this.market ((first as string));
+        const market = this.market (first);
         let response: any = undefined;
         if (market['swap']) {
             const request: Dict = {
@@ -1667,7 +1667,7 @@ export default class bitrue extends Exchange {
         let type: Str = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            const market = this.market ((first as string));
+            const market = this.market (first);
             if (market['swap']) {
                 throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
@@ -1980,7 +1980,7 @@ export default class bitrue extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const triggerPrice = this.parseNumber (this.omitZero ((this.safeString (order, 'stopPrice') as string)));
+        const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice')));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2767,7 +2767,7 @@ export default class bitrue extends Exchange {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeDict (statusesByType, (type as string), {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -3258,7 +3258,7 @@ export default class bitrue extends Exchange {
         const access = this.safeString (api, 2);
         let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
-            url = this.urls['api'][type as string];
+            url = this.urls['api'][type];
         } else {
             url = this.urls['api'][type as string] + '/' + version;
         }

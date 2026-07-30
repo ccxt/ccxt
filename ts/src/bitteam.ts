@@ -469,7 +469,7 @@ export default class bitteam extends Exchange {
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
-        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {}) as Dict;
+        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
@@ -670,7 +670,7 @@ export default class bitteam extends Exchange {
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');
         let fee: Num = undefined;
-        const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
+        const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId: Dict = {};
         const blockChain = this.safeString (currency, 'blockChain');
         // if only one blockChain
@@ -680,7 +680,7 @@ export default class bitteam extends Exchange {
         } else {
             feesByNetworkId = withdrawCommissionFixed;
         }
-        const statuses = this.safeValue (statusesResponse, numericId as number, {});
+        const statuses = this.safeValue (statusesResponse, numericId, {});
         const deposit = this.safeValue (statuses, 'depositStatus');
         const withdraw = this.safeValue (statuses, 'withdrawStatus');
         const networkIds = Object.keys (feesByNetworkId);

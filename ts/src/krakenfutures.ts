@@ -2613,7 +2613,7 @@ export default class krakenfutures extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.symbol ((marketId as string));
+        const symbol = this.symbol (marketId);
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const markPriceString = this.safeString (ticker, 'markPrice');
         const fundingRateString = this.safeString (ticker, 'fundingRate');

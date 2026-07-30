@@ -94,12 +94,12 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     //
     // base & quote volumes
     //
-    const baseVolume = exchange.omitZero (exchange.safeString (entry, 'baseVolume') as string);
-    const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume') as string);
-    const high = exchange.omitZero (exchange.safeString (entry, 'high') as string);
-    const low = exchange.omitZero (exchange.safeString (entry, 'low') as string);
-    const open = exchange.omitZero (exchange.safeString (entry, 'open') as string);
-    const close = exchange.omitZero (exchange.safeString (entry, 'close') as string);
+    const baseVolume = exchange.omitZero (exchange.safeString (entry, 'baseVolume'));
+    const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume'));
+    const high = exchange.omitZero (exchange.safeString (entry, 'high'));
+    const low = exchange.omitZero (exchange.safeString (entry, 'low'));
+    const open = exchange.omitZero (exchange.safeString (entry, 'open'));
+    const close = exchange.omitZero (exchange.safeString (entry, 'close'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {

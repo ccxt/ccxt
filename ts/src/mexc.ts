@@ -4967,7 +4967,7 @@ export default class mexc extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const network = this.safeString (params, 'network');
-        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params) as DepositAddress[];
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
         let result: NullableDict;
         if (network !== undefined) {
             const netCode = this.networkIdToCode (network, code);
@@ -4980,7 +4980,7 @@ export default class mexc extends Exchange {
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                result = this.safeDict (addressStructures, (key as string));
+                result = this.safeDict (addressStructures, key);
             }
         }
         if (result === undefined) {
@@ -5251,7 +5251,7 @@ export default class mexc extends Exchange {
                 '10': 'pending', // MANUAL
             },
         };
-        const statuses = this.safeValue (statusesByType, (type as string), {});
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -5804,7 +5804,7 @@ export default class mexc extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, (network as string), network); // handle ETH > ERC-20 alias
+        network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId (network, currency['code']);
         this.checkAddress (address);
         const request: Dict = {
@@ -5973,7 +5973,7 @@ export default class mexc extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], (networkId as string), networkId);
+            const networkCode = this.safeString (this.options['networks'], networkId, networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[(networkCode as string)] = fee;
         }

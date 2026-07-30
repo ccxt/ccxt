@@ -1304,7 +1304,7 @@ export default class bullish extends Exchange {
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
-        while (errors <= (maxRetries as number)) {
+        while (errors <= maxRetries) {
             try {
                 if (timeframe && method !== 'fetchFundingRateHistory') {
                     return await this[method] (symbol, timeframe, since, limit, params);
@@ -1316,7 +1316,7 @@ export default class bullish extends Exchange {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
                 errors += 1;
-                if (errors > (maxRetries as number)) {
+                if (errors > maxRetries) {
                     throw e;
                 }
             }

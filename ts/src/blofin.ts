@@ -530,7 +530,7 @@ export default class blofin extends Exchange {
         const strikePrice = undefined;
         const optionType = undefined;
         const tickSize = this.safeString (market, 'tickSize');
-        const fees = this.safeDict2 (this.fees, type as IndexType, 'trading', {});
+        const fees = this.safeDict2 (this.fees, type, 'trading', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         let maxLeverage: Str = this.safeString (market, 'maxLeverage', '100');
@@ -634,7 +634,7 @@ export default class blofin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first as Dict, symbol, timestamp);
@@ -715,7 +715,7 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketTickers (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first as Dict, market);
     }
@@ -739,7 +739,7 @@ export default class blofin extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketMarkPrice (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first as Dict, market);
     }
@@ -1103,7 +1103,7 @@ export default class blofin extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
@@ -1517,7 +1517,7 @@ export default class blofin extends Exchange {
             const dataDict = this.safeDict (response, 'data', {});
             return this.parseOrder (dataDict as Dict, market);
         }
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0);
         const order = this.parseOrder (first as Dict, market);
         order['type'] = type;
@@ -1628,7 +1628,7 @@ export default class blofin extends Exchange {
             return this.parseOrder (triggerData as Dict, market);
         }
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0);
         return this.parseOrder (order as Dict, market);
     }
@@ -2093,7 +2093,7 @@ export default class blofin extends Exchange {
         }
         const market = this.market (symbol);
         const request: List = [];
-        let method = this.handleOption ('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders') as string;
+        let method = this.handleOption ('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         const clientOrderIds = this.parseIds (this.safeValue (params, 'clientOrderId'));
         const tpslIds = this.parseIds (this.safeValue (params, 'tpslId'));
         const trigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
@@ -2206,7 +2206,7 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privateGetAccountPositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const position = this.safeDict (data, 0);
         if (position === undefined) {
             throw new NullResponse (this.id + ' fetchPosition() returned empty position');
@@ -2230,7 +2230,7 @@ export default class blofin extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.privateGetAccountPositions (params);
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const result = this.parsePositions (data);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -2297,7 +2297,7 @@ export default class blofin extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }

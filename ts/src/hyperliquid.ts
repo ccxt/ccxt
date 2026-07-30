@@ -380,7 +380,7 @@ export default class hyperliquid extends Exchange {
             const baseName = this.safeString (symbolParts, 0);
             const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
             if ((baseName as string) in spotCurrencyMapping) {
-                const unifiedBaseName = this.safeString (spotCurrencyMapping, (baseName as string));
+                const unifiedBaseName = this.safeString (spotCurrencyMapping, baseName);
                 const quote = this.safeString (symbolParts, 1);
                 const newSymbol = this.safeCurrencyCode (unifiedBaseName) + '/' + quote;
                 if (newSymbol in this.markets) {
@@ -651,7 +651,7 @@ export default class hyperliquid extends Exchange {
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if ((collateralToken as string) in cachedCurrencies) {
                     const name = this.safeString (data, 'name');
-                    const collateralTokenCode = this.safeString (cachedCurrencies, (collateralToken as string));
+                    const collateralTokenCode = this.safeString (cachedCurrencies, collateralToken);
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
@@ -871,7 +871,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
             const index = this.safeInteger (market, 'index');
-            const extraData = this.safeDict (second, (index as number), {});
+            const extraData = this.safeDict (second, index, {});
             const marketName = this.safeString (market, 'name');
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
@@ -886,8 +886,8 @@ export default class hyperliquid extends Exchange {
             const tokensPos = this.safeList (market, 'tokens', []);
             const baseTokenPos = this.safeInteger (tokensPos, 0);
             const quoteTokenPos = this.safeInteger (tokensPos, 1);
-            const baseTokenInfo = this.safeDict (tokens, (baseTokenPos as number), {});
-            const quoteTokenInfo = this.safeDict (tokens, (quoteTokenPos as number), {});
+            const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
+            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
             if (baseName === undefined || quoteId === undefined) {
@@ -1622,7 +1622,7 @@ export default class hyperliquid extends Exchange {
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? 8 : 6;
-        const subtractedValue = maxDecimals - this.precisionFromString ((this.safeString (market['precision'], 'amount') as string));
+        const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
@@ -2238,7 +2238,7 @@ export default class hyperliquid extends Exchange {
             defaultTimeInForce = 'alo';
         }
         let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize ((timeInForce as string));
+        timeInForce = this.capitalize (timeInForce);
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -2788,7 +2788,7 @@ export default class hyperliquid extends Exchange {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
-            timeInForce = this.capitalize ((timeInForce as string));
+            timeInForce = this.capitalize (timeInForce);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
@@ -5011,8 +5011,8 @@ export default class hyperliquid extends Exchange {
         symbol = market['symbol'];
         const order = {
             'symbol': symbol,
-            'type': type as OrderType,
-            'side': side as OrderSide,
+            'type': type,
+            'side': side,
             'amount': amount,
             'price': price,
             'params': params,

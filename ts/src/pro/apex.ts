@@ -510,7 +510,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString as string);
+            const market = this.market (symbolString);
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -648,7 +648,7 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
-        if (!this.isEmpty (symbols as any[])) {
+        if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
             messageHash = '::' + (symbols as string[]).join (',');
         }

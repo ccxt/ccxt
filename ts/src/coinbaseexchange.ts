@@ -1938,7 +1938,7 @@ export default class coinbaseexchange extends Exchange {
             //
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
-                const account = this.safeValue (this.accountsById, (account_id as string));
+                const account = this.safeValue (this.accountsById, account_id);
                 const codeInner = this.safeString (account, 'code');
                 response[i]['currency'] = codeInner;
             }

@@ -1720,7 +1720,7 @@ export default class poloniex extends Exchange {
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
-                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId) as string);
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
             }
         }
         const price = this.safeStringN (order, [ 'price', 'rate', 'px' ]);

@@ -658,8 +658,8 @@ export default class bitfinex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const splitBase = (base as string).split ('F0');
             const splitQuote = (quote as string).split ('F0');
-            base = this.safeString (splitBase, 0) as string;
-            quote = this.safeString (splitQuote, 0) as string;
+            base = this.safeString (splitBase, 0);
+            quote = this.safeString (splitQuote, 0);
             let symbol = base + '/' + quote;
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -855,7 +855,7 @@ export default class bitfinex extends Exchange {
             const valuesList = this.safeList (networkObj, 1);
             const networkName = this.safeString (valuesList, 0);
             // for GOlang transpiler, do with "safe" method
-            const networksList = this.safeList (indexedNetworks, networkName as IndexType, []);
+            const networksList = this.safeList (indexedNetworks, networkName, []);
             networksList.push (networkId);
             indexedNetworks[(networkName as string)] = networksList;
         }
@@ -964,7 +964,7 @@ export default class bitfinex extends Exchange {
         }
         const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
-        const accountType = this.safeString (accountsByType, requestedType as IndexType, requestedType);
+        const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
@@ -1163,7 +1163,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0') as string;
+        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0');
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1429,7 +1429,7 @@ export default class bitfinex extends Exchange {
         const priceString = this.safeString (tradeList, priceIndex);
         if ((amountString as string)[0] === '-') {
             side = 'sell';
-            amountString = Precise.stringAbs (amountString as string);
+            amountString = Precise.stringAbs (amountString);
         } else {
             side = 'buy';
         }
@@ -1658,7 +1658,7 @@ export default class bitfinex extends Exchange {
         const amount = Precise.stringAbs (signedAmount);
         const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (orderList, 8);
-        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType as IndexType);
+        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce (orderType);
         const rawFlags = this.safeString (orderList, 12);
         const flags = this.parseOrderFlags (rawFlags);
@@ -1920,7 +1920,7 @@ export default class bitfinex extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest ((symbol as string), type as OrderType, side as OrderSide, (amount as number), price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push ([ 'on', orderRequest ]);
         }
         const request: Dict = {
@@ -2427,7 +2427,7 @@ export default class bitfinex extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network as IndexType);
+        const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2831,7 +2831,7 @@ export default class bitfinex extends Exchange {
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
         const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network as IndexType);
+        const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");

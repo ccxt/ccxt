@@ -162,11 +162,11 @@ export default class kraken extends krakenRest {
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
-        const offset = this.safeString (params, 'offset', '') as string; // can set this to - for minus
-        const trailingAmountString = (trailingAmount !== undefined) ? offset + (this.numberToString (trailingAmount) as string) : undefined;
-        const trailingPercentString = (trailingPercent !== undefined) ? offset + (this.numberToString (trailingPercent) as string) : undefined;
-        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + (this.numberToString (trailingLimitAmount) as string) : undefined;
-        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + (this.numberToString (trailingLimitPercent) as string) : undefined;
+        const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
+        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
+        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
+        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
+        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool (params, 'reduceOnly');
@@ -329,7 +329,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const result = this.safeDict (message, 'result', {});
-        const order = this.parseOrder (result as Dict);
+        const order = this.parseOrder (result);
         const messageHash = this.safeString2 (message, 'reqid', 'req_id');
         client.resolve (order, messageHash);
     }
@@ -931,7 +931,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const symbol = this.safeString (first, 'symbol') as string;
         const a = this.safeValue (first, 'asks', []);
@@ -1023,8 +1023,8 @@ export default class kraken extends krakenRest {
 
     formatNumber (data) {
         const parts = data.split ('.');
-        const integer = this.safeString (parts, 0) as string;
-        const decimals = this.safeString (parts, 1, '') as string;
+        const integer = this.safeString (parts, 0);
+        const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
         let i = 0;
         while (joinedResult[i] === '0') {
@@ -1311,8 +1311,8 @@ export default class kraken extends krakenRest {
                 const id = this.safeString (order, 'order_id');
                 const parsed = this.parseWsOrder (order);
                 const symbol = this.safeString (order, 'symbol');
-                const previousOrders = this.safeValue (stored.hashmap, symbol as string);
-                const previousOrder = this.safeValue (previousOrders, id as string);
+                const previousOrders = this.safeValue (stored.hashmap, symbol);
+                const previousOrder = this.safeValue (previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
                     const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
@@ -1502,7 +1502,7 @@ export default class kraken extends krakenRest {
         }
         const type = 'spot';
         const balance = this.safeBalance (result);
-        const oldBalance = this.safeValue (this.balance, (type as string), {});
+        const oldBalance = this.safeValue (this.balance, type, {});
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         const channel = this.safeString (message, 'channel');
@@ -1602,7 +1602,7 @@ export default class kraken extends krakenRest {
         let channel = this.safeString (message, 'channel');
         if (channel !== undefined) {
             if (channel === 'executions') {
-                const data = this.safeList (message, 'data', []) as List;
+                const data = this.safeList (message, 'data', []);
                 const first = this.safeDict (data, 0, {});
                 const execType = this.safeString (first, 'exec_type');
                 channel = (execType === 'trade') ? 'myTrades' : 'orders';
@@ -1634,7 +1634,7 @@ export default class kraken extends krakenRest {
                 'cancel_all': this.handleCancelAllOrders,
                 'pong': this.handlePong,
             };
-            const method = this.safeValue (methods, event as string);
+            const method = this.safeValue (methods, event);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

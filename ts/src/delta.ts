@@ -926,7 +926,7 @@ export default class delta extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type as MarketType,
+                'type': type,
                 'spot': spot,
                 'margin': false,
                 'swap': swap,

@@ -511,7 +511,7 @@ export default class deepcoin extends Exchange {
             settle = this.safeCurrencyCode (settleId);
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict2 (this.fees, (type as string), 'trading', {}) as Dict;
+        const fees = this.safeDict2 (this.fees, type, 'trading', {}) as Dict;
         let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxMarketSize = this.safeString (market, 'maxMktSz');
@@ -1024,7 +1024,7 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'until');
         }
         const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'deposit',
@@ -1072,7 +1072,7 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'until');
         }
         const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'data', []) as List;
         const transactionParams: Dict = {
             'type': 'withdrawal',
@@ -1188,7 +1188,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const list = this.safeList (data, 'list', []);
         const additionalParams: Dict = {
             'currency': code,
@@ -1427,7 +1427,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
@@ -1882,7 +1882,7 @@ export default class deepcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data = this.safeList (response, 'data', []);
         const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
     }
@@ -2778,7 +2778,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const rates = this.safeList (data, 'current_fund_rates', []);
         return this.parseFundingRates (rates, symbols);
     }
@@ -2819,7 +2819,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const rates = this.safeList (data, 'current_fund_rates', []);
         const entry = this.safeDict (rates, 0, {});
         return this.parseFundingRate (entry, market);
@@ -2905,7 +2905,7 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []);
         return this.parseFundingRateHistories (rows, market, since, limit);
     }
@@ -3103,7 +3103,7 @@ export default class deepcoin extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        const data = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');
         let sCode = this.safeString (data, 'sCode');

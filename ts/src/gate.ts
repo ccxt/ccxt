@@ -1243,7 +1243,7 @@ export default class gate extends Exchange {
         }
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
-        const datetime = this.convertExpireDate (expiry as string);
+        const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '_' + quote + '-' + '20' + expiry + '-' + strike + '-' + optionType,
@@ -1388,7 +1388,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = spotMarketsResponse[i];
             const id = this.safeString (spotMarket, 'id');
-            const marginMarket = this.safeValue (marginMarkets, id as IndexType);
+            const marginMarket = this.safeValue (marginMarkets, id);
             const market = this.deepExtend (marginMarket, spotMarket);
             const [ baseId, quoteId ] = (id as string).split ('_');
             const base = this.safeCurrencyCode (baseId);
@@ -1957,7 +1957,7 @@ export default class gate extends Exchange {
     }
 
     getSettlementCurrencies (type, method) {
-        const options = this.safeValue (this.options, (type as string), {}); // [ 'BTC', 'USDT' ] unified codes
+        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
@@ -4020,8 +4020,8 @@ export default class gate extends Exchange {
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const feeAmount = this.safeString (trade, 'fee');
-        const gtFee = this.omitZero (this.safeString (trade, 'gt_fee') as string);
-        const pointFee = this.omitZero (this.safeString (trade, 'point_fee') as string);
+        const gtFee = this.omitZero (this.safeString (trade, 'gt_fee'));
+        const pointFee = this.omitZero (this.safeString (trade, 'point_fee'));
         const fees: Dict[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
@@ -4497,7 +4497,7 @@ export default class gate extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
             }
             extendedParams['textIsRequired'] = true; // the exchange requires a text parameter for each order here
-            const orderRequest = this.createOrderRequest (marketId, type as OrderType, side as OrderSide, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -4577,7 +4577,7 @@ export default class gate extends Exchange {
             } else {
                 if (timeInForce === undefined) {
                     const defaultTif = this.safeString (this.options, 'defaultTimeInForce', 'IOC');
-                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif as IndexType, 'ioc');
+                    const exchangeSpecificTif = this.safeString (this.options['timeInForce'], defaultTif, 'ioc');
                     timeInForce = exchangeSpecificTif;
                 }
             }
@@ -5904,7 +5904,7 @@ export default class gate extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
-            const market = this.market (symbol as string);
+            const market = this.market (symbol);
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports only spot markets');
             }
@@ -7098,7 +7098,7 @@ export default class gate extends Exchange {
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
             entirePath = endPart;
         }
-        let url = this.urls['api'][authentication][type as string];
+        let url = this.urls['api'][authentication][type];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
         }

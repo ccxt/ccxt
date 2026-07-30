@@ -1462,7 +1462,7 @@ export default class indodax extends Exchange {
                         'network': finalNetwork,
                         'address': address,
                         'tag': undefined,
-                    } as DepositAddress;
+                    };
                 }
             }
         }

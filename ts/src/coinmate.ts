@@ -1154,7 +1154,7 @@ export default class coinmate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method = 'privatePost' + this.capitalize (side as string);
+        let method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
         const request: Dict = {
             'currencyPair': market['id'],

@@ -376,7 +376,7 @@ export default class bitopro extends Exchange {
     }
 
     parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []);
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const deposit = this.safeBool (rawCurrency, 'deposit');

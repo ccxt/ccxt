@@ -720,7 +720,7 @@ export class BaseExchange {
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key as string ]));
+                this.defineRestApi (value, methodName, paths.concat ([ key ]));
             }
         }
     }
@@ -2135,8 +2135,8 @@ export class BaseExchange {
         // load dydx protos
         const tasks = [
             import ('../static_dependencies/dydx-v4-client/registry.js') as Promise<any>,
-            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js') as Promise<any>,
-            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js') as Promise<any>,
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js'),
         ];
         const modules = await Promise.all (tasks);
         encodeAsAny = modules[0].encodeAsAny;
@@ -4215,7 +4215,7 @@ export class BaseExchange {
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
-        const keys = Object.keys (networks as Dict);
+        const keys = Object.keys (networks);
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
@@ -4414,7 +4414,7 @@ export class BaseExchange {
                 marketsByIdArray.push (value);
                 this.markets_by_id[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [ value ] as any;
+                this.markets_by_id[value['id']] = [ value ];
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4440,7 +4440,7 @@ export class BaseExchange {
             }
             values.push (market);
         }
-        this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol') as any);
+        this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -5698,7 +5698,7 @@ export class BaseExchange {
             return undefined;
         }
         const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (replacements as Dict);
+        const keys = Object.keys (replacements);
         for (let i = 0; i < keys.length; i++) {
             const baseCoin = keys[i];
             const entry = replacements[baseCoin];
@@ -6351,7 +6351,7 @@ export class BaseExchange {
                 this.accounts = await this.fetchAccounts (params);
             }
         }
-        this.accountsById = this.indexBy (this.accounts, 'id') as any;
+        this.accountsById = this.indexBy (this.accounts, 'id');
         return this.accounts;
     }
 
@@ -7144,7 +7144,7 @@ export class BaseExchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (market[defaultType as string]) {
+                if (market[defaultType]) {
                     return market;
                 }
             }
@@ -8906,8 +8906,8 @@ export class BaseExchange {
                     throw new ArgumentsRequired (this.id + ' cleanCache() requires a timeframe argument');
                 }
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
-                    if (timeframe in this.ohlcvs[symbol as string]) {
-                        delete this.ohlcvs[symbol as string][timeframe as string];
+                    if (timeframe in this.ohlcvs[symbol]) {
+                        delete this.ohlcvs[symbol][timeframe];
                     }
                 }
             }

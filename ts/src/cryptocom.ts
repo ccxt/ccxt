@@ -787,7 +787,7 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero ((this.safeString (market, 'expiry_timestamp_ms') as string));
+            const expiryString = this.omitZero (this.safeString (market, 'expiry_timestamp_ms'));
             const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
@@ -2051,7 +2051,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId ((networkCode as string), code);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }

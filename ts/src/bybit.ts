@@ -1949,7 +1949,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'spot',
         };
-        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
@@ -2067,7 +2067,7 @@ export default class bybit extends Exchange {
         params = this.extend (params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
-        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response: NullableDict = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (params);
@@ -2263,7 +2263,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'option',
         };
-        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
@@ -2272,7 +2272,7 @@ export default class bybit extends Exchange {
         }
         const data = this.safeDict (response, 'result', {});
         let markets = this.safeList (data, 'list', []);
-        const loadAllOptions = this.handleOption ('fetchMarkets', 'loadAllOptions') as Bool;
+        const loadAllOptions = this.handleOption ('fetchMarkets', 'loadAllOptions');
         if (loadAllOptions) {
             request['limit'] = 1000;
             let paginationCursor = this.safeString (data, 'nextPageCursor');
@@ -2353,7 +2353,7 @@ export default class bybit extends Exchange {
             const optionLetter = this.safeString (splitId, 3);
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
-            const loadExpiredOptions = this.handleOption ('fetchMarkets', 'loadExpiredOptions') as Bool;
+            const loadExpiredOptions = this.handleOption ('fetchMarkets', 'loadExpiredOptions');
             if (isActive || loadAllOptions || loadExpiredOptions) {
                 result.push (this.safeMarketStructure ({
                     'id': id,
@@ -4993,7 +4993,7 @@ export default class bybit extends Exchange {
             'swap': 'DERIVATIVES',
             'option': 'OPTIONS',
         };
-        const product = this.safeString (productMap, (type as string), type);
+        const product = this.safeString (productMap, type, type);
         request['product'] = product;
         const response = await this.privatePostV5OrderDisconnectedCancelAll (this.extend (request, params));
         //
@@ -6736,7 +6736,7 @@ export default class bybit extends Exchange {
             }
             symbols = this.marketSymbols (symbols);
         } else if (symbols !== undefined) {
-            symbol = symbols as any;
+            symbol = symbols;
             symbols = [ this.symbol (symbol) ];
         }
         const request: Dict = {};

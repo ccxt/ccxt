@@ -243,7 +243,7 @@ export default class bydfi extends bydfiRest {
                     if (symbol === 'all') {
                         continue;
                     }
-                    const marketId = this.marketId (symbol as string);
+                    const marketId = this.marketId (symbol);
                     channels.push (marketId + channel);
                 }
             }
@@ -351,10 +351,10 @@ export default class bydfi extends bydfiRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId as string);
+            const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const timeframes = this.safeDict (this.options, 'timeframes', {});
-            const interval = this.safeString (timeframes, tf as string, tf);
+            const interval = this.safeString (timeframes, tf, tf);
             channels.push (market['id'] + '@kline_' + interval);
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + interval);
         }
@@ -386,9 +386,9 @@ export default class bydfi extends bydfiRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
-            const market = this.market (marketId as string);
+            const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
-            const interval = this.safeString (this.timeframes, tf as string, tf);
+            const interval = this.safeString (this.timeframes, tf, tf);
             channels.push (market['id'] + '@kline_' + interval);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + interval);
         }
@@ -1011,7 +1011,7 @@ export default class bydfi extends bydfiRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeDict (subscriptionsById, id as string, {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);

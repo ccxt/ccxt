@@ -1308,14 +1308,14 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode as string); // use default network code if not provided
         }
-        const currency = this.currency (currencyCode as string);
+        const currency = this.currency (currencyCode);
         let id = currency['id'];
         let idFromNetwork: Str = undefined;
         const networks = this.safeDict (currency, 'networks', {});
         let networkInfo: Dict = {};
         if (networkCode === undefined) {
             // network code is not provided and there is no default network code
-            let network = this.safeDict (networks, currencyCode as string); // trying to find network that has the same code as currency
+            let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
             if (network === undefined) {
                 // use the first network in the networks list if there is no network code with the same code as currency
                 const keys = Object.keys (networks);
@@ -1722,7 +1722,7 @@ export default class bitmart extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol as string);
+            market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
@@ -2776,7 +2776,7 @@ export default class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, (type as string), {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2917,7 +2917,7 @@ export default class bitmart extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            market = this.market (marketId as string);
+            market = this.market (marketId);
             if (!market['spot']) {
                 throw new NotSupported (this.id + ' createOrders() supports spot orders only');
             }
@@ -2933,7 +2933,7 @@ export default class bitmart extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            let orderRequest = this.createSpotOrderRequest (marketId as string, type, side, amount, price, orderParams);
+            let orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }
@@ -3216,7 +3216,7 @@ export default class bitmart extends Exchange {
                 } else {
                     notional = (notional === undefined) ? this.numberToString (amount) : notional;
                 }
-                request['notional'] = this.decimalToPrecision (notional as string, TRUNCATE, market['precision']['price'], this.precisionMode);
+                request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
             } else if (side === 'sell') {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
@@ -5156,7 +5156,7 @@ export default class bitmart extends Exchange {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
             const first = this.safeString (symbols, 0);
-            market = this.market (first as string);
+            market = this.market (first);
         }
         const request: Dict = {};
         if (symbolsLength === 1) {

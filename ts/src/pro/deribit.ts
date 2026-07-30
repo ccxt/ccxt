@@ -587,7 +587,7 @@ export default class deribit extends deribitRest {
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
-            descriptor = interval as string;
+            descriptor = interval;
         }
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
@@ -879,7 +879,7 @@ export default class deribit extends deribitRest {
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe as string) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
@@ -1044,9 +1044,9 @@ export default class deribit extends deribitRest {
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,
                 'chart': this.handleOHLCV,
-                'user': this.safeValue (userHandlers, this.safeString (parts, 1) as string),
+                'user': this.safeValue (userHandlers, this.safeString (parts, 1)),
             };
-            const handler = this.safeValue (handlers, channelId as string);
+            const handler = this.safeValue (handlers, channelId);
             if (handler !== undefined) {
                 handler.call (this, client, message);
                 return;

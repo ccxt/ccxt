@@ -208,7 +208,7 @@ export default class kucoin extends kucoinRest {
         };
         const message = this.extend (request, params);
         const url = this.safeString (this.urls['api']['ws'], urlType);
-        const client = this.client ((url as string));
+        const client = this.client (url);
         if (!(messageHash in client.subscriptions)) {
             client.subscriptions[requestId] = messageHash;
         }
@@ -500,7 +500,7 @@ export default class kucoin extends kucoinRest {
         };
         const message = this.extend (request, params);
         const url = this.safeString (this.urls['api']['ws'], urlType);
-        const client = this.client ((url as string));
+        const client = this.client (url);
         const messageHashWithSymbols = channel + ':' + symbols.join (',');
         if (!(messageHashWithSymbols in client.subscriptions)) {
             client.subscriptions[requestId] = messageHashWithSymbols;
@@ -1034,7 +1034,7 @@ export default class kucoin extends kucoinRest {
         const symbol = market['symbol'];
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1082,7 +1082,7 @@ export default class kucoin extends kucoinRest {
         const timeframe = this.findTimeframe (interval);
         const messageHash = 'uta:candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1864,8 +1864,8 @@ export default class kucoin extends kucoinRest {
         if (!((id as string) in client.subscriptions)) {
             return;
         }
-        const subscriptionHash = this.safeString (client.subscriptions, (id as string));
-        const subscription = this.safeValue (client.subscriptions, (subscriptionHash as string));
+        const subscriptionHash = this.safeString (client.subscriptions, id);
+        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
         delete client.subscriptions[(id as string)];
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
@@ -2240,8 +2240,8 @@ export default class kucoin extends kucoinRest {
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
-        const orders = this.safeValue (cachedOrders.hashmap, (symbol as string), {});
-        const order = this.safeValue (orders, (orderId as string));
+        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+        const order = this.safeValue (orders, orderId);
         if (order !== undefined) {
             // todo add others to calculate average etc
             if (order['status'] === 'closed') {
@@ -2574,7 +2574,7 @@ export default class kucoin extends kucoinRest {
         }
         params = this.omit (params, 'type');
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const uniformType = this.safeString (accountsByType, (type as string), type);
+        const uniformType = this.safeString (accountsByType, type, type);
         const isClassicFuturesMethod = (uniformType === 'contract');
         let subscriptionHash = isClassicFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
         let url: Str = undefined;
@@ -2584,7 +2584,7 @@ export default class kucoin extends kucoinRest {
         } else {
             url = await this.negotiate (true, isClassicFuturesMethod);
         }
-        const client = this.client ((url as string));
+        const client = this.client (url);
         this.setBalanceCache (client, uniformType);
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
@@ -2640,7 +2640,7 @@ export default class kucoin extends kucoinRest {
             'uta': uta,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -2730,7 +2730,7 @@ export default class kucoin extends kucoinRest {
             requestAccountType = 'contract';
         }
         const accountsByType = this.safeDict (this.options, 'accountsByType');
-        const uniformType = this.safeString (accountsByType, (requestAccountType as string), 'trade');
+        const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
         if (!(uniformType in this.balance)) {
             this.balance[uniformType] = {};
         }
@@ -2741,7 +2741,7 @@ export default class kucoin extends kucoinRest {
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         let used = this.safeString2 (data, 'hold', 'holdBalance');
-        const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin') as string);
+        const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin'));
         if (isolatedPosMargin !== undefined) {
             used = Precise.stringAdd (used, isolatedPosMargin);
         }
@@ -3414,7 +3414,7 @@ export default class kucoin extends kucoinRest {
             'funding-fee': this.handleUtaFundingRate,
             'mark-price': this.handleUtaTicker,
         };
-        const method = this.safeValue (methods, (subject as string));
+        const method = this.safeValue (methods, subject);
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -3458,7 +3458,7 @@ export default class kucoin extends kucoinRest {
             if (client.url.indexOf ('connectId=private') >= 0) {
                 type = 'private';
             }
-            this.options['urls'][type as string] = undefined;
+            this.options['urls'][type] = undefined;
         }
         this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
         return false;

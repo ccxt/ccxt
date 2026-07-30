@@ -619,7 +619,7 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []);
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.inArray (code, fiatCurrencies);
@@ -1533,7 +1533,7 @@ export default class bitvavo extends Exchange {
             }
             params = this.omit (params, [ 'cost' ]);
         } else if (isLimitOrder) {
-            request['price'] = this.priceToPrecision ((symbol as string), price);
+            request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         const isTakeProfit = (takeProfitPrice !== undefined) || (type === 'takeProfit') || (type === 'takeProfitLimit');
@@ -1550,7 +1550,7 @@ export default class bitvavo extends Exchange {
             request['orderType'] = isMarketOrder ? 'takeProfit' : 'takeProfitLimit';
         }
         if (triggerPrice !== undefined) {
-            request['triggerAmount'] = this.priceToPrecision ((symbol as string), triggerPrice);
+            request['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
             request['triggerType'] = 'price';
             request['triggerReference'] = 'lastTrade'; // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -2351,10 +2351,10 @@ export default class bitvavo extends Exchange {
     }
 
     withdrawRequest (code: Str, amount, address, tag: Str = undefined, params = {}) {
-        const currency = this.currency ((code as string));
+        const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
-            'amount': this.currencyToPrecision ((code as string), amount),
+            'amount': this.currencyToPrecision (code, amount),
             'address': address, // address or IBAN
             // 'internal': false, // transfer to another Bitvavo user address, no fees
             // 'addWithdrawalFee': false, // true = add the fee on top, otherwise the fee is subtracted from the amount

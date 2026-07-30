@@ -7863,9 +7863,9 @@ export default class htx extends Exchange {
                     'Timestamp': timestamp,
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
-                request = this.keysort (request) as any;
+                request = this.keysort (request);
                 if (method !== 'POST') {
-                    const sortedQuery = this.keysort (query) as any;
+                    const sortedQuery = this.keysort (query);
                     request = this.extend (request, sortedQuery);
                 }
                 let auth = this.urlencode (request, true).replace ('%2c', '%2C'); // in c# it manually needs to be uppercased

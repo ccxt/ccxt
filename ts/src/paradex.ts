@@ -1481,7 +1481,7 @@ export default class paradex extends Exchange {
         //
         const timestamp = this.safeInteger (order, 'created_at');
         const orderId = this.safeString (order, 'id');
-        const clientOrderId = this.omitZero ((this.safeString (order, 'client_id') as string));
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1498,8 +1498,8 @@ export default class paradex extends Exchange {
             }
         }
         const side = this.safeStringLower (order, 'side');
-        const average = this.omitZero ((this.safeString (order, 'avg_fill_price') as string));
-        const remaining = this.omitZero ((this.safeString (order, 'remaining_size') as string));
+        const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
+        const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         const flags = this.safeList (order, 'flags', []);
         let reduceOnly: Bool = undefined;
@@ -1864,7 +1864,7 @@ export default class paradex extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (params, orderParams);
-            let orderRequest = this.createOrderRequest ((symbol as string), type, side, amount, price, extendedParams);
+            let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
         }
@@ -1890,7 +1890,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const responseOrders = this.safeList (response, 'orders', []) as List;
+        const responseOrders = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (responseOrders);
         const errors = this.safeList (response, 'errors', []) as List;
         for (let i = 0; i < errors.length; i++) {
@@ -3046,7 +3046,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []) as List;
+        const data = this.safeList (response, 'results', []);
         const greeks = this.safeDict (data, 0, {});
         return this.parseGreeks (greeks, market);
     }

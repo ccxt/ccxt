@@ -282,7 +282,7 @@ export default class myriad extends Exchange {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList (response, 'data', response as any);
+            const foundList = this.safeList (response, 'data', response);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -329,7 +329,7 @@ export default class myriad extends Exchange {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const rawMarketsList = this.safeList (response, 'data', response as any);
+            const rawMarketsList = this.safeList (response, 'data', response);
             const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
@@ -458,7 +458,7 @@ export default class myriad extends Exchange {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const foundList = this.safeList (response, 'data', response as any);
+            const foundList = this.safeList (response, 'data', response);
             const found = (foundList !== undefined) ? foundList : [];
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
@@ -499,7 +499,7 @@ export default class myriad extends Exchange {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
-            const rawQuestionsList = this.safeList (response, 'data', response as any);
+            const rawQuestionsList = this.safeList (response, 'data', response);
             const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
@@ -885,7 +885,7 @@ export default class myriad extends Exchange {
         };
         const wrapper = this.extend (response, { 'order': orderForResponse, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome (outcome);
-        const parsed = this.parsePredictionOrder (wrapper, outcomeObj as any);
+        const parsed = this.parsePredictionOrder (wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
@@ -1336,7 +1336,7 @@ export default class myriad extends Exchange {
             if ((networkId !== undefined) && (marketId !== undefined) && (outcomeId !== undefined)) {
                 composite = networkId + ':' + marketId + '/' + outcomeId;
             }
-            outcomeObj = this.safeOutcome (composite, market as any);
+            outcomeObj = this.safeOutcome (composite, market);
             outcome = this.safeString (outcomeObj, 'outcome');
         }
         return this.safePredictionOrder ({
@@ -1384,7 +1384,7 @@ export default class myriad extends Exchange {
         if ((networkId !== undefined) && (marketId !== undefined) && (rawOutcomeId !== undefined)) {
             composite = networkId + ':' + marketId + '/' + rawOutcomeId;
         }
-        const outcomeObj = this.safeOutcome (composite, market as any);
+        const outcomeObj = this.safeOutcome (composite, market);
         const marketSlug = this.safeString (trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
         let outcome: Str = this.safeString (outcomeObj, 'outcome');
@@ -1526,7 +1526,7 @@ export default class myriad extends Exchange {
             if ((rowOutcomeId !== undefined) && (currentOutcomeId !== rowOutcomeId)) {
                 continue;
             }
-            result.push (this.parseAmmEventToOrder (row, outcomeObj as any));
+            result.push (this.parseAmmEventToOrder (row, outcomeObj));
         }
         const sorted = this.sortBy (result, 'timestamp', true);
         return this.filterByOutcomeSinceLimit (sorted, outcomeSymbol, since, limit) as PredictionOrder[];
@@ -2945,7 +2945,7 @@ export default class myriad extends Exchange {
         //         ]
         //     }
         //
-        const rowsList = this.safeList (response, 'data', response as any);
+        const rowsList = this.safeList (response, 'data', response);
         const rows = (rowsList !== undefined) ? rowsList : [];
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -3232,7 +3232,7 @@ export default class myriad extends Exchange {
     }
 
     async subscribeMyriadChannel (messageHash: string, channel: string, params = {}): Promise<any> {
-        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        const url = this.safeString (this.urls['api'], 'ws');
         // finish the connect handshake first so the subscribe frame is sent after the connect reply
         await this.connectCentrifugo (url);
         const requestId = this.requestId (url);
@@ -3315,7 +3315,7 @@ export default class myriad extends Exchange {
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
-        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        const url = this.safeString (this.urls['api'], 'ws');
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo (url);
         const client = this.client (url);
@@ -3578,7 +3578,7 @@ export default class myriad extends Exchange {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of outcomes (the prices channel is per-market)');
         }
         const symbolsLength = outcomes.length;
-        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        const url = this.safeString (this.urls['api'], 'ws');
         await this.connectCentrifugo (url);
         await this.loadOutcomes (outcomes);
         const client = this.client (url);
@@ -3770,7 +3770,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         const channel = 'positions:' + networkId + ':' + trader;
         const messageHash = 'positions';
-        const url = this.safeString (this.urls['api'] as Dict, 'ws');
+        const url = this.safeString (this.urls['api'], 'ws');
         await this.connectCentrifugo (url);
         const client = this.client (url);
         const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
@@ -3902,7 +3902,7 @@ export default class myriad extends Exchange {
     sign (path: any, api: any = 'myriad', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad'] as string);
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad']);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

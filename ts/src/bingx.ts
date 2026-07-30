@@ -1053,7 +1053,7 @@ export default class bingx extends Exchange {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const fees = this.safeDict (this.fees, (type as string), {});
+        const fees = this.safeDict (this.fees, type, {});
         const contractSize = (swap) ? this.parseNumber ('1') : undefined;
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
@@ -1143,8 +1143,8 @@ export default class bingx extends Exchange {
             requests.push (this.fetchSpotMarkets (params)); // sandbox is swap only
         }
         const promises = await Promise.all (requests);
-        const linearSwapMarkets = this.safeList (promises, 0, []) as List;
-        const inverseSwapMarkets = this.safeList (promises, 1, []) as List;
+        const linearSwapMarkets = this.safeList (promises, 0, []);
+        const inverseSwapMarkets = this.safeList (promises, 1, []);
         const spotMarkets = this.safeList (promises, 2, []) as List;
         const swapMarkets = this.arrayConcat (linearSwapMarkets, inverseSwapMarkets);
         return this.arrayConcat (spotMarkets, swapMarkets);
@@ -1650,7 +1650,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const orderbook = this.safeDict (response, 'data', {}) as Dict;
+        const orderbook = this.safeDict (response, 'data', {});
         const nonce = this.safeInteger (orderbook, 'lastUpdateId');
         const timestamp = this.safeInteger2 (orderbook, 'T', 'ts');
         const result = this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
@@ -2691,7 +2691,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const records = this.safeList (data, 'positionHistory', []) as List;
+        const records = this.safeList (data, 'positionHistory', []);
         const positions = this.parsePositions (records);
         return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
@@ -6965,7 +6965,7 @@ export default class bingx extends Exchange {
         let version = section[1];
         let access = section[2];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
-        let url = this.implodeHostname (this.urls['api'][type as string]);
+        let url = this.implodeHostname (this.urls['api'][type]);
         if (isSandbox && url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
