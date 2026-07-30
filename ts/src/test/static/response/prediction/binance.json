@@ -494,7 +494,7 @@
                         "cost": 10,
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.6"
+                            "cost": "0.181"
                         },
                         "realizedPnl": null,
                         "outcome": "FED_DECISION_JULY_181_50_BPS_HIKE:YES",
