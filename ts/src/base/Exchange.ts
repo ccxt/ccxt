@@ -965,7 +965,7 @@ export class BaseExchange {
      * @ignore
      * @method
      * @name Exchange#getDispatcherOptions
-     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables the happy eyeballs (rfc 8305) address-family racing so ipv6 and ipv4 are both attempted (off by default on node 18), without forcing either family
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
@@ -976,6 +976,8 @@ export class BaseExchange {
             'connections': 256, // per-origin socket cap, prevents fd exhaustion under bursts
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
+            'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
+            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
