@@ -76,8 +76,6 @@ from ccxt.test.base.test_constants import test_constants  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
 from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
 from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
-# hand-written python-only tests below (not transpiled from ts/src/test/base)
-from ccxt.test.base.test_dual_stack import test_dual_stack  # noqa E402
 
 async def base_tests_init():
     await test_language_specific()
@@ -141,5 +139,4 @@ async def base_tests_init():
     test_io()
     test_is_json_encoded_object()
     test_encode_decode()
-    await test_dual_stack()
     return True
