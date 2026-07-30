@@ -38,14 +38,26 @@ public partial class BaseExchange
 
     private void initHttpClient()
     {
-        // Dual-stack (IPv4 + IPv6) REST transport: HttpClientHandler performs no
-        // address-family restriction, so the OS/runtime resolves and dials both
-        // IPv4 and IPv6 per destination. On .NET 5+ runtimes HttpClientHandler
-        // wraps SocketsHttpHandler, whose default connect is dual-stack with
-        // Happy Eyeballs. (SocketsHttpHandler/ConnectCallback cannot be named
-        // directly here because this library targets netstandard2.0/2.1, whose
-        // reference surface does not include them; nothing IPv4-only is set, so
-        // IPv6-only, IPv4-only and dual-stack hosts all work.)
+        // Dual-stack (IPv4 + IPv6) REST transport. We deliberately set no
+        // address-family restriction and no ConnectCallback, so the runtime's
+        // own default dial is used and every host shape works: IPv6-only,
+        // IPv4-only and dual-stack.
+        //
+        // On connect *aggressiveness*: .NET does NOT implement Happy Eyeballs
+        // (RFC 8305). dotnet/runtime#26177 is still open (milestone "Future"),
+        // so SocketsHttpHandler exposes no HE/address-family/connect-attempt-delay
+        // API at all -- verified by reflection on .NET 10: the only public
+        // Connect* knobs are ConnectCallback and ConnectTimeout. The runtime
+        // therefore tries the resolved addresses *sequentially* (AAAA first per
+        // getaddrinfo ordering, then A on failure) rather than racing them.
+        //
+        // That means C# is already at the lowest possible dual-stack connect
+        // aggressiveness: zero parallel connection attempts. There is nothing to
+        // lower, and no delay to configure -- lowering an HE delay is N/A here.
+        // Any "more aggressive" racing would require hand-rolling a
+        // ConnectCallback, which we intentionally do not do (it is unavailable on
+        // this library's netstandard2.0/2.1 reference surface, and a naive
+        // callback that filtered AddressFamily.InterNetwork would break IPv6).
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {

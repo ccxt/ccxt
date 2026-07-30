@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -33,10 +35,9 @@ public partial class BaseTest
         Assert((clientHandler.AutomaticDecompression & DecompressionMethods.GZip) == DecompressionMethods.GZip, "gzip decompression should remain enabled");
         Assert((clientHandler.AutomaticDecompression & DecompressionMethods.Deflate) == DecompressionMethods.Deflate, "deflate decompression should remain enabled");
 
-        // On modern runtimes HttpClientHandler wraps SocketsHttpHandler, whose
-        // default connect is dual-stack (both IPv4 and IPv6 are resolved and
-        // dialed, Happy Eyeballs on .NET 5+). Assert the effective transport is
-        // that dual-stack handler and that no custom IPv4-only dial was installed.
+        // On modern runtimes HttpClientHandler wraps SocketsHttpHandler. Assert
+        // the effective transport is that handler and that no custom dial was
+        // installed, so the runtime's own default (dual-stack) connect is used.
         var underlyingField = typeof(HttpClientHandler).GetField("_underlyingHandler", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert(underlyingField != null, "HttpClientHandler._underlyingHandler field should exist on this runtime");
         var underlying = underlyingField.GetValue(clientHandler);
@@ -44,7 +45,38 @@ public partial class BaseTest
         Assert(underlying is SocketsHttpHandler, "underlying handler should be a SocketsHttpHandler (dual-stack default), got: " + underlying.GetType().FullName);
         var connectCallback = typeof(SocketsHttpHandler).GetProperty("ConnectCallback");
         Assert(connectCallback != null, "SocketsHttpHandler.ConnectCallback property should exist on this runtime");
-        Assert(connectCallback.GetValue(underlying) == null, "ConnectCallback should stay unset: the default dual-stack connect must be used (a callback filtering AddressFamily.InterNetwork only would break IPv6)");
+        Assert(connectCallback.GetValue(underlying) == null, "ConnectCallback should stay unset: the default dual-stack connect must be used (a callback filtering AddressFamily.InterNetwork would break IPv6)");
+
+        // Connect aggressiveness is at its floor and is runtime-owned.
+        //
+        // .NET does not implement Happy Eyeballs (RFC 8305) -- dotnet/runtime#26177
+        // is open with milestone "Future" -- so resolved addresses are dialed
+        // *sequentially*, never raced. There is consequently no HE delay knob to
+        // lower: no address-family selector, no connect-attempt-delay, nothing.
+        // Pin that fact so this test starts failing (prompting a re-review of the
+        // comments in Exchange.initHttpClient) if a future runtime adds one.
+        var socketsHandlerMembers = typeof(SocketsHttpHandler)
+            .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+            .Select(m => m.Name)
+            .Where(n => n.IndexOf("Happy", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("Eyeball", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("AddressFamily", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("AttemptDelay", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("ConnectDelay", StringComparison.OrdinalIgnoreCase) >= 0)
+            .Distinct()
+            .ToList();
+        Assert(socketsHandlerMembers.Count == 0, "SocketsHttpHandler is expected to expose no Happy Eyeballs / address-family / connect-delay surface (sequential dial, lowest possible aggressiveness); found: " + string.Join(", ", socketsHandlerMembers));
+
+        // ClientWebSocketOptions likewise exposes no such knob.
+        var wsOptionMembers = typeof(ClientWebSocketOptions)
+            .GetMembers(BindingFlags.Public | BindingFlags.Instance)
+            .Select(m => m.Name)
+            .Where(n => n.IndexOf("Happy", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("AddressFamily", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("AttemptDelay", StringComparison.OrdinalIgnoreCase) >= 0)
+            .Distinct()
+            .ToList();
+        Assert(wsOptionMembers.Count == 0, "ClientWebSocketOptions is expected to expose no Happy Eyeballs / address-family surface; found: " + string.Join(", ", wsOptionMembers));
 
         // proxy path: setting httpProxy re-creates the client and must keep the
         // same dual-stack-friendly handler type with the proxy attached
