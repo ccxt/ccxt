@@ -6,7 +6,7 @@ import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsL
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
-import { spawnSync } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
@@ -71,7 +71,41 @@ function overwriteFileAndFolder (path: string, content: string) {
     }
     content = formatGoSource (path, content);
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
+}
+
+function formatGoSourceAsync (filePath: string, content: string): Promise<string> {
+    if (!filePath.endsWith ('.go')) {
+        return Promise.resolve (content);
+    }
+    return new Promise ((resolve) => {
+        const child = spawn ('gofmt', [], { windowsHide: true });
+        const out: Buffer[] = [];
+        child.stdout.on ('data', (d) => out.push (d));
+        child.on ('error', () => resolve (content));
+        child.on ('close', (code) => {
+            resolve (code === 0 ? Buffer.concat (out).toString ('utf8') : content);
+        });
+        child.stdin.end (content);
+    });
+}
+
+async function overwriteFileAndFolderAsync (path: string, content: string) {
+    if (!(fs.existsSync(path))) {
+        checkCreateFolder (path);
+    }
+    content = await formatGoSourceAsync (path, content);
+    overwriteFile (path, content);
+}
+
+async function mapLimit (n: number, limit: number, fn: (i: number) => Promise<void>) {
+    let next = 0;
+    const workers = Array.from ({ length: Math.min (limit, Math.max (n, 0)) }, async () => {
+        while (next < n) {
+            const i = next++;
+            await fn (i);
+        }
+    });
+    await Promise.all (workers);
 }
 
 function capitalize(s: string) {
@@ -532,6 +566,7 @@ class NewTranspiler {
     exchangeTierMethods: Set<string> = new Set();
     private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
+    piscina: Piscina | undefined;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
         // 'kucoinfutures'
     ]);
@@ -2365,23 +2400,31 @@ ${caseStatements.join('\n')}
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
         await this.transpileEverything (force, child, false, false, true);
 
-        this.transpileTests();
+        await this.transpileTests();
 
         this.transpileErrorHierarchy ();
 
         log.bright.green ('Transpiled successfully.');
     }
 
+    async closeWorkerPool () {
+        if (this.piscina) {
+            const pool = this.piscina;
+            this.piscina = undefined;
+            await pool.destroy ();
+        }
+    }
+
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
-
-        // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'go-worker.js'),
-            maxThreads,
-        });
-
-        const chunkSize = 20;
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'go-worker.js'),
+                maxThreads,
+            });
+        }
+        const piscina = this.piscina;
+        const chunkSize = Math.max (1, Math.ceil (allFiles.length / (maxThreads * 2)));
         const promises: any = [];
         const now = Date.now();
         for (let i = 0; i < allFiles.length; i += chunkSize) {
@@ -2391,7 +2434,19 @@ ${caseStatements.join('\n')}
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult: any[] = [];
+        for (const chunk of workerResult) {
+            if (Array.isArray (chunk)) {
+                flatResult.push (...chunk);
+                continue;
+            }
+            flatResult.push (...chunk.result);
+            if (chunk.goComments) {
+                for (const exchangeName of Object.keys (chunk.goComments)) {
+                    goComments[exchangeName] = Object.assign (goComments[exchangeName] || {}, chunk.goComments[exchangeName]);
+                }
+            }
+        }
         return flatResult;
     }
 
@@ -2480,9 +2535,10 @@ ${caseStatements.join('\n')}
         // exchanges = ['bitmart.ts']
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+        const transpiledFiles = (allFilesPath.length > 1 && (this.piscina || allFilesPath.length >= 90))
+            ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map ((file: string) => this.transpiler.transpileGoByPath (file));
 
         let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
         if (this.isPrediction) {
@@ -2492,10 +2548,12 @@ ${caseStatements.join('\n')}
             const transpiled = transpiledFiles[i];
             const exchangeName = exchanges[i].replace('.ts','');
             const path = `${wrapperFolder}/${exchangeName}_wrapper.go`;
-
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
+        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
+        await mapLimit (exchanges.length, writeThreads, async (idx) => {
+            await this.transpileDerivedExchangeFile (jsFolder, exchanges[idx], options, transpiledFiles[idx], force, ws);
+        });
         // prediction packages always need their own option-structs file even with a single exchange
         if (exchanges.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
@@ -2729,7 +2787,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         return goImports + content;
     }
 
-    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false) {
+    async transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false) {
 
         const tsPath = `${tsFolder}/${filename}`;
 
@@ -2743,7 +2801,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         const go  = this.createGoExchange (extensionlessName, goResult, ws);
 
         if (goFolder) {
-            overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);
+            await overwriteFileAndFolderAsync (`${goFolder}/${goFilename}`, go);
             // fs.utimesSync (`${goFolder}/${goFilename}`, new Date (), new Date (tsMtime))
         }
     }
@@ -3047,7 +3105,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const testNames = tests.map (test => test.name);
         testNames.forEach (test => goTests.push(test));
-        this.transpileAndSaveGoExchangeTests (tests);
+        return this.transpileAndSaveGoExchangeTests (tests);
     }
 
     transpileWsExchangeTests(){
@@ -3070,7 +3128,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             goWsTests.push(test)
         });
 
-        this.transpileAndSaveGoExchangeTests (tests, true);
+        return this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
     async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
@@ -3149,18 +3207,24 @@ func (this *${className}) Init(userConfig map[string]any) {
                     contentIndentend,
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].goFile, go);
+            tests[idx]._goBody = go;
+        });
+        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
+        await mapLimit (tests.length, writeThreads, async (idx) => {
+            await overwriteFileAndFolderAsync (tests[idx].goFile, tests[idx]._goBody);
         });
     }
 
-    transpileTests(){
+    async transpileTests(){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
         this.transpileBaseTestsToGo();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        await Promise.all ([
+            this.transpileExchangeTests (),
+            this.transpileWsExchangeTests (),
+        ]);
         this.createFunctionsMapFile();
     }
 
@@ -3276,26 +3340,30 @@ if (isMainEntry(import.meta.url)) {
     }
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const transpiler = new NewTranspiler (ws);
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods (TS_BASE_FILE)
-        transpiler.transpilePredictionBaseMethods ()
-    } else if (ws) {
-        if (prediction) {
-            await transpiler.transpileWS (force, true);
-        } else {
-            await transpiler.transpileWS (force);
-            if (!inputExchanges.length) {
-                // full ws builds also transpile the prediction ws exchanges
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods (TS_BASE_FILE)
+            transpiler.transpilePredictionBaseMethods ()
+        } else if (ws) {
+            if (prediction) {
                 await transpiler.transpileWS (force, true);
+            } else {
+                await transpiler.transpileWS (force);
+                if (!inputExchanges.length) {
+                    // full ws builds also transpile the prediction ws exchanges
+                    await transpiler.transpileWS (force, true);
+                }
             }
+        } else if (test) {
+            await transpiler.transpileTests ();
+        } else if (multiprocess) {
+            await parallelizeTranspiling (exchangeIds);
+            // the prediction exchanges are few — transpile them serially after the workers finish
+            await transpiler.transpileEverything (force, false, false, false, true);
+        } else {
+            await transpiler.transpileEverything (force, child, baseOnly, examples, prediction);
         }
-    } else if (test) {
-        transpiler.transpileTests ();
-    } else if (multiprocess) {
-        await parallelizeTranspiling (exchangeIds);
-        // the prediction exchanges are few — transpile them serially after the workers finish
-        await transpiler.transpileEverything (force, false, false, false, true);
-    } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction);
+    } finally {
+        await transpiler.closeWorkerPool ();
     }
 }

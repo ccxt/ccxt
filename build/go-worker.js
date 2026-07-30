@@ -1,13 +1,41 @@
 import { Transpiler } from 'ast-transpiler';
 import log from 'ololog'
-export default async ({transpilerConfig, files}) => {
-    const transpiler = new Transpiler(transpilerConfig);
 
+let cachedTranspiler = null;
+let cachedConfigKey = null;
+let goComments = {};
+
+function transformLeadingComment (comment) {
+    const commentNameRegex = /@name\s(\w+)#(\w+)/;
+    const nameMatches = comment.match(commentNameRegex);
+    const exchangeName = nameMatches ? nameMatches[1] : undefined;
+    if (!exchangeName) {
+        return comment;
+    }
+    const methodName = nameMatches[2];
+    let exchangeMethods = goComments[exchangeName];
+    if (!exchangeMethods) {
+        exchangeMethods = goComments[exchangeName] = {};
+    }
+    exchangeMethods[methodName] = comment;
+    return comment;
+}
+
+export default async ({transpilerConfig, files}) => {
+    const configKey = JSON.stringify(transpilerConfig);
+    if (!cachedTranspiler || cachedConfigKey !== configKey) {
+        cachedTranspiler = new Transpiler(transpilerConfig);
+        cachedTranspiler.setVerboseMode(false);
+        cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
+        cachedConfigKey = configKey;
+    }
+    const transpiler = cachedTranspiler;
+    goComments = {};
     const result = [];
     for (const filePath of files) {
         log.blue('[worker][go] Transpiling', filePath);
         const transpiled = transpiler.transpileGoByPath(filePath);
         result.push(transpiled);
     }
-    return result;
+    return { result, goComments };
 }
