@@ -10,16 +10,13 @@ on:
 permissions:
   contents: write
 
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, javascript ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
-    # Bumped from 60: the job runs several full `ccxt` compiles (buildRust, the
-    # isolated feature checks incl. the ~100-core transpiled-ws combo, clippy,
-    # the examples' own recompile, and the test build). After the crate grew
-    # from an upstream merge the cumulative time crossed 60 min and the runner
-    # SIGTERM'd mid-compile (exit 143). 120 covers a cold-cache run; the
-    # rust-cache step above makes subsequent runs much faster.
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
@@ -31,6 +28,15 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+      # Safety net for the same OOM: give the VM headroom so a memory spike
+      # while compiling the `ccxt` crate swaps instead of killing the runner.
+      - name: Add swap space
+        run: |
+          sudo fallocate -l 10G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
       - uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-hack
@@ -198,6 +204,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Same OOM guard as the build job — this job recompiles `ccxt` too.
+      - name: Add swap space
+        run: |
+          sudo fallocate -l 10G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
