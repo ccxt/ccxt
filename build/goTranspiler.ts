@@ -1581,7 +1581,7 @@ class NewTranspiler {
         return res;
     }
 
-    createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false) {
+    createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false, defer = false) {
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
@@ -1812,6 +1812,10 @@ class NewTranspiler {
         }
         log.magenta ('→', (path as any).yellow);
 
+        // the caller batches the gofmt+write of the per-exchange wrappers in parallel
+        if (defer) {
+            return file;
+        }
         overwriteFileAndFolder (path, file);
     }
 
@@ -2544,15 +2548,24 @@ ${caseStatements.join('\n')}
         if (this.isPrediction) {
             wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
         }
+        const wrapperFiles: any[] = [];
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
             const exchangeName = exchanges[i].replace('.ts','');
             const path = `${wrapperFolder}/${exchangeName}_wrapper.go`;
-            this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
+            const content = this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws, true);
+            if (content !== undefined) {
+                wrapperFiles.push ({ path, content });
+            }
         }
         const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
-        await mapLimit (exchanges.length, writeThreads, async (idx) => {
-            await this.transpileDerivedExchangeFile (jsFolder, exchanges[idx], options, transpiledFiles[idx], force, ws);
+        await mapLimit (exchanges.length + wrapperFiles.length, writeThreads, async (idx) => {
+            if (idx < exchanges.length) {
+                await this.transpileDerivedExchangeFile (jsFolder, exchanges[idx], options, transpiledFiles[idx], force, ws);
+                return;
+            }
+            const wrapper = wrapperFiles[idx - exchanges.length];
+            await overwriteFileAndFolderAsync (wrapper.path, wrapper.content);
         });
         // prediction packages always need their own option-structs file even with a single exchange
         if (exchanges.length > 1 || this.isPrediction) {
@@ -2807,14 +2820,14 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToGo (outDir: string) {
+    transpileWsOrderbookTestsToGo (outDir: string, transpiled?: any) {
 
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const goFile = `${outDir}/cache/orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow);
 
-        const go = this.transpiler.transpileGoByPath(jsFile);
+        const go = transpiled || this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
         splitParts.shift();
@@ -2841,14 +2854,14 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToGo (outDir: string) {
+    transpileWsCacheTestsToGo (outDir: string, transpiled?: any) {
 
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const goFile = `${outDir}/cache/cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow);
 
-        const go = this.transpiler.transpileGoByPath(jsFile);
+        const go = transpiled || this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         const splitParts = content.split('// ----------------------------------------------------------------------------');
         splitParts.shift();
@@ -2876,14 +2889,14 @@ func (this *${className}) Init(userConfig map[string]any) {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToGo (outDir: string) {
+    transpileCryptoTestsToGo (outDir: string, transpiled?: any) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const goFile = `${outDir}/test.cryptography.go`;
 
         log.magenta ('[go] Transpiling from', (jsFile as any).yellow);
 
-        const go = this.transpiler.transpileGoByPath(jsFile);
+        const go = transpiled || this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
             [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
@@ -2951,13 +2964,20 @@ func (this *${className}) Init(userConfig map[string]any) {
 
     async transpileBaseTestsToGo () {
         const outDir = BASE_TESTS_FOLDER;
-        await this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToGo(outDir);
-        this.transpileWsOrderbookTestsToGo(outDir);
-        this.transpileWsCacheTestsToGo(outDir);
+        // the three single-file helpers below transpile in the same worker batch as the base
+        // tests instead of serially on the main thread afterwards
+        const extraFiles = [
+            './ts/src/test/base/test.cryptography.ts',
+            './ts/src/pro/test/base/test.orderBook.ts',
+            './ts/src/pro/test/base/test.cache.ts',
+        ];
+        const extras = await this.transpileBaseTests(outDir, extraFiles);
+        this.transpileCryptoTestsToGo(outDir, extras[0]);
+        this.transpileWsOrderbookTestsToGo(outDir, extras[1]);
+        this.transpileWsCacheTestsToGo(outDir, extras[2]);
     }
 
-    async transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string, extraFiles: string[] = []) {
 
         const baseFolders = {
             ts: './ts/src/test/base',
@@ -2977,7 +2997,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         log.magenta ('[go] Transpiling', tests.length, 'base tests');
 
-        const transpiledFiles = await this.webworkerTranspile (tests.map (t => t.tsFile), this.getTranspilerConfig());
+        const transpiledFiles = await this.webworkerTranspile (tests.map (t => t.tsFile).concat (extraFiles), this.getTranspilerConfig());
         const ccxtNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
 
         tests.forEach ((test, idx) => {
@@ -3030,6 +3050,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         await mapLimit (tests.length, writeThreads, async (idx) => {
             await overwriteFileAndFolderAsync (tests[idx].goFile, tests[idx]._goBody);
         });
+        return transpiledFiles.slice (tests.length);
     }
 
     transpileMainTest(files: any) {
