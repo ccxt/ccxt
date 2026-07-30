@@ -186,6 +186,16 @@ jobs:
           for exchange in $cleaned_rest_files; do
             npm run response-rust -- $exchange
           done
+      # Prediction-market static suites: read fixtures from
+      # ts/src/test/static/{request,response}/prediction/ and run them through
+      # the prediction Cores (kalshi/limitless/myriad/polymarket/hyperliquid).
+      # Mirrors the prediction steps in js/py/php/cs/go/java workflows.
+      - name: Prediction request tests
+        if: env.prediction_modified == 'true'
+        run: npm run request-rust-prediction
+      - name: Prediction response tests
+        if: env.prediction_modified == 'true'
+        run: npm run response-rust-prediction
 
       # - name: Upload Go Files
       #   uses: actions/upload-artifact@v4
