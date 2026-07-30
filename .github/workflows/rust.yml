@@ -44,6 +44,17 @@ jobs:
           fetch-depth: 2
           clean: false
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
+      # The self-hosted runners don't ship a Rust toolchain (unlike GitHub-hosted
+      # VMs). Install rustup + stable if missing — no-op on reruns since the
+      # runner's home dir persists. Must run before Swatinem/rust-cache, which
+      # needs `rustc -V` for its cache key.
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --component clippy
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/cargo" --version || cargo --version
       # - uses: taiki-e/cache-cargo-install-action@v3
       #   with:
       #     tool: cargo-hack
