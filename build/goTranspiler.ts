@@ -2536,7 +2536,7 @@ ${caseStatements.join('\n')}
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles = (allFilesPath.length > 1 && (this.piscina || allFilesPath.length >= 90))
+        const transpiledFiles = allFilesPath.length > 1
             ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
             : allFilesPath.map ((file: string) => this.transpiler.transpileGoByPath (file));
 
@@ -2949,36 +2949,40 @@ func (this *${className}) Init(userConfig map[string]any) {
     //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
-    transpileBaseTestsToGo () {
+    async transpileBaseTestsToGo () {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
+        await this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToGo(outDir);
         this.transpileWsOrderbookTestsToGo(outDir);
         this.transpileWsCacheTestsToGo(outDir);
     }
 
-    transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string) {
 
         const baseFolders = {
             ts: './ts/src/test/base',
         };
 
-        let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        const baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
+        const tests: any[] = [];
         for (const testName of baseFunctionTests) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
+            tests.push ({ testName, tsFile, goFile: `${outDir}/${testName}.go` });
+        }
 
-            // const goFileName = capitalize(testName.replace ('test.', ''));
-            const goFile = `${outDir}/${testName}.go`;
+        log.magenta ('[go] Transpiling', tests.length, 'base tests');
 
-            log.magenta ('Transpiling from', (tsFile as any).yellow);
+        const transpiledFiles = await this.webworkerTranspile (tests.map (t => t.tsFile), this.getTranspilerConfig());
+        const ccxtNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
 
-            const go = this.transpiler.transpileGoByPath(tsFile);
-            let content = go.content;
+        tests.forEach ((test, idx) => {
+            const testName = test.testName;
+            let content = transpiledFiles[idx].content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
                 // instantiate the core type (channel-based methods, implements ICoreExchange) and let
@@ -3007,7 +3011,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             if (testName !== 'tests.init') {
                 // Add package prefix to functions and types from the ccxt package
-                content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+                content = this.addPackagePrefix(content, ccxtNames, 'ccxt');
             }
 
             const file = [
@@ -3018,11 +3022,14 @@ func (this *${className}) Init(userConfig map[string]any) {
                 content,
             ].join('\n');
 
-            log.magenta ('→', (goFile as any).yellow);
-
             goTests.push(capitalize(testName));
-            overwriteFileAndFolder (goFile, file);
-        }
+            test._goBody = file;
+        });
+
+        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
+        await mapLimit (tests.length, writeThreads, async (idx) => {
+            await overwriteFileAndFolderAsync (tests[idx].goFile, tests[idx]._goBody);
+        });
     }
 
     transpileMainTest(files: any) {
@@ -3220,7 +3227,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToGo();
+        await this.transpileBaseTestsToGo();
         await Promise.all ([
             this.transpileExchangeTests (),
             this.transpileWsExchangeTests (),
