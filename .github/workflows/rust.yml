@@ -1,5 +1,9 @@
 name: Rust
 run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -10,8 +14,9 @@ on:
 permissions:
   contents: write
 
-env:
-  CARGO_PROFILE_DEV_DEBUG: "0"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
