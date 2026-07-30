@@ -292,7 +292,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
-	transport := &http.Transport{}
+	transport := newDualStackTransport()
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
@@ -1604,8 +1604,9 @@ func (this *BaseExchange) UpdateProxySettings() {
 			proxyURLParsed, _ := url.Parse(proxyUrlStr)
 			this.httpClient.Transport = &http.Transport{
 				Proxy:               http.ProxyURL(proxyURLParsed),
-				MaxConnsPerHost:     8, // hard ceiling per target host
-				MaxIdleConnsPerHost: 4, // reuse pool
+				DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
+				MaxConnsPerHost:     8,                                // hard ceiling per target host
+				MaxIdleConnsPerHost: 4,                                // reuse pool
 				IdleConnTimeout:     90 * time.Second,
 			}
 			this.lastProxyURL = proxyUrlStr
@@ -1791,7 +1792,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if httpsProxy != "" {
 		// Handle HTTPS proxy
@@ -1800,7 +1802,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if socksProxy != "" {
 		// Handle SOCKS proxy
