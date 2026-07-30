@@ -41,8 +41,8 @@ export default class binance extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'createOrder': true,
                 'createMarketOrderWithCost': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
@@ -611,7 +611,7 @@ export default class binance extends Exchange {
         const decimalPrecision = this.safeString (rawMarket, 'decimalPrecision', '2');
         const pricePrecision = this.parseNumber (this.parsePrecision (decimalPrecision));
         const precision = {
-            'amount': undefined,
+            'amount': 0.01, // always be 2
             'price': pricePrecision,
         };
         const volume = this.safeNumber (rawMarket, 'tradeVolume');
@@ -1627,6 +1627,16 @@ export default class binance extends Exchange {
         return this.decimalToPrecision (price, 1, decimals, 2, this.paddingMode);
     }
 
+    amountToPrecision (outcome: string, amount: any): string {
+        const market = this.market (outcome);
+        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.01);
+        let decimals = 2;
+        if (prec > 0) {
+            decimals = this.precisionFromString (this.numberToString (prec));
+        }
+        return this.decimalToPrecision (amount, 1, decimals, 2, this.paddingMode);
+    }
+
     /**
      * @method
      * @name binance#createOrder
@@ -1704,7 +1714,7 @@ export default class binance extends Exchange {
         const quoteRequest = this.extend (commonRequest, {
             "tokenId": outcomeObj['id'],
             "side": sideUpper,
-            "amountIn": Precise.stringMul (amountStr, '1000000000000000000'),
+            "amountIn": Precise.stringMul (this.amountToPrecision (marketSymbol, amountStr), '1000000000000000000'),
         });
         const quote = await this.fetchQuote (quoteRequest, params);
         const quoteId = this.safeString (quote, 'quoteId');
