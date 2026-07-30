@@ -3052,14 +3052,16 @@ func (this *BybitCore) HandleErrorMessage(client any, message any) any {
 					}
 					ret_ = func(this *BybitCore) any {
 						// catch block:
-						if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-							var messageHash any = "authenticated"
+						var messageHash any = this.SafeString2(message, "req_id", "reqId")
+						if ccxt.IsTrue(!ccxt.IsEqual(messageHash, nil)) {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
-							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						} else if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
+							var authenticatedHash any = "authenticated"
+							client.(ccxt.ClientInterface).Reject(error, authenticatedHash)
+							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)) {
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
 							}
 						} else {
-							var messageHash any = this.SafeString2(message, "req_id", "reqId")
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						return true
