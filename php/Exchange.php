@@ -1931,6 +1931,13 @@ class BaseExchange {
         if (defined('CURL_IPRESOLVE_WHATEVER') && defined('CURLOPT_IPRESOLVE')) {
             curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
         }
+        // start the second address family attempt almost immediately instead of
+        // waiting out libcurl's default 200ms happy eyeballs delay; 1 is the
+        // smallest usable value here, 0 would restore that 200ms default
+        // (the async/react path is not configurable, it uses the library defaults)
+        if (defined('CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS')) {
+            curl_setopt($curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
+        }
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {

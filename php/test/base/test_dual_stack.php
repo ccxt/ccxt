@@ -47,6 +47,12 @@ function test_dual_stack_sync_curl() {
     assert(is_array($recorded) && array_key_exists(CURLOPT_IPRESOLVE, $recorded));
     assert($recorded[CURLOPT_IPRESOLVE] === CURL_IPRESOLVE_WHATEVER);
     assert($recorded[CURLOPT_IPRESOLVE] !== CURL_IPRESOLVE_V4);
+    // the happy eyeballs pacing is lowered to the smallest usable value where
+    // libcurl supports it (0 would mean "use the 200ms default")
+    if (defined('CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS')) {
+        assert(array_key_exists(CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, $recorded));
+        assert($recorded[CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS] === 1);
+    }
     unset($handle); // curl_close() is a no-op since PHP 8.0 and deprecated since 8.5
     // 2) end-to-end: fetch() applies it before the request is even attempted
     // (127.0.0.1:9 refuses immediately, no traffic ever leaves the machine)
