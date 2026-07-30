@@ -256,6 +256,16 @@ public class BaseExchange {
         // for both REST (java.net.http.HttpClient) and WS (Netty
         // NioSocketChannel). The JVM default is dual-stack: IPv6 is used
         // when available with IPv4 fallback, which is what we want.
+        //
+        // Unlike Node (net.setDefaultAutoSelectFamilyAttemptTimeout /
+        // autoSelectFamily), the JVM exposes NO numeric Happy-Eyeballs
+        // connection-attempt delay: java.net.http.HttpClient has no such
+        // builder option, and java.net.preferIPv6Addresses only changes
+        // address *ordering* (its default, "false"/system, already gives
+        // dual-stack behaviour and setting it does not race faster).
+        // So "lowest possible dual-stack aggressiveness" in Java means
+        // exactly this: set no family-forcing property at all and let the
+        // JDK resolver + OS decide. Do not add an invented delay property.
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();

@@ -72,6 +72,44 @@ class DualStackTest {
     }
 
     @Test
+    void constructionDoesNotForceAddressFamilyPreference() {
+        // The JVM has no Happy-Eyeballs delay knob (no equivalent of Node's
+        // autoSelectFamilyAttemptTimeout on java.net.http.HttpClient or on
+        // Netty 4.1.x Bootstrap). The least aggressive correct configuration is
+        // to set NO address-family system property at all, so both of these
+        // must remain unset by exchange construction.
+        String savedV6 = System.getProperty("java.net.preferIPv6Addresses");
+        System.clearProperty("java.net.preferIPv6Addresses");
+        try {
+            Exchange ex = createExchange(null);
+            assertNotNull(ex);
+            assertNull(System.getProperty(PROP),
+                    "construction must not set java.net.preferIPv4Stack at all");
+            assertNull(System.getProperty("java.net.preferIPv6Addresses"),
+                    "construction must not set java.net.preferIPv6Addresses; " +
+                    "the JDK default already yields dual-stack and forcing it " +
+                    "does not speed up family selection");
+        } finally {
+            if (savedV6 != null) {
+                System.setProperty("java.net.preferIPv6Addresses", savedV6);
+            }
+        }
+    }
+
+    @Test
+    void jvmCanOpenIPv6Sockets() throws Exception {
+        // Sanity check that the test JVM is not IPv4-only: with
+        // preferIPv4Stack cleared, an INET6 socket must be creatable.
+        // This is what makes IPv6 endpoints reachable for both HttpClient
+        // and Netty's NioSocketChannel. No DNS/network access.
+        try (java.nio.channels.SocketChannel ch =
+                     java.nio.channels.SocketChannel.open(
+                             java.net.StandardProtocolFamily.INET6)) {
+            assertTrue(ch.isOpen(), "JVM should be able to open an IPv6 socket");
+        }
+    }
+
+    @Test
     void httpClientIsConstructed() {
         Exchange ex = createExchange(null);
         assertNotNull(ex.httpClient,

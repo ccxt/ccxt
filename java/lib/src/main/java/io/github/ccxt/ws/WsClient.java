@@ -310,6 +310,19 @@ public class WsClient {
             final WsClientHandler handler = new WsClientHandler(handshaker, this);
             final int finalPort = port;
 
+            // Dual-stack note: NioSocketChannel opens an IPv6-capable socket and
+            // resolves via the JDK resolver, so IPv6 is used when the host and
+            // network support it, with IPv4 as the fallback. This only works
+            // because we no longer set java.net.preferIPv4Stack=true anywhere
+            // (see BaseExchange.initExchange).
+            //
+            // There is deliberately no Happy-Eyeballs delay configured here:
+            // neither the JDK (java.net.http.HttpClient / Socket) nor Netty
+            // 4.1.x expose a numeric HE / connection-attempt-delay knob the way
+            // Node's `autoSelectFamilyAttemptTimeout` does. Dual-stack is
+            // therefore enabled by *not* forcing IPv4, and the OS/JDK resolver
+            // ordering decides which family is tried first. Do not add a made-up
+            // system property for this.
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(SHARED_EVENT_LOOP)
                     .channel(NioSocketChannel.class)
