@@ -261,13 +261,6 @@ public partial class BaseExchange
                         return; // already connected, return. Might happen when we call connect multiple times in a row
 
                     }
-                    // ClientWebSocket's default connect is dual-stack: the
-                    // runtime resolves both A and AAAA records and dials them
-                    // sequentially (no Happy Eyeballs racing -- see the note in
-                    // Exchange.initHttpClient), and no option here restricts the
-                    // address family to IPv4-only. ClientWebSocketOptions exposes
-                    // no address-family or connect-delay knob whatsoever, so this
-                    // is already minimal-aggressiveness dual-stack.
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
