@@ -4132,8 +4132,8 @@ class aster extends Exchange {
             $v3ChainId = $this->safe_integer($this->options, 'v3ChainId', 1666);
             $walletAddress = $this->safe_string($this->options, 'cachedWalletAddress');
             $privateKeyHash = $this->hash($this->privateKey, 'keccak', 'hex');
-             $cachedPrivateKeyHash = $this->safe_string($this->options, 'privateKeyHashForCachedWalletAddress');
-             if (($walletAddress === null) || ($cachedPrivateKeyHash !== $privateKeyHash)) {
+            $cachedPrivateKeyHash = $this->safe_string($this->options, 'privateKeyHashForCachedWalletAddress');
+            if (($walletAddress === null) || ($cachedPrivateKeyHash !== $privateKeyHash)) {
                 $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
                 $this->options['cachedWalletAddress'] = $walletAddress;
                 $this->options['privateKeyHashForCachedWalletAddress'] = $privateKeyHash;
