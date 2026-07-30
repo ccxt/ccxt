@@ -1388,7 +1388,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchSwapMarkets (params = {}) {
-        const currentRl: number = this.rateLimit as number;
+        const currentRl = this.rateLimit;
         this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
         this.setProperty (this, 'rateLimit', currentRl);

@@ -537,7 +537,7 @@ export default class extended extends Exchange {
         const maxLeverage = this.safeNumber (tradingConfig, 'maxLeverage');
         const minAmount = this.safeNumber (tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber (tradingConfig, 'maxLimitOrderValue');
-        const created: Int = this.safeInteger (market, 'createdAt');
+        const created = this.safeInteger (market, 'createdAt');
         let settleId: Str = undefined;
         let settle: Str = undefined;
         let symbol = base + '/' + quote;
@@ -2624,7 +2624,7 @@ export default class extended extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
         }
-        const amountString: Str = this.amountToPrecision (symbol, amount);
+        const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const postOnly = this.isPostOnly (uppercaseType === 'MARKET', undefined, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);

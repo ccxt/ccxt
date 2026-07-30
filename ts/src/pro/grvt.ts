@@ -627,7 +627,7 @@ export default class grvt extends grvtRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         await this.signIn ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const accountId = this.safeString (this.options, 'AuthAccountId');

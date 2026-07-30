@@ -1607,7 +1607,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const amountString: Str = this.amountToPrecision (symbol, amount);
+        const amountString = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'InstrumentId': this.parseToInt (market['id']),
             'omsId': omsId,
@@ -1677,7 +1677,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const amountString: Str = this.amountToPrecision (symbol, amount);
+        const amountString = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'OrderIdToReplace': parseInt (id),
             'InstrumentId': this.parseToInt (market['id']),

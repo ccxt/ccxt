@@ -470,7 +470,7 @@ export default class bithumb extends bithumbRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const payload: Dict = {

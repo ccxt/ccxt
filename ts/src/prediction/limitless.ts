@@ -566,7 +566,7 @@ export default class limitless extends Exchange {
         // and wraps as its own one-market event, which parseEvent's loop then parses
         const rows = this.expandGroupRows ([ response ]);
         const wrapped = this.extend (response, { 'markets': rows });
-        const event: any = this.parseEvent (wrapped);
+        const event = this.parseEvent (wrapped);
         this.indexEventOutcomes (event);
         return event;
     }
@@ -2242,8 +2242,8 @@ export default class limitless extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex: Str = this.safeString (signature, 'r');
-        let sHex: Str = this.safeString (signature, 's');
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
         rHex = this.padHexToEven (rHex);
         sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');

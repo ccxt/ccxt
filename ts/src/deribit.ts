@@ -1357,7 +1357,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTicker (result, market);
     }
 
@@ -1684,7 +1684,7 @@ export default class deribit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades: List = this.safeList (result, 'trades', []) as List;
+        const trades = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2055,7 +2055,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -2300,7 +2300,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result);
     }
 
@@ -2373,7 +2373,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         }
-        const result: List = this.safeList (response, 'result', []) as List;
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2411,7 +2411,7 @@ export default class deribit extends Exchange {
             request['instrument_name'] = market['id'];
             response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         }
-        const result: List = this.safeList (response, 'result', []) as List;
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2468,7 +2468,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: List = this.safeList (response, 'result', []) as List;
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2552,7 +2552,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades: List = this.safeList (result, 'trades', []) as List;
+        const trades = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2603,7 +2603,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data: List = this.safeList (result, 'data', []) as List;
+        const data = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2658,7 +2658,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data: List = this.safeList (result, 'data', []) as List;
+        const data = this.safeList (result, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2852,7 +2852,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parsePosition (result);
     }
 
@@ -2909,7 +2909,7 @@ export default class deribit extends Exchange {
         //         ]
         //     }
         //
-        const result: List = this.safeList (response, 'result') as List;
+        const result = this.safeList (response, 'result') as List;
         return this.parsePositions (result, symbols);
     }
 
@@ -3038,7 +3038,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transfers: List = this.safeList (result, 'data', []) as List;
+        const transfers = this.safeList (result, 'data', []) as List;
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
@@ -3094,7 +3094,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransfer (result, currency);
     }
 
@@ -3539,7 +3539,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const settlements: List = this.safeList (result, 'settlements', []) as List;
+        const settlements = this.safeList (result, 'settlements', []) as List;
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
@@ -3756,7 +3756,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const chain: Dict = this.safeDict (result, 0, {}) as Dict;
+        const chain = this.safeDict (result, 0, {}) as Dict;
         return this.parseOption (chain, undefined, market);
     }
 
@@ -3811,7 +3811,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result: List = this.safeList (response, 'result', []) as List;
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOptionChain (result, 'base_currency', 'instrument_name');
     }
 

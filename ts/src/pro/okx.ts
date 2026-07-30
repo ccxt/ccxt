@@ -2356,7 +2356,7 @@ export default class okx extends okxRest {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
-        const idsLength: number = ids.length;
+        const idsLength = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
         }

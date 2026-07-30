@@ -1106,7 +1106,7 @@ export default class onetrading extends Exchange {
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        const ohlcv: List = this.safeList (response, 'candlesticks') as List;
+        const ohlcv = this.safeList (response, 'candlesticks') as List;
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -1735,7 +1735,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 100
         //     }
         //
-        const orderHistory: List = this.safeList (response, 'order_history', []) as List;
+        const orderHistory = this.safeList (response, 'order_history', []) as List;
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
@@ -1888,7 +1888,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory: List = this.safeList (response, 'trade_history', []) as List;
+        const tradeHistory = this.safeList (response, 'trade_history', []) as List;
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 

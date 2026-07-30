@@ -700,7 +700,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows: List = this.safeList (response, 'trades', []) as List;
+        const rows = this.safeList (response, 'trades', []) as List;
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -787,7 +787,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows: List = this.safeList (response, 'candles', []) as List;
+        const rows = this.safeList (response, 'candles', []) as List;
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
@@ -1201,7 +1201,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows: List = this.safeList (response, 'positions', []) as List;
+        const rows = this.safeList (response, 'positions', []) as List;
         return this.parsePositions (rows, symbols);
     }
 
@@ -2191,7 +2191,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const data = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransaction (data, currency);
     }
 
@@ -2217,7 +2217,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
-        const rows: List = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
+        const rows = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2243,7 +2243,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
-        const rows: List = this.filterBy (response, 'type', 'DEPOSIT') as List;
+        const rows = this.filterBy (response, 'type', 'DEPOSIT') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 

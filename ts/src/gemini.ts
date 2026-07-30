@@ -1604,7 +1604,7 @@ export default class gemini extends Exchange {
             clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
-        const amountString: Str = this.amountToPrecision (symbol, amount);
+        const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const request: Dict = {
             'client_order_id': clientOrderId,

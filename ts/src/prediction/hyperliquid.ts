@@ -1218,7 +1218,7 @@ export default class hyperliquid extends Exchange {
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-        const marketSymbol: Str = this.safeString (outcomeObj, 'market');
+        const marketSymbol = this.safeString (outcomeObj, 'market');
         const market = this.market (marketSymbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const nonce = this.milliseconds ();
@@ -1603,7 +1603,7 @@ export default class hyperliquid extends Exchange {
         const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
         const coin = this.safeString (entry, 'coin');
         const outcomeObj = this.safeOutcome (coin, market);
-        const marketSymbol: Str = this.safeString (outcomeObj, 'outcome');
+        const marketSymbol = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market) : market;
         const sideRaw = this.safeString (entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
@@ -1791,7 +1791,7 @@ export default class hyperliquid extends Exchange {
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
         const outcomeObj = this.safeOutcome (coin, market);
-        const marketSymbol: Str = this.safeString (outcomeObj, 'outcome');
+        const marketSymbol = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market) : market;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';

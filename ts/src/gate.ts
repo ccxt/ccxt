@@ -4025,7 +4025,7 @@ export default class gate extends Exchange {
         const fees: Dict[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            let feeCurrencyCode: Str = this.safeCurrencyCode (feeCurrencyId);
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
                 feeCurrencyCode = this.safeString (market, 'settle');
             }
@@ -5502,7 +5502,7 @@ export default class gate extends Exchange {
             symbol = market['symbol'];
         }
         // don't omit here, omits done in prepareOrdersByStatusRequest
-        const trigger: Bool = this.safeBool2 (params, 'trigger', 'stop');
+        const trigger = this.safeBool2 (params, 'trigger', 'stop');
         const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const type = this.safeString (res, 0);
         const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbol, since, limit, params);

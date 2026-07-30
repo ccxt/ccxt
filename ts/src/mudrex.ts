@@ -456,7 +456,7 @@ export default class mudrex extends Exchange {
         const aggregated: Dict[] = [];
         let offset = 0;
         const pageLimit = 100;
-        let paging: boolean = true;
+        let paging = true;
         while (paging === true) {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);

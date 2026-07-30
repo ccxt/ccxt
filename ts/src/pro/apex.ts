@@ -448,7 +448,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed: Ticker = this.parseTicker (data);
+        let parsed = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -726,7 +726,7 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            const parsed: Trade = this.parseWsTrade (rawTrade);
+            const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             trades.append (parsed);
@@ -778,7 +778,7 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            const parsed: Order = this.parseOrder (lists[i]);
+            const parsed = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             orders.append (parsed);

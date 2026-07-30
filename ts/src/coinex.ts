@@ -2129,7 +2129,7 @@ export default class coinex extends Exchange {
         const marketType = (orderType === 'swap') ? 'swap' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const feeCurrencyId = this.safeString (order, 'fee_ccy');
-        let feeCurrency: Str = this.safeCurrencyCode (feeCurrencyId);
+        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
             feeCurrency = market['quote'];
         }

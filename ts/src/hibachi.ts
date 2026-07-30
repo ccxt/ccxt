@@ -291,8 +291,8 @@ export default class hibachi extends Exchange {
         const quoteId = this.safeString (market, 'settlementSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settleId: Str = this.safeString (market, 'settlementSymbol');
-        const settle: Str = this.safeCurrencyCode (settleId);
+        const settleId = this.safeString (market, 'settlementSymbol');
+        const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct (market, 'marketCreationTimestamp', 1000);
         return this.safeMarketStructure ({

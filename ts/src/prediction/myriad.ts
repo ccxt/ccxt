@@ -367,7 +367,7 @@ export default class myriad extends Exchange {
         }
         const response = await this.fetchRawMarketById (id, params);
         const market = this.parseMyriadMarket (response);
-        const event: any = this.parseMarketToEvent (response, market);
+        const event = this.parseMarketToEvent (response, market);
         this.indexEventOutcomes (event);
         return event;
     }
@@ -757,8 +757,8 @@ export default class myriad extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex: Str = this.safeString (signature, 'r');
-        let sHex: Str = this.safeString (signature, 's');
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
         if (rHex === undefined) {
             throw new ExchangeError (this.id + ' signEvmTransaction() missing rHex');
         }
@@ -1387,15 +1387,15 @@ export default class myriad extends Exchange {
         const outcomeObj = this.safeOutcome (composite, market);
         const marketSlug = this.safeString (trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
-        let outcome: Str = this.safeString (outcomeObj, 'outcome');
+        let outcome = this.safeString (outcomeObj, 'outcome');
         if (outcome === undefined) {
             outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
         }
-        let marketSymbol: Str = this.safeString (outcomeObj, 'market');
+        let marketSymbol = this.safeString (outcomeObj, 'market');
         if (marketSymbol === undefined) {
             marketSymbol = this.slugToMarketSymbol (marketSlug, marketSlug);
         }
-        let label: Str = this.safeString (outcomeObj, 'label');
+        let label = this.safeString (outcomeObj, 'label');
         if (label === undefined) {
             label = outcomeTitle;
         }
@@ -1453,7 +1453,7 @@ export default class myriad extends Exchange {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        let trader: Str = this.safeString2 (params, 'trader', 'address');
+        let trader = this.safeString2 (params, 'trader', 'address');
         if (trader === undefined) {
             trader = this.walletAddressOrUndefined ();
         }
@@ -1778,7 +1778,7 @@ export default class myriad extends Exchange {
                 request['trader'] = this.walletAddress;
             }
         }
-        let requestedTradingModel: Str = this.safeStringLower2 (params, 'tradingModel', 'trading_model');
+        let requestedTradingModel = this.safeStringLower2 (params, 'tradingModel', 'trading_model');
         params = this.omit (params, [ 'tradingModel', 'trading_model' ]);
         let outcomeObj: any = undefined;
         let outcomeSymbol: Str = undefined;

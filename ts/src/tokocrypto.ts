@@ -2418,7 +2418,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const address = this.safeString (transaction, 'address');
-        let tag: Str = this.safeString (transaction, 'addressTag'); // set but unused
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;

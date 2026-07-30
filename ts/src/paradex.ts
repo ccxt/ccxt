@@ -1298,7 +1298,7 @@ export default class paradex extends Exchange {
     }
 
     async getSystemConfig () {
-        const cachedConfig: NullableDict = this.safeDict (this.options, 'systemConfig');
+        const cachedConfig = this.safeDict (this.options, 'systemConfig');
         if (cachedConfig !== undefined) {
             return cachedConfig;
         }
@@ -1354,7 +1354,7 @@ export default class paradex extends Exchange {
     }
 
     async retrieveAccount () {
-        const cachedAccount: NullableDict = this.safeDict (this.options, 'paradexAccount');
+        const cachedAccount = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }

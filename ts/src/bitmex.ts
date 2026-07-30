@@ -802,8 +802,8 @@ export default class bitmex extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
-        let baseId: Str = this.safeString (market, 'underlying');
-        let quoteId: Str = this.safeString (market, 'quoteCurrency');
+        let baseId = this.safeString (market, 'underlying');
+        let quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settlCurrency');
         const settle = this.safeCurrencyCode (settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)

@@ -411,11 +411,11 @@ export default class cex extends cexRest {
         //        "pair": ["BTC", "USDT"]
         //    }
         const pair = this.safeValue (ticker, 'pair', []);
-        let baseId: Str = this.safeString (ticker, 'symbol1');
+        let baseId = this.safeString (ticker, 'symbol1');
         if (baseId === undefined) {
             baseId = this.safeString (pair, 0);
         }
-        let quoteId: Str = this.safeString (ticker, 'symbol2');
+        let quoteId = this.safeString (ticker, 'symbol2');
         if (quoteId === undefined) {
             quoteId = this.safeString (pair, 1);
         }
@@ -753,8 +753,8 @@ export default class cex extends cexRest {
         const isTransaction = this.safeString (message, 'e') === 'tx';
         const orderId = this.safeString2 (data, 'id', 'order');
         let remains = this.safeString (data, 'remains');
-        let baseId: Str = this.safeString (data, 'symbol');
-        let quoteId: Str = this.safeString (data, 'symbol2');
+        let baseId = this.safeString (data, 'symbol');
+        let quoteId = this.safeString (data, 'symbol2');
         const pair = this.safeValue (data, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString (pair, 'symbol1');
@@ -853,8 +853,8 @@ export default class cex extends cexRest {
             }
             this.currencyFromPrecision (market['base'], amount);
         }
-        let baseId: Str = this.safeString (order, 'symbol');
-        let quoteId: Str = this.safeString (order, 'symbol2');
+        let baseId = this.safeString (order, 'symbol');
+        let quoteId = this.safeString (order, 'symbol2');
         const pair = this.safeValue (order, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString (order, 'symbol1');

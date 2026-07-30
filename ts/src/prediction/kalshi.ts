@@ -2443,7 +2443,7 @@ export default class kalshi extends Exchange {
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const fullEvent = await this.fetchRawEventByTicker (id, params);
-        const event: any = this.parseEvent (fullEvent);
+        const event = this.parseEvent (fullEvent);
         this.indexEventOutcomes (event);
         return event;
     }

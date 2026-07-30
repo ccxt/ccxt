@@ -3775,7 +3775,7 @@ export default class hitbtc extends Exchange {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'network');
             const code = this.safeString (currency, 'code');
-            let networkCode: Str = this.networkIdToCode (networkId, code);
+            let networkCode = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');

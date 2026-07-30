@@ -3866,7 +3866,7 @@ export default class bingx extends Exchange {
         const timestamp = this.safeIntegerN (order, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const lastTradeTimestamp = this.safeInteger2 (order, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (order, [ 'status', 'X', 'orderStatus' ]);
-        let feeCurrencyCode: Str = this.safeString2 (order, 'feeAsset', 'N');
+        let feeCurrencyCode = this.safeString2 (order, 'feeAsset', 'N');
         const feeCost = this.safeStringN (order, [ 'fee', 'commission', 'n' ]);
         if ((feeCurrencyCode === undefined)) {
             if (market['spot']) {

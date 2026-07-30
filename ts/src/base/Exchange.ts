@@ -4006,7 +4006,7 @@ export class BaseExchange {
         if (featuresObj === undefined) {
             return undefined;
         }
-        const extendsStr: Str = this.safeString (featuresObj, 'extends');
+        const extendsStr = this.safeString (featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit (featuresObj, 'extends');
             const extendObj = this.featuresMapper (initialFeatures, extendsStr);

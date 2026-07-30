@@ -521,8 +521,8 @@ export default class modetrade extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settleId: Str = this.safeString (parts, 2);
-        const settle: Str = this.safeCurrencyCode (settleId);
+        const settleId = this.safeString (parts, 2);
+        const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         return this.safeMarketStructure ({
             'id': marketId,

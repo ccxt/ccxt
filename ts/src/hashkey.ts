@@ -2582,7 +2582,7 @@ export default class hashkey extends Exchange {
         if ((!isMarketBuy) && (cost !== undefined)) {
             throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
-        const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict = {};
         const test = this.safeBool (params, 'test');
         if (test) {
@@ -3614,7 +3614,7 @@ export default class hashkey extends Exchange {
     }
 
     handleTriggerOptionAndParams (params: object, methodName: string, defaultValue: Bool = undefined): [Bool, object] {
-        let isTrigger: Bool = defaultValue;
+        let isTrigger = defaultValue;
         [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'stop', 'trigger', isTrigger);
         return [ isTrigger, params ];
     }

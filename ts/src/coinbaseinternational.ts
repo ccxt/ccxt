@@ -1429,8 +1429,8 @@ export default class coinbaseinternational extends Exchange {
         //    }
         //
         const marketId = this.safeString (market, 'symbol');
-        const baseId: Str = this.safeString (market, 'base_asset_name');
-        const quoteId: Str = this.safeString (market, 'quote_asset_name');
+        const baseId = this.safeString (market, 'base_asset_name');
+        const quoteId = this.safeString (market, 'quote_asset_name');
         const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
         const isSpot = (typeId === 'SPOT');
         const fees = this.fees;
