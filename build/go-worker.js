@@ -21,19 +21,23 @@ function transformLeadingComment (comment) {
     return comment;
 }
 
-export default async ({transpilerConfig, files}) => {
-    const configKey = JSON.stringify(transpilerConfig);
-    if (!cachedTranspiler || cachedConfigKey !== configKey) {
+const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
+
+export default async ({transpilerConfig, configKey, files}) => {
+    const key = configKey || JSON.stringify(transpilerConfig);
+    if (!cachedTranspiler || cachedConfigKey !== key) {
         cachedTranspiler = new Transpiler(transpilerConfig);
         cachedTranspiler.setVerboseMode(false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
-        cachedConfigKey = configKey;
+        cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
     goComments = {};
     const result = [];
     for (const filePath of files) {
-        log.blue('[worker][go] Transpiling', filePath);
+        if (verbose) {
+            log.blue('[worker][go] Transpiling', filePath);
+        }
         const transpiled = transpiler.transpileGoByPath(filePath);
         result.push(transpiled);
     }

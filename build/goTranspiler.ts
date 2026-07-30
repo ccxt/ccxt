@@ -73,28 +73,61 @@ function overwriteFileAndFolder (path: string, content: string) {
     overwriteFile (path, content);
 }
 
-function formatGoSourceAsync (filePath: string, content: string): Promise<string> {
-    if (!filePath.endsWith ('.go')) {
-        return Promise.resolve (content);
+// one `gofmt -w` over the whole batch instead of one gofmt process per file: the
+// generated tree costs ~700 spawns per build and forking dominates the write stage
+async function writeGoFilesBatch (files: { path: string, content: string }[]) {
+    if (!files.length) {
+        return;
     }
-    return new Promise ((resolve) => {
-        const child = spawn ('gofmt', [], { windowsHide: true });
-        const out: Buffer[] = [];
-        child.stdout.on ('data', (d) => out.push (d));
-        child.on ('error', () => resolve (content));
-        child.on ('close', (code) => {
-            resolve (code === 0 ? Buffer.concat (out).toString ('utf8') : content);
-        });
-        child.stdin.end (content);
+    const writeThreads = Math.max (1, Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
+    await mapLimit (files.length, writeThreads, async (idx) => {
+        const { path, content } = files[idx];
+        if (!(fs.existsSync (path))) {
+            checkCreateFolder (path);
+        }
+        overwriteFile (path, content);
     });
+    const goPaths = files.filter (f => f.path.endsWith ('.go')).map (f => f.path);
+    if (!goPaths.length) {
+        return;
+    }
+    // keep the argv well under ARG_MAX on every platform
+    const batchSize = 200;
+    for (let i = 0; i < goPaths.length; i += batchSize) {
+        const batch = goPaths.slice (i, i + batchSize);
+        const done = await new Promise<boolean> ((resolve) => {
+            const child = spawn ('gofmt', [ '-w' ].concat (batch), { windowsHide: true, stdio: [ 'ignore', 'ignore', 'pipe' ] });
+            let err = '';
+            child.stderr.on ('data', (d) => { err += d; });
+            child.on ('error', (e) => {
+                if (!gofmtMissingWarned) {
+                    gofmtMissingWarned = true;
+                    log.bright.yellow ('gofmt not found (' + e.message + '), writing go files with the default 4-space indentation');
+                }
+                resolve (false);
+            });
+            child.on ('close', (code) => {
+                if (code !== 0 && err) {
+                    log.bright.yellow ('gofmt failed\n' + err);
+                }
+                resolve (true);
+            });
+        });
+        if (!done) {
+            return;
+        }
+    }
 }
 
-async function overwriteFileAndFolderAsync (path: string, content: string) {
-    if (!(fs.existsSync(path))) {
-        checkCreateFolder (path);
+// every extra worker rebuilds the whole ~400-file typescript program (~3.8s of cpu on top
+// of the ~200ms/file of real work), so oversubscribing a big CI runner costs far more than
+// it wins. Cap the pool unless CCXT_TRANSPILE_PROCESSES asks for a specific size.
+function goWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
     }
-    content = await formatGoSourceAsync (path, content);
-    overwriteFile (path, content);
+    return Math.max (1, Math.min (4, os.availableParallelism ()));
 }
 
 async function mapLimit (n: number, limit: number, fn: (i: number) => Promise<void>) {
@@ -2420,7 +2453,7 @@ ${caseStatements.join('\n')}
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        const maxThreads = goWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
                 filename: resolve(__dirname, 'go-worker.js'),
@@ -2428,12 +2461,14 @@ ${caseStatements.join('\n')}
             });
         }
         const piscina = this.piscina;
-        const chunkSize = Math.max (1, Math.ceil (allFiles.length / (maxThreads * 2)));
+        const configKey = JSON.stringify (parserConfig);
+        // one file per task so worker threads always run different files (Piscina queues
+        // the rest). Transpiler is cached per thread; extra threads still cost ~3.8s CPU
+        // each to warm (see goWorkerThreads cap).
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (let i = 0; i < allFiles.length; i++) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [allFiles[i]]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
@@ -2558,15 +2593,15 @@ ${caseStatements.join('\n')}
                 wrapperFiles.push ({ path, content });
             }
         }
-        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
-        await mapLimit (exchanges.length + wrapperFiles.length, writeThreads, async (idx) => {
-            if (idx < exchanges.length) {
-                await this.transpileDerivedExchangeFile (jsFolder, exchanges[idx], options, transpiledFiles[idx], force, ws);
-                return;
+        const pending: { path: string, content: string }[] = [];
+        for (let i = 0; i < exchanges.length; i++) {
+            const goVersion = this.createGoExchange (basename (exchanges[i], pattern), transpiledFiles[i], ws);
+            const goFolder = options.goFolder;
+            if (goFolder) {
+                pending.push ({ path: `${goFolder}/${exchanges[i].replace ('.ts', '.go')}`, content: goVersion });
             }
-            const wrapper = wrapperFiles[idx - exchanges.length];
-            await overwriteFileAndFolderAsync (wrapper.path, wrapper.content);
-        });
+        }
+        await writeGoFilesBatch (pending.concat (wrapperFiles));
         // prediction packages always need their own option-structs file even with a single exchange
         if (exchanges.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
@@ -2800,25 +2835,6 @@ func (this *${className}) Init(userConfig map[string]any) {
         return goImports + content;
     }
 
-    async transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false) {
-
-        const tsPath = `${tsFolder}/${filename}`;
-
-        let { goFolder } = options;
-
-        const extensionlessName = filename.replace ('.ts', '');
-        const goFilename = filename.replace ('.ts', '.go');
-
-        const tsMtime = fs.statSync (tsPath).mtime.getTime ();
-
-        const go  = this.createGoExchange (extensionlessName, goResult, ws);
-
-        if (goFolder) {
-            await overwriteFileAndFolderAsync (`${goFolder}/${goFilename}`, go);
-            // fs.utimesSync (`${goFolder}/${goFilename}`, new Date (), new Date (tsMtime))
-        }
-    }
-
     // ---------------------------------------------------------------------------------------------
     transpileWsOrderbookTestsToGo (outDir: string, transpiled?: any) {
 
@@ -3046,10 +3062,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             test._goBody = file;
         });
 
-        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
-        await mapLimit (tests.length, writeThreads, async (idx) => {
-            await overwriteFileAndFolderAsync (tests[idx].goFile, tests[idx]._goBody);
-        });
+        await writeGoFilesBatch (tests.map ((t: any) => ({ path: t.goFile, content: t._goBody })));
         return transpiledFiles.slice (tests.length);
     }
 
@@ -3237,10 +3250,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
             tests[idx]._goBody = go;
         });
-        const writeThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ());
-        await mapLimit (tests.length, writeThreads, async (idx) => {
-            await overwriteFileAndFolderAsync (tests[idx].goFile, tests[idx]._goBody);
-        });
+        await writeGoFilesBatch (tests.map ((t: any) => ({ path: t.goFile, content: t._goBody })));
     }
 
     async transpileTests(){
