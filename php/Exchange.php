@@ -1925,21 +1925,6 @@ class BaseExchange {
         }
     }
 
-    protected function configureCurlIpResolve($curl) {
-        // explicitly resolve hostnames as dual-stack, letting cURL pick IPv4 or IPv6,
-        // do not use CURL_IPRESOLVE_V4 here, it would break IPv6-only networks
-        if (defined('CURL_IPRESOLVE_WHATEVER') && defined('CURLOPT_IPRESOLVE')) {
-            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
-        }
-        // start the second address family attempt almost immediately instead of
-        // waiting out libcurl's default 200ms happy eyeballs delay; 1 is the
-        // smallest usable value here, 0 would restore that 200ms default
-        // (the async/react path is not configurable, it uses the library defaults)
-        if (defined('CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS')) {
-            curl_setopt($curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
-        }
-    }
-
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
 
         // https://github.com/ccxt/ccxt/issues/5914
@@ -2050,8 +2035,8 @@ class BaseExchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
-        // explicit dual-stack (IPv4/IPv6) name resolution
-        $this->configureCurlIpResolve($this->curl);
+        curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+        curl_setopt($this->curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
 
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
