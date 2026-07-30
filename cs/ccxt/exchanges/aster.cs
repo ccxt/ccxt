@@ -4441,7 +4441,7 @@ public partial class aster : Exchange
             object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             object walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            object privateKeyHash = this.hash(this.privateKey, keccak, "hex");
+            object privateKeyHash = this.hash(this.encode(this.privateKey), keccak, "hex");
             object cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (isTrue(isTrue((isEqual(walletAddress, null))) || isTrue((!isEqual(cachedPrivateKeyHash, privateKeyHash)))))
             {

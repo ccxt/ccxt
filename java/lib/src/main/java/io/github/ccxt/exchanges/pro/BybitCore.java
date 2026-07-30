@@ -2921,17 +2921,20 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
+            Object messageHash = this.safeString2(message, "req_id", "reqId");
+            if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
             {
-                Object messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
+            } else if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
+            {
+                Object authenticatedHash = "authenticated";
+                client.reject(error, authenticatedHash);
+                if (Helpers.isTrue(Helpers.inOp(client.subscriptions, authenticatedHash)))
                 {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
                 }
             } else
             {
-                Object messageHash = this.safeString2(message, "req_id", "reqId");
                 client.reject(error, messageHash);
             }
             return true;

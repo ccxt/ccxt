@@ -2701,17 +2701,20 @@ public partial class bybit : ccxt.bybit
             return false;
         } catch(Exception error)
         {
-            if (isTrue(error is AuthenticationError))
+            object messageHash = this.safeString2(message, "req_id", "reqId");
+            if (isTrue(!isEqual(messageHash, null)))
             {
-                object messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+            } else if (isTrue(error is AuthenticationError))
+            {
+                object authenticatedHash = "authenticated";
+                ((WebSocketClient)client).reject(error, authenticatedHash);
+                if (isTrue(inOp(((WebSocketClient)client).subscriptions, authenticatedHash)))
                 {
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)authenticatedHash);
                 }
             } else
             {
-                object messageHash = this.safeString2(message, "req_id", "reqId");
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             return true;

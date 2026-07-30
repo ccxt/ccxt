@@ -464,14 +464,23 @@ class BaseExchange {
     }
 
     public static function valid_object_value($object, $key) {
+        if ($key === null) {
+            return false;
+        }
         return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
     }
 
     public static function safe_float($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
     }
 
     public static function safe_string($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
@@ -484,6 +493,9 @@ class BaseExchange {
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
@@ -496,6 +508,9 @@ class BaseExchange {
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         $val = $object[$key] ?? null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
@@ -508,10 +523,16 @@ class BaseExchange {
     }
 
     public static function safe_integer($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
     }
 
@@ -520,6 +541,9 @@ class BaseExchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         return isset($object[$key]) ? $object[$key] : $default_value;
     }
 
@@ -532,12 +556,12 @@ class BaseExchange {
     }
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
-        $val = $object[$key1] ?? null;
+        $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
             else if (is_numeric($val)) return (string)$val;
         }
-        $val = $object[$key2] ?? null;
+        $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
             else if (is_numeric($val)) return (string)$val;
@@ -546,12 +570,12 @@ class BaseExchange {
     }
 
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
-        $val = $object[$key1] ?? null;
+        $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
             else if (is_numeric($val)) return strtolower((string)$val);
         }
-        $val = $object[$key2] ?? null;
+        $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
             else if (is_numeric($val)) return strtolower((string)$val);
@@ -560,12 +584,12 @@ class BaseExchange {
     }
 
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
-        $val = $object[$key1] ?? null;
+        $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
-        $val = $object[$key2] ?? null;
+        $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
             else if (is_numeric($val)) return strtoupper((string)$val);
@@ -646,6 +670,9 @@ class BaseExchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach ($array as $key) {
+            if ($key === null) {
+                continue;
+            }
             if (isset($object[$key]) && $object[$key] !== '') {
                 return $object[$key];
             }
@@ -2008,6 +2035,9 @@ class BaseExchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
+        curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+        curl_setopt($this->curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
 
@@ -2766,7 +2796,8 @@ class BaseExchange {
         // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->curl !== null) {
-            curl_close($this->curl);
+            // curl_close() is a no-op since php 8.0 and deprecated since 8.5 -
+            // dropping the reference releases the CurlHandle
             $this->curl = null;
         }
         if ($cleanInstanceData) {

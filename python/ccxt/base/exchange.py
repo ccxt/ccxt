@@ -426,6 +426,9 @@ class BaseExchange(object):
                         setattr(self, camelcase, attr)
 
         if not self.session and self.synchronous:
+            # requests/urllib3 connects via socket.create_connection, which resolves
+            # with AF_UNSPEC and tries IPv4 and IPv6 addresses in getaddrinfo order,
+            # so the default Session is already dual-stack (no family is forced here)
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)

@@ -4144,11 +4144,12 @@ export default class aster extends Exchange {
             const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
             let walletAddress = this.safeString(this.options, 'cachedWalletAddress');
-            const cachedPrivateKey = this.safeString(this.options, 'privateKeyForCachedWalletAddress');
-            if ((walletAddress === undefined) || (cachedPrivateKey !== this.privateKey)) {
+            const privateKeyHash = this.hash(this.encode(this.privateKey), keccak, 'hex');
+            const cachedPrivateKeyHash = this.safeString(this.options, 'privateKeyHashForCachedWalletAddress');
+            if ((walletAddress === undefined) || (cachedPrivateKeyHash !== privateKeyHash)) {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
                 this.options['cachedWalletAddress'] = walletAddress;
-                this.options['privateKeyForCachedWalletAddress'] = this.privateKey;
+                this.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash;
             }
             const signerAddress = this.safeString(this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
