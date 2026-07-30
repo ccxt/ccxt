@@ -4142,7 +4142,14 @@ class aster extends aster$1["default"] {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
-            const walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            let walletAddress = this.safeString(this.options, 'cachedWalletAddress');
+            const privateKeyHash = this.hash(this.privateKey, sha3_js.keccak_256, 'hex');
+            const cachedPrivateKeyHash = this.safeString(this.options, 'privateKeyHashForCachedWalletAddress');
+            if ((walletAddress === undefined) || (cachedPrivateKeyHash !== privateKeyHash)) {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                this.options['cachedWalletAddress'] = walletAddress;
+                this.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash;
+            }
             const signerAddress = this.safeString(this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');

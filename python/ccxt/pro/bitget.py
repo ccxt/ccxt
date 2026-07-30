@@ -1647,6 +1647,15 @@ class bitget(ccxt.async_support.bitget):
         isLinearSwap = (category == 'usdt-futures')
         isInverseSwap = (category == 'coin-futures')
         isUSDCFutures = (category == 'usdc-futures')
+        if instType == 'uta':
+            # UTA order/fill pushes carry the real product in 'category'(spot / *-futures)
+            # the instType->marketType mapping above defaults UTA to 'contract', which
+            # mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            # watcher never matches. Derive marketType from category for UTA.
+            if (category == 'spot') or (category == 'margin'):
+                marketType = 'spot'
+            else:
+                marketType = 'contract'
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -2106,9 +2115,22 @@ class bitget(ccxt.async_support.bitget):
         data = self.safe_list(message, 'data', [])
         length = len(data)
         messageHash = 'myTrades'
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
         for i in range(0, length):
             trade = data[i]
-            parsed = self.parse_ws_trade(trade)
+            market = None
+            if instType == 'uta':
+                # UTA fills carry the product in 'category'; resolve the matching
+                # market so parseWsTrade yields the correct symbol(a UTA SPOT fill
+                # otherwise resolves to the swap market and the messageHash never matches).
+                category = self.safe_string_lower(trade, 'category')
+                marketType = 'contract'
+                if (category == 'spot') or (category == 'margin'):
+                    marketType = 'spot'
+                marketId = self.safe_string_2(trade, 'instId', 'symbol')
+                market = self.safe_market(marketId, None, None, marketType)
+            parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
             symbol = parsed['symbol']
             symbolSpecificMessageHash = 'myTrades:' + symbol

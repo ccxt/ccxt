@@ -2080,6 +2080,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object isLinearSwap = (Helpers.isEqual(category, "usdt-futures"));
         Object isInverseSwap = (Helpers.isEqual(category, "coin-futures"));
         Object isUSDCFutures = (Helpers.isEqual(category, "usdc-futures"));
+        if (Helpers.isTrue(Helpers.isEqual(instType, "uta")))
+        {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            // watcher never matches. Derive marketType from category for UTA.
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "spot"))) || Helpers.isTrue((Helpers.isEqual(category, "margin")))))
+            {
+                marketType = "spot";
+            } else
+            {
+                marketType = "contract";
+            }
+        }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2631,10 +2645,27 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object length = Helpers.getArrayLength(data);
         Object messageHash = "myTrades";
+        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        Object instType = this.safeStringLower(arg, "instType");
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
             Object trade = Helpers.GetValue(data, i);
-            Object parsed = this.parseWsTrade(trade);
+            Object market = null;
+            if (Helpers.isTrue(Helpers.isEqual(instType, "uta")))
+            {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+                // otherwise resolves to the swap market and the messageHash never matches).
+                Object category = this.safeStringLower(trade, "category");
+                Object marketType = "contract";
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "spot"))) || Helpers.isTrue((Helpers.isEqual(category, "margin")))))
+                {
+                    marketType = "spot";
+                }
+                Object marketId = this.safeString2(trade, "instId", "symbol");
+                market = this.safeMarket(marketId, null, null, marketType);
+            }
+            Object parsed = this.parseWsTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Object symbolSpecificMessageHash = Helpers.add("myTrades:", symbol);
