@@ -78,39 +78,33 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(i, empty_allowed_for)
             value = entry[i]
-            if i in skipped_properties:
-                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
-            if empty_allowed_for_this_key and (value is None):
+            if (empty_allowed_for_this_key and (value is None)) or (i in skipped_properties):
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            type_assertion = assert_type(exchange, {}, entry, i, format)
             assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
         assert exchange.is_dictionary(entry), 'entry is not a dict' + log_text
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if key in skipped_properties:
-                continue
             assert key in entry, '"' + string_value(key) + '" key is missing from structure' + log_text
-            if key in skipped_properties:
-                continue
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
-            # - it's not inside "allowe empty values" list
+            # - it's not inside "allowed empty values" list
             # - it's not undefined
-            if empty_allowed_for_this_key and (value is None):
+            if (empty_allowed_for_this_key and (value is None)) or (key in skipped_properties):
                 continue
             # if it was in needed keys, then it should have value.
             assert value is not None, '"' + string_value(key) + '" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                type_assertion = assert_type(exchange, {}, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
                 if deep:
                     if exchange.is_dictionary(value) or isinstance(value, list):
