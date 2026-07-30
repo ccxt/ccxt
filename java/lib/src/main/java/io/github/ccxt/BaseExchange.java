@@ -251,7 +251,11 @@ public class BaseExchange {
         } else {
             defaultConfig = new HashMap<String, Object>();
         }
-        System.setProperty("java.net.preferIPv4Stack", "true");
+        // NOTE: no System.setProperty("java.net.preferIPv4Stack", ...) here.
+        // Forcing IPv4-stack JVM-wide breaks IPv6-only and dual-stack hosts
+        // for both REST (java.net.http.HttpClient) and WS (Netty
+        // NioSocketChannel). The JVM default is dual-stack: IPv6 is used
+        // when available with IPv4 fallback, which is what we want.
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
@@ -1978,6 +1982,9 @@ public class BaseExchange {
     }
 
     private void initHttpClient() {
+        // HttpClient uses the JVM default dual-stack DNS/address selection
+        // (no preferIPv4Stack override), so IPv6-capable hosts work and IPv4
+        // remains the fallback.
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
         // browsers transparently follow 3xx. Without this, requests against
