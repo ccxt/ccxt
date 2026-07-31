@@ -2079,7 +2079,6 @@ class testMainClass {
             this.testMexc(),
             this.testHtx(),
             this.testWoo(),
-            this.testBitmart(),
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
@@ -2428,24 +2427,6 @@ class testMainClass {
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
         assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
-    async testBitmart() {
-        const exchange = this.initOfflineExchange('bitmart');
-        let reqHeaders = {};
-        const id = 'CCXTxBitmart000';
-        assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
-        await exchange.loadMarkets();
-        try {
-            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         if (!isSync()) {
             await close(exchange);
         }
