@@ -139,9 +139,9 @@ export default class opinion extends Exchange {
             const rawMarkets = this.safeList (result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
             fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
-            // categorical parents expand into several flatMarkets entries each, so 'total'
-            // (a count of raw, unflattened rows) must be compared against fetchedRawCount,
-            // not flatMarkets.length - otherwise expansion makes the comparison meaningless
+            // categorical parents expand into several flatMarkets entries each, so the raw,
+            // unflattened row count in 'total' must be compared against fetchedRawCount, not
+            // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger (result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
