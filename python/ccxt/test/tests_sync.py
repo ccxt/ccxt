@@ -213,23 +213,26 @@ class testMainClass:
             skip_message = '[INFO] SKIPPED_TEST'
         elif not (method_name in self.test_files):
             skip_message = '[INFO] UNIMPLEMENTED_TEST'
+        name = exchange.id
+        # the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        # (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        # report which method(s) were still running when the per-exchange timeout fired
         # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_load_markets:
+            dump(self.add_padding('[INFO] TESTING', 25), name, method_name)
             exchange.load_markets(True)
-        name = exchange.id
+            dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
         if skip_message:
             if self.info:
                 dump(self.add_padding(skip_message, 25), name, method_name)
             return True
-        if self.info:
-            args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(self.add_padding('[INFO] TESTING', 25), name, method_name, args_stringified)
+        args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(self.add_padding('[INFO] TESTING', 25), name, method_name, args_stringified)
         if is_sync():
             call_method_sync(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         else:
             call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
-        if self.info:
-            dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
+        dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
         # add to the list of successed tests
         if is_public:
             self.checked_public_tests[method_name] = True
@@ -291,6 +294,9 @@ class testMainClass:
                 self.test_method(method_name, exchange, args, is_public)
                 return True
             except Exception as ex:
+                # close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                # RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(self.add_padding('[INFO] TESTING FAILED', 25), exchange.id, method_name)
                 e = get_root_exception(ex)
                 is_load_markets = (method_name == 'loadMarkets')
                 is_auth_error = (isinstance(e, AuthenticationError))
