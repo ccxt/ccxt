@@ -1855,7 +1855,26 @@ class mexc(ccxt.async_support.mexc):
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is not None:
             return listenKey
-        response = await self.spotPrivatePostUserDataStream(params)
+        # guard against concurrent listenKey requests with a future on the base
+        # spot ws client - the first caller fetches the listenKey, concurrent
+        # callers await the future and resume response arrives,
+        # otherwise the user-data subscriptions would be split across two connections
+        client = self.client(self.urls['api']['ws']['spot'])
+        messageHash = 'authenticate:listenKey'
+        isFetching = self.safe_bool(self.options, 'listenKeyFetching', False)
+        if isFetching:
+            await client.future(messageHash)
+            return self.safe_string(self.options, 'listenKey')
+        self.options['listenKeyFetching'] = True
+        client.future(messageHash)  # create it before the await below, so concurrent callers can find it
+        response = None
+        try:
+            response = await self.spotPrivatePostUserDataStream(params)
+        except Exception as e:
+            self.options['listenKeyFetching'] = False
+            client.reject(e, messageHash)
+            raise e
+        self.options['listenKeyFetching'] = False
         #
         #    {
         #        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -1863,6 +1882,7 @@ class mexc(ccxt.async_support.mexc):
         #
         listenKey = self.safe_string(response, 'listenKey')
         self.options['listenKey'] = listenKey
+        client.resolve(listenKey, messageHash)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
         return listenKey
