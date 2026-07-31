@@ -1,9 +1,9 @@
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import type { Dict, Int, Market, PredictionEvent, PredictionOrderBook, fetchEventsParams } from '../base/types.js';
+import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -102,8 +102,9 @@ export default class opinion extends Exchange {
             },
             'options': {
                 'eventScopeParams': [ 'labelId' ],
-                'fetchEventsLimit': 20,
-                'maxFetchMarketsPages': 50,
+                'defaultFetchEventsLimit': 20,
+                'marketsPageLimit': 20,
+                'maxMarketsPages': 50,
             },
         });
     }
@@ -113,32 +114,40 @@ export default class opinion extends Exchange {
      * @name opinion#fetchMarkets
      * @description fetches every kind of Opinion market (standalone binaries and categorical parents);
      * categorical parents double as our unified "events" and are cached into this.events as a side effect
-     * @param {object} [params] extra parameters
-     * @returns {object[]} a list of market structures
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.maxMarketsPages, 1000); caps the pages fetched
+     * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const rest = this.omit (params, [ 'limit' ]);
         const userLimit = this.safeInteger (params, 'limit');
-        const pageLimit = this.safeInteger (this.options, 'fetchEventsLimit', 20);
-        const maxPages = this.safeInteger (this.options, 'maxFetchMarketsPages', 50);
+        const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 20);
+        const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
         let page = 1;
-        while (page <= maxPages) {
+        let fetchedRawCount = 0;
+        while (true) {
             const request: Dict = {
-                'marketType': 2,
+                'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
                 'page': page,
             };
             const response = await this.opinionPublicGetMarket (this.extend (request, rest));
             const result = this.safeDict (response, 'result', {});
-            const rawList = this.safeList (result, 'list', []);
-            const rawListLength = rawList.length;
-            for (let i = 0; i < rawListLength; i++) {
-                const raw = rawList[i];
+            const rawMarkets = this.safeList (result, 'list', []);
+            const rawMarketsLength = rawMarkets.length;
+            fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
+            // categorical parents expand into several flatMarkets entries each, so 'total'
+            // (a count of raw, unflattened rows) must be compared against fetchedRawCount,
+            // not flatMarkets.length - otherwise expansion makes the comparison meaningless
+            const total = this.safeInteger (result, 'total');
+            for (let i = 0; i < rawMarketsLength; i++) {
+                const raw = rawMarkets[i];
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
-                    const event = this.parseEvent (raw);
+                    const event: any = this.parseEvent (raw);
                     const childMarkets = event['markets'];
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -150,7 +159,7 @@ export default class opinion extends Exchange {
                 }
             }
             const collectedLength = flatMarkets.length;
-            if ((rawListLength < pageLimit) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
+            if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
             page = this.sum (page, 1);
@@ -169,10 +178,10 @@ export default class opinion extends Exchange {
      * @name opinion#parseOpinionMarket
      * @description converts a single raw opinion market (standalone binary, or one categorical child) into one ccxt market with yes/no outcomes
      * @param {object} raw the raw opinion market object
-     * @param {string} [eventSlug] the slug of the parent categorical market, when raw is a child
-     * @returns {object} a market structure
+     * @param {string} [eventSlug] the slug of the parent event
+     * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseOpinionMarket (raw: Dict, eventSlug: any = undefined): Market {
+    parseOpinionMarket (raw: Dict, eventSlug: string = undefined): Market {
         // {
         //     "chainId": "56",
         //     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
@@ -200,26 +209,30 @@ export default class opinion extends Exchange {
         // }
         const marketId = this.safeString (raw, 'marketId');
         const slug = this.safeString (raw, 'slug');
-        let handleEventSlug = eventSlug;
+        let effectiveEventSlug = eventSlug;
         if ((eventSlug !== undefined) && (slug !== undefined) && (slug.indexOf (eventSlug) === 0)) {
-            handleEventSlug = undefined;
+            effectiveEventSlug = undefined;
         }
-        const marketSymbol = this.slugToMarketSymbol (handleEventSlug, slug);
+        const marketSymbol = this.slugToMarketSymbol (effectiveEventSlug, slug);
         const statusEnum = this.safeString (raw, 'statusEnum');
         const active = (statusEnum === 'Activated');
         const resolved = (statusEnum === 'Resolved');
         const resultTokenId = this.safeString (raw, 'resultTokenId');
         const hasResult = resolved && (resultTokenId !== undefined) && (resultTokenId !== '');
-        const outcomeDefs = [
-            [ this.safeString (raw, 'yesLabel', 'YES'), this.safeString (raw, 'yesTokenId') ],
-            [ this.safeString (raw, 'noLabel', 'NO'), this.safeString (raw, 'noTokenId') ],
+        const outcomeLabels = [
+            this.safeString (raw, 'yesLabel', 'YES'),
+            this.safeString (raw, 'noLabel', 'NO'),
+        ];
+        const outcomeTokenIds = [
+            this.safeString (raw, 'yesTokenId'),
+            this.safeString (raw, 'noTokenId'),
         ];
         const outcomes: any[] = [];
         let resolvedOutcome = undefined;
-        for (let i = 0; i < outcomeDefs.length; i++) {
-            const label = outcomeDefs[i][0];
-            const tokenId = outcomeDefs[i][1];
-            const outcomeHandle = this.slugToOutcomeSymbol (handleEventSlug, slug, label);
+        for (let i = 0; i < outcomeLabels.length; i++) {
+            const label = outcomeLabels[i];
+            const tokenId = outcomeTokenIds[i];
+            const outcomeHandle = this.slugToOutcomeSymbol (effectiveEventSlug, slug, label);
             let winner = undefined;
             let settleFraction = undefined;
             if (hasResult) {
@@ -241,8 +254,9 @@ export default class opinion extends Exchange {
                 'info': raw,
             });
         }
+        // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
-        const end = this.safeTimestamp (raw, 'cutoffAt');
+        const expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
         const created = this.safeTimestamp (raw, 'createdAt');
         return {
             'id': marketId,
@@ -272,8 +286,8 @@ export default class opinion extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': end,
-            'expiryDatetime': this.iso8601 (end),
+            'expiry': expiryTimestamp,
+            'expiryDatetime': this.iso8601 (expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
             'taker': this.fees['trading']['taker'],
@@ -301,9 +315,10 @@ export default class opinion extends Exchange {
      * @method
      * @name opinion#fetchEvents
      * @description fetches Opinion's categorical markets (our unified "events") - scope required via query/queries/tags/eventId/slug/labelId
-     * @param {object} [params] extra parameters, see {@link https://docs.ccxt.com/#/?id=prediction-markets the prediction unified API}
-     * @param {int} [params.labelId] filter by Opinion category label id (see fetchLabels-style discovery via the /label endpoint)
-     * @returns {object[]} a list of prediction event structures
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.labelId] filter by Opinion category label id, used verbatim - call GET /label directly to discover valid ids
+     * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
@@ -311,15 +326,22 @@ export default class opinion extends Exchange {
         const eventId = this.safeString (params, 'eventId');
         const slug = this.safeString (params, 'slug');
         if ((eventId !== undefined) || (slug !== undefined)) {
-            const singleId = (eventId !== undefined) ? eventId : slug;
             const singleRest = this.omit (params, [ 'eventId', 'slug', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-            const single = await this.fetchEvent (singleId, singleRest);
+            let singleResponse = undefined;
+            if (slug !== undefined) {
+                singleResponse = await this.opinionPublicGetMarketSlugSlug (this.extend ({ 'slug': slug }, singleRest));
+            } else {
+                singleResponse = await this.opinionPublicGetMarketCategoricalMarketId (this.extend ({ 'marketId': eventId }, singleRest));
+            }
+            const singleResult = this.safeDict (singleResponse, 'result', {});
+            const singleData = this.safeDict (singleResult, 'data', {});
+            const single = this.parseEvent (singleData);
+            this.indexEventOutcomes (single);
             return this.applyEventFetchParams ([ single ], params, queries);
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        const userLimit = this.safeInteger (params, 'limit');
-        const pageLimit = this.safeInteger (this.options, 'fetchEventsLimit', 20);
-        const limit = (userLimit !== undefined) ? Math.min (userLimit, pageLimit) : pageLimit;
+        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
+        const limit = Math.min (this.safeInteger (params, 'limit', pageLimit), pageLimit);
         const request: Dict = {
             'marketType': 1, // categorical only - these are the ones with childMarkets, our unified "event"
             'limit': limit,
@@ -330,21 +352,32 @@ export default class opinion extends Exchange {
         const rawEvents = this.safeList (result, 'list', []);
         const rawEventsLength = rawEvents.length;
         const parsedEvents: any[] = [];
-        for (let i = 0; i < rawEventsLength; i++) {
-            const event = this.parseEvent (rawEvents[i]);
-            parsedEvents.push (event);
-            this.indexEventOutcomes (event);
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary ();
         }
+        for (let i = 0; i < rawEventsLength; i++) {
+            const event: any = this.parseEvent (rawEvents[i]);
+            parsedEvents.push (event);
+            // register the parsed markets so populateOutcomes can index their outcomes
+            const eventMarkets = this.safeList (event, 'markets', []);
+            const eventMarketsLength = eventMarkets.length;
+            for (let mi = 0; mi < eventMarketsLength; mi++) {
+                const m = eventMarkets[mi];
+                this.markets[m['market']] = m;
+            }
+        }
+        this.populateOutcomes ();
         return this.applyEventFetchParams (parsedEvents, params, queries);
     }
 
     /**
      * @method
      * @name opinion#fetchEvent
-     * @description fetches a single categorical Opinion market (our unified "event") by id or slug
-     * @param {string} id the numeric marketId, or the market slug (contains a '-')
-     * @param {object} [params] extra parameters
-     * @returns {object} a prediction event structure
+     * @description fetches a single prediction-market event by its market id, or slug
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
+     * @param {string} id the numeric marketId, or the market slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const isSlug = (id.indexOf ('-') >= 0);
@@ -356,7 +389,7 @@ export default class opinion extends Exchange {
         }
         const result = this.safeDict (response, 'result', {});
         const data = this.safeDict (result, 'data', {});
-        const event = this.parseEvent (data);
+        const event: any = this.parseEvent (data);
         this.indexEventOutcomes (event);
         return event;
     }
@@ -456,9 +489,9 @@ export default class opinion extends Exchange {
         const eventHandle = (title !== undefined) ? this.shortenSlug (title) : this.shortenSlug (slug);
         const rawChildren = this.safeList (rawEvent, 'childMarkets', []);
         const rawChildrenLength = rawChildren.length;
-        const markets: any[] = [];
+        const marketsList: any[] = [];
         for (let i = 0; i < rawChildrenLength; i++) {
-            markets.push (this.parseOpinionMarket (rawChildren[i], slug));
+            marketsList.push (this.parseOpinionMarket (rawChildren[i], slug));
         }
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
@@ -466,7 +499,7 @@ export default class opinion extends Exchange {
         const end = this.safeTimestamp (rawEvent, 'cutoffAt');
         const created = this.safeTimestamp (rawEvent, 'createdAt');
         const labels = this.safeList (rawEvent, 'labels', []);
-        return {
+        return this.extend ({
             'id': eventId,
             'event': eventHandle,
             'title': title,
@@ -474,7 +507,7 @@ export default class opinion extends Exchange {
             'slug': slug,
             'category': this.safeString (labels, 0),
             'tags': labels,
-            'markets': markets,
+            'markets': marketsList,
             'active': active,
             'resolved': resolved,
             'volume': this.safeNumber (rawEvent, 'volume'),
@@ -484,17 +517,18 @@ export default class opinion extends Exchange {
             'endDatetime': this.iso8601 (end),
             'image': this.safeString2 (rawEvent, 'coverUrl', 'thumbnailUrl'),
             'info': rawEvent,
-        };
+        });
     }
 
     /**
      * @method
      * @name opinion#fetchOrderBook
      * @description fetches the order book for a single outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] not used by opinion fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a prediction order book structure
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
@@ -530,8 +564,11 @@ export default class opinion extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'].padStart (64, '0');
-        const s = signature['s'].padStart (64, '0');
+        // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
         return {
             'r': '0x' + r,
             's': '0x' + s,
@@ -544,6 +581,7 @@ export default class opinion extends Exchange {
     }
 
     signApiKeyAuth (walletAddress: string, action: string, timestamp: string): string {
+        // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         const domain: Dict = {
             'name': 'Opinion OpenAPI',
             'version': '1',
@@ -567,41 +605,61 @@ export default class opinion extends Exchange {
     }
 
     /**
-     * @ignore
      * @method
      * @name opinion#createApiKey
      * @description self-service creation of an Open API key linked to this.walletAddress via
      * an EIP-712-signed request - there is no "generate key" button in the Opinion GUI, this is
      * the only documented way to obtain a wallet-linked key
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
      * @param {object} [params] extra parameters
-     * @returns {object} raw response, result.apiKey holds the issued key
+     * @returns {object} the api credentials { apiKey, walletAddress }
      */
     async createApiKey (params = {}): Promise<Dict> {
-        return await this.opinionPrivatePostAuthApiKey (params);
+        const response = await this.opinionPrivatePostAuthApiKey (params);
+        const result = this.safeDict (response, 'result', {});
+        return this.setApiCredentials (result);
     }
 
     /**
-     * @ignore
      * @method
      * @name opinion#fetchApiKey
      * @description fetches the currently active Open API key for this.walletAddress
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
      * @param {object} [params] extra parameters
-     * @returns {object} raw response, result.apiKey holds the active key
+     * @returns {object} the api credentials { apiKey, walletAddress }
      */
     async fetchApiKey (params = {}): Promise<Dict> {
-        return await this.opinionPrivateGetAuthApiKey (params);
+        const response = await this.opinionPrivateGetAuthApiKey (params);
+        const result = this.safeDict (response, 'result', {});
+        return this.setApiCredentials (result);
     }
 
     /**
-     * @ignore
      * @method
      * @name opinion#deleteApiKey
      * @description revokes the Open API key for this.walletAddress
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
      * @param {object} [params] extra parameters
      * @returns {object} raw response, result.deleted confirms revocation
      */
     async deleteApiKey (params = {}): Promise<Dict> {
-        return await this.opinionPrivateDeleteAuthApiKey (params);
+        const response = await this.opinionPrivateDeleteAuthApiKey (params);
+        this.options['apiKey'] = undefined;
+        return response;
+    }
+
+    setApiCredentials (response: Dict): Dict {
+        //
+        //     { "apiKey": "8ZXXKZhF07MQK22oQaN9MAQ7mxjWf20m", "walletAddress": "0x513959919bce49bb8fee6421291a192c1cbbecd0" }
+        //
+        const creds: Dict = {
+            'apiKey': this.safeString (response, 'apiKey'),
+            'walletAddress': this.safeString (response, 'walletAddress'),
+        };
+        // cache in options rather than the typed apiKey field so the assignment is valid
+        // in the struct-based languages (C#/Go/Java)
+        this.options['apiKey'] = creds['apiKey'];
+        return creds;
     }
 
     /**
@@ -618,33 +676,36 @@ export default class opinion extends Exchange {
      * @returns {object} a dict with url, method, body and headers
      */
     sign (path: string, api: any = 'opinion', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const [ id, access ] = Array.isArray (api) ? api : [ 'opinion', api ];
-        let url = this.urls['api'][id] + '/' + this.implodeParams (path, params);
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
+        const baseUrls = this.urls['api'] as Dict;
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['opinion'] as string);
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const existingHeaders = (headers !== undefined) ? headers : {};
         headers = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
-        if (access === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+        if (access === 'private') {
+            if (path === 'auth/api-key') {
+                // wallet-signature scheme: no apiKey involved, the signature itself is the credential
+                if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
+                    throw new ArgumentsRequired (this.id + ' ' + path + ' requires a walletAddress and privateKey');
+                }
+                const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
+                const action = this.safeString (actionByMethod, method, 'get');
+                const timestamp = this.numberToString (this.seconds ());
+                headers['OPINION_ADDRESS'] = this.walletAddress;
+                headers['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
+                headers['OPINION_TIMESTAMP'] = timestamp;
+            } else {
+                const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'apiKey');
+                if (apiKey === undefined) {
+                    throw new AuthenticationError (this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
+                }
+                headers['apikey'] = apiKey;
             }
-            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-        }
-        if (path === 'auth/api-key') {
-            // wallet-signature scheme: no apiKey involved, the signature itself is the credential
-            if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
-                throw new ArgumentsRequired (this.id + ' ' + path + ' requires a walletAddress and privateKey');
-            }
-            const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-            const action = this.safeString (actionByMethod, method, 'get');
-            const timestamp = this.numberToString (this.seconds ());
-            headers['OPINION_ADDRESS'] = this.walletAddress;
-            headers['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
-            headers['OPINION_TIMESTAMP'] = timestamp;
-        } else {
-            headers['apikey'] = this.apiKey;
         }
         if (method === 'GET') {
             if (Object.keys (query).length) {
