@@ -2919,7 +2919,7 @@ public class DydxCore extends DydxApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object pathWithParams = this.implodeParams(path, parameters);
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section));
+        Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = Helpers.add(url, Helpers.add("/", pathWithParams));

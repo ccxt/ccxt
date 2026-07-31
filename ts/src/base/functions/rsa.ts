@@ -9,11 +9,11 @@ import { Dictionary } from "../types.js";
 import { Str } from "../types.js";
 import { ed25519 } from "@noble/curves/ed25519.js";
 
-// RSASSA-PKCS1-v1_5 signing via Node's built-in `crypto` module. This is synchronous
-// and works in Node.js / Bun / Deno (anything exposing node:crypto). It is NOT available
-// in the browser bundle (rspack stubs the `crypto` module), so rsa throws there: RSA
-// signing is currently unsupported in the browser.
-function rsa (request: string, secret: string, hash: CHash): string {
+// RSASSA-PKCS1-v1_5 (and RSASSA-PSS via padding = 'pss') signing through Node's built-in
+// `crypto` module. This is synchronous and works in Node.js / Bun / Deno (anything exposing
+// node:crypto). It is NOT available in the browser bundle (rspack stubs the `crypto` module),
+// so rsa throws there: RSA signing is currently unsupported in the browser.
+function rsa (request: string, secret: string, hash: CHash, padding: string = 'pkcs1'): string {
     if (crypto === undefined || crypto.createSign === undefined) {
         throw new Error ('rsa is currently not supported in the browser');
     }
@@ -27,6 +27,10 @@ function rsa (request: string, secret: string, hash: CHash): string {
     const algorithm = algorithms[name];
     const signer = crypto.createSign (algorithm);
     signer.update (request);
+    if (padding === 'pss') {
+        // RSASSA-PSS (RFC 8017), salt length = digest length, MGF1 with the same hash
+        return signer.sign ({ 'key': secret, 'padding': crypto.constants.RSA_PKCS1_PSS_PADDING, 'saltLength': crypto.constants.RSA_PSS_SALTLEN_DIGEST }, 'base64');
+    }
     return signer.sign (secret, 'base64');
 }
 

@@ -7,8 +7,15 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOrderBook(Exchange exchange, object skippedProperties, object method, object orderbook, object symbol)
+    public static void testOrderBook(BaseExchange exchange, object skippedProperties, object method, object orderbook, object symbol)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "symbol", "ETH/BTC" },
             { "asks", new List<object>() {new List<object> {exchange.parseNumber("1.24"), exchange.parseNumber("0.453")}, new List<object> {exchange.parseNumber("1.25"), exchange.parseNumber("0.157")}} },
@@ -18,8 +25,6 @@ public partial class testMainClass : BaseTest
             { "nonce", 134234234 },
         };
         object emptyAllowedFor = new List<object>() {"nonce"};
-        // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-        orderbook = exchange.deepExtend(new Dictionary<string, object>() {}, orderbook);
         testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

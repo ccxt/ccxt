@@ -11,6 +11,10 @@ use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class toobit extends \ccxt\async\toobit {
     public function describe(): mixed {
@@ -168,7 +172,7 @@ class toobit extends \ccxt\async\toobit {
         /**
          * watches information on multiple trades made in a market
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
          *
          * @param {string} $symbol unified market $symbol of the market trades were made in
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -184,7 +188,7 @@ class toobit extends \ccxt\async\toobit {
             /**
              * get the list of most recent $trades for a list of $symbols
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#trade-streams
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -275,7 +279,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
              *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -295,7 +300,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-$data->html#kline-candlestick-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-$data->html#kline-candlestick-streams
              *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and $timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -412,7 +418,8 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-$symbol-ticker-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-$symbol-ticker-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-$symbol-ticker-streams
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
@@ -432,7 +439,8 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-$symbol-$ticker-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#individual-$symbol-$ticker-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#individual-$symbol-$ticker-streams
              *
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
@@ -527,7 +535,10 @@ class toobit extends \ccxt\async\toobit {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
          *
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -542,7 +553,10 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#diff-depth-stream
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#partial-book-depth-streams
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#diff-book-depth-streams
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -685,7 +699,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -802,7 +817,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -925,7 +941,8 @@ class toobit extends \ccxt\async\toobit {
             /**
              * watches information on multiple $trades made by the user
              *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+             * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
              *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1007,7 +1024,7 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+             * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols

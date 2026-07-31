@@ -314,7 +314,7 @@ class blofin(ccxt.async_support.blofin):
         channel = 'tickers'
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
-        url = self.implode_hostname((self.urls['api'])['ws'][marketType]['public'])
+        url = (self.urls['api'])['ws'][marketType]['public']
         messageHashes = []
         args = []
         for i in range(0, len(symbolsList)):
@@ -451,7 +451,7 @@ class blofin(ccxt.async_support.blofin):
             'channel': 'account',
         }
         request = self.get_subscription_request([sub])
-        url = self.implode_hostname((self.urls['api'])['ws'][marketType]['private'])
+        url = (self.urls['api'])['ws'][marketType]['private']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     def handle_balance(self, client: Client, message):
@@ -613,7 +613,7 @@ class blofin(ccxt.async_support.blofin):
             'instId': market['id'],
         }
         request = self.get_subscription_request([requestParams])
-        url = self.implode_hostname((self.urls['api'])['ws'][marketType]['public'])
+        url = (self.urls['api'])['ws'][marketType]['public']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     def handle_funding_rate(self, client: Client, message):
@@ -689,7 +689,7 @@ class blofin(ccxt.async_support.blofin):
             rawSubscriptions = [{'channel': channelName}]
         request = self.get_subscription_request(rawSubscriptions)
         privateOrPublic = 'public' if isPublic else 'private'
-        url = self.implode_hostname((self.urls['api'])['ws'][marketType][privateOrPublic])
+        url = (self.urls['api'])['ws'][marketType][privateOrPublic]
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
 
     def get_subscription_request(self, args):
@@ -768,5 +768,5 @@ class blofin(ccxt.async_support.blofin):
             ],
         }
         marketType = 'swap'  # for now
-        url = self.implode_hostname((self.urls['api'])['ws'][marketType]['private'])
+        url = (self.urls['api'])['ws'][marketType]['private']
         await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)

@@ -42,7 +42,14 @@ function assertType(exchange, skippedProperties, entry, key, format) {
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal);
-    const same_object = exchange.isDictionary(entryKeyVal) && exchange.isDictionary(formatKeyVal);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    let formatIsEmptyArray = false;
+    if (Array.isArray(formatKeyVal)) {
+        const formatLen = formatKeyVal.length;
+        formatIsEmptyArray = (formatLen === 0);
+    }
+    const same_object = exchange.isDictionary(entryKeyVal) && (exchange.isDictionary(formatKeyVal) || formatIsEmptyArray);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -62,18 +69,15 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(i, emptyAllowedFor);
             const value = entry[i];
-            if (i in skippedProperties) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (emptyAllowedForThisKey && (value === undefined)) {
+            if ((emptyAllowedForThisKey && (value === undefined)) || (i in skippedProperties)) {
                 continue;
             }
             assert(value !== undefined, i.toString() + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            const typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+            const typeAssertion = assertType(exchange, {}, entry, i, format);
             assert(typeAssertion, i.toString() + ' index does not have an expected type ' + logText);
         }
     }
@@ -82,26 +86,20 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         const keys = Object.keys(format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (key in skippedProperties) {
-                continue;
-            }
             assert(key in entry, '"' + stringValue(key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(key, emptyAllowedFor);
             const value = entry[key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
-            if (emptyAllowedForThisKey && (value === undefined)) {
+            if ((emptyAllowedForThisKey && (value === undefined)) || (key in skippedProperties)) {
                 continue;
             }
             // if it was in needed keys, then it should have value.
             assert(value !== undefined, '"' + stringValue(key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                const typeAssertion = assertType(exchange, {}, entry, key, format);
                 assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary(value) || Array.isArray(value)) {

@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class blofin extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1618,7 +1620,7 @@ class blofin extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger' ), false);
+            $isTrigger = $this->safe_bool($params, 'trigger', false);
             $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {

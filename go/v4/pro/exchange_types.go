@@ -25,6 +25,7 @@ type FundingRate = ccxt.FundingRate
 type FundingRates = ccxt.FundingRates
 type TransferEntry = ccxt.TransferEntry
 type OrderRequest = ccxt.OrderRequest
+type PredictionOrderRequest = ccxt.PredictionOrderRequest
 type LastPrice = ccxt.LastPrice
 type LastPrices = ccxt.LastPrices
 type WithdrawlResponse = ccxt.WithdrawlResponse

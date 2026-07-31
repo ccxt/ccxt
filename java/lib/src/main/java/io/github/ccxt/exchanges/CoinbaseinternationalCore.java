@@ -2613,7 +2613,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Helpers.addElementToObject(request, "time_from", this.iso8601(since));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
+            Object until = this.safeString(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));

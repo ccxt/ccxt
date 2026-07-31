@@ -264,8 +264,7 @@ function extendedExchangesById (exchanges){
 
 // ----------------------------------------------------------------------------
 
-async function createExchanges (ids) {
-    const pathToSrcDirectory = './ts/src/'
+async function createExchanges (ids, pathToSrcDirectory = './ts/src/') {
 
     // readd all files simultaneously
     const promiseReadFile = promisify (fs.readFile);
@@ -281,7 +280,7 @@ async function createExchanges (ids) {
 // ----------------------------------------------------------------------------
 
 const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual)'
 
 // ----------------------------------------------------------------------------
 
@@ -371,6 +370,15 @@ function createMarkdownListOfCertifiedExchanges (exchanges) {
     return exchanges.map ((exchange) => {
         const discount = getReferralDiscountBadgeLink (exchange)
         return { ... createMarkdownExchange (exchange), discount }
+    })
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownListOfPredictionExchanges (exchanges) {
+    return exchanges.map ((exchange) => {
+        const { logo, id, name, ver } = createMarkdownExchange (exchange)
+        return { logo, id, name, ver }
     })
 }
 
@@ -478,7 +486,7 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
 // ----------------------------------------------------------------------------
 
-function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }) {
+function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths, predictionExchanges }) {
 
     // const aliases = [ 'hitbtc2', 'huobipro' ] // aliases are not shown tables for deduplication
 
@@ -568,7 +576,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     if (exchangesByCountriesPaths) {
-        const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
+        // include prediction-market exchanges in the by-country listing too (those that
+        // declare countries; country-less ones — like other DEXs — simply don't group)
+        const predictionArrayOfExchanges = predictionExchanges ? values (predictionExchanges).filter (exchange => !exchange.alias) : []
+        const byCountryExchanges = arrayOfExchanges.concat (predictionArrayOfExchanges)
+        const exchangesByCountriesMarkdownTable = createMarkdownTable (byCountryExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const exchangePath of exchangesByCountriesPaths) {
             fs.truncateSync (exchangePath)
@@ -577,6 +589,24 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     exportBuilderCodeExchanges(allExchangesPaths[0], arrayOfExchanges)
+}
+
+
+function exportPredictionExchanges (exchangePaths, exchanges) {
+    const arrayOfExchanges = values (exchanges).filter (exchange => !exchange.alias)
+    const numExchanges = arrayOfExchanges.length
+    if (!numExchanges) {
+        return
+    }
+    const predictionExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfPredictionExchanges, [ 3 ])
+        , beginning = "<!--- init prediction list -->The CCXT library currently supports the following "
+        , ending = " prediction market exchanges and trading APIs:\n\n"
+        , totalString = beginning + numExchanges + ending
+        , predictionExchangesReplacement = totalString + predictionExchangesMarkdownTable + "\n<!--- end prediction list -->"
+        , predictionExchangesRegex = new RegExp (/<!--- init prediction list -->([\s\S]*?)<!--- end prediction list -->/)
+    for (const exchangePath of exchangePaths) {
+        logExportExchanges (exchangePath, predictionExchangesRegex, predictionExchangesReplacement)
+    }
 }
 
 
@@ -600,9 +630,9 @@ function exportBuilderCodeExchanges(exchangePath, exchanges) {
 
 // ----------------------------------------------------------------------------
 
-function exportExchangeIdsToExchangesJson (ids, ws) {
+function exportExchangeIdsToExchangesJson (ids, ws, prediction = [], predictionWs = []) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws }, null, 4))
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws, prediction, predictionWs }, null, 4))
 }
 
 // ----------------------------------------------------------------------------
@@ -743,6 +773,11 @@ async function exportEverything () {
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
+    const predictionIds = getIncludedExchangeIds ('./ts/src/prediction')
+
+    // prediction WS methods now live in the REST prediction classes (no separate prediction/pro)
+    const predictionWsIds: string[] = []
+
     // when one or more language flags are passed we only update that language's files;
     // an empty selection means update every language (the default behaviour)
     const selectedLanguages = getSelectedLanguages ()
@@ -758,7 +793,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 
@@ -782,6 +817,11 @@ async function exportEverything () {
         },
         {
             file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)Prediction\sfrom\s+'.\/src\/prediction\/(\2).js'\n)+/g,
+            replacement: predictionIds.map (id => "import " + id + 'Prediction from ' + " './src/prediction/" + id + ".js'").join("\n") + "\n"
+        },
+        {
+            file: ccxtFileDir,
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
         },
@@ -794,6 +834,11 @@ async function exportEverything () {
             file: ccxtFileDir,
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
             replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
+        },
+        {
+            file: ccxtFileDir,
+            regex:  /(?:const|var)\s+prediction\s+\=\s+\{[^\}]+\}/,
+            replacement: "const prediction = {\n" + predictionIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Prediction,") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -851,6 +896,21 @@ async function exportEverything () {
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
         {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END\n)[\n]/s,
+            replacement: '$1\n' + flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /(?:from ccxt\.prediction\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: predictionIds.map (id => ('from ccxt.prediction.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + predictionIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
             file: './cs/ccxt/base/Exchange.MetaData.cs',
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
@@ -864,6 +924,11 @@ async function exportEverything () {
             file: './go/v4/pro/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
             replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
+        },
+        {
+            file: './go/v4/prediction/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{\s+?.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${predictionIds.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
             file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
@@ -884,8 +949,10 @@ async function exportEverything () {
 
     exportExchanges (selectedReplacements)
 
-    // exchanges.json is always (re)generated, even on language-scoped runs
-    exportExchangeIdsToExchangesJson (ids, wsIds)
+    // exchanges.json is always (re)generated, even on language-scoped runs — including the
+    // prediction ids: language-scoped runs return early below and never reach the second
+    // (full) export, and the per-language prediction transpile CI steps read these ids
+    exportExchangeIdsToExchangesJson (ids, wsIds, predictionIds, predictionWsIds)
 
     // the js/ts build owns the docs/wiki/tables generation, so only skip it for
     // language-scoped runs that do NOT include js/ts
@@ -909,6 +976,8 @@ async function exportEverything () {
 
     cloneGitHubWiki (gitWikiPath, unlimitedLog)
 
+    const predictionExchanges = await createExchanges (predictionIds, './ts/src/prediction/')
+
     exportSupportedAndCertifiedExchanges (exchanges, {
         allExchangesPaths: [
             'README.md',
@@ -924,9 +993,12 @@ async function exportEverything () {
         proExchangesPaths: [
             wikiPath + '/ccxt.pro.manual.md',
         ],
+        predictionExchanges,
     }, unlimitedLog)
 
-    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
+    exportPredictionExchanges ([ 'README.md', wikiPath + '/Exchange-Markets.md' ], predictionExchanges)
+
+    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds, predictionIds, predictionWsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
     // skip this step to reduce the size of the package metadata
     // exportKeywordsToPackageJson (exchanges)

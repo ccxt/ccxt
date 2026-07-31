@@ -11,6 +11,7 @@ use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class mudrex extends \ccxt\async\mudrex {
     public function describe(): mixed {

@@ -11,6 +11,9 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class weex extends \ccxt\async\weex {
     public function describe(): mixed {
@@ -21,8 +24,8 @@ class weex extends \ccxt\async\weex {
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOHLCVForSymbols' => true,
-                'watchOrderBook' => false,
-                'watchOrderBookForSymbols' => false,
+                'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchPositions' => true,
                 'watchTicker' => true,

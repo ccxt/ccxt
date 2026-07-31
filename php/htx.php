@@ -3160,7 +3160,7 @@ class htx extends Exchange {
             // 'from' => intval(($since / (string) 1000)), spot only
             // 'to' => $this->seconds(), spot only
         );
-        $priceType = $this->safe_string_n($params, array( 'priceType', 'price' ));
+        $priceType = $this->safe_string_2($params, 'priceType', 'price');
         $params = $this->omit($params, array( 'priceType', 'price' ));
         $until = null;
         list($until, $params) = $this->handle_param_integer($params, 'until');
@@ -5055,7 +5055,7 @@ class htx extends Exchange {
         if ($isLinearOrder) {
             $type = $this->safe_string($order, 'type');
             if (($type === null) || ($type === 'tp') || ($type === 'sl') || ($type === 'tpsl')) {
-                $type = $this->safe_string_n($order, array( 'tp_type', 'sl_type' ));
+                $type = $this->safe_string_2($order, 'tp_type', 'sl_type');
             }
             if ($type === '0') {
                 $type = null;
@@ -7226,7 +7226,7 @@ class htx extends Exchange {
         );
         if ($market['linear']) {
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min($limit, 100); // max 100
             }
             if ($since !== null) {
                 $request['start_time'] = $since;

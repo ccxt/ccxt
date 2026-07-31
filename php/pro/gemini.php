@@ -11,6 +11,9 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class gemini extends \ccxt\async\gemini {
     public function describe(): mixed {
@@ -406,6 +409,7 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function handle_order_book(Client $client, $message) {
+        $isInitial = (is_array($message) && array_key_exists('auction_events', $message)) && (is_array($message) && array_key_exists('trades', $message)) && (is_array($message) && array_key_exists('changes', $message));
         $changes = $this->safe_value($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
@@ -413,6 +417,12 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'orderbook:' . $symbol;
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
+        } elseif ($isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                unset($this->orderbooks[$symbol]);
+            }
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];

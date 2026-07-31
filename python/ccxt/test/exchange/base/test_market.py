@@ -109,7 +109,9 @@ def test_market(exchange, skipped_properties, method, market):
         empty_allowed_for.append('base')
         empty_allowed_for.append('quote')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, market, format, empty_allowed_for)
-    test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
+    # prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if market['type'] != 'prediction':
+        test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     # check taker/maker
     # todo: check not all to be within 0-1.0
@@ -117,8 +119,8 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'maker', '100')
-    # validate type
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other']
+    # validate type ('prediction' for prediction-market exchanges)
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     # validate subTypes
     valid_sub_types = ['linear', 'inverse', 'quanto', None]
@@ -144,7 +146,11 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
     # check mutually exclusive fields
-    if spot:
+    is_prediction = (market['type'] == 'prediction')
+    if is_prediction:
+        # prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert not spot and not contract and not future and not swap and not option, 'for prediction market, none of spot/contract/future/swap/option should be set' + log_text
+    elif spot:
         assert not contract and linear is None and inverse is None and not option and not swap and not future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + log_text
     else:
         # if not spot, any of the below should be true
@@ -236,8 +242,9 @@ def test_market(exchange, skipped_properties, method, market):
             min_string = exchange.safe_string(limit_entry, 'min')
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
-    # check currencies
-    if not is_inactive_market:
+    # check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    # not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if not is_inactive_market and not is_prediction:
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])

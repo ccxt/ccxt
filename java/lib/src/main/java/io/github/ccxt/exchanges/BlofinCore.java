@@ -1818,7 +1818,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger")), false);
+            Object isTrigger = this.safeBool(parameters, "trigger", false);
             Object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))

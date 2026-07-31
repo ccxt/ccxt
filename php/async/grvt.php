@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class grvt extends Exchange {
     public function describe(): mixed {
         $rlOthers = 40;
@@ -929,9 +931,12 @@ class grvt extends Exchange {
         //        }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
+        $timestamp = $this->safe_integer_product($ticker, 'event_time', 0.000001);
         return $this->safe_ticker(array(
             'info' => $ticker,
             'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'open' => $this->safe_string($ticker, 'open_price'),
             'high' => $this->safe_string($ticker, 'high_price'),
             'low' => $this->safe_string($ticker, 'low_price'),
@@ -2247,7 +2252,7 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $limitDecLengthStr = (string) $limitDecLength;
-                $powerNum = $limitDecLengthStr === '0' ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
+                $powerNum = ($limitDecLengthStr === '0') ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
                 $priceInteger = ($this->convert_to_big_int_custom(str_replace('.', '', $price)) * $this->convert_to_big_int_custom($priceMultiplier) / (pow($bigInt10, $powerNum)));
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {

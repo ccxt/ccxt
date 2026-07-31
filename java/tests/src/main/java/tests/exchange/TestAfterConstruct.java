@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestAfterConstruct extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testAfterConstruct(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testAfterConstruct(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -23,11 +24,15 @@ public class TestAfterConstruct extends BaseTest {
         });
 
     }
-    public static void testOptionsNetworks(Exchange exchange, Object skippedProperties)
+    public static void testOptionsNetworks(BaseExchange exchange, Object skippedProperties)
     {
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "networks"))))
         {
+            // only allow these whitelisted unified networkCodes to be repeated
             Object allowedUnifiedAliases = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"));
+            // safeDict, not exchange.options['networks']: a direct missing-key access throws
+            // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
+            // hyperliquid prediction market)
             Object networks = exchange.safeDict(exchange.options, "networks");
             if (Helpers.isTrue(Helpers.isEqual(networks, null)))
             {

@@ -2869,11 +2869,11 @@ public partial class phemex : Exchange
                     }
                 }
                 cost = ((bool) isTrue((isEqual(cost, null)))) ? amount : cost;
-                object costString = this.numberToString(cost);
+                object costString = this.costToPrecision(symbol, cost);
                 ((IDictionary<string,object>)request)["quoteQtyEv"] = this.toEv(costString, market);
             } else
             {
-                object amountString = this.numberToString(amount);
+                object amountString = this.amountToPrecision(symbol, amount);
                 ((IDictionary<string,object>)request)["baseQtyEv"] = this.toEv(amountString, market);
             }
         } else if (isTrue(getValue(market, "swap")))

@@ -1081,7 +1081,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "side", side );
                 put( "type", type );
             }};
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price")));
+            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Object newType = null;
@@ -1449,7 +1449,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
             }
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price")));
+            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));

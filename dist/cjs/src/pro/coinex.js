@@ -1077,7 +1077,7 @@ class coinex extends coinex$1["default"] {
         //     }
         //
         const data = this.safeDict(message, 'data', {});
-        const order = this.safeDict2(data, 'order', 'stop', {});
+        const order = this.extend({ 'status': this.safeString(data, 'event') }, this.safeDict2(data, 'order', 'stop', {}));
         const parsedOrder = this.parseWsOrder(order);
         const symbol = parsedOrder['symbol'];
         const market = this.market(symbol);
@@ -1227,6 +1227,10 @@ class coinex extends coinex$1["default"] {
             'active_success': 'open',
             'active_fail': 'canceled',
             'cancel': 'canceled',
+            'put': 'open',
+            'update': 'open',
+            'modify': 'open',
+            'finish': 'closed',
         };
         return this.safeString(statuses, status, status);
     }

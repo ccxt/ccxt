@@ -14,6 +14,10 @@ use ccxt\NotSupported;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bybit extends \ccxt\async\bybit {
     public function describe(): mixed {
@@ -2521,14 +2525,16 @@ class bybit extends \ccxt\async\bybit {
             }
             return false;
         } catch (Exception $error) {
-            if ($error instanceof AuthenticationError) {
-                $messageHash = 'authenticated';
+            $messageHash = $this->safe_string_2($message, 'req_id', 'reqId');
+            if ($messageHash !== null) {
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$messageHash]);
+            } elseif ($error instanceof AuthenticationError) {
+                $authenticatedHash = 'authenticated';
+                $client->reject($error, $authenticatedHash);
+                if (is_array($client->subscriptions) && array_key_exists($authenticatedHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$authenticatedHash]);
                 }
             } else {
-                $messageHash = $this->safe_string_2($message, 'req_id', 'reqId');
                 $client->reject($error, $messageHash);
             }
             return true;

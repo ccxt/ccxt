@@ -3180,7 +3180,7 @@ public class AsterCore extends AsterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
+            Object clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
@@ -4791,7 +4791,15 @@ public class AsterCore extends AsterApi
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             Object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            Object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            Object walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            Object privateKeyHash = this.hash(this.encode(this.privateKey), keccak(), "hex");
+            Object cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(walletAddress, null))) || Helpers.isTrue((!Helpers.isEqual(cachedPrivateKeyHash, privateKeyHash)))))
+            {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                Helpers.addElementToObject(this.options, "cachedWalletAddress", walletAddress);
+                Helpers.addElementToObject(this.options, "privateKeyHashForCachedWalletAddress", privateKeyHash);
+            }
             Object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
@@ -4811,10 +4819,11 @@ public class AsterCore extends AsterApi
             }};
             // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
+            final Object finalWalletAddress = walletAddress;
             final Object finalSignerAddress = signerAddress;
             Object finalParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", String.valueOf(nonce) );
-                put( "user", walletAddress );
+                put( "user", finalWalletAddress );
                 put( "signer", finalSignerAddress );
             }}, parameters);
             Object paramString = null;

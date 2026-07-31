@@ -1355,7 +1355,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             {
                 limit = Helpers.callDynamically(result, "getLimit", new Object[]{symbol, limit});
             }
-            return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+            return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
         });
 
     }

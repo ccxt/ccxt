@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
@@ -28,11 +27,9 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
             currentTime = exchange.milliseconds();
             succeeded = false;
         }
-        if ((succeeded === true) && (response !== undefined)) {
-            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
-            currentTime = exchange.milliseconds();
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
+        if (succeeded === true) {
             testOrderBook(exchange, skippedProperties, method, response, undefined);
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
             const symbol = response['symbol'];
             if ((symbol !== undefined) && !exchange.inArray(symbol, seenSymbols)) {
                 seenSymbols.push(symbol);

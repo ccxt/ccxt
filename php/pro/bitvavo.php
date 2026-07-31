@@ -11,6 +11,9 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitvavo extends \ccxt\async\bitvavo {
     public function describe(): mixed {

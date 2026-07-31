@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('./_virtual/_commonjsHelpers.js');
 require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
+var PredictionExchange = require('./src/base/PredictionExchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
@@ -92,6 +93,7 @@ var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
 var mudrex = require('./src/mudrex.js');
 var myokx = require('./src/myokx.js');
+var nado = require('./src/nado.js');
 var ndax = require('./src/ndax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
@@ -174,6 +176,7 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var mudrex$1 = require('./src/pro/mudrex.js');
 var myokx$1 = require('./src/pro/myokx.js');
+var nado$1 = require('./src/pro/nado.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
@@ -190,10 +193,15 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
+var kalshi = require('./src/prediction/kalshi.js');
+var limitless = require('./src/prediction/limitless.js');
+var myriad = require('./src/prediction/myriad.js');
+var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.64';
+const version = '4.5.70';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -279,6 +287,7 @@ const exchanges = {
     'modetrade': modetrade["default"],
     'mudrex': mudrex["default"],
     'myokx': myokx["default"],
+    'nado': nado["default"],
     'ndax': ndax["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
@@ -363,6 +372,7 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'mudrex': mudrex$1["default"],
     'myokx': myokx$1["default"],
+    'nado': nado$1["default"],
     'ndax': ndax$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
@@ -383,10 +393,24 @@ const pro = {
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
-const ccxt = Object.assign({ version, Exchange: Exchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
+const prediction = {
+    'hyperliquid': hyperliquid$2["default"],
+    'kalshi': kalshi["default"],
+    'limitless': limitless["default"],
+    'myriad': myriad["default"],
+    'polymarket': polymarket["default"],
+};
+prediction.exchanges = Object.keys(prediction);
+// the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
+// prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
+prediction['Exchange'] = PredictionExchange["default"];
+//-----------------------------------------------------------------------------
+const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
 //-----------------------------------------------------------------------------
 
+exports.BaseExchange = Exchange.BaseExchange;
 exports.Exchange = Exchange["default"];
+exports.PredictionExchange = PredictionExchange["default"];
 exports.Precise = Precise["default"];
 exports.functions = functions;
 exports.AccountNotEnabled = errors.AccountNotEnabled;
@@ -515,6 +539,7 @@ exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
 exports.mudrex = mudrex["default"];
 exports.myokx = myokx["default"];
+exports.nado = nado["default"];
 exports.ndax = ndax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
@@ -537,5 +562,6 @@ exports.zaif = zaif["default"];
 exports.zebpay = zebpay["default"];
 exports["default"] = ccxt;
 exports.exchanges = exchanges;
+exports.prediction = prediction;
 exports.pro = pro;
 exports.version = version;

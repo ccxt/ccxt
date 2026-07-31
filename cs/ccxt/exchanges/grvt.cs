@@ -1024,9 +1024,12 @@ public partial class grvt : Exchange
         //        }
         //
         object marketId = this.safeString(ticker, "instrument");
+        object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", this.safeSymbol(marketId, market) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "open", this.safeString(ticker, "open_price") },
             { "high", this.safeString(ticker, "high_price") },
             { "low", this.safeString(ticker, "low_price") },
@@ -2452,7 +2455,7 @@ public partial class grvt : Exchange
                 object limitDec = this.safeString(limitParts, 1, "");
                 object limitDecLength = add(((string)limitDec).Length, 0); // php tr
                 object limitDecLengthStr = ((object)limitDecLength).ToString();
-                object powerNum = ((bool) isTrue(isEqual(limitDecLengthStr, "0"))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                object powerNum = ((bool) isTrue((isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 ((IDictionary<string,object>)legOrder)["limitPrice"] = this.parseToInt(priceInteger);
             } else

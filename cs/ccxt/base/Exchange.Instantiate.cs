@@ -2,9 +2,9 @@ using System.Reflection;
 
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
-    public static Exchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false)
+    public static BaseExchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false, bool forcePrediction = false)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
@@ -13,8 +13,18 @@ public partial class Exchange
             className = "ccxt.pro." + className;
         }
 
-        var type = assembly.GetTypes()
-            .First(t => t.Name == className || t.FullName == className);
+        // prefer the regular ccxt namespace, then the prediction-markets namespace
+        // (regular ccxt ids always win for ids present in both, e.g. hyperliquid) — unless
+        // forcePrediction (the --prediction test flag) flips the preference to prediction first
+        var types = assembly.GetTypes();
+        Type type = null;
+        if (forcePrediction)
+        {
+            type = types.FirstOrDefault(t => t.FullName == "ccxt.prediction." + className);
+        }
+        type ??= types.FirstOrDefault(t => t.FullName == "ccxt." + className)
+            ?? types.FirstOrDefault(t => t.FullName == "ccxt.prediction." + className)
+            ?? types.First(t => t.Name == className || t.FullName == className);
 
 
         // tmp check this, can't find constructor
@@ -24,14 +34,14 @@ public partial class Exchange
         // Type type2 = Type.GetType(className);
         ConstructorInfo constructor = type.GetConstructor(new Type[] { typeof(object) });
         object classInstance = constructor.Invoke(new object[] { args });
-        return classInstance as Exchange;
+        return classInstance as BaseExchange;
         // }
         // return Activator.CreateInstance(type) as Exchange;
     }
     //     return Activator.CreateInstance(type) as Exchange;
     // }
 
-    public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)
+    public static object DynamicallyCallMethod(BaseExchange instance, string methodName, object[] parameters)
     {
         var method = instance.GetType().GetMethod(methodName);
         var paramsLength = method.GetParameters().Count();

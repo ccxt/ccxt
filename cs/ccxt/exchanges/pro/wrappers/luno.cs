@@ -44,6 +44,7 @@ public partial class luno
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Streaming-API"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

@@ -1536,8 +1536,9 @@ public partial class bybit : Exchange
             { "settleId", settle },
             { "active", false },
             { "type", "option" },
-            { "linear", null },
-            { "inverse", null },
+            { "subType", ((bool) isTrue((isEqual(bs, settle)))) ? "inverse" : "linear" },
+            { "linear", (!isEqual(bs, settle)) },
+            { "inverse", (isEqual(bs, settle)) },
             { "spot", false },
             { "swap", false },
             { "future", false },
@@ -5496,7 +5497,7 @@ public partial class bybit : Exchange
         object length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -5699,7 +5700,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported for spot markets")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isTrigger))
         {
@@ -5804,7 +5805,7 @@ public partial class bybit : Exchange
         object length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -5846,7 +5847,7 @@ public partial class bybit : Exchange
         object length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -5902,7 +5903,7 @@ public partial class bybit : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isTrigger))
         {
@@ -7448,11 +7449,11 @@ public partial class bybit : Exchange
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
-        object timestamp = this.safeIntegerN(position, new List<object>() {"createdTime", "createdAt"});
+        object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
         object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
+            lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
@@ -8268,7 +8269,7 @@ public partial class bybit : Exchange
         //
         object timestamp = this.safeInteger(response, "time");
         object transfer = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object statusRaw = this.safeStringN(response, new List<object>() {"retCode", "retMsg"});
+        object statusRaw = this.safeString2(response, "retCode", "retMsg");
         object status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), new Dictionary<string, object>() {
             { "timestamp", timestamp },

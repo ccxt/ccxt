@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class lighter extends \ccxt\async\lighter {
     public function describe(): mixed {

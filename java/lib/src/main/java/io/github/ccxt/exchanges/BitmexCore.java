@@ -1165,8 +1165,7 @@ public class BitmexCore extends BitmexApi
                 // the exchange sometimes returns null price in the orderbook
                 if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
-                    Object resultSide = Helpers.GetValue(result, side);
-                    ((java.util.List<Object>)resultSide).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
+                    ((java.util.List<Object>)Helpers.GetValue(result, side)).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
                 }
             }
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));

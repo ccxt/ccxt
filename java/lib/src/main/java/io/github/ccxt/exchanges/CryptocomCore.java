@@ -2684,10 +2684,8 @@ public class CryptocomCore extends CryptocomApi
         Object timestamp = this.safeInteger(ticker, "t");
         Object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
-        Object quote = this.safeString(market, "quote");
         Object last = this.safeString(ticker, "a");
         final Object finalMarket = market;
-        final Object finalQuote = quote;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -2707,7 +2705,7 @@ public class CryptocomCore extends CryptocomApi
             put( "percentage", CryptocomCore.this.safeString(ticker, "c") );
             put( "average", null );
             put( "baseVolume", CryptocomCore.this.safeString(ticker, "v") );
-            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(finalQuote, "USD"))))) ? CryptocomCore.this.safeString(ticker, "vv") : null );
+            put( "quoteVolume", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(finalMarket, "quote"), "USD"))))) ? CryptocomCore.this.safeString(ticker, "vv") : null );
             put( "info", ticker );
         }}, market);
     }

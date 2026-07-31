@@ -25,7 +25,9 @@ async def tcp_kill_after(seconds):
     for conn in connections:
         if conn.status == psutil.CONN_ESTABLISHED:
             try:
-                sock = socket.fromfd(conn.fd, socket.AF_INET, socket.SOCK_STREAM)
+                # use the connection's real address family instead of forcing AF_INET
+                # so that IPv6 (dual-stack) sockets are handled correctly too
+                sock = socket.fromfd(conn.fd, conn.family, socket.SOCK_STREAM)
                 local_address = conn.laddr.ip
                 local_port = conn.laddr.port
                 sock.shutdown(socket.SHUT_RDWR)

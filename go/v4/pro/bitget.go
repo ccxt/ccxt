@@ -2081,6 +2081,17 @@ func (this *BitgetCore) HandleOrder(client any, message any) {
 	var isLinearSwap any = (ccxt.IsEqual(category, "usdt-futures"))
 	var isInverseSwap any = (ccxt.IsEqual(category, "coin-futures"))
 	var isUSDCFutures any = (ccxt.IsEqual(category, "usdc-futures"))
+	if ccxt.IsTrue(ccxt.IsEqual(instType, "uta")) {
+		// UTA order/fill pushes carry the real product in 'category' (spot / *-futures)
+		// the instType->marketType mapping above defaults UTA to 'contract', which
+		// mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+		// watcher never matches. Derive marketType from category for UTA.
+		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(category, "spot"))) || ccxt.IsTrue((ccxt.IsEqual(category, "margin")))) {
+			marketType = "spot"
+		} else {
+			marketType = "contract"
+		}
+	}
 	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2421,8 +2432,8 @@ func (this *BitgetCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes208512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes208512)
+			retRes209612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes209612)
 		}
 		var market any = nil
 		var messageHash any = "myTrades"
@@ -2594,9 +2605,24 @@ func (this *BitgetCore) HandleMyTrades(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var length any = ccxt.GetArrayLength(data)
 	var messageHash any = "myTrades"
+	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var instType any = this.SafeStringLower(arg, "instType")
 	for i := 0; ccxt.IsLessThan(i, length); i++ {
 		var trade any = ccxt.GetValue(data, i)
-		var parsed any = this.ParseWsTrade(trade)
+		var market any = nil
+		if ccxt.IsTrue(ccxt.IsEqual(instType, "uta")) {
+			// UTA fills carry the product in 'category'; resolve the matching
+			// market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+			// otherwise resolves to the swap market and the messageHash never matches).
+			var category any = this.SafeStringLower(trade, "category")
+			var marketType any = "contract"
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(category, "spot"))) || ccxt.IsTrue((ccxt.IsEqual(category, "margin")))) {
+				marketType = "spot"
+			}
+			var marketId any = this.SafeString2(trade, "instId", "symbol")
+			market = this.SafeMarket(marketId, nil, nil, marketType)
+		}
+		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var symbolSpecificMessageHash any = ccxt.Add("myTrades:", symbol)
@@ -2677,9 +2703,9 @@ func (this *BitgetCore) WatchBalance(optionalArgs ...any) <-chan any {
 		var instTypeLower any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(instType, nil))), "", ccxt.ToLower(instType))
 		var messageHash any = ccxt.Add("balance:", instTypeLower)
 
-		retRes230915 := (<-this.WatchPrivate(uta, messageHash, messageHash, args, params))
-		ccxt.PanicOnError(retRes230915)
-		ch <- retRes230915
+		retRes233515 := (<-this.WatchPrivate(uta, messageHash, messageHash, args, params))
+		ccxt.PanicOnError(retRes233515)
+		ch <- retRes233515
 		return nil
 
 	}()
@@ -2841,9 +2867,9 @@ func (this *BitgetCore) WatchPublic(uta any, messageHash any, args any, optional
 		}
 		var message any = this.Extend(request, params)
 
-		retRes246215 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes246215)
-		ch <- retRes246215
+		retRes248815 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes248815)
+		ch <- retRes248815
 		return nil
 
 	}()
@@ -2874,9 +2900,9 @@ func (this *BitgetCore) UnWatchPublic(uta any, messageHash any, args any, option
 		}
 		var message any = this.Extend(request, params)
 
-		retRes248315 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes248315)
-		ch <- retRes248315
+		retRes250915 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes250915)
+		ch <- retRes250915
 		return nil
 
 	}()
@@ -2904,9 +2930,9 @@ func (this *BitgetCore) WatchPublicMultiple(uta any, messageHashes any, argsArra
 		}
 		var message any = this.Extend(request, params)
 
-		retRes250115 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-		ccxt.PanicOnError(retRes250115)
-		ch <- retRes250115
+		retRes252715 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+		ccxt.PanicOnError(retRes252715)
+		ch <- retRes252715
 		return nil
 
 	}()
@@ -2943,9 +2969,9 @@ func (this *BitgetCore) Authenticate(optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, message, messageHash)
 		}
 
-		retRes253015 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes253015)
-		ch <- retRes253015
+		retRes255615 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes255615)
+		ch <- retRes255615
 		return nil
 
 	}()
@@ -2971,19 +2997,19 @@ func (this *BitgetCore) WatchPrivate(uta any, messageHash any, subscriptionHash 
 			}
 		}
 
-		retRes25468 := (<-this.Authenticate(map[string]any{
+		retRes25728 := (<-this.Authenticate(map[string]any{
 			"url": url,
 		}))
-		ccxt.PanicOnError(retRes25468)
+		ccxt.PanicOnError(retRes25728)
 		var request any = map[string]any{
 			"op":   "subscribe",
 			"args": []any{args},
 		}
 		var message any = this.Extend(request, params)
 
-		retRes255215 := (<-this.Watch(url, messageHash, message, subscriptionHash))
-		ccxt.PanicOnError(retRes255215)
-		ch <- retRes255215
+		retRes257815 := (<-this.Watch(url, messageHash, message, subscriptionHash))
+		ccxt.PanicOnError(retRes257815)
+		ch <- retRes257815
 		return nil
 
 	}()

@@ -4253,7 +4253,7 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4352,7 +4352,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4506,7 +4506,7 @@ func (this *CoinbaseCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes382519 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			retRes382519 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
 			PanicOnError(retRes382519)
 			ch <- retRes382519
 			return nil
@@ -4607,7 +4607,7 @@ func (this *CoinbaseCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 			"product_id":  GetValue(market, "id"),
 			"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var until any = this.SafeIntegerN(params, []any{"until", "end"})
+		var until any = this.SafeInteger2(params, "until", "end")
 		params = this.Omit(params, []any{"until"})
 		var duration any = this.ParseTimeframe(timeframe)
 		var requestedDuration any = Multiply(limit, duration)
@@ -4822,7 +4822,7 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_sequence_timestamp", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_sequence_timestamp", this.Iso8601(until))

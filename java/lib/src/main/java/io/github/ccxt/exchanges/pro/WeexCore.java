@@ -27,8 +27,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "watchMyTrades", true );
                 put( "watchOHLCV", true );
                 put( "watchOHLCVForSymbols", true );
-                put( "watchOrderBook", false );
-                put( "watchOrderBookForSymbols", false );
+                put( "watchOrderBook", true );
+                put( "watchOrderBookForSymbols", true );
                 put( "watchOrders", true );
                 put( "watchPositions", true );
                 put( "watchTicker", true );

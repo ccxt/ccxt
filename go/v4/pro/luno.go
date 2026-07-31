@@ -172,6 +172,7 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name luno#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://www.luno.com/en/developers/api#tag/Streaming-API
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
@@ -190,8 +191,8 @@ func (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		this.CheckRequiredCredentials()
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes15412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes15412)
+			retRes15512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes15512)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

@@ -2827,7 +2827,7 @@ export default class aster extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeStringN(params, ['origClientOrderId', 'clientOrderId']);
+        const clientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
@@ -4143,7 +4143,14 @@ export default class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
-            const walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            let walletAddress = this.safeString(this.options, 'cachedWalletAddress');
+            const privateKeyHash = this.hash(this.encode(this.privateKey), keccak, 'hex');
+            const cachedPrivateKeyHash = this.safeString(this.options, 'privateKeyHashForCachedWalletAddress');
+            if ((walletAddress === undefined) || (cachedPrivateKeyHash !== privateKeyHash)) {
+                walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+                this.options['cachedWalletAddress'] = walletAddress;
+                this.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash;
+            }
             const signerAddress = this.safeString(this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');

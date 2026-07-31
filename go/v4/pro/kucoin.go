@@ -2002,7 +2002,7 @@ func (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
 			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 20))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 50)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 5)))) {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook \\'limit\\' argument must be undefined, 5, 20, 50 or 100")))
+				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")))
 			}
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
@@ -2749,7 +2749,7 @@ func (this *KucoinCore) HandleOrder(client any, message any) {
 	//
 	//    {
 	//        "createdAt": 1692745706437,
-	//        "error": "ccxt.Balance insufficient!",       // not always there
+	//        "error": "Balance insufficient!",       // not always there
 	//        "orderId": "vs86kp757vlda6ni003qs70v",
 	//        "orderPrice": "0.26",
 	//        "orderType": "stop",
@@ -4170,7 +4170,7 @@ func (this *KucoinCore) HandleErrorMessage(client any, message any) any {
 	//     {
 	//         "id": "1",
 	//         "result": false,
-	//         "reason": "missing `symbol` for topic: ccxt.Position"
+	//         "reason": "missing `symbol` for topic: Position"
 	//     }
 	//
 	var data any = this.SafeString2(message, "data", "reason", "")

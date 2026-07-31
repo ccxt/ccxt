@@ -1218,10 +1218,12 @@ func (this *OkxCore) Describe() any {
 				"method": "privatePostTradeCancelBatchOrders",
 			},
 			"fetchCanceledOrders": map[string]any{
-				"method": "privateGetTradeOrdersHistory",
+				"method":              "privateGetTradeOrdersHistory",
+				"paginationDirection": "forward",
 			},
 			"fetchClosedOrders": map[string]any{
-				"method": "privateGetTradeOrdersHistory",
+				"method":              "privateGetTradeOrdersHistory",
+				"paginationDirection": "forward",
 			},
 			"withdraw": map[string]any{
 				"password": nil,
@@ -1710,8 +1712,8 @@ func (this *OkxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes170712 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes170712)
+			retRes170912 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes170912)
 		}
 		var types any = []any{"spot", "future", "swap", "option"}
 		var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
@@ -2172,8 +2174,8 @@ func (this *OkxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes212312 := (<-this.LoadMarkets())
-			PanicOnError(retRes212312)
+			retRes212512 := (<-this.LoadMarkets())
+			PanicOnError(retRes212512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2233,18 +2235,11 @@ func (this *OkxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 }
 func (this *OkxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
-	//      {
-	//          "instType":"SWAP",
-	//          "instId":"BTC-USDT-SWAP",
-	//          "markPx":"200",
-	//          "ts":"1597026383085"
-	//      }
-	//
 	//     {
-	//         "instType": "SPOT",
-	//         "instId": "ETH-BTC",
+	//         "instType": "SPOT", // SPOT, SWAP, etc
+	//         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
 	//         "last": "0.07319",
-	//         "lastSz": "0.044378",
+	//         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
 	//         "askPx": "0.07322",
 	//         "askSz": "4.2",
 	//         "bidPx": "0.0732",
@@ -2252,12 +2247,13 @@ func (this *OkxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "open24h": "0.07801",
 	//         "high24h": "0.07975",
 	//         "low24h": "0.06019",
-	//         "volCcy24h": "11788.887619",
+	//         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
 	//         "vol24h": "167493.829229",
 	//         "ts": "1621440583784",
 	//         "sodUtc0": "0.07872",
 	//         "sodUtc8": "0.07345"
 	//     }
+	//
 	//     {
 	//          instId: 'LTC-USDT',
 	//          idxPx: '65.74',
@@ -2331,8 +2327,8 @@ func (this *OkxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes226212 := (<-this.LoadMarkets())
-			PanicOnError(retRes226212)
+			retRes225812 := (<-this.LoadMarkets())
+			PanicOnError(retRes225812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2397,8 +2393,8 @@ func (this *OkxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes231112 := (<-this.LoadMarkets())
-			PanicOnError(retRes231112)
+			retRes230712 := (<-this.LoadMarkets())
+			PanicOnError(retRes230712)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -2474,8 +2470,8 @@ func (this *OkxCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes237112 := (<-this.LoadMarkets())
-			PanicOnError(retRes237112)
+			retRes236712 := (<-this.LoadMarkets())
+			PanicOnError(retRes236712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2527,8 +2523,8 @@ func (this *OkxCore) FetchMarkPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes240712 := (<-this.LoadMarkets())
-			PanicOnError(retRes240712)
+			retRes240312 := (<-this.LoadMarkets())
+			PanicOnError(retRes240312)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -2682,8 +2678,8 @@ func (this *OkxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes254012 := (<-this.LoadMarkets())
-			PanicOnError(retRes254012)
+			retRes253612 := (<-this.LoadMarkets())
+			PanicOnError(retRes253612)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -2691,9 +2687,9 @@ func (this *OkxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes254519 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-			PanicOnError(retRes254519)
-			ch <- retRes254519
+			retRes254119 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+			PanicOnError(retRes254119)
+			ch <- retRes254119
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -2824,8 +2820,8 @@ func (this *OkxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265512 := (<-this.LoadMarkets())
-			PanicOnError(retRes265512)
+			retRes265112 := (<-this.LoadMarkets())
+			PanicOnError(retRes265112)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -2834,9 +2830,9 @@ func (this *OkxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes266119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
-			PanicOnError(retRes266119)
-			ch <- retRes266119
+			retRes265719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
+			PanicOnError(retRes265719)
+			ch <- retRes265719
 			return nil
 		}
 		var priceType any = this.SafeString(params, "price")
@@ -2972,8 +2968,8 @@ func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276612 := (<-this.LoadMarkets())
-			PanicOnError(retRes276612)
+			retRes276212 := (<-this.LoadMarkets())
+			PanicOnError(retRes276212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -2981,9 +2977,9 @@ func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes277119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes277119)
-			ch <- retRes277119
+			retRes276719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes276719)
+			ch <- retRes276719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3140,8 +3136,8 @@ func (this *OkxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291212 := (<-this.LoadMarkets())
-			PanicOnError(retRes291212)
+			retRes290812 := (<-this.LoadMarkets())
+			PanicOnError(retRes290812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3204,8 +3200,8 @@ func (this *OkxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes296412 := (<-this.LoadMarkets())
-			PanicOnError(retRes296412)
+			retRes296012 := (<-this.LoadMarkets())
+			PanicOnError(retRes296012)
 		}
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
@@ -3350,8 +3346,8 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes309312 := (<-this.LoadMarkets())
-			PanicOnError(retRes309312)
+			retRes308912 := (<-this.LoadMarkets())
+			PanicOnError(retRes308912)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -3362,9 +3358,9 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes310315 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes310315)
-		ch <- retRes310315
+		retRes309915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes309915)
+		ch <- retRes309915
 		return nil
 
 	}()
@@ -3390,8 +3386,8 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol any, cost any, optiona
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311812 := (<-this.LoadMarkets())
-			PanicOnError(retRes311812)
+			retRes311412 := (<-this.LoadMarkets())
+			PanicOnError(retRes311412)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
@@ -3402,9 +3398,9 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol any, cost any, optiona
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes312815 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes312815)
-		ch <- retRes312815
+		retRes312415 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes312415)
+		ch <- retRes312415
 		return nil
 
 	}()
@@ -3536,7 +3532,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 							notional = this.ParseNumber(quoteAmount)
 						}
 					} else if IsTrue(IsEqual(notional, nil)) {
-						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\\'createMarketBuyOrderRequiresPrice\\'] = false and supply the total cost value in the \\'amount\\' argument or in the \\'cost\\' unified extra parameter or in exchange-specific \\'sz\\' extra parameter (the exchange-specific behaviour)")))
+						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")))
 					}
 				} else {
 					notional = Ternary(IsTrue((IsEqual(notional, nil))), amount, notional)
@@ -3746,8 +3742,8 @@ func (this *OkxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes346712 := (<-this.LoadMarkets())
-			PanicOnError(retRes346712)
+			retRes346312 := (<-this.LoadMarkets())
+			PanicOnError(retRes346312)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -3810,8 +3806,8 @@ func (this *OkxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes351212 := (<-this.LoadMarkets())
-			PanicOnError(retRes351212)
+			retRes350812 := (<-this.LoadMarkets())
+			PanicOnError(retRes350812)
 		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -4006,8 +4002,8 @@ func (this *OkxCore) EditOrder(id any, symbol any, typeVar any, side any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes368412 := (<-this.LoadMarkets())
-			PanicOnError(retRes368412)
+			retRes368012 := (<-this.LoadMarkets())
+			PanicOnError(retRes368012)
 		}
 		var market any = this.Market(symbol)
 		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
@@ -4090,8 +4086,8 @@ func (this *OkxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes374512 := (<-this.LoadMarkets())
-			PanicOnError(retRes374512)
+			retRes374112 := (<-this.LoadMarkets())
+			PanicOnError(retRes374112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4160,8 +4156,8 @@ func (this *OkxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes380112 := (<-this.LoadMarkets())
-			PanicOnError(retRes380112)
+			retRes379712 := (<-this.LoadMarkets())
+			PanicOnError(retRes379712)
 		}
 		var market any = this.Market(symbol)
 		var request any = []any{}
@@ -4282,8 +4278,8 @@ func (this *OkxCore) CancelOrdersForSymbols(orders any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes390612 := (<-this.LoadMarkets())
-			PanicOnError(retRes390612)
+			retRes390212 := (<-this.LoadMarkets())
+			PanicOnError(retRes390212)
 		}
 		var request any = []any{}
 		var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
@@ -4386,8 +4382,8 @@ func (this *OkxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes399312 := (<-this.LoadMarkets())
-			PanicOnError(retRes399312)
+			retRes398912 := (<-this.LoadMarkets())
+			PanicOnError(retRes398912)
 		}
 		var timeOut any = 0
 		if IsTrue(IsTrue((!IsEqual(timeout, nil))) && IsTrue((IsGreaterThan(timeout, 0)))) {
@@ -4743,8 +4739,8 @@ func (this *OkxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes433312 := (<-this.LoadMarkets())
-			PanicOnError(retRes433312)
+			retRes432912 := (<-this.LoadMarkets())
+			PanicOnError(retRes432912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4918,8 +4914,8 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes448812 := (<-this.LoadMarkets())
-			PanicOnError(retRes448812)
+			retRes448412 := (<-this.LoadMarkets())
+			PanicOnError(retRes448412)
 		}
 		var maxLimit any = 100
 		var paginate any = false
@@ -4928,9 +4924,9 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes449419 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes449419)
-			ch <- retRes449419
+			retRes449019 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes449019)
+			ch <- retRes449019
 			return nil
 		}
 		var request any = map[string]any{}
@@ -5104,8 +5100,8 @@ func (this *OkxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes465412 := (<-this.LoadMarkets())
-			PanicOnError(retRes465412)
+			retRes465012 := (<-this.LoadMarkets())
+			PanicOnError(retRes465012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -5309,8 +5305,8 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes484412 := (<-this.LoadMarkets())
-			PanicOnError(retRes484412)
+			retRes484012 := (<-this.LoadMarkets())
+			PanicOnError(retRes484012)
 		}
 		var maxLimit any = 100
 		var paginate any = false
@@ -5319,9 +5315,9 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes485019 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes485019)
-			ch <- retRes485019
+			retRes484619 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, maxLimit))
+			PanicOnError(retRes484619)
+			ch <- retRes484619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -5514,8 +5510,8 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes502612 := (<-this.LoadMarkets())
-			PanicOnError(retRes502612)
+			retRes502212 := (<-this.LoadMarkets())
+			PanicOnError(retRes502212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -5523,9 +5519,9 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes503119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes503119)
-			ch <- retRes503119
+			retRes502719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes502719)
+			ch <- retRes502719
 			return nil
 		}
 		var request any = map[string]any{}
@@ -5613,9 +5609,9 @@ func (this *OkxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 			"ordId": id,
 		}
 
-		retRes510615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes510615)
-		ch <- retRes510615
+		retRes510215 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes510215)
+		ch <- retRes510215
 		return nil
 
 	}()
@@ -5653,8 +5649,8 @@ func (this *OkxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes512712 := (<-this.LoadMarkets())
-			PanicOnError(retRes512712)
+			retRes512312 := (<-this.LoadMarkets())
+			PanicOnError(retRes512312)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -5662,9 +5658,9 @@ func (this *OkxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes513219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes513219)
-			ch <- retRes513219
+			retRes512819 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes512819)
+			ch <- retRes512819
 			return nil
 		}
 		var options any = this.SafeDict(this.Options, "fetchLedger", map[string]any{})
@@ -5976,8 +5972,8 @@ func (this *OkxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes543012 := (<-this.LoadMarkets())
-			PanicOnError(retRes543012)
+			retRes542612 := (<-this.LoadMarkets())
+			PanicOnError(retRes542612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -6037,8 +6033,8 @@ func (this *OkxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes547612 := (<-this.LoadMarkets())
-			PanicOnError(retRes547612)
+			retRes547212 := (<-this.LoadMarkets())
+			PanicOnError(retRes547212)
 		}
 		var rawNetwork any = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
 		params = this.Omit(params, "network")
@@ -6100,8 +6096,8 @@ func (this *OkxCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes551612 := (<-this.LoadMarkets())
-			PanicOnError(retRes551612)
+			retRes551212 := (<-this.LoadMarkets())
+			PanicOnError(retRes551212)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
@@ -6188,8 +6184,8 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes558112 := (<-this.LoadMarkets())
-			PanicOnError(retRes558112)
+			retRes557712 := (<-this.LoadMarkets())
+			PanicOnError(retRes557712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -6197,9 +6193,9 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes558619 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes558619)
-			ch <- retRes558619
+			retRes558219 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes558219)
+			ch <- retRes558219
 			return nil
 		}
 		var request any = map[string]any{}
@@ -6288,8 +6284,8 @@ func (this *OkxCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes566212 := (<-this.LoadMarkets())
-			PanicOnError(retRes566212)
+			retRes565812 := (<-this.LoadMarkets())
+			PanicOnError(retRes565812)
 		}
 		var request any = map[string]any{
 			"depId": id,
@@ -6340,8 +6336,8 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes569312 := (<-this.LoadMarkets())
-			PanicOnError(retRes569312)
+			retRes568912 := (<-this.LoadMarkets())
+			PanicOnError(retRes568912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -6349,9 +6345,9 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes569819 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes569819)
-			ch <- retRes569819
+			retRes569419 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes569419)
+			ch <- retRes569419
 			return nil
 		}
 		var request any = map[string]any{}
@@ -6432,8 +6428,8 @@ func (this *OkxCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes576612 := (<-this.LoadMarkets())
-			PanicOnError(retRes576612)
+			retRes576212 := (<-this.LoadMarkets())
+			PanicOnError(retRes576212)
 		}
 		var request any = map[string]any{
 			"wdId": id,
@@ -6651,8 +6647,8 @@ func (this *OkxCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes597012 := (<-this.LoadMarkets())
-			PanicOnError(retRes597012)
+			retRes596612 := (<-this.LoadMarkets())
+			PanicOnError(retRes596612)
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
@@ -6743,8 +6739,8 @@ func (this *OkxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes604412 := (<-this.LoadMarkets())
-			PanicOnError(retRes604412)
+			retRes604012 := (<-this.LoadMarkets())
+			PanicOnError(retRes604012)
 		}
 		var market any = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
@@ -6841,8 +6837,8 @@ func (this *OkxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes612412 := (<-this.LoadMarkets())
-			PanicOnError(retRes612412)
+			retRes612012 := (<-this.LoadMarkets())
+			PanicOnError(retRes612012)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -6946,9 +6942,9 @@ func (this *OkxCore) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes621615 := (<-this.FetchPositions([]any{symbol}, params))
-		PanicOnError(retRes621615)
-		ch <- retRes621615
+		retRes621215 := (<-this.FetchPositions([]any{symbol}, params))
+		PanicOnError(retRes621215)
+		ch <- retRes621215
 		return nil
 
 	}()
@@ -7150,8 +7146,8 @@ func (this *OkxCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes640612 := (<-this.LoadMarkets())
-			PanicOnError(retRes640612)
+			retRes640212 := (<-this.LoadMarkets())
+			PanicOnError(retRes640212)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -7312,8 +7308,8 @@ func (this *OkxCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes655512 := (<-this.LoadMarkets())
-			PanicOnError(retRes655512)
+			retRes655112 := (<-this.LoadMarkets())
+			PanicOnError(retRes655112)
 		}
 		var request any = map[string]any{
 			"transId": id,
@@ -7377,8 +7373,8 @@ func (this *OkxCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes660012 := (<-this.LoadMarkets())
-			PanicOnError(retRes660012)
+			retRes659612 := (<-this.LoadMarkets())
+			PanicOnError(retRes659612)
 		}
 		var currency any = nil
 		var request any = map[string]any{
@@ -7601,9 +7597,9 @@ func (this *OkxCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes679815 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes679815)
-		ch <- retRes679815
+		retRes679415 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes679415)
+		ch <- retRes679415
 		return nil
 
 	}()
@@ -7628,12 +7624,15 @@ func (this *OkxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes681212 := (<-this.LoadMarkets())
-			PanicOnError(retRes681212)
+			retRes680812 := (<-this.LoadMarkets())
+			PanicOnError(retRes680812)
 		}
 		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "swap")) {
-			panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
+		var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+		var ruleType any = this.SafeString(marketInfo, "ruleType")
+		var isExtendedPerpetual any = (IsEqual(ruleType, "xperp")) // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+		if IsTrue(!IsTrue(GetValue(market, "swap")) && !IsTrue(isExtendedPerpetual)) {
+			panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets or XPERP futures")))
 		}
 		var request any = map[string]any{
 			"instId": GetValue(market, "id"),
@@ -7687,10 +7686,21 @@ func (this *OkxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes685412 := (<-this.LoadMarkets())
-			PanicOnError(retRes685412)
+			retRes685312 := (<-this.LoadMarkets())
+			PanicOnError(retRes685312)
 		}
-		symbols = this.MarketSymbols(symbols, "swap", true)
+		symbols = this.MarketSymbols(symbols, nil, true)
+		if IsTrue(!IsEqual(symbols, nil)) {
+			for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+				var market any = this.Market(GetValue(symbols, i))
+				var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+				var ruleType any = this.SafeString(marketInfo, "ruleType")
+				var isExtendedPerpetual any = (IsEqual(ruleType, "xperp")) // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+				if IsTrue(!IsTrue(GetValue(market, "swap")) && !IsTrue(isExtendedPerpetual)) {
+					panic(BadRequest(Add(Add(Add(this.Id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), GetValue(symbols, i)), " is not")))
+				}
+			}
+		}
 		var request any = map[string]any{
 			"instId": "ANY",
 		}
@@ -7748,8 +7758,8 @@ func (this *OkxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes689212 := (<-this.LoadMarkets())
-			PanicOnError(retRes689212)
+			retRes690212 := (<-this.LoadMarkets())
+			PanicOnError(retRes690212)
 		}
 		var request any = map[string]any{
 			"type": "8",
@@ -7872,8 +7882,8 @@ func (this *OkxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes707012 := (<-this.LoadMarkets())
-			PanicOnError(retRes707012)
+			retRes708012 := (<-this.LoadMarkets())
+			PanicOnError(retRes708012)
 		}
 		var market any = this.Market(symbol)
 		var marginMode any = nil
@@ -8054,8 +8064,8 @@ func (this *OkxCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes720312 := (<-this.LoadMarkets())
-			PanicOnError(retRes720312)
+			retRes721312 := (<-this.LoadMarkets())
+			PanicOnError(retRes721312)
 		}
 		var market any = this.Market(symbol)
 		var lever any = this.SafeInteger2(params, "lever", "leverage")
@@ -8110,8 +8120,8 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes724412 := (<-this.LoadMarkets())
-			PanicOnError(retRes724412)
+			retRes725412 := (<-this.LoadMarkets())
+			PanicOnError(retRes725412)
 		}
 
 		response := (<-this.PrivateGetAccountInterestRate(params))
@@ -8159,8 +8169,8 @@ func (this *OkxCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes727812 := (<-this.LoadMarkets())
-			PanicOnError(retRes727812)
+			retRes728812 := (<-this.LoadMarkets())
+			PanicOnError(retRes728812)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8272,8 +8282,8 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes737012 := (<-this.LoadMarkets())
-			PanicOnError(retRes737012)
+			retRes738012 := (<-this.LoadMarkets())
+			PanicOnError(retRes738012)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -8332,8 +8342,8 @@ func (this *OkxCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes741612 := (<-this.LoadMarkets())
-			PanicOnError(retRes741612)
+			retRes742612 := (<-this.LoadMarkets())
+			PanicOnError(retRes742612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8379,8 +8389,8 @@ func (this *OkxCore) ModifyMarginHelper(symbol any, amount any, typeVar any, opt
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes745212 := (<-this.LoadMarkets())
-			PanicOnError(retRes745212)
+			retRes746212 := (<-this.LoadMarkets())
+			PanicOnError(retRes746212)
 		}
 		var market any = this.Market(symbol)
 		var posSide any = this.SafeString(params, "posSide", "net")
@@ -8515,9 +8525,9 @@ func (this *OkxCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes757215 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes757215)
-		ch <- retRes757215
+		retRes758215 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes758215)
+		ch <- retRes758215
 		return nil
 
 	}()
@@ -8542,9 +8552,9 @@ func (this *OkxCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes758615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes758615)
-		ch <- retRes758615
+		retRes759615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes759615)
+		ch <- retRes759615
 		return nil
 
 	}()
@@ -8570,8 +8580,8 @@ func (this *OkxCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes760112 := (<-this.LoadMarkets())
-			PanicOnError(retRes760112)
+			retRes761112 := (<-this.LoadMarkets())
+			PanicOnError(retRes761112)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
@@ -8704,8 +8714,8 @@ func (this *OkxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes770912 := (<-this.LoadMarkets())
-			PanicOnError(retRes770912)
+			retRes771912 := (<-this.LoadMarkets())
+			PanicOnError(retRes771912)
 		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
@@ -8803,8 +8813,8 @@ func (this *OkxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes779012 := (<-this.LoadMarkets())
-			PanicOnError(retRes779012)
+			retRes780012 := (<-this.LoadMarkets())
+			PanicOnError(retRes780012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -8860,8 +8870,8 @@ func (this *OkxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any)
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes783212 := (<-this.LoadMarkets())
-			PanicOnError(retRes783212)
+			retRes784212 := (<-this.LoadMarkets())
+			PanicOnError(retRes784212)
 		}
 		var id any = this.SafeString2(params, "id", "ordId")
 		params = this.Omit(params, "id")
@@ -8946,8 +8956,8 @@ func (this *OkxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes790212 := (<-this.LoadMarkets())
-			PanicOnError(retRes790212)
+			retRes791212 := (<-this.LoadMarkets())
+			PanicOnError(retRes791212)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
@@ -9010,8 +9020,8 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes794912 := (<-this.LoadMarkets())
-			PanicOnError(retRes794912)
+			retRes795912 := (<-this.LoadMarkets())
+			PanicOnError(retRes795912)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market any = nil
@@ -9104,8 +9114,8 @@ func (this *OkxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes801812 := (<-this.LoadMarkets())
-			PanicOnError(retRes801812)
+			retRes802812 := (<-this.LoadMarkets())
+			PanicOnError(retRes802812)
 		}
 		// handle unified currency code or symbol
 		var currencyId any = nil
@@ -9251,8 +9261,8 @@ func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes814412 := (<-this.LoadMarkets())
-			PanicOnError(retRes814412)
+			retRes815412 := (<-this.LoadMarkets())
+			PanicOnError(retRes815412)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(codes, nil)) {
@@ -9413,8 +9423,8 @@ func (this *OkxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes828212 := (<-this.LoadMarkets())
-			PanicOnError(retRes828212)
+			retRes829212 := (<-this.LoadMarkets())
+			PanicOnError(retRes829212)
 		}
 		var market any = this.Market(symbol)
 		var typeVar any = nil
@@ -9529,8 +9539,8 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes838312 := (<-this.LoadMarkets())
-			PanicOnError(retRes838312)
+			retRes839312 := (<-this.LoadMarkets())
+			PanicOnError(retRes839312)
 		}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
@@ -9587,8 +9597,8 @@ func (this *OkxCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes842412 := (<-this.LoadMarkets())
-			PanicOnError(retRes842412)
+			retRes843412 := (<-this.LoadMarkets())
+			PanicOnError(retRes843412)
 		}
 		var market any = this.Market(symbol)
 		var marketId any = this.SafeString(market, "id", "")
@@ -9669,8 +9679,8 @@ func (this *OkxCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes848812 := (<-this.LoadMarkets())
-			PanicOnError(retRes848812)
+			retRes849812 := (<-this.LoadMarkets())
+			PanicOnError(retRes849812)
 		}
 		var request any = map[string]any{}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -9823,8 +9833,8 @@ func (this *OkxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes862412 := (<-this.LoadMarkets())
-			PanicOnError(retRes862412)
+			retRes863412 := (<-this.LoadMarkets())
+			PanicOnError(retRes863412)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -9901,8 +9911,8 @@ func (this *OkxCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes868512 := (<-this.LoadMarkets())
-			PanicOnError(retRes868512)
+			retRes869512 := (<-this.LoadMarkets())
+			PanicOnError(retRes869512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9966,8 +9976,8 @@ func (this *OkxCore) FetchOptionChain(code any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes873512 := (<-this.LoadMarkets())
-			PanicOnError(retRes873512)
+			retRes874512 := (<-this.LoadMarkets())
+			PanicOnError(retRes874512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -10082,8 +10092,8 @@ func (this *OkxCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes883112 := (<-this.LoadMarkets())
-			PanicOnError(retRes883112)
+			retRes884112 := (<-this.LoadMarkets())
+			PanicOnError(retRes884112)
 		}
 		var request any = map[string]any{
 			"baseCcy":  ToUpper(fromCode),
@@ -10155,8 +10165,8 @@ func (this *OkxCore) CreateConvertTrade(id any, fromCode any, toCode any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes888712 := (<-this.LoadMarkets())
-			PanicOnError(retRes888712)
+			retRes889712 := (<-this.LoadMarkets())
+			PanicOnError(retRes889712)
 		}
 		var request any = map[string]any{
 			"quoteId":  id,
@@ -10226,8 +10236,8 @@ func (this *OkxCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes894112 := (<-this.LoadMarkets())
-			PanicOnError(retRes894112)
+			retRes895112 := (<-this.LoadMarkets())
+			PanicOnError(retRes895112)
 		}
 		var request any = map[string]any{
 			"clTReqId": id,
@@ -10303,8 +10313,8 @@ func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes899712 := (<-this.LoadMarkets())
-			PanicOnError(retRes899712)
+			retRes900712 := (<-this.LoadMarkets())
+			PanicOnError(retRes900712)
 		}
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("after", request, params)
@@ -10441,8 +10451,8 @@ func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes911512 := (<-this.LoadMarkets())
-			PanicOnError(retRes911512)
+			retRes912512 := (<-this.LoadMarkets())
+			PanicOnError(retRes912512)
 		}
 
 		response := (<-this.PrivateGetAssetConvertCurrencies(params))
@@ -10574,8 +10584,8 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes922612 := (<-this.LoadMarkets())
-			PanicOnError(retRes922612)
+			retRes923612 := (<-this.LoadMarkets())
+			PanicOnError(retRes923612)
 		}
 		var auto any = this.SafeBool(params, "auto")
 		if IsTrue(IsEqual(typeVar, nil)) {
@@ -10706,8 +10716,8 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes933512 := (<-this.LoadMarkets())
-			PanicOnError(retRes933512)
+			retRes934512 := (<-this.LoadMarkets())
+			PanicOnError(retRes934512)
 		}
 		var marginMode any = this.SafeString(params, "marginMode")
 		var instType any = this.SafeStringUpper(params, "instType")
@@ -10807,8 +10817,8 @@ func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes941312 := (<-this.LoadMarkets())
-			PanicOnError(retRes941312)
+			retRes942312 := (<-this.LoadMarkets())
+			PanicOnError(retRes942312)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLongShortRatioHistory() requires a symbol argument")))

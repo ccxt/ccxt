@@ -27,7 +27,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 put( "cancelOrdersWs", true );
                 put( "cancelAllOrdersWs", true );
                 put( "createOrderWs", true );
-                put( "createOrdersWs", true );
+                put( "createOrdersWs", false );
                 put( "editOrderWs", true );
                 put( "watchBalance", false );
                 put( "watchMyTrades", true );

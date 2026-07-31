@@ -10,7 +10,7 @@ using MiniMessagePack;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public object base16ToBinary(object str2)
@@ -259,6 +259,13 @@ public partial class Exchange
 
     public string intToBase16(object number)
     {
+        if (number is System.Numerics.BigInteger)
+        {
+            // BigInteger is not IConvertible; also trim the sign-guard nibble BigInteger
+            // prepends so the output matches the JS number.toString(16) form
+            var hex = ((System.Numerics.BigInteger)number).ToString("x").TrimStart('0');
+            return (hex.Length > 0) ? hex : "0";
+        }
         var n = Convert.ToInt64(number);
         return n.ToString("x");
     }

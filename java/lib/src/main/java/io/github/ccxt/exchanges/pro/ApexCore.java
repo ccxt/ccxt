@@ -204,12 +204,12 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("i", "id", "v")));
-        Object marketId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("s", "symbol")));
+        Object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
-        Object side = this.safeStringLowerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("S", "side")));
-        Object price = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("p", "price")));
+        Object side = this.safeStringLower2(trade, "S", "side");
+        Object price = this.safeString2(trade, "p", "price");
         Object amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "v", "size")));
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );

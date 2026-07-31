@@ -312,7 +312,10 @@ class binance extends binance$1["default"] {
             }
             streamHash += '::' + symbols.join(',');
         }
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        let firstMarket = undefined;
+        if (!this.isEmpty(symbols)) {
+            firstMarket = this.getMarketFromSymbols(symbols);
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {

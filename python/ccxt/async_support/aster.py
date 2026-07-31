@@ -2706,7 +2706,7 @@ class aster(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_string_n(params, ['origClientOrderId', 'clientOrderId'])
+        clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
@@ -3923,7 +3923,13 @@ class aster(Exchange, ImplicitAPI):
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
             zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
             v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
-            walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+            walletAddress = self.safe_string(self.options, 'cachedWalletAddress')
+            privateKeyHash = self.hash(self.encode(self.privateKey), 'keccak', 'hex')
+            cachedPrivateKeyHash = self.safe_string(self.options, 'privateKeyHashForCachedWalletAddress')
+            if (walletAddress is None) or (cachedPrivateKeyHash != privateKeyHash):
+                walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+                self.options['cachedWalletAddress'] = walletAddress
+                self.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash
             signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
             if signerAddress is None:
                 raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')

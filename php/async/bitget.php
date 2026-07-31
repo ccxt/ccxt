@@ -19,6 +19,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitget extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -7192,7 +7194,7 @@ class bitget extends Exchange {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                     }
-                    $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                    $endTime = $this->safe_integer_2($params, 'endTime', 'until');
                     $params = $this->omit($params, array( 'until' ));
                     if ($since === null) {
                         $since = $now - 7776000000;

@@ -40,17 +40,15 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 					}()
 					// try block:
 
-					response = (UnWrapType(<-exchange.WatchOrderBookForSymbols(symbols)))
+					response = (<-exchange.(ccxt.IWatchOrderBookForSymbols).WatchOrderBookForSymbols(symbols))
 					PanicOnError(response)
 					return nil
 				}()
 
 			}
-			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an object. "), exchange.Json(response)))
-				currentTime = exchange.Milliseconds()
-				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
+			if IsTrue(IsEqual(succeeded, true)) {
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
+				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				var symbol any = GetValue(response, "symbol")
 				if IsTrue(IsTrue((!IsEqual(symbol, nil))) && !IsTrue(exchange.InArray(symbol, seenSymbols))) {
 					AppendToArray(&seenSymbols, symbol)

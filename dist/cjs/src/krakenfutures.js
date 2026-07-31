@@ -2084,7 +2084,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             return this.safeOrder({
                 'info': order,
                 'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId': this.safeStringN(orderDictFromFetchOrder, ['cliOrdId']),
+                'clientOrderId': this.safeString(orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp': this.parse8601(datetime),
                 'datetime': datetime,
                 'lastTradeTimestamp': undefined,

@@ -2201,7 +2201,7 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
         }
-        const until = this.safeStringN(params, ['until']);
+        const until = this.safeString(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['ref_datetime'] = this.iso8601(until);

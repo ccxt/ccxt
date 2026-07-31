@@ -15,6 +15,10 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\DECIMAL_PLACES;
+use const ccxt\SIGNIFICANT_DIGITS;
+
 class bithumb extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(

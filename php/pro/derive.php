@@ -11,6 +11,8 @@ use ccxt\AuthenticationError;
 use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class derive extends \ccxt\async\derive {
     public function describe(): mixed {

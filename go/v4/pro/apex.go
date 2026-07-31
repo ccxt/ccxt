@@ -213,12 +213,12 @@ func (this *ApexCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id any = this.SafeStringN(trade, []any{"i", "id", "v"})
-	var marketId any = this.SafeStringN(trade, []any{"s", "symbol"})
+	var marketId any = this.SafeString2(trade, "s", "symbol")
 	market = this.SafeMarket(marketId, market, nil)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp any = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
-	var side any = this.SafeStringLowerN(trade, []any{"S", "side"})
-	var price any = this.SafeStringN(trade, []any{"p", "price"})
+	var side any = this.SafeStringLower2(trade, "S", "side")
+	var price any = this.SafeString2(trade, "p", "price")
 	var amount any = this.SafeStringN(trade, []any{"q", "v", "size"})
 	return this.SafeTrade(map[string]any{
 		"id":           id,

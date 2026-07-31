@@ -6,6 +6,14 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
+	// prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+	// PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol": true,
+			"fees":   true,
+		}, skippedProperties)
+	}
 	var format any = map[string]any{
 		"info":         map[string]any{},
 		"id":           "12345-67890:09876/54321",
