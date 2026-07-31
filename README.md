@@ -24,6 +24,10 @@ Current feature list:
 - ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
+## Sponsored Promotion
+
+[![Enjoy VIP+2 tier on Bitget when migrating from BitMEX](https://github.com/user-attachments/assets/51386fa3-a95c-4bef-aa3b-2d4ee1d8f5c3)](https://forms.gle/VLDTR7ushknvsUGH7)
+
 ## See Also
 
 - <sub>[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io)</sub> **[Freqtrade](https://www.freqtrade.io)** – leading opensource cryptocurrency algorithmic trading software!
