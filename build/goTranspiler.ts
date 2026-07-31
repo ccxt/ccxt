@@ -532,6 +532,9 @@ class NewTranspiler {
     exchangeTierMethods: Set<string> = new Set();
     private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
+    // lazily created in webworkerTranspile and kept alive for the lifetime of the
+    // instance, so every transpile stage reuses the same warm worker threads
+    piscina: Piscina | undefined;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
         // 'kucoinfutures'
     ]);
@@ -3273,6 +3276,18 @@ func (this *${className}) Init(userConfig map[string]any) {
     
 }
 
+// Module-level accumulators that a fresh process used to zero for us. --rest-and-ws runs
+// both stages in ONE process, so the ws stage must start from the same blank slate the
+// second `goTranspiler.ts --ws` process had — otherwise safeOptionsStructFile() dumps the
+// REST structs into go/v4/pro/exchange_wrapper_structs.go as well.
+function resetPerStageAccumulators () {
+    for (const k of Object.keys (goTypeOptions)) {
+        delete goTypeOptions[k];
+    }
+    baseGoTypeOptionNames.clear ();
+    predictionLocalOptionStructs.clear ();
+}
+
 if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws');
     // bare prediction-only ids (e.g. `goTranspiler.ts kalshi`) auto-route to the
@@ -3295,10 +3310,30 @@ if (isMainEntry(import.meta.url)) {
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     log.bright.green ({ force });
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+    // optional single-process REST+WS: keeps the one piscina pool (and its warm
+    // per-thread Transpilers) alive across both stages instead of paying a second
+    // process boot + cold pool. `npm run transpileGo` stays two processes for CI.
+    const restAndWs = process.argv.includes ('--rest-and-ws');
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {
         transpiler.transpileBaseMethods (TS_BASE_FILE)
         transpiler.transpilePredictionBaseMethods ()
+    } else if (restAndWs) {
+        // reproduces, in order, exactly what the two CI commands do:
+        //   goTranspiler.ts --force            -> transpileEverything (...)
+        //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
+        // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
+        // structs, which held automatically while each stage was its own process. Reusing
+        // the process would otherwise append every REST struct to go/v4/pro/ (measured:
+        // 1460 -> 7135 lines). Same class of latent bug as the `exchanges` clobber above.
+        resetPerStageAccumulators ();
+        await transpiler.transpileWS (force);
+        if (!inputExchanges.length) {
+            // full ws builds also transpile the prediction ws exchanges
+            await transpiler.transpileWS (force, true);
+        }
     } else if (ws) {
         if (prediction) {
             await transpiler.transpileWS (force, true);
