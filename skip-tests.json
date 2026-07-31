@@ -466,6 +466,7 @@
             },
             "ticker": {
                 "positiveValues": "basis-spread instruments (typ FFMCSX) legitimately have negative prices",
+                "maxIncrease": "change vs price checks break on negative-price basis-spread instruments",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:437"
             }
         }
@@ -1294,11 +1295,7 @@
                 "active": "not provided",
                 "contractSize": "not available in the coarse v1/symbols response"
             },
-            "fetchCurrencies": {
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "activeMajorCurrencies": "todo"
-            },
+            "fetchCurrencies": "the currency list is scraped from the exchange.gemini.com webpage which currently returns none",
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833",
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:661"
@@ -1694,11 +1691,14 @@
                 "currencyIdAndCode": "futures markets use XBT while the instance currency id is BTC, same as kucoin"
             },
             "ticker": {
-                "compareOHLC": "open can be outside the high-low range on their rolling window data"
+                "compareOHLC": "open can be outside the high-low range on their rolling window data",
+                "maxIncrease": "empty tickers with zero values on some contracts, same as kucoin"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695",
-                "activeMajorCurrencies": "eu entity disables deposit and withdraw flags for some major currencies"
+                "activeMajorCurrencies": "eu entity disables deposit and withdraw flags for some major currencies",
+                "withdraw": "not provided for some currencies",
+                "deposit": "not provided for some currencies"
             }
         }
     },
