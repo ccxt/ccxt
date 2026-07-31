@@ -2281,7 +2281,31 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 return listenKey;
             }
-            Object response = (this.spotPrivatePostUserDataStream(parameters)).join();
+            // guard against concurrent listenKey requests with a future on the base
+            // spot ws client - the first caller fetches the listenKey, concurrent
+            // callers await the future and resume as soon as the response arrives,
+            // otherwise the user-data subscriptions would be split across two connections
+            Client client = this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot"));
+            Object messageHash = "authenticate:listenKey";
+            Object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
+            if (Helpers.isTrue(isFetching))
+            {
+                client.future((String)messageHash).getFuture().join();
+                return this.safeString(this.options, "listenKey");
+            }
+            Helpers.addElementToObject(this.options, "listenKeyFetching", true);
+            client.future((String)messageHash); // create it before the await below, so concurrent callers can find it
+            Object response = null;
+            try
+            {
+                response = (this.spotPrivatePostUserDataStream(parameters)).join();
+            } catch(Exception e)
+            {
+                Helpers.addElementToObject(this.options, "listenKeyFetching", false);
+                client.reject(e, messageHash);
+                throw e;
+            }
+            Helpers.addElementToObject(this.options, "listenKeyFetching", false);
             //
             //    {
             //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2289,6 +2313,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             //
             listenKey = this.safeString(response, "listenKey");
             Helpers.addElementToObject(this.options, "listenKey", listenKey);
+            client.resolve(listenKey, messageHash);
             Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             return listenKey;
