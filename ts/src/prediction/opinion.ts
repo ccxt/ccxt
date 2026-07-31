@@ -2,8 +2,8 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type { Dict, Int, Market, PredictionEvent, PredictionOrderBook, fetchEventsParams } from '../base/types.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
+import type { Dict, Int, Market, OHLCV, PredictionEvent, PredictionOrderBook, PredictionTicker, fetchEventsParams } from '../base/types.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -30,14 +30,16 @@ export default class opinion extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
+                'fetchTicker': true,
                 'prediction': true,
             },
             'timeframes': {
-                '1m': '1m',
+                // live-verified via GET /token/price-history: only 1h/1d are recognized,
+                // any other interval value (including 1m/1w) silently falls back to 1d
                 '1h': '1h',
                 '1d': '1d',
-                '1w': '1w',
             },
             'urls': {
                 'logo': '', // todo
@@ -522,6 +524,87 @@ export default class opinion extends Exchange {
 
     /**
      * @method
+     * @name opinion#fetchTicker
+     * @description fetches the latest trade price and top of book for a single outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const tokenId = outcomeObj['outcomeId'] as string;
+        const promises = [
+            this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)),
+            this.opinionPublicGetTokenOrderbook ({ 'token_id': tokenId }),
+        ];
+        const [ priceResponse, bookResponse ] = await Promise.all (promises);
+        const response: Dict = { 'price': priceResponse, 'book': bookResponse };
+        return this.parsePredictionTicker (response, outcomeObj as any);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parsePredictionTicker
+     * @description parses a raw opinion latest-price + orderbook pair into a unified ticker object
+     * @param {object} ticker a { price, book } dict of the two raw responses
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+        //
+        //     {
+        //         "price": {
+        //             "errmsg": "",
+        //             "errno": 0,
+        //             "result": { "price": "0.002", "side": "buy-limit", "size": "205.03", "timestamp": 1766844546000, "tokenId": "..." }
+        //         },
+        //         "book": {
+        //             "errmsg": "",
+        //             "errno": 0,
+        //             "result": { "asks": [ { "price": "0.999", "size": "5500" } ], "bids": [], "market": "...", "timestamp": ..., "tokenId": "..." }
+        //         }
+        //     }
+        //
+        const marketAny = market as any;
+        const priceResponse = this.safeDict (ticker, 'price', {});
+        const priceResult = this.safeDict (priceResponse, 'result', {});
+        const bookResponse = this.safeDict (ticker, 'book', {});
+        const bookResult = this.safeDict (bookResponse, 'result', {});
+        const bids = this.safeList (bookResult, 'bids', []);
+        const asks = this.safeList (bookResult, 'asks', []);
+        const bestBid = this.safeDict (bids, 0, {});
+        const bestAsk = this.safeDict (asks, 0, {});
+        const last = this.safeNumber (priceResult, 'price');
+        const timestamp = this.safeInteger (priceResult, 'timestamp', this.milliseconds ());
+        return this.safePredictionTicker ({
+            'outcome': this.safeString (marketAny, 'outcome'),
+            'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
+            'label': this.safeString (marketAny, 'label'),
+            'market': this.safeString2 (marketAny, 'market', 'outcome'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeNumber (bestBid, 'price'),
+            'bidVolume': this.safeNumber (bestBid, 'size'),
+            'ask': this.safeNumber (bestAsk, 'price'),
+            'askVolume': this.safeNumber (bestAsk, 'size'),
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
      * @name opinion#fetchOrderBook
      * @description fetches the order book for a single outcome token
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
@@ -556,6 +639,79 @@ export default class opinion extends Exchange {
         const timestamp = this.safeInteger (result, 'timestamp');
         const orderbook = this.parseOrderBook (result, this.safeOutcomeSymbol (outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size');
         return this.safePredictionOrderBook (orderbook, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchOHLCV
+     * @description fetches historical candlestick data for an outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} timeframe the length of time each candle represents - only '1h' and '1d' are supported live
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of [OHLCV structures](https://docs.ccxt.com/#/?id=ohlcv-structure)
+     */
+    async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (!(timeframe in this.timeframes)) {
+            // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
+            const supportedKeys = Object.keys (this.timeframes);
+            throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
+        }
+        const outcomeObj = await this.loadOutcome (outcome);
+        const tokenId = outcomeObj['outcomeId'] as string;
+        const interval = this.safeString (this.timeframes, timeframe);
+        const response = await this.opinionPublicGetTokenPriceHistory (this.extend ({
+            'token_id': tokenId,
+            'interval': interval,
+        }, params));
+        //
+        //     {
+        //         "errmsg": "",
+        //         "errno": 0,
+        //         "result": {
+        //             "history": [
+        //                 { "p": "0.001", "t": 1785495600 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const history = this.safeList (result, 'history', []);
+        // the venue pre-buckets each tick to the requested interval boundary, so every point
+        // already represents one whole candle - no client-side aggregation is needed, unlike
+        // venues that only expose raw, irregularly-spaced trade ticks
+        const candles = [];
+        const historyLength = history.length;
+        for (let i = 0; i < historyLength; i++) {
+            const point = history[i];
+            const price = this.safeNumber (point, 'p');
+            const timestamp = this.safeTimestamp (point, 't');
+            if ((price !== undefined) && (timestamp !== undefined)) {
+                candles.push ([ timestamp, price, price, price, price, undefined ]);
+            }
+        }
+        // the venue returns history newest-first; sort ascending to match the unified OHLCV convention
+        const sorted = this.sortBy (candles, 0);
+        return this.filterBySinceLimit (sorted, since, limit, 0) as OHLCV[];
+    }
+
+    /**
+     * @method
+     * @name opinion#parseOHLCV
+     * @description parses a single opinion price-history point into a unified OHLCV candle
+     * @param {object} ohlcv the raw { p, t } point
+     * @param {object} [market] the outcome object the candle belongs to
+     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
+     */
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        // Unused: fetchOHLCV maps { p, t } points directly.
+        //
+        //     { "p": "0.001", "t": 1785495600 }
+        //
+        const price = this.safeNumber (ohlcv, 'p');
+        return [ this.safeTimestamp (ohlcv, 't'), price, price, price, price, undefined ];
     }
 
     hashMessage (message: any): string {
