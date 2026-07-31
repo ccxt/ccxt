@@ -1235,16 +1235,20 @@ class NewTranspiler {
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which this function reads `.ids` off of on the next call.
+        // Assigning to it worked only because each stage ran in its own process;
+        // --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map ((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
+        const allFilesPath = exchangeFiles.map ((file: string) => jsFolder + file );
+        log.blue('[csharp] Transpiling [', exchangeFiles.join(', '), ']');
         // a single exchange (scoped/debug run) is not worth a cold pool
         const transpiledFiles = (allFilesPath.length > 1)
             ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
@@ -1254,7 +1258,7 @@ class NewTranspiler {
             const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
@@ -1263,12 +1267,12 @@ class NewTranspiler {
             const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
+        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
