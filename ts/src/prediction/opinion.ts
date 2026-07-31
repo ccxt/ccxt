@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -35,6 +35,7 @@ export default class opinion extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
@@ -1112,6 +1113,68 @@ export default class opinion extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const orderData = this.safeDict (result, 'orderData', {});
         return this.parsePredictionOrder (orderData, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchMyTrades
+     * @description fetches the authenticated user's trades
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/trade
+     * @param {string} [outcome] filter by unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
+        }
+        let outcomeObj: any = undefined;
+        const request: Dict = { 'walletAddress': this.walletAddress };
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome (outcome);
+            const info = this.safeDict (outcomeObj, 'info', {});
+            request['marketId'] = this.safeInteger (info, 'marketId');
+        }
+        const response = await this.opinionPrivateGetTradeUserWalletAddress (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const trades = this.safeList (result, 'list', []);
+        return this.parsePredictionTrades (trades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parsePredictionTrade
+     * @description parses a raw opinion trade object into a unified trade object
+     * @param {object} trade the raw opinion TradeData object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+        // the trade payload carries no outcome token id (unlike positions), only marketId +
+        // outcomeSideEnum - not enough to resolve the exact leg on a multi-leg market without
+        // an extra market lookup, so identity falls back to the raw human label when uncached
+        const marketAny = market as any;
+        const timestamp = this.safeTimestamp (trade, 'createdAt');
+        const side = this.safeStringLower (trade, 'side');
+        return this.safePredictionTrade ({
+            'id': this.safeString (trade, 'txHash'),
+            'timestamp': timestamp,
+            'side': side,
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeNumber (trade, 'shares'),
+            'cost': this.safeNumber (trade, 'amount'),
+            'fee': {
+                'cost': this.safeNumber (trade, 'fee'),
+                'currency': 'USDT',
+            },
+            'outcome': this.safeString (marketAny, 'outcome', this.safeString (trade, 'outcome')),
+            'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
+            'label': this.safeString (marketAny, 'label', this.safeString (trade, 'outcome')),
+            'market': this.safeString2 (marketAny, 'market', 'outcome'),
+        });
     }
 
     /**
