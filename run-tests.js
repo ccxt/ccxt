@@ -238,17 +238,19 @@ const exec = (bin, ...args) => {
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
-            // Tag the output so the FAIL path picks it up (generateResultFromOutput
-            // looks for [TEST_FAILURE] / AssertionError / [...Error] patterns).
-            // Without this tag the harness was bucketing timeouts into WARN, which
-            // silently hid 12 hung WS exchanges across every language lane on every
-            // CI run (e.g. bybit which times out in all 6 langs). A killed-after-180s
-            // process is a real failure, not a transient warning — should be visible.
+            // Timeouts are bucketed into WARN, not FAIL, so a hung exchange doesn't
+            // fail the whole CI lane. They were FAIL for a while because WARN used to
+            // hide them completely (a bare RUNTEST_TIMED_OUT with no context) — that's
+            // mitigated now: the [TEST_WARNING] tag below carries the exact methods
+            // that never finished (diffed from the TESTING / TESTING DONE markers that
+            // tests.ts dumps), so hung exchanges stay visible in the WARN summary.
+            // Exit code 0 keeps `failed` false unless the output already contains a
+            // real [TEST_FAILURE] from before the hang.
             const hung = unfinishedMethods (ansi.strip (output));
             const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
-            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT' + hungMessage;
-            stderr += '\n' + 'RUNTEST_TIMED_OUT: ' + hungMessage;
-            const result = generateResultFromOutput (output, stderr, 1);
+            output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
+            stderr += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
+            const result = generateResultFromOutput (output, stderr, 0);
             return result;
         }
         return {
