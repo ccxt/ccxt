@@ -1691,14 +1691,23 @@
                 "currencyIdAndCode": "futures markets use XBT while the instance currency id is BTC, same as kucoin"
             },
             "ticker": {
+                "bid": "messed bid-ask, same as kucoin",
                 "compareOHLC": "open can be outside the high-low range on their rolling window data",
-                "maxIncrease": "empty tickers with zero values on some contracts, same as kucoin"
+                "maxIncrease": "empty tickers with zero values on some contracts, same as kucoin",
+                "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high, same as kucoin"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo, same as kucoin"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695",
                 "activeMajorCurrencies": "eu entity disables deposit and withdraw flags for some major currencies",
                 "withdraw": "not provided for some currencies",
-                "deposit": "not provided for some currencies"
+                "deposit": "not provided for some currencies",
+                "depositForNonCrypto": "not provided, same as kucoin",
+                "withdrawForNonCrypto": "not provided, same as kucoin",
+                "limits": "is not provided, same as kucoin",
+                "maxInactiveCurrenciesPercentage": 60
             }
         }
     },
