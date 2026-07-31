@@ -101,13 +101,17 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
                     object key = getValue(keys, i);
+                    if (isTrue(inOp(skippedProperties, key)))
+                    {
+                        continue;
+                    }
                     assert(inOp(entry, key), add(add(add("\"", stringValue(key)), "\" key is missing from structure"), logText));
                     object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowed empty values" list
                     // - it's not undefined
-                    if (isTrue(isTrue((isTrue(emptyAllowedForThisKey) && isTrue((isEqual(value, null))))) || isTrue((inOp(skippedProperties, key)))))
+                    if (isTrue(isTrue(emptyAllowedForThisKey) && isTrue((isEqual(value, null)))))
                     {
                         continue;
                     }

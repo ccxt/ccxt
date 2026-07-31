@@ -225,6 +225,10 @@ public partial class pacifica : Exchange
                     { "taker", this.parseNumber("0.0004") },
                     { "maker", this.parseNumber("0.00015") },
                 } },
+                { "spot", new Dictionary<string, object>() {
+                    { "taker", this.parseNumber("0.0004") },
+                    { "maker", this.parseNumber("0.00015") },
+                } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", false },
