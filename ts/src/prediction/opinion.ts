@@ -37,8 +37,8 @@ export default class opinion extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrderBook': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
@@ -1140,7 +1140,50 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetTradeUserWalletAddress (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'list', []);
+        // the trade payload carries no outcome token id, only marketId + outcomeSideEnum, so
+        // resolve the exact leg's tokenId via a per-market lookup before parsing
+        const tradesLength = trades.length;
+        for (let i = 0; i < tradesLength; i++) {
+            const trade = trades[i];
+            const marketId = this.safeInteger (trade, 'marketId');
+            if (marketId !== undefined) {
+                const tradeMarket = await this.loadTradeMarket (marketId);
+                const info = this.safeDict (tradeMarket, 'info', {});
+                const isYes = (this.safeStringLower (trade, 'outcomeSideEnum') === 'yes');
+                trade['tokenId'] = isYes ? this.safeString (info, 'yesTokenId') : this.safeString (info, 'noTokenId');
+            }
+        }
         return this.parsePredictionTrades (trades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#loadTradeMarket
+     * @description fetches and caches a single market by its numeric marketId, and indexes its outcomes, so a trade carrying only marketId + outcomeSideEnum can be resolved to its exact outcome token
+     * @param {int} marketId the numeric market id
+     * @returns {object} the parsed market
+     */
+    async loadTradeMarket (marketId: Int): Promise<Market> {
+        const cacheKey = 'tradeMarketsById';
+        const cached = this.safeDict (this.options, cacheKey, {});
+        const idStr = marketId.toString ();
+        const existing = this.safeDict (cached, idStr);
+        if (existing !== undefined) {
+            return existing as unknown as Market;
+        }
+        const response = await this.opinionPublicGetMarketMarketId ({ 'marketId': marketId });
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeDict (result, 'data', {});
+        const market = this.parseOpinionMarket (data);
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary ();
+        }
+        this.markets[market['market']] = market;
+        this.indexMarketOutcomes (market);
+        cached[idStr] = market;
+        this.options[cacheKey] = cached;
+        return market;
     }
 
     /**
@@ -1153,10 +1196,8 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
-        // the trade payload carries no outcome token id (unlike positions), only marketId +
-        // outcomeSideEnum - not enough to resolve the exact leg on a multi-leg market without
-        // an extra market lookup, so identity falls back to the raw human label when uncached
-        const marketAny = market as any;
+        const tokenId = this.safeString (trade, 'tokenId');
+        const outcomeObj = this.safeOutcome (tokenId, market as any);
         const timestamp = this.safeTimestamp (trade, 'createdAt');
         const side = this.safeStringLower (trade, 'side');
         return this.safePredictionTrade ({
@@ -1170,10 +1211,10 @@ export default class opinion extends Exchange {
                 'cost': this.safeNumber (trade, 'fee'),
                 'currency': 'USDT',
             },
-            'outcome': this.safeString (marketAny, 'outcome', this.safeString (trade, 'outcome')),
-            'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
-            'label': this.safeString (marketAny, 'label', this.safeString (trade, 'outcome')),
-            'market': this.safeString2 (marketAny, 'market', 'outcome'),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString2 (outcomeObj, 'market', 'outcome'),
         });
     }
 
