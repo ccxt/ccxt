@@ -75,6 +75,21 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
+// every extra worker rebuilds the whole typescript program (seconds of cpu on top of the
+// real per-file work), so oversubscribing a wide CI runner costs more than it wins.
+// Cap the pool unless CCXT_TRANSPILE_PROCESSES asks for a specific size.
+function csharpWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (4, os.availableParallelism ()));
+}
+
+// `--multi` already forks one process per chunk of exchanges; a pool inside each fork
+// would multiply the Transpilers instead of the throughput
+const isForkedChild = process.argv.includes ('--child');
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
@@ -1197,11 +1212,19 @@ class NewTranspiler {
         log.bright.green ('Transpiled successfully.')
     }
 
+    async closeWorkerPool () {
+        if (this.piscina) {
+            const pool = this.piscina;
+            this.piscina = undefined;
+            await pool.destroy ();
+        }
+    }
+
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
         // same threads instead of each spawning their own full-size pool
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
                 filename: resolve(__dirname, 'csharp-worker.js'),
@@ -1209,20 +1232,32 @@ class NewTranspiler {
             });
         }
         const piscina = this.piscina;
+        const configKey = JSON.stringify (parserConfig);
 
-        // one chunk per thread — a fixed chunkSize of 20 left most cores idle
-        // (e.g. 90 test files → 5 chunks → 5 busy threads on an 18-core machine)
-        const chunkSize = Math.max (1, Math.ceil (allFiles.length / maxThreads));
+        // one file per task so worker threads always run different files (Piscina queues
+        // the rest). The Transpiler is cached per thread, so extra threads only pay the
+        // program warm-up once — see csharpWorkerThreads for why the pool stays small.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (let i = 0; i < allFiles.length; i++) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [allFiles[i]]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult: any[] = [];
+        for (const chunk of workerResult) {
+            if (Array.isArray (chunk)) {
+                flatResult.push (...chunk);
+                continue;
+            }
+            flatResult.push (...chunk.result);
+            // csharpComments lives on the main thread (the wrapper writer reads it), so
+            // replay the raw comments the worker saw through the same transform
+            for (const comment of chunk.comments || []) {
+                this.transformLeadingComment (comment);
+            }
+        }
         return flatResult;
     }
 
@@ -1260,9 +1295,12 @@ class NewTranspiler {
 
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        // a single exchange (scoped/debug run) is not worth a cold pool, and a forked
+        // `--multi` child is already one process per chunk
+        const transpiledFiles = (allFilesPath.length > 1 && !isForkedChild)
+            ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
             const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER;
@@ -1814,37 +1852,41 @@ async function runMain () {
     }
     const transpiler = new NewTranspiler ();
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-        transpiler.transpilePredictionBaseMethods ()
-    } else if (ws) {
-        if (prediction) {
-            await transpiler.transpileWS (force, true)
-        } else {
-            await transpiler.transpileWS (force)
-            if (!inputExchanges.length) {
-                // full ws builds also transpile the prediction ws exchanges
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+            transpiler.transpilePredictionBaseMethods ()
+        } else if (ws) {
+            if (prediction) {
                 await transpiler.transpileWS (force, true)
+            } else {
+                await transpiler.transpileWS (force)
+                if (!inputExchanges.length) {
+                    // full ws builds also transpile the prediction ws exchanges
+                    await transpiler.transpileWS (force, true)
+                }
             }
+        } else if (test) {
+            await transpiler.transpileTests ()
+        } else if (multiprocess) {
+            // run the serial tail (base methods, tests, error hierarchy) in the parent
+            // CONCURRENTLY with the exchange fan-out — previously the first fork ran it
+            // after finishing its own exchange chunk, serializing most of the build time
+            await Promise.all ([
+                parallelizeTranspiling (exchangeIds, undefined, force, false, false, true),
+                (async () => {
+                    transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+                    await transpiler.transpileTests ()
+                    transpiler.transpileErrorHierarchy ()
+                }) (),
+            ])
+            // the prediction exchanges are few — transpile them serially after the workers finish
+            await transpiler.transpileEverything (force, false, false, false, true)
+        } else {
+            await transpiler.transpileEverything (force, child, baseOnly, examples, prediction)
         }
-    } else if (test) {
-        await transpiler.transpileTests ()
-    } else if (multiprocess) {
-        // run the serial tail (base methods, tests, error hierarchy) in the parent
-        // CONCURRENTLY with the exchange fan-out — previously the first fork ran it
-        // after finishing its own exchange chunk, serializing most of the build time
-        await Promise.all ([
-            parallelizeTranspiling (exchangeIds, undefined, force, false, false, true),
-            (async () => {
-                transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-                await transpiler.transpileTests ()
-                transpiler.transpileErrorHierarchy ()
-            }) (),
-        ])
-        // the prediction exchanges are few — transpile them serially after the workers finish
-        await transpiler.transpileEverything (force, false, false, false, true)
-    } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction)
+    } finally {
+        await transpiler.closeWorkerPool ()
     }
 }
 
