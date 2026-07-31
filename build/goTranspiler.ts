@@ -3310,9 +3310,9 @@ if (isMainEntry(import.meta.url)) {
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     log.bright.green ({ force });
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
-    // optional single-process REST+WS: keeps the one piscina pool (and its warm
-    // per-thread Transpilers) alive across both stages instead of paying a second
-    // process boot + cold pool. `npm run transpileGo` stays two processes for CI.
+    // single-process REST+WS (default via npm run transpileGO / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
     const restAndWs = process.argv.includes ('--rest-and-ws');
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {
