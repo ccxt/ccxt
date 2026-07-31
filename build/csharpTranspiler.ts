@@ -11,7 +11,7 @@ import os from 'os'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import {Transpiler as OldTranspiler } from "./transpile.js";
 import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
@@ -85,10 +85,6 @@ function csharpWorkerThreads () {
     }
     return Math.max (1, Math.min (4, os.availableParallelism ()));
 }
-
-// `--multi` already forks one process per chunk of exchanges; a pool inside each fork
-// would multiply the Transpilers instead of the throughput
-const isForkedChild = process.argv.includes ('--child');
 
 class NewTranspiler {
 
@@ -1135,29 +1131,26 @@ class NewTranspiler {
         const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         this.isPrediction = prediction
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true )
         this.isPrediction = false
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false, prediction = false) {
+    async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
         let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
         const csharpFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
             , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively (csharpFolder)
-        }
+        createFolderRecursively (csharpFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
         if (prediction) {
-            // a scoped run (e.g. a --multi worker chunk of regular exchanges) carries regular
-            // ids in argv — the prediction pass must not try to transpile those from
-            // ts/src/prediction/ (the files don't exist there); the multi parent transpiles
-            // the prediction set itself after the workers finish
+            // a scoped run (e.g. `csharpTranspiler.ts binance`) carries regular ids in argv —
+            // the prediction pass must not try to transpile those from ts/src/prediction/
+            // (the files don't exist there)
             const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
             if (exchanges.length && !predictionOnly.length) {
                 return;
@@ -1168,7 +1161,7 @@ class NewTranspiler {
 
         if (!baseOnly && !examplesOnly) {
             this.isPrediction = prediction
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force)
             this.isPrediction = false
         }
 
@@ -1189,12 +1182,9 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             return;
         }
-        if (child) {
-            return;
-        }
 
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
-        await this.transpileEverything (force, child, false, false, true)
+        await this.transpileEverything (force, false, false, true)
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -1270,10 +1260,10 @@ class NewTranspiler {
         }
         const csharpFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
         const options = { csharpFolder, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true, ws, true)
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, ws, true)
     }
 
-    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false, prediction = false) {
+    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1296,9 +1286,8 @@ class NewTranspiler {
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        // a single exchange (scoped/debug run) is not worth a cold pool, and a forked
-        // `--multi` child is already one process per chunk
-        const transpiledFiles = (allFilesPath.length > 1 && !isForkedChild)
+        // a single exchange (scoped/debug run) is not worth a cold pool
+        const transpiledFiles = (allFilesPath.length > 1)
             ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
             : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
@@ -1843,13 +1832,9 @@ async function runMain () {
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
-    const child = process.argv.includes ('--child')
     const baseClassOnly = process.argv.includes ('--baseClass')
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green ({ force })
-    }
+    log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     try {
@@ -1868,22 +1853,8 @@ async function runMain () {
             }
         } else if (test) {
             await transpiler.transpileTests ()
-        } else if (multiprocess) {
-            // run the serial tail (base methods, tests, error hierarchy) in the parent
-            // CONCURRENTLY with the exchange fan-out — previously the first fork ran it
-            // after finishing its own exchange chunk, serializing most of the build time
-            await Promise.all ([
-                parallelizeTranspiling (exchangeIds, undefined, force, false, false, true),
-                (async () => {
-                    transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-                    await transpiler.transpileTests ()
-                    transpiler.transpileErrorHierarchy ()
-                }) (),
-            ])
-            // the prediction exchanges are few — transpile them serially after the workers finish
-            await transpiler.transpileEverything (force, false, false, false, true)
         } else {
-            await transpiler.transpileEverything (force, child, baseOnly, examples, prediction)
+            await transpiler.transpileEverything (force, baseOnly, examples, prediction)
         }
     } finally {
         await transpiler.closeWorkerPool ()
