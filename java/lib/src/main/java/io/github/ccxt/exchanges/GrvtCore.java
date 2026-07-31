@@ -1075,9 +1075,12 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "instrument");
+        Object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
+            put( "timestamp", timestamp );
+            put( "datetime", GrvtCore.this.iso8601(timestamp) );
             put( "open", GrvtCore.this.safeString(ticker, "open_price") );
             put( "high", GrvtCore.this.safeString(ticker, "high_price") );
             put( "low", GrvtCore.this.safeString(ticker, "low_price") );
