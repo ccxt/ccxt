@@ -358,7 +358,6 @@ class BaseExchange {
         'bitflyer',
         'bitget',
         'bithumb',
-        'bitmart',
         'bitmex',
         'bitopro',
         'bitrue',
@@ -3643,7 +3642,7 @@ class BaseExchange {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
                 $ascending = true;
-                if ((is_array($array[0]) && array_key_exists($key, $array[0]))) {
+                if ((is_array($array[0]) && array_key_exists($key ?? '', $array[0]))) {
                     $first = $array[0][$key];
                     $last = $array[$arrayLength - 1][$key];
                     if ($first !== null && $last !== null) {
@@ -3730,7 +3729,7 @@ class BaseExchange {
          * @param {boolean} $enabled true to enable sandbox mode, false to disable it
          */
         if ($enabled) {
-            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+            if (is_array($this->urls) && array_key_exists('test' ?? '', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
                     $this->urls['apiBackup'] = $this->urls['api'];
                     $this->urls['api'] = $this->urls['test'];
@@ -3743,7 +3742,7 @@ class BaseExchange {
             }
             // set flag
             $this->isSandboxModeEnabled = true;
-        } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
+        } elseif (is_array($this->urls) && array_key_exists('apiBackup' ?? '', $this->urls)) {
             if (gettype($this->urls['api']) === 'string') {
                 $this->urls['api'] = $this->urls['apiBackup'];
             } else {
@@ -3767,7 +3766,7 @@ class BaseExchange {
         if ($enable) {
             $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
             $this->urls['api'] = $this->urls['demo'];
-        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading' ?? '', $this->urls)) {
             $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
             $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
             $this->urls = $newUrls;
@@ -4211,7 +4210,7 @@ class BaseExchange {
         for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
             $marketType = $unifiedMarketTypes[$i];
             // if $marketType is not filled for this exchange, don't add that in `features`
-            if (!(is_array($initialFeatures) && array_key_exists($marketType, $initialFeatures))) {
+            if (!(is_array($initialFeatures) && array_key_exists($marketType ?? '', $initialFeatures))) {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
@@ -4243,7 +4242,7 @@ class BaseExchange {
         // ### corrections ###
         //
         // createOrder
-        if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
+        if (is_array($featuresObj) && array_key_exists('createOrder' ?? '', $featuresObj)) {
             $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
             $featuresObj['createOrder']['stopLoss'] = $value;
             $featuresObj['createOrder']['takeProfit'] = $value;
@@ -4251,7 +4250,7 @@ class BaseExchange {
                 // default 'hedged' => false
                 $featuresObj['createOrder']['hedged'] = false;
                 // default 'leverage' => false
-                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage', $featuresObj['createOrder']))) {
+                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage' ?? '', $featuresObj['createOrder']))) {
                     $featuresObj['createOrder']['leverage'] = false;
                 }
             }
@@ -4267,7 +4266,7 @@ class BaseExchange {
             $featureBlock = $featuresObj[$key];
             if (!$this->in_array($key, array( 'sandbox' )) && $featureBlock !== null) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (!(is_array($featureBlock) && array_key_exists('symbolRequired', $featureBlock))) {
+                if (!(is_array($featureBlock) && array_key_exists('symbolRequired' ?? '', $featureBlock))) {
                     $featureBlock['symbolRequired'] = $this->in_array($key, array( 'createOrder', 'createOrders', 'fetchOHLCV' ));
                 }
             }
@@ -4306,7 +4305,7 @@ class BaseExchange {
             return $defaultValue; // $marketType is required
         }
         // if $marketType (e.g. 'option') does not exist in features
-        if (!(is_array($this->features) && array_key_exists($marketType, $this->features))) {
+        if (!(is_array($this->features) && array_key_exists($marketType ?? '', $this->features))) {
             return $defaultValue; // unsupported $marketType, check "exchange.features" for details
         }
         // if $marketType dict null
@@ -4319,7 +4318,7 @@ class BaseExchange {
                 return $defaultValue; // $subType is required for non-spot markets
             }
         } else {
-            if (!(is_array($this->features[$marketType]) && array_key_exists($subType, $this->features[$marketType]))) {
+            if (!(is_array($this->features[$marketType]) && array_key_exists($subType ?? '', $this->features[$marketType]))) {
                 return $defaultValue; // unsupported $subType, check "exchange.features" for details
             }
             // if $subType dict null
@@ -4332,7 +4331,7 @@ class BaseExchange {
         if ($methodName === null) {
             return ($defaultValue !== null) ? $defaultValue : $methodsContainer;
         }
-        if (!(is_array($methodsContainer) && array_key_exists($methodName, $methodsContainer))) {
+        if (!(is_array($methodsContainer) && array_key_exists($methodName ?? '', $methodsContainer))) {
             return $defaultValue; // unsupported method, check "exchange.features" for details');
         }
         $methodDict = $methodsContainer[$methodName];
@@ -4346,7 +4345,7 @@ class BaseExchange {
         $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         $parentKey = $splited[0];
         $subKey = $this->safe_string($splited, 1);
-        if (!(is_array($methodDict) && array_key_exists($parentKey, $methodDict))) {
+        if (!(is_array($methodDict) && array_key_exists($parentKey ?? '', $methodDict))) {
             return $defaultValue; // unsupported $paramName, check "exchange.features" for details');
         }
         $dictionary = $this->safe_dict($methodDict, $parentKey);
@@ -4359,7 +4358,7 @@ class BaseExchange {
                 return $methodDict[$parentKey];
             }
             // throw an exception for unsupported $subKey
-            if (!(is_array($methodDict[$parentKey]) && array_key_exists($subKey, $methodDict[$parentKey]))) {
+            if (!(is_array($methodDict[$parentKey]) && array_key_exists($subKey ?? '', $methodDict[$parentKey]))) {
                 return $defaultValue; // unsupported $subKey, check "exchange.features" for details
             }
             return $methodDict[$parentKey][$subKey];
@@ -4632,7 +4631,7 @@ class BaseExchange {
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
-            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'] ?? '', $this->markets_by_id)) {
                 $marketsByIdArray = ($this->markets_by_id[$value['id']]);
                 $marketsByIdArray[] = $value;
                 $this->markets_by_id[$value['id']] = $marketsByIdArray;
@@ -4672,7 +4671,7 @@ class BaseExchange {
                 $market = $values[$i];
                 $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_dict($market, 'precision', array());
-                if (is_array($market) && array_key_exists('base', $market)) {
+                if (is_array($market) && array_key_exists('base' ?? '', $market)) {
                     $currency = $this->safe_currency_structure(array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
                         'numericId' => $this->safe_integer($market, 'baseNumericId'),
@@ -4681,7 +4680,7 @@ class BaseExchange {
                     ));
                     $baseCurrencies[] = $currency;
                 }
-                if (is_array($market) && array_key_exists('quote', $market)) {
+                if (is_array($market) && array_key_exists('quote' ?? '', $market)) {
                     $currency = $this->safe_currency_structure(array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_integer($market, 'quoteNumericId'),
@@ -4832,7 +4831,7 @@ class BaseExchange {
             // $this->number = 'strval';
             $firstTrade = $this->safe_value($rawTrades, 0);
             // parse $trades if they haven't already been parsed
-            $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
+            $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info' ?? '', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id' ?? '', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
             } else {
@@ -4910,7 +4909,7 @@ class BaseExchange {
             $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
-                if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
+                if (is_array($reducedFees[$i]) && array_key_exists('rate' ?? '', $reducedFees[$i])) {
                     $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
                 }
             }
@@ -4918,7 +4917,7 @@ class BaseExchange {
                 // copy $fee to avoid modification by reference
                 $feeCopy = $this->deep_extend($fee);
                 $feeCopy['cost'] = $this->safe_number($feeCopy, 'cost');
-                if (is_array($feeCopy) && array_key_exists('rate', $feeCopy)) {
+                if (is_array($feeCopy) && array_key_exists('rate' ?? '', $feeCopy)) {
                     $feeCopy['rate'] = $this->safe_number($feeCopy, 'rate');
                 }
                 $reducedFees[] = $feeCopy;
@@ -5004,7 +5003,7 @@ class BaseExchange {
             $entry['cost'] = $this->safe_number($entry, 'cost');
             $tradeFee = $this->safe_dict($entry, 'fee', array());
             $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
-            if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
+            if (is_array($tradeFee) && array_key_exists('rate' ?? '', $tradeFee)) {
                 $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
             $entryFees = $this->safe_list($entry, 'fees', array());
@@ -5280,7 +5279,7 @@ class BaseExchange {
 
     public function parse_fee_numeric(mixed $fee) {
         $fee['cost'] = $this->safe_number($fee, 'cost'); // ensure numeric
-        if (is_array($fee) && array_key_exists('rate', $fee)) {
+        if (is_array($fee) && array_key_exists('rate' ?? '', $fee)) {
             $fee['rate'] = $this->safe_number($fee, 'rate');
         }
         return $fee;
@@ -5389,11 +5388,11 @@ class BaseExchange {
                     // omit null $cost, does not make sense, however, don't omit '0' costs, still make sense
                     continue;
                 }
-                if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
+                if (!(is_array($reduced) && array_key_exists($feeCurrencyCode ?? '', $reduced))) {
                     $reduced[$feeCurrencyCode] = array();
                 }
                 $rateKey = ($rate === null) ? '' : $rate;
-                if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
+                if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey ?? '', $reduced[$feeCurrencyCode])) {
                     $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
                     $reduced[$feeCurrencyCode][$rateKey] = array(
@@ -5900,7 +5899,7 @@ class BaseExchange {
         }
         for ($i = 0; $i < count($currenciesToCheck); $i++) {
             $networks = $this->safe_dict($currenciesToCheck[$i], 'networks', array());
-            if (is_array($networks) && array_key_exists($networkCode, $networks)) {
+            if (is_array($networks) && array_key_exists($networkCode ?? '', $networks)) {
                 return $this->safe_string($networks[$networkCode], 'id');
             }
         }
@@ -5925,7 +5924,7 @@ class BaseExchange {
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if ($currencyCode === null) {
             $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
-            if ((is_array($networkIdsByCodes) && array_key_exists($preferredChain, $networkIdsByCodes)) && (is_array($networkIdsByCodes) && array_key_exists($alternativeChain, $networkIdsByCodes))) {
+            if ((is_array($networkIdsByCodes) && array_key_exists($preferredChain ?? '', $networkIdsByCodes)) && (is_array($networkIdsByCodes) && array_key_exists($alternativeChain ?? '', $networkIdsByCodes))) {
                 return $networkCode;
             }
         }
@@ -5944,7 +5943,7 @@ class BaseExchange {
     public function default_network_code(string $currencyCode) {
         $defaultNetworkCode = null;
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
-        if (is_array($defaultNetworks) && array_key_exists($currencyCode, $defaultNetworks)) {
+        if (is_array($defaultNetworks) && array_key_exists($currencyCode ?? '', $defaultNetworks)) {
             // if currency had set its network in "defaultNetworks", use it
             $defaultNetworkCode = $defaultNetworks[$currencyCode];
         } else {
@@ -5976,7 +5975,7 @@ class BaseExchange {
             } else {
                 // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
                 $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
-                if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode, $indexedNetworkEntries)) {
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode ?? '', $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkIdOrCode;
                 } else {
                     throw new NotSupported($this->id . ' - ' . $networkIdOrCode . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
@@ -5989,7 +5988,7 @@ class BaseExchange {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 $defaultNetworkCode = $this->default_network_code($currencyCode);
                 $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->network_code_to_id($defaultNetworkCode, $currencyCode);
-                if (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) {
+                if (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId ?? '', $indexedNetworkEntries)) {
                     return $defaultNetworkId;
                 }
                 throw new NotSupported($this->id . ' - can not determine the default network, please pass param["network"] one from : ' . implode(', ', $availableNetworkIds));
@@ -6063,7 +6062,7 @@ class BaseExchange {
 
     public function load_trading_limits(?array $symbols = null, $reload = false, $params = array()) {
         if ($this->has['fetchTradingLimits']) {
-            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
+            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded' ?? '', $this->options))) {
                 $response = $this->fetch_trading_limits($symbols);
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
@@ -6551,7 +6550,7 @@ class BaseExchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
+        if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
@@ -6567,7 +6566,7 @@ class BaseExchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
         if ($marketId !== null) {
-            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
                 $numMarkets = count($markets);
                 if ($numMarkets === 1) {
@@ -6706,7 +6705,7 @@ class BaseExchange {
     }
 
     public function get_supported_mapping($key, $mapping = array()) {
-        if (is_array($mapping) && array_key_exists($key, $mapping)) {
+        if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
         } else {
             throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
@@ -6863,7 +6862,7 @@ class BaseExchange {
         if ($string === null) {
             return;
         }
-        if (is_array($exact) && array_key_exists($string, $exact)) {
+        if (is_array($exact) && array_key_exists($string ?? '', $exact)) {
             throw new $exact[$string]($message);
         }
     }
@@ -7165,9 +7164,9 @@ class BaseExchange {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
         if (gettype($code) === 'string') {
-            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+            if (is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies)) {
                 return $this->currencies[$code];
-            } elseif (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
+            } elseif (is_array($this->currencies_by_id) && array_key_exists($code ?? '', $this->currencies_by_id)) {
                 return $this->currencies_by_id[$code];
             }
         }
@@ -7178,9 +7177,9 @@ class BaseExchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
         }
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+        if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
             return $this->markets[$symbol];
-        } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+        } elseif (is_array($this->markets_by_id) && array_key_exists($symbol ?? '', $this->markets_by_id)) {
             $markets = $this->markets_by_id[$symbol];
             $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
             for ($i = 0; $i < count($markets); $i++) {
@@ -7214,7 +7213,7 @@ class BaseExchange {
                 } else {
                     // check if base currency is inside dict
                     $baseCurrencyCode = str_replace($leverageSuffix, '', $currencyCode);
-                    if (is_array($existingCurrencies) && array_key_exists($baseCurrencyCode, $existingCurrencies)) {
+                    if (is_array($existingCurrencies) && array_key_exists($baseCurrencyCode ?? '', $existingCurrencies)) {
                         return true;
                     }
                 }
@@ -7633,7 +7632,7 @@ class BaseExchange {
          * @return array([string, object]) the trigger-direction value and omited $params
          */
         $triggerDirection = $this->safe_string($params, 'triggerDirection');
-        $exchangeSpecificDefined = ($exchangeSpecificKey !== null) && (is_array($params) && array_key_exists($exchangeSpecificKey, $params));
+        $exchangeSpecificDefined = ($exchangeSpecificKey !== null) && (is_array($params) && array_key_exists($exchangeSpecificKey ?? '', $params));
         if ($triggerDirection !== null) {
             $params = $this->omit($params, 'triggerDirection');
         }
@@ -7891,9 +7890,9 @@ class BaseExchange {
          */
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $lowercaseAccount = strtolower($account);
-        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount ?? '', $accountsByType)) {
             return $accountsByType[$lowercaseAccount];
-        } elseif ((is_array($this->markets) && array_key_exists($account, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account, $this->markets_by_id))) {
+        } elseif ((is_array($this->markets) && array_key_exists($account ?? '', $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account ?? '', $this->markets_by_id))) {
             $market = $this->market($account);
             return $market['id'];
         } else {
@@ -8388,10 +8387,10 @@ class BaseExchange {
     public function sort_cursor_paginated_result($result) {
         $first = $this->safe_value($result, 0);
         if ($first !== null) {
-            if (is_array($first) && array_key_exists('timestamp', $first)) {
+            if (is_array($first) && array_key_exists('timestamp' ?? '', $first)) {
                 return $this->sort_by($result, 'timestamp', true);
             }
-            if (is_array($first) && array_key_exists('id', $first)) {
+            if (is_array($first) && array_key_exists('id' ?? '', $first)) {
                 return $this->sort_by($result, 'id', true);
             }
         }
@@ -8404,7 +8403,7 @@ class BaseExchange {
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
             $uniqValue = $fallbackToTimestamp ? $this->safe_string_n($entry, array( 'id', 'timestamp', 0 )) : $this->safe_string($entry, 'id');
-            if ($uniqValue !== null && !(is_array($uniqueDic) && array_key_exists($uniqValue, $uniqueDic))) {
+            if ($uniqValue !== null && !(is_array($uniqueDic) && array_key_exists($uniqValue ?? '', $uniqueDic))) {
                 $uniqueDic[$uniqValue] = 1;
                 $uniqueResult[] = $entry;
             }
@@ -8429,7 +8428,7 @@ class BaseExchange {
                 // unique trade identifier
                 $id = 't_' . (string) $timestamp . '_' . $side . '_' . $price . '_' . $amount;
             }
-            if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id, $uniqueResult))) {
+            if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id ?? '', $uniqueResult))) {
                 $uniqueResult[$id] = $entry;
             }
         }
@@ -8795,14 +8794,14 @@ class BaseExchange {
     }
 
     public function clean_unsubscription($client, string $subHash, string $unsubHash, $subHashIsPrefix = false) {
-        if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($unsubHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$unsubHash]);
         }
         if (!$subHashIsPrefix) {
-            if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($subHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$subHash]);
             }
-            if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($subHash ?? '', $client->futures)) {
                 $error = new UnsubscribeError($this->id . ' ' . $subHash);
                 $client->reject($error, $subHash);
             }
@@ -8836,8 +8835,8 @@ class BaseExchange {
                 $symbolAndTimeFrame = $symbolsAndTimeframes[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (($this->ohlcvs !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
-                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                if (($this->ohlcvs !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                         unset($this->ohlcvs[$symbol][$timeframe]);
                     }
                 }
@@ -8846,19 +8845,19 @@ class BaseExchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trades') {
-                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                    if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                         unset($this->trades[$symbol]);
                     }
                 } elseif ($topic === 'orderbook') {
-                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                    if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                         unset($this->orderbooks[$symbol]);
                     }
                 } elseif ($topic === 'ticker') {
-                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                    if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                         unset($this->tickers[$symbol]);
                     }
                 } elseif ($topic === 'bidsasks') {
-                    if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                    if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                         unset($this->bidsasks[$symbol]);
                     }
                 }
@@ -8874,7 +8873,7 @@ class BaseExchange {
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
                     $futures = $client->futures;
-                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
+                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot' ?? '', $futures))) {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }
@@ -8882,7 +8881,7 @@ class BaseExchange {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];
-                    if (is_array($this->tickers) && array_key_exists($tickerSymbol, $this->tickers)) {
+                    if (is_array($this->tickers) && array_key_exists($tickerSymbol ?? '', $this->tickers)) {
                         unset($this->tickers[$tickerSymbol]);
                     }
                 }
@@ -8890,7 +8889,7 @@ class BaseExchange {
                 $bidsaskSymbols = is_array($this->bidsasks) ? array_keys($this->bidsasks) : array();
                 for ($i = 0; $i < count($bidsaskSymbols); $i++) {
                     $bidsaskSymbol = $bidsaskSymbols[$i];
-                    if (is_array($this->bidsasks) && array_key_exists($bidsaskSymbol, $this->bidsasks)) {
+                    if (is_array($this->bidsasks) && array_key_exists($bidsaskSymbol ?? '', $this->bidsasks)) {
                         unset($this->bidsasks[$bidsaskSymbol]);
                     }
                 }

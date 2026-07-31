@@ -754,7 +754,7 @@ class modetrade extends Exchange {
         //         "is_maker" => "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
+        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
@@ -1273,7 +1273,7 @@ class modetrade extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
+         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -1322,7 +1322,7 @@ class modetrade extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag', $order)); TO_DO
+        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag' ?? '', $order)); TO_DO
         //
         // stop $order after creating it:
         //   {

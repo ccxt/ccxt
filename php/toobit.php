@@ -963,7 +963,7 @@ class toobit extends Exchange {
         $lotSizeFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $minNotionalFilter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
         $symbol = $base . '/' . $quote;
-        $isContract = (is_array($market) && array_key_exists('contractMultiplier', $market));
+        $isContract = (is_array($market) && array_key_exists('contractMultiplier' ?? '', $market));
         $inverse = $this->safe_bool_2($market, 'isInverse', 'inverse');
         if ($isContract) {
             $symbol .= ':' . $settle;
@@ -1867,7 +1867,7 @@ class toobit extends Exchange {
             }
             $params = $this->omit($params, 'takeProfit');
         }
-        if (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+        if (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
         return array( $request, $params );
@@ -2854,7 +2854,7 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity', $transaction));
+        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction));
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,

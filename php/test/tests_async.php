@@ -271,29 +271,30 @@ class testMainClass {
             } elseif (!(is_array($this->test_files) && array_key_exists($method_name, $this->test_files))) {
                 $skip_message = '[INFO] UNIMPLEMENTED_TEST';
             }
+            $name = $exchange->id;
+            // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+            // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+            // report which method(s) were still running when the per-exchange timeout fired
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if ($is_load_markets) {
+                dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name);
                 \React\Async\await($exchange->load_markets(true));
+                dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
             }
-            $name = $exchange->id;
             if ($skip_message) {
                 if ($this->info) {
                     dump($this->add_padding($skip_message, 25), $name, $method_name);
                 }
                 return true;
             }
-            if ($this->info) {
-                $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-                dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
-            }
+            $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
             if (is_sync()) {
                 call_method_sync($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
             } else {
                 \React\Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));
             }
-            if ($this->info) {
-                dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
-            }
+            dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
             // add to the list of successed tests
             if ($is_public) {
                 $this->checked_public_tests[$method_name] = true;
@@ -369,6 +370,9 @@ class testMainClass {
                     \React\Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
                 } catch(\Throwable $ex) {
+                    // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                    // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                    dump($this->add_padding('[INFO] TESTING FAILED', 25), $exchange->id, $method_name);
                     $e = get_root_exception($ex);
                     $is_load_markets = ($method_name === 'loadMarkets');
                     $is_auth_error = ($e instanceof AuthenticationError);
@@ -2007,7 +2011,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -2351,26 +2355,6 @@ class testMainClass {
             }
             $client_order_id_stop = $stop_order_request['brokerId'];
             assert(str_starts_with($client_order_id_stop, $id_string), 'woo - brokerId: ' . $client_order_id_stop . ' does not start with id: ' . $id_string);
-            if (!is_sync()) {
-                \React\Async\await(close($exchange));
-            }
-            return true;
-        }) ();
-    }
-
-    public function test_bitmart() {
-        return Async\async(function () {
-            $exchange = $this->init_offline_exchange('bitmart');
-            $req_headers = array();
-            $id = 'CCXTxBitmart000';
-            assert($exchange->options['brokerId'] === $id, 'bitmart - id: ' . $id . ' not in options');
-            \React\Async\await($exchange->load_markets());
-            try {
-                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
-            } catch(\Throwable $e) {
-                $req_headers = $exchange->last_request_headers;
-            }
-            assert($req_headers['X-BM-BROKER-ID'] === $id, 'bitmart - id: ' . $id . ' not in headers');
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }

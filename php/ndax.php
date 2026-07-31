@@ -1252,7 +1252,7 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
@@ -2537,10 +2537,10 @@ class ndax extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = null;
-        if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
+        if (is_array($transaction) && array_key_exists('DepositId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
-        } elseif (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('WithdrawId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
@@ -2657,7 +2657,7 @@ class ndax extends Exchange {
         $withdrawTemplate = json_decode($template, $as_associative_array = true);
         $withdrawTemplate['ExternalAddress'] = $address;
         if ($tag !== null) {
-            if (is_array($withdrawTemplate) && array_key_exists('Memo', $withdrawTemplate)) {
+            if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {
                 $withdrawTemplate['Memo'] = $tag;
             }
         }

@@ -474,7 +474,7 @@ class polymarket extends Exchange {
                 for ($ei = 0; $ei < count($allEvents); $ei++) {
                     $rawEvent = $allEvents[$ei];
                     $eventId = $this->safe_string($rawEvent, 'id');
-                    if ($eventId && !(is_array($seen) && array_key_exists($eventId, $seen))) {
+                    if ($eventId && !(is_array($seen) && array_key_exists($eventId ?? '', $seen))) {
                         $seen[$eventId] = true;
                         $rawEvents[] = $rawEvent;
                     }
@@ -562,7 +562,7 @@ class polymarket extends Exchange {
                     for ($ei = 0; $ei < count($tagEvents); $ei++) {
                         $rawEvent = $tagEvents[$ei];
                         $eventId = $this->safe_string($rawEvent, 'id');
-                        if (($eventId !== null) && !(is_array($seen) && array_key_exists($eventId, $seen))) {
+                        if (($eventId !== null) && !(is_array($seen) && array_key_exists($eventId ?? '', $seen))) {
                             $seen[$eventId] = true;
                             $unioned[] = $rawEvent;
                         }
@@ -813,7 +813,7 @@ class polymarket extends Exchange {
             }
             $baseId = ($conditionId !== null) ? $conditionId : $marketId;
             $marketType = ($outcomeLabelsLength > 2) ? 'categorical' : 'binary';
-            // effectively-final copy for the $market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+            // effectively-final copy for the $market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
             $marketResolvedOutcome = $resolvedOutcome;
             $result[] = array(
                 'id' => $conditionId,
@@ -1060,7 +1060,7 @@ class polymarket extends Exchange {
             for ($i = 0; $i < count($targets); $i++) {
                 $outcomeObj = $this->outcome($targets[$i]);
                 $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
-                if (($tokenId !== null) && !(is_array($outcomesByTokenId) && array_key_exists($tokenId, $outcomesByTokenId))) {
+                if (($tokenId !== null) && !(is_array($outcomesByTokenId) && array_key_exists($tokenId ?? '', $outcomesByTokenId))) {
                     $outcomesByTokenId[$tokenId] = $outcomeObj;
                     $tokenIds[] = $tokenId;
                 }
@@ -1100,7 +1100,7 @@ class polymarket extends Exchange {
                 for ($i = 0; $i < $booksLength; $i++) {
                     $book = $books[$i];
                     $tokenId = $this->safe_string($book, 'asset_id');
-                    if (($tokenId === null) || !(is_array($outcomesByTokenId) && array_key_exists($tokenId, $outcomesByTokenId))) {
+                    if (($tokenId === null) || !(is_array($outcomesByTokenId) && array_key_exists($tokenId ?? '', $outcomesByTokenId))) {
                         continue;
                     }
                     $outcomeObj = $outcomesByTokenId[$tokenId];
@@ -1270,7 +1270,7 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
-            if (!(is_array($this->timeframes) && array_key_exists($timeframe, $this->timeframes))) {
+            if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
                 // hoisted keys list => chaining join onto Object.keys breaks the python transpiler
                 $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
                 throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
@@ -1337,7 +1337,7 @@ class polymarket extends Exchange {
                     $vol = $this->safe_number($item, 'v');
                 }
                 $bucketKey = (string) $snappedMs;
-                if (!(is_array($buckets) && array_key_exists($bucketKey, $buckets))) {
+                if (!(is_array($buckets) && array_key_exists($bucketKey ?? '', $buckets))) {
                     $buckets[$bucketKey] = array( $snappedMs, $price, $price, $price, $price, $vol );
                 } else {
                     $candle = $buckets[$bucketKey];
@@ -1747,7 +1747,7 @@ class polymarket extends Exchange {
                 $position = $parsed[$i];
                 $info = $this->safe_dict($position, 'info', array());
                 $assetId = $this->safe_string($info, 'asset');
-                if (($assetId !== null) && (is_array($wantedIds) && array_key_exists($assetId, $wantedIds))) {
+                if (($assetId !== null) && (is_array($wantedIds) && array_key_exists($assetId ?? '', $wantedIds))) {
                     $result[] = $position;
                 }
             }
@@ -2083,7 +2083,7 @@ class polymarket extends Exchange {
             }
         }
         // tick size . neg-risk flag drive the rounding and the verifying contract; both are read from the
-        // $outcome object (is_array(parseMarket) && array_key_exists(set, parseMarket)) and can be overridden via $params to keep requests deterministic
+        // $outcome object (is_array(parseMarket) && array_key_exists(set ?? '', parseMarket)) and can be overridden via $params to keep requests deterministic
         $outcomePrecision = $this->safe_dict($outcomeObj, 'precision', array());
         $tickSize = $this->safe_string($params, 'tickSize', $this->number_to_string($this->safe_number($outcomePrecision, 'price', 0.01)));
         $negRisk = $this->safe_bool($params, 'negRisk', $this->safe_bool($outcomeObj, 'negRisk', false));
@@ -3015,7 +3015,7 @@ class polymarket extends Exchange {
         if ($outcome === null) {
             return;
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
             $seededBook = $this->order_book(array());
             $this->orderbooks[$outcome] = $seededBook;
         }
@@ -3055,7 +3055,7 @@ class polymarket extends Exchange {
             $change = $changes[$i];
             $tokenId = $this->safe_string($change, 'asset_id');
             $outcome = $this->token_id_to_symbol($tokenId);
-            if (($outcome === null) || !(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
+            if (($outcome === null) || !(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
                 continue; // no snapshot yet — discard delta
             }
             $orderbook = $this->orderbooks[$outcome];
@@ -3177,7 +3177,7 @@ class polymarket extends Exchange {
             $messageHash = 'ticker::' . $outcome;
             $subscribeHash = 'subscribe::' . $tokenId;
             $subscribeMsg = array( 'assets_ids' => array( $tokenId ), 'type' => 'market' );
-            if (!(is_array($this->orderbooks) && array_key_exists($outcome, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
                 $seededBook = $this->order_book(array());
                 $this->orderbooks[$outcome] = $seededBook;
             }

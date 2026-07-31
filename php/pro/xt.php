@@ -682,7 +682,7 @@ class xt extends \ccxt\async\xt {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
@@ -702,7 +702,7 @@ class xt extends \ccxt\async\xt {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'position::contract');
@@ -983,7 +983,7 @@ class xt extends \ccxt\async\xt {
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
             $timeframe = $this->safe_string($data, 'i', '');
-            $tradeType = (is_array($data) && array_key_exists('q', $data)) ? 'spot' : 'contract';
+            $tradeType = (is_array($data) && array_key_exists('q' ?? '', $data)) ? 'spot' : 'contract';
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($data, $market);
@@ -1122,7 +1122,7 @@ class xt extends \ccxt\async\xt {
             $splitEvent = explode(',', $event);
             $event = $this->safe_string($splitEvent, 0, '');
             $tradeType = 'spot';
-            if (($data !== null) && (is_array($data) && array_key_exists('fu', $data))) {
+            if (($data !== null) && (is_array($data) && array_key_exists('fu' ?? '', $data))) {
                 $tradeType = 'contract';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
@@ -1130,7 +1130,7 @@ class xt extends \ccxt\async\xt {
             $obAsks = $this->safe_list($data, 'a');
             $obBids = $this->safe_list($data, 'b');
             $messageHash = $event . '::' . $tradeType;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -1207,7 +1207,7 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         $marketId = $this->safe_string($trade, 's');
-        $tradeType = (is_array($trade) && array_key_exists('symbol', $trade)) ? 'contract' : 'spot';
+        $tradeType = (is_array($trade) && array_key_exists('symbol' ?? '', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $tradeType);
         $timestamp = $this->safe_string($trade, 't');
         return $this->safe_trade(array(
@@ -1275,7 +1275,7 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         $marketId = $this->safe_string_2($order, 's', 'symbol');
-        $tradeType = (is_array($order) && array_key_exists('symbol', $order)) ? 'contract' : 'spot';
+        $tradeType = (is_array($order) && array_key_exists('symbol' ?? '', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $tradeType);
         $timestamp = $this->safe_integer_2($order, 'ct', 'createTime');
         return $this->safe_order(array(
@@ -1360,7 +1360,7 @@ class xt extends \ccxt\async\xt {
         $order = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string_2($order, 's', 'symbol');
         if ($marketId !== null) {
-            $tradeType = (is_array($order) && array_key_exists('symbol', $order)) ? 'contract' : 'spot';
+            $tradeType = (is_array($order) && array_key_exists('symbol' ?? '', $order)) ? 'contract' : 'spot';
             $market = $this->safe_market($marketId, null, null, $tradeType);
             $parsed = $this->parse_ws_order($order, $market);
             $orders->append($parsed);
@@ -1413,7 +1413,7 @@ class xt extends \ccxt\async\xt {
         $account['total'] = $this->safe_string_2($data, 'b', 'walletBalance');
         $this->balance[$code] = $account;
         $this->balance = $this->safe_balance($this->balance);
-        $tradeType = (is_array($data) && array_key_exists('coin', $data)) ? 'contract' : 'spot';
+        $tradeType = (is_array($data) && array_key_exists('coin' ?? '', $data)) ? 'contract' : 'spot';
         $client->resolve($this->balance, 'balance::' . $tradeType);
     }
 
@@ -1491,7 +1491,7 @@ class xt extends \ccxt\async\xt {
             $method = ($topic === null) ? null : $this->safe_value($methods, $topic);
             if ($topic === 'trade') {
                 $data = $this->safe_dict($message, 'data');
-                if (($data !== null) && ((is_array($data) && array_key_exists('oi', $data)) || (is_array($data) && array_key_exists('orderId', $data)))) {
+                if (($data !== null) && ((is_array($data) && array_key_exists('oi' ?? '', $data)) || (is_array($data) && array_key_exists('orderId' ?? '', $data)))) {
                     $method = array($this, 'handle_my_trades');
                 } else {
                     $method = array($this, 'handle_trade');

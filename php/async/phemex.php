@@ -712,7 +712,7 @@ class phemex extends Exchange {
         if ($settleId !== $quoteId) {
             $inverse = true;
             // some unhandled cases
-            if (!(is_array($market) && array_key_exists('baseCurrency', $market)) && $base === $quote) {
+            if (!(is_array($market) && array_key_exists('baseCurrency' ?? '', $market)) && $base === $quote) {
                 $base = $settle;
             }
         }
@@ -2654,7 +2654,7 @@ class phemex extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $isSwap = $this->safe_bool($market, 'swap', false);
-        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order)) || (is_array($order) && array_key_exists('closedPnlRv', $order)) || (is_array($order) && array_key_exists('totalPnlRv', $order));
+        $hasPnl = (is_array($order) && array_key_exists('closedPnl' ?? '', $order)) || (is_array($order) && array_key_exists('closedPnlRv' ?? '', $order)) || (is_array($order) && array_key_exists('totalPnlRv' ?? '', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }

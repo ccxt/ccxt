@@ -1533,7 +1533,7 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume', $trade))) {
+        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
             // private $trade returns num of contracts instead of base currency (as the order-related methods do)
             $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
             $volume = $this->safe_string($trade, 'volume');

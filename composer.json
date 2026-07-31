@@ -162,7 +162,7 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "ext-gmp": "*",
-        "clue/http-proxy-react": "1.9.0",
+        "clue/http-proxy-react": "1.10.0",
         "evenement/evenement": "3.0.2",
         "fig/http-message-util": "1.1.5",
         "guzzlehttp/psr7": "2.13.0",

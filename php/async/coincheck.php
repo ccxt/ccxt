@@ -275,7 +275,7 @@ class coincheck extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            if (is_array($response) && array_key_exists($currencyId, $response)) {
+            if (is_array($response) && array_key_exists($currencyId ?? '', $response)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
                 $account['free'] = $this->safe_string($response, $currencyId);
@@ -580,7 +580,7 @@ class coincheck extends Exchange {
         $side = null;
         $fee = null;
         $orderId = null;
-        if (is_array($trade) && array_key_exists('liquidity', $trade)) {
+        if (is_array($trade) && array_key_exists('liquidity' ?? '', $trade)) {
             if ($this->safe_string($trade, 'liquidity') === 'T') {
                 $takerOrMaker = 'taker';
             } elseif ($this->safe_string($trade, 'liquidity') === 'M') {

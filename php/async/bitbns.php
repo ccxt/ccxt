@@ -1279,7 +1279,7 @@ class bitbns extends Exchange {
 
     public function sign($path, mixed $api = 'www', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $urls = $this->urls;
-        if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
+        if (!(is_array($urls['api']) && array_key_exists($api ?? '', $urls['api']))) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
         if ($api !== 'www') {

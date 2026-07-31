@@ -553,8 +553,8 @@ class kraken extends Exchange {
                     'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
                     'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                     'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
-                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
-                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market, cancel_only mode"]))
+                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market ?? '', post_only mode"]))
+                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market ?? '', cancel_only mode"]))
                     'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
                     'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
                 ),
@@ -675,7 +675,7 @@ class kraken extends Exchange {
             $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals')));
             $spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if ($spot && (is_array($cachedCurrencies) && array_key_exists($base, $cachedCurrencies))) {
+            if ($spot && (is_array($cachedCurrencies) && array_key_exists($base ?? '', $cachedCurrencies))) {
                 $currency = $cachedCurrencies[$base];
                 $currencyPrecision = $this->safe_number($currency, 'precision');
                 // if $currency precision is greater (e.g. 0.01) than $market precision (e.g. 0.001)
@@ -1471,7 +1471,7 @@ class kraken extends Exchange {
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
-        } elseif (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('ordertxid' ?? '', $trade)) {
             $marketId = $this->safe_string($trade, 'pair');
             $foundMarket = $this->find_market_by_altname_or_id($marketId);
             if ($foundMarket !== null) {
@@ -1487,7 +1487,7 @@ class kraken extends Exchange {
             $type = $this->safe_string($trade, 'ordertype');
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'vol');
-            if (is_array($trade) && array_key_exists('fee', $trade)) {
+            if (is_array($trade) && array_key_exists('fee' ?? '', $trade)) {
                 $currency = null;
                 if ($market !== null) {
                     $currency = $market['quote'];
@@ -1814,7 +1814,7 @@ class kraken extends Exchange {
 
     public function find_market_by_altname_or_id($id) {
         $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
-        if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
+        if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
         } else {
             return $this->safe_market($id);
@@ -2055,7 +2055,7 @@ class kraken extends Exchange {
         $average = $this->safe_number($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
-            if (is_array($order) && array_key_exists('fee', $order)) {
+            if (is_array($order) && array_key_exists('fee' ?? '', $order)) {
                 $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
@@ -2260,7 +2260,7 @@ class kraken extends Exchange {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
-        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags', $request))) {
+        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags' ?? '', $request))) {
             $request['oflags'] = $flags;
         }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ));
@@ -2407,7 +2407,7 @@ class kraken extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        if (!(is_array($result) && array_key_exists($id, $result))) {
+        if (!(is_array($result) && array_key_exists($id ?? '', $result))) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
         }
         return $this->parse_order($this->extend(array( 'id' => $id ), $result[$id]));
@@ -3390,7 +3390,7 @@ class kraken extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        if (is_array($params) && array_key_exists('key', $params)) {
+        if (is_array($params) && array_key_exists('key' ?? '', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
             $request = array(
@@ -3691,7 +3691,7 @@ class kraken extends Exchange {
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 $message = $this->id . ' ' . $body;
-                if (is_array($response) && array_key_exists('error', $response)) {
+                if (is_array($response) && array_key_exists('error' ?? '', $response)) {
                     $numErrors = count($response['error']);
                     if ($numErrors) {
                         for ($i = 0; $i < count($response['error']); $i++) {
@@ -3703,9 +3703,9 @@ class kraken extends Exchange {
                     }
                 }
                 // handleCreateOrdersErrors:
-                if (is_array($response) && array_key_exists('result', $response)) {
+                if (is_array($response) && array_key_exists('result' ?? '', $response)) {
                     $result = $this->safe_dict($response, 'result', array());
-                    if (is_array($result) && array_key_exists('orders', $result)) {
+                    if (is_array($result) && array_key_exists('orders' ?? '', $result)) {
                         $orders = $this->safe_list($result, 'orders', array());
                         for ($i = 0; $i < count($orders); $i++) {
                             $order = $orders[$i];

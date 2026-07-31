@@ -1788,7 +1788,7 @@ class bitrue extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('commission', $trade)) {
+        if (is_array($trade) && array_key_exists('commission' ?? '', $trade)) {
             $fee = array(
                 'cost' => $this->safe_string_2($trade, 'commission', 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
@@ -1938,11 +1938,11 @@ class bitrue extends Exchange {
         $filled = $this->safe_string($order, 'executedQty');
         $timestamp = null;
         $lastTradeTimestamp = null;
-        if (is_array($order) && array_key_exists('time', $order)) {
+        if (is_array($order) && array_key_exists('time' ?? '', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
-        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('transactTime' ?? '', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
-        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('updateTime' ?? '', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
@@ -2841,8 +2841,8 @@ class bitrue extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
-        $payAmount = (is_array($transaction) && array_key_exists('payAmount', $transaction));
-        $ctime = (is_array($transaction) && array_key_exists('ctime', $transaction));
+        $payAmount = (is_array($transaction) && array_key_exists('payAmount' ?? '', $transaction));
+        $ctime = (is_array($transaction) && array_key_exists('ctime' ?? '', $transaction));
         $type = ($payAmount || $ctime) ? 'withdrawal' : 'deposit';
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
@@ -3384,9 +3384,9 @@ class bitrue extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
             $byLimit = $config['byLimit'];
             for ($i = 0; $i < count($byLimit); $i++) {

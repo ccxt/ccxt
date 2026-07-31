@@ -673,7 +673,7 @@ class bittrade extends Exchange {
         $bidVolume = null;
         $ask = null;
         $askVolume = null;
-        if (is_array($ticker) && array_key_exists('bid', $ticker)) {
+        if (is_array($ticker) && array_key_exists('bid' ?? '', $ticker)) {
             if ((gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
@@ -682,7 +682,7 @@ class bittrade extends Exchange {
                 $bidVolume = $this->safe_string($ticker, 'bidSize');
             }
         }
-        if (is_array($ticker) && array_key_exists('ask', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ask' ?? '', $ticker)) {
             if ((gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
@@ -758,7 +758,7 @@ class bittrade extends Exchange {
             //         }
             //     }
             //
-            if (is_array($response) && array_key_exists('tick', $response)) {
+            if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
                 if (!$response['tick']) {
                     throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
                 }
@@ -1225,7 +1225,7 @@ class bittrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = null;
-            if (is_array($result) && array_key_exists($code, $result)) {
+            if (is_array($result) && array_key_exists($code ?? '', $result)) {
                 $account = $result[$code];
             } else {
                 $account = $this->account();
@@ -1474,7 +1474,7 @@ class bittrade extends Exchange {
         $side = null;
         $type = null;
         $status = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
+        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
             $orderType = explode('-', $order['type']);
             $side = $orderType[0];
             $type = $orderType[1];
@@ -2124,7 +2124,7 @@ class bittrade extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //

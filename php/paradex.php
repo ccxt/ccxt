@@ -1491,7 +1491,7 @@ class paradex extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
             $reduceOnly = true;
         }
         return $this->safe_order(array(

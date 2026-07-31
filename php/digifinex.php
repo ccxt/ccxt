@@ -2921,7 +2921,7 @@ class digifinex extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         // deposit state includes => 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
-        // withdrawal state includes => 1 (is_array(progress) && array_key_exists(application, progress)), 2 (to be confirmed), 3 (completed), 4 (rejected)
+        // withdrawal state includes => 1 (is_array(progress) && array_key_exists(application ?? '', progress)), 2 (to be confirmed), 3 (completed), 4 (rejected)
         $statuses = array(
             '1' => 'pending', // in Progress
             '2' => 'pending', // to be confirmed

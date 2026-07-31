@@ -277,7 +277,7 @@ class kalshi extends Exchange {
                         $m = $parsed[$j];
                         $flatMarkets[] = $m;
                         if ($eventKey) {
-                            if (!(is_array($eventsDict) && array_key_exists($eventKey, $eventsDict))) {
+                            if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                                 $eventsDict[$eventKey] = array(
                                     'id' => $eventTicker,
                                     'slug' => $eventTicker,
@@ -415,7 +415,7 @@ class kalshi extends Exchange {
                 $symbolLength = $this->parse_to_int(strlen($outcomeSymbol));
                 $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
                 $baseTicker = ($suffix === '-NO') ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
-                if (!(is_array($seen) && array_key_exists($baseTicker, $seen))) {
+                if (!(is_array($seen) && array_key_exists($baseTicker ?? '', $seen))) {
                     $seen[$baseTicker] = true;
                     $tickers[] = $baseTicker;
                 }
@@ -634,7 +634,7 @@ class kalshi extends Exchange {
                 ),
             );
         }
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $ticker,
@@ -992,7 +992,7 @@ class kalshi extends Exchange {
                 if ($ticker === null) {
                     continue;
                 }
-                if (!(is_array($outcomesByTicker) && array_key_exists($ticker, $outcomesByTicker))) {
+                if (!(is_array($outcomesByTicker) && array_key_exists($ticker ?? '', $outcomesByTicker))) {
                     $outcomesByTicker[$ticker] = array();
                     $tickers[] = $ticker;
                 }
@@ -1023,7 +1023,7 @@ class kalshi extends Exchange {
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
                     $marketTicker = $this->safe_string($raw, 'ticker');
-                    if (($marketTicker === null) || !(is_array($outcomesByTicker) && array_key_exists($marketTicker, $outcomesByTicker))) {
+                    if (($marketTicker === null) || !(is_array($outcomesByTicker) && array_key_exists($marketTicker ?? '', $outcomesByTicker))) {
                         continue;
                     }
                     $grouped = $outcomesByTicker[$marketTicker];
@@ -1586,7 +1586,7 @@ class kalshi extends Exchange {
                 $position = $parsed[$i];
                 $positionInfo = $this->safe_dict($position, 'info', array());
                 $positionTicker = $this->safe_string($positionInfo, 'ticker');
-                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker, $wantedTickers))) {
+                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker ?? '', $wantedTickers))) {
                     $result[] = $position;
                 }
             }

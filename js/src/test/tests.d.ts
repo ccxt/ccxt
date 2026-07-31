@@ -88,7 +88,6 @@ declare class testMainClass {
     testMexc(): Promise<boolean>;
     testHtx(): Promise<boolean>;
     testWoo(): Promise<boolean>;
-    testBitmart(): Promise<boolean>;
     testCoinex(): Promise<boolean>;
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
