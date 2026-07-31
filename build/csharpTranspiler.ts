@@ -1796,9 +1796,9 @@ async function runMain () {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
     const baseClassOnly = process.argv.includes ('--baseClass')
-    // optional single-process REST+WS: keeps the one piscina pool (and its warm
-    // per-thread Transpilers) alive across both stages instead of paying a second
-    // process boot + cold pool. CI keeps running the two commands separately.
+    // single-process REST+WS (default via npm run transpileCS / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
     const restAndWs = process.argv.includes ('--rest-and-ws')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     log.bright.green ({ force })
@@ -1811,7 +1811,7 @@ async function runMain () {
         // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
         // one transpiler instance, so the single piscina pool (and its warm per-thread
         // Transpilers) survives into the ws stage instead of paying a second process
-        // boot + cold pool. `npm run transpileCS` / `transpileCSWs` stay two for CI.
+        // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
         await transpiler.transpileEverything (force, baseOnly, examples, prediction)
         await transpiler.transpileWS (force)
         if (!inputExchanges.length) {
