@@ -36,7 +36,9 @@ export default class opinion extends Exchange {
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
@@ -1063,6 +1065,52 @@ export default class opinion extends Exchange {
             'fee': undefined,
             'trades': [],
         }, market as any);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchOrders
+     * @description fetches all of the authenticated user's orders
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} [outcome] filter by unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let outcomeObj: any = undefined;
+        const request: Dict = {};
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome (outcome);
+            const info = this.safeDict (outcomeObj, 'info', {});
+            request['marketId'] = this.safeInteger (info, 'marketId');
+        }
+        const response = await this.opinionPrivateGetOrder (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const orders = this.safeList (result, 'list', []);
+        return this.parsePredictionOrders (orders, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchOrder
+     * @description fetches a single order by id
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} id the order id
+     * @param {string} [outcome] unified outcome or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        let outcomeObj: any = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = await this.loadOutcome (outcome);
+        }
+        const response = await this.opinionPrivateGetOrderOrderId (this.extend ({ 'orderId': id }, params));
+        const result = this.safeDict (response, 'result', {});
+        const orderData = this.safeDict (result, 'orderData', {});
+        return this.parsePredictionOrder (orderData, outcomeObj);
     }
 
     /**
