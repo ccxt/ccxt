@@ -2317,7 +2317,7 @@ func (this *MexcCore) Authenticate(subscriptionHash any, optionalArgs ...any) <-
 		}
 		// guard against concurrent listenKey requests with a future on the base
 		// spot ws client - the first caller fetches the listenKey, concurrent
-		// callers await the future and resume as soon as the response arrives,
+		// callers wait on the future and resume when the listenKey is ready,
 		// otherwise the user-data subscriptions would be split across two connections
 		var client any = this.Client(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 		var messageHash any = "authenticate:listenKey"
@@ -2331,7 +2331,7 @@ func (this *MexcCore) Authenticate(subscriptionHash any, optionalArgs ...any) <-
 			return nil
 		}
 		ccxt.AddElementToObject(this.Options, "listenKeyFetching", true)
-		client.(ccxt.ClientInterface).Future(messageHash) // create it before the await below, so concurrent callers can find it
+		client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
 		var response any = nil
 
 		{
