@@ -267,13 +267,24 @@ const exec = (bin, ...args) => {
 
 //  ------------------------------------------------------------------------ //
 
-// const execWithRetry = () => {
+/*  Failures whose output points at connectivity rather than a code bug get one
+    re-run — a transient network blip on the CI server shouldn't fail a lane.
+    The bracketed class names come from exceptionMessage() in tests.helpers.ts
+    ("[RequestTimeout] ..."), identical across all transpiled languages; the bare
+    tokens cover process-level socket errors. RUNTEST_TIMED_OUT is deliberately
+    not retried: it lands in WARN (failed=false), and re-running a hung exchange
+    would double the lane's wall-clock for no benefit.                           */
 
-//     // Sometimes execution (on a remote CI server) is just fails with no
-//     // apparent reason, leaving an empty stdout/stderr behind. I suspect
-//     // it's related to out-of-memory errors. So in that case we will re-try
-//     // until it eventually finalizes.
-// }
+const networkErrorRegex = /\[(?:NetworkError|OperationFailed|RequestTimeout|ExchangeNotAvailable|OnMaintenance|DDoSProtection|RateLimitExceeded|InvalidNonce)\]|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|socket hang up|getaddrinfo/
+
+const execWithRetry = async (bin, ...args) => {
+    const result = await exec (bin, ...args)
+    if (result.failed && networkErrorRegex.test (result.output)) {
+        log.bright.yellow ('Network error detected, retrying once:', [ bin, ...args ].join (' ').white)
+        return exec (bin, ...args)
+    }
+    return result
+}
 
 //  ------------------------------------------------------------------------ //
 
@@ -376,7 +387,7 @@ const testExchange = async (exchange) => {
         selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
 
-    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)));
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await execWithRetry (...test.exec)));
     const failed         = completeTests.find (test => test.failed);
     const hasWarnings    = completeTests.find (test => test.warnings.length);
     const warnings       = completeTests.reduce (
