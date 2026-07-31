@@ -56,12 +56,7 @@ const exchangeSpecificFlags = {
 let exchanges = []
 let symbol = 'all'
 let method = undefined
-// Java JVMs are ~700 MB each at peak; 5 concurrent × 2 simul streams (REST + WS)
-// = 10 JVMs OOMs CI's 7 GB / 4-core runner before tests complete (the runner
-// receives a shutdown signal at ~7 min with 6+ orphan java procs). Lower the
-// Java cap so peak memory stays in budget; ~110/80 exchanges still finish in
-// ~30 min wall-clock locally with cap=3.
-let maxConcurrency = process.argv.includes('--java') ? 3 : 5
+let maxConcurrency = undefined // a bare numeric CLI arg always wins; otherwise computed per-language after the args are parsed
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
@@ -80,13 +75,15 @@ for (const arg of args) {
     else                                     { exchanges.push (arg) }
 }
 
+if (maxConcurrency === undefined) {
+    const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
+    const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
+    const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
+    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+}
+
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
-// for REST exchange test, we might need to wait for 200+ seconds for some exchanges
-// for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
-// Java needs extra headroom for gradle daemon dispatch + JVM start + loadMarkets
-// (binance-class exchanges have 4000+ markets); without it, ~22 WS exchanges
-// hit the per-test timeout despite passing on their own.
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
 
